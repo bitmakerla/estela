@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:8
+    volumes:
+      - bitmaker_dbdata:/var/lib/mysql
+      - ./docker-conf/db/mysql:/docker-entrypoint-initdb.d
+    restart: always
+    command: --default_authentication_plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
+      - MYSQL_USER=django
+      - MYSQL_PASSWORD=f074yVBzRRHjuVFtAXJW
+    ports:
+      - "3306:3306"
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/home/bitmaker
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.local
+      - DB_USER=django
+      - DB_PASSWORD=f074yVBzRRHjuVFtAXJW
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    restart: always
+
+volumes:
+  bitmaker_dbdata:
