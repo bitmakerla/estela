@@ -4,10 +4,19 @@
 #
 #    pip-compile requirements/base.in
 #
-asgiref==3.2.10           # via ***REMOVED***
-***REMOVED***-environ==0.4.5     # via -r requirements/base.in
-***REMOVED***==3.1.1             # via -r requirements/base.in, ***REMOVED***restframework
-***REMOVED***restframework==3.11.1  # via -r requirements/base.in
-mysqlclient==2.0.1        # via -r requirements/base.in
-pytz==2020.1              # via ***REMOVED***
-sqlparse==0.3.1           # via ***REMOVED***
+asgiref==3.2.10
+    # via ***REMOVED***
+***REMOVED***-environ==0.4.5
+    # via -r requirements/base.in
+***REMOVED***==3.1.1
+    # via
+    #   -r requirements/base.in
+    #   ***REMOVED***restframework
+***REMOVED***restframework==3.11.1
+    # via -r requirements/base.in
+mysqlclient==2.0.1
+    # via -r requirements/base.in
+pytz==2020.1
+    # via ***REMOVED***
+sqlparse==0.3.1
+    # via ***REMOVED***
