@@ -4,23 +4,55 @@
 #
 #    pip-compile requirements/test.in
 #
-asgiref==3.2.10           # via -r requirements/base.txt, django
-attrs==20.2.0             # via pytest
-django-environ==0.4.5     # via -r requirements/base.txt
-django==3.1.1             # via -r requirements/base.txt, djangorestframework
-djangorestframework==3.11.1  # via -r requirements/base.txt
-importlib-metadata==2.0.0  # via pluggy, pytest
-iniconfig==1.0.1          # via pytest
-more-itertools==8.5.0     # via pytest
-mysqlclient==2.0.1        # via -r requirements/base.txt
-packaging==20.4           # via pytest
-pluggy==0.13.1            # via pytest
-py==1.9.0                 # via pytest
-pyparsing==2.4.7          # via packaging
-pytest-django==3.10.0     # via -r requirements/test.in
-pytest==6.0.2             # via pytest-django
-pytz==2020.1              # via -r requirements/base.txt, django
-six==1.15.0               # via packaging
-sqlparse==0.3.1           # via -r requirements/base.txt, django
-toml==0.10.1              # via pytest
-zipp==3.2.0               # via importlib-metadata
+asgiref==3.2.10
+    # via
+    #   -r requirements/base.txt
+    #   django
+attrs==20.2.0
+    # via pytest
+django-environ==0.4.5
+    # via -r requirements/base.txt
+django==3.1.1
+    # via
+    #   -r requirements/base.txt
+    #   djangorestframework
+djangorestframework==3.11.1
+    # via -r requirements/base.txt
+importlib-metadata==3.7.3
+    # via
+    #   pluggy
+    #   pytest
+iniconfig==1.0.1
+    # via pytest
+more-itertools==8.5.0
+    # via pytest
+mysqlclient==2.0.1
+    # via -r requirements/base.txt
+packaging==20.4
+    # via pytest
+pluggy==0.13.1
+    # via pytest
+py==1.9.0
+    # via pytest
+pyparsing==2.4.7
+    # via packaging
+pytest-django==3.10.0
+    # via -r requirements/test.in
+pytest==6.0.2
+    # via pytest-django
+pytz==2020.1
+    # via
+    #   -r requirements/base.txt
+    #   django
+six==1.15.0
+    # via packaging
+sqlparse==0.3.1
+    # via
+    #   -r requirements/base.txt
+    #   django
+toml==0.10.1
+    # via pytest
+typing-extensions==3.7.4.3
+    # via importlib-metadata
+zipp==3.4.1
+    # via importlib-metadata

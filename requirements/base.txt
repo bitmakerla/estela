@@ -4,10 +4,19 @@
 #
 #    pip-compile requirements/base.in
 #
-asgiref==3.2.10           # via django
-django-environ==0.4.5     # via -r requirements/base.in
-django==3.1.1             # via -r requirements/base.in, djangorestframework
-djangorestframework==3.11.1  # via -r requirements/base.in
-mysqlclient==2.0.1        # via -r requirements/base.in
-pytz==2020.1              # via django
-sqlparse==0.3.1           # via django
+asgiref==3.2.10
+    # via django
+django-environ==0.4.5
+    # via -r requirements/base.in
+django==3.1.1
+    # via
+    #   -r requirements/base.in
+    #   djangorestframework
+djangorestframework==3.11.1
+    # via -r requirements/base.in
+mysqlclient==2.0.1
+    # via -r requirements/base.in
+pytz==2020.1
+    # via django
+sqlparse==0.3.1
+    # via django

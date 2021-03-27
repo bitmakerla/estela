@@ -58,6 +58,7 @@ THIRD_PARTY_APPS = [
 
 PROJECT_APPS = [
     'api',
+    'core',
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -145,3 +146,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+# Pagination settings used in api_app
+
+API_PAGE_SIZE = 100  # Paginator page size
+API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
