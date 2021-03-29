@@ -4,28 +4,88 @@
 #
 #    pip-compile requirements/dev.in
 #
-asgiref==3.2.10           # via -r requirements/test.txt, django
-attrs==20.2.0             # via -r requirements/test.txt, pytest
-click==7.1.2              # via pip-tools
-django-environ==0.4.5     # via -r requirements/test.txt
-django==3.1.1             # via -r requirements/test.txt, djangorestframework
-djangorestframework==3.11.1  # via -r requirements/test.txt
-importlib-metadata==2.0.0  # via -r requirements/test.txt, pluggy, pytest
-iniconfig==1.0.1          # via -r requirements/test.txt, pytest
-more-itertools==8.5.0     # via -r requirements/test.txt, pytest
-mysqlclient==2.0.1        # via -r requirements/test.txt
-packaging==20.4           # via -r requirements/test.txt, pytest
-pip-tools==5.3.1          # via -r requirements/dev.in
-pluggy==0.13.1            # via -r requirements/test.txt, pytest
-py==1.9.0                 # via -r requirements/test.txt, pytest
-pyparsing==2.4.7          # via -r requirements/test.txt, packaging
-pytest-django==3.10.0     # via -r requirements/test.txt
-pytest==6.0.2             # via -r requirements/test.txt, pytest-django
-pytz==2020.1              # via -r requirements/test.txt, django
-six==1.15.0               # via -r requirements/test.txt, packaging, pip-tools
-sqlparse==0.3.1           # via -r requirements/test.txt, django
-toml==0.10.1              # via -r requirements/test.txt, pytest
-zipp==3.2.0               # via -r requirements/test.txt, importlib-metadata
+asgiref==3.2.10
+    # via
+    #   -r requirements/test.txt
+    #   django
+attrs==20.2.0
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+click==7.1.2
+    # via pip-tools
+django-environ==0.4.5
+    # via -r requirements/test.txt
+django==3.1.1
+    # via
+    #   -r requirements/test.txt
+    #   djangorestframework
+djangorestframework==3.11.1
+    # via -r requirements/test.txt
+importlib-metadata==3.7.3
+    # via
+    #   -r requirements/test.txt
+    #   pluggy
+    #   pytest
+iniconfig==1.0.1
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+more-itertools==8.5.0
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+mysqlclient==2.0.1
+    # via -r requirements/test.txt
+packaging==20.4
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+pip-tools==5.3.1
+    # via -r requirements/dev.in
+pluggy==0.13.1
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+py==1.9.0
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+pyparsing==2.4.7
+    # via
+    #   -r requirements/test.txt
+    #   packaging
+pytest-django==3.10.0
+    # via -r requirements/test.txt
+pytest==6.0.2
+    # via
+    #   -r requirements/test.txt
+    #   pytest-django
+pytz==2020.1
+    # via
+    #   -r requirements/test.txt
+    #   django
+six==1.15.0
+    # via
+    #   -r requirements/test.txt
+    #   packaging
+    #   pip-tools
+sqlparse==0.3.1
+    # via
+    #   -r requirements/test.txt
+    #   django
+toml==0.10.1
+    # via
+    #   -r requirements/test.txt
+    #   pytest
+typing-extensions==3.7.4.3
+    # via
+    #   -r requirements/test.txt
+    #   importlib-metadata
+zipp==3.4.1
+    # via
+    #   -r requirements/test.txt
+    #   importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
