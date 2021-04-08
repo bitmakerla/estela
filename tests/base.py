@@ -5,6 +5,8 @@ from rest_framework.test import APITestCase
 
 import json
 
+TEST_DOCKER_IMAGE = 'rodp63/books-img:v1.1'
+
 
 class BaseTestCase(APITestCase):
     resource = None

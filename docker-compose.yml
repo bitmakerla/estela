@@ -22,8 +22,6 @@ services:
       - .:/home/bitmaker
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.local
-      - DB_USER=django
-      - DB_PASSWORD=f074yVBzRRHjuVFtAXJW
     depends_on:
       - db
     ports:
