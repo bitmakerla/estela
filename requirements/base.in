@@ -2,3 +2,5 @@ django
 django-environ
 djangorestframework
 mysqlclient
+kubernetes
+eks-token

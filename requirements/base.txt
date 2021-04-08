@@ -6,6 +6,22 @@
 #
 asgiref==3.2.10
     # via django
+awscli==1.18.150
+    # via eks-token
+botocore==1.18.9
+    # via
+    #   awscli
+    #   s3transfer
+cachetools==4.2.1
+    # via google-auth
+certifi==2020.12.5
+    # via
+    #   kubernetes
+    #   requests
+chardet==4.0.0
+    # via requests
+colorama==0.4.3
+    # via awscli
 django-environ==0.4.5
     # via -r requirements/base.in
 django==3.1.1
@@ -14,9 +30,65 @@ django==3.1.1
     #   djangorestframework
 djangorestframework==3.11.1
     # via -r requirements/base.in
+docutils==0.15.2
+    # via awscli
+eks-token==0.1.1
+    # via -r requirements/base.in
+google-auth==1.28.0
+    # via kubernetes
+idna==2.10
+    # via requests
+jmespath==0.10.0
+    # via botocore
+kubernetes==12.0.1
+    # via -r requirements/base.in
 mysqlclient==2.0.1
     # via -r requirements/base.in
+oauthlib==3.1.0
+    # via requests-oauthlib
+pyasn1-modules==0.2.8
+    # via google-auth
+pyasn1==0.4.8
+    # via
+    #   pyasn1-modules
+    #   rsa
+python-dateutil==2.8.1
+    # via
+    #   botocore
+    #   kubernetes
 pytz==2020.1
     # via django
+pyyaml==5.3.1
+    # via
+    #   awscli
+    #   kubernetes
+requests-oauthlib==1.3.0
+    # via kubernetes
+requests==2.25.1
+    # via
+    #   kubernetes
+    #   requests-oauthlib
+rsa==4.5
+    # via
+    #   awscli
+    #   google-auth
+s3transfer==0.3.6
+    # via awscli
+six==1.15.0
+    # via
+    #   google-auth
+    #   kubernetes
+    #   python-dateutil
+    #   websocket-client
 sqlparse==0.3.1
     # via django
+urllib3==1.25.11
+    # via
+    #   botocore
+    #   kubernetes
+    #   requests
+websocket-client==0.58.0
+    # via kubernetes
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

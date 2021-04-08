@@ -2,6 +2,8 @@
 
 ## Set-up
 
+You need to add enviroment file (.env) in root directory.
+
 ```sh
 $ make build
 $ make up  # Retry if neccesary until DB is ready
