@@ -23,6 +23,8 @@ env = environ.Env(
     DB_PASSWORD=(str, 'dummy'),
     DB_HOST=(str, 'db'),
     DB_PORT=(str, '3306'),
+    CLUSTER_HOST=(str, 'dummy'),
+    CLUSTER_NAME=(str, 'dummy')
 )
 
 environ.Env.read_env(env_file='.env')
@@ -152,3 +154,9 @@ STATIC_URL = '/static/'
 
 API_PAGE_SIZE = 100  # Paginator page size
 API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
+
+
+# Cluster Settings
+
+CLUSTER_HOST = env('CLUSTER_HOST')
+CLUSTER_NAME = env('CLUSTER_NAME')
