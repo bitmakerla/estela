@@ -2,3 +2,5 @@
 ***REMOVED***-environ
 ***REMOVED***restframework
 mysqlclient
+kubernetes
+eks-token
