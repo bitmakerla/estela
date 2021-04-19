@@ -4,6 +4,10 @@
 #
 #    pip-compile requirements/dev.in
 #
+amqp==5.0.6
+    # via
+    #   -r requirements/test.txt
+    #   kombu
 asgiref==3.2.10
     # via
     #   -r requirements/test.txt
@@ -16,6 +20,10 @@ awscli==1.18.150
     # via
     #   -r requirements/test.txt
     #   eks-token
+billiard==3.6.4.0
+    # via
+    #   -r requirements/test.txt
+    #   celery
 botocore==1.18.9
     # via
     #   -r requirements/test.txt
@@ -25,6 +33,10 @@ cachetools==4.2.1
     # via
     #   -r requirements/test.txt
     #   google-auth
+celery==5.0.5
+    # via
+    #   -r requirements/test.txt
+    #   django-celery-beat
 certifi==2020.12.5
     # via
     #   -r requirements/test.txt
@@ -34,17 +46,43 @@ chardet==4.0.0
     # via
     #   -r requirements/test.txt
     #   requests
+click-didyoumean==0.0.3
+    # via
+    #   -r requirements/test.txt
+    #   celery
+click-plugins==1.1.1
+    # via
+    #   -r requirements/test.txt
+    #   celery
+click-repl==0.1.6
+    # via
+    #   -r requirements/test.txt
+    #   celery
 click==7.1.2
-    # via pip-tools
+    # via
+    #   -r requirements/test.txt
+    #   celery
+    #   click-didyoumean
+    #   click-plugins
+    #   click-repl
+    #   pip-tools
 colorama==0.4.3
     # via
     #   -r requirements/test.txt
     #   awscli
+django-celery-beat==2.2.0
+    # via -r requirements/test.txt
 django-environ==0.4.5
     # via -r requirements/test.txt
+django-timezone-field==4.1.2
+    # via
+    #   -r requirements/test.txt
+    #   django-celery-beat
 django==3.1.1
     # via
     #   -r requirements/test.txt
+    #   django-celery-beat
+    #   django-timezone-field
     #   djangorestframework
 djangorestframework==3.11.1
     # via -r requirements/test.txt
@@ -62,9 +100,10 @@ idna==2.10
     # via
     #   -r requirements/test.txt
     #   requests
-importlib-metadata==3.7.3
+importlib-metadata==3.10.0
     # via
     #   -r requirements/test.txt
+    #   kombu
     #   pluggy
     #   pytest
 iniconfig==1.0.1
@@ -75,6 +114,10 @@ jmespath==0.10.0
     # via
     #   -r requirements/test.txt
     #   botocore
+kombu==5.0.2
+    # via
+    #   -r requirements/test.txt
+    #   celery
 kubernetes==12.0.1
     # via -r requirements/test.txt
 more-itertools==8.5.0
@@ -97,6 +140,10 @@ pluggy==0.13.1
     # via
     #   -r requirements/test.txt
     #   pytest
+prompt-toolkit==3.0.18
+    # via
+    #   -r requirements/test.txt
+    #   click-repl
 py==1.9.0
     # via
     #   -r requirements/test.txt
@@ -120,20 +167,29 @@ pytest==6.0.2
     # via
     #   -r requirements/test.txt
     #   pytest-django
+python-crontab==2.5.1
+    # via
+    #   -r requirements/test.txt
+    #   django-celery-beat
 python-dateutil==2.8.1
     # via
     #   -r requirements/test.txt
     #   botocore
     #   kubernetes
+    #   python-crontab
 pytz==2020.1
     # via
     #   -r requirements/test.txt
+    #   celery
     #   django
+    #   django-timezone-field
 pyyaml==5.3.1
     # via
     #   -r requirements/test.txt
     #   awscli
     #   kubernetes
+redis==3.5.3
+    # via -r requirements/test.txt
 requests-oauthlib==1.3.0
     # via
     #   -r requirements/test.txt
@@ -155,6 +211,7 @@ s3transfer==0.3.6
 six==1.15.0
     # via
     #   -r requirements/test.txt
+    #   click-repl
     #   google-auth
     #   kubernetes
     #   packaging
@@ -179,6 +236,15 @@ urllib3==1.25.11
     #   botocore
     #   kubernetes
     #   requests
+vine==5.0.0
+    # via
+    #   -r requirements/test.txt
+    #   amqp
+    #   celery
+wcwidth==0.2.5
+    # via
+    #   -r requirements/test.txt
+    #   prompt-toolkit
 websocket-client==0.58.0
     # via
     #   -r requirements/test.txt

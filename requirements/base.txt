@@ -4,29 +4,55 @@
 #
 #    pip-compile requirements/base.in
 #
+amqp==5.0.6
+    # via kombu
 asgiref==3.2.10
     # via django
 awscli==1.18.150
     # via eks-token
+billiard==3.6.4.0
+    # via celery
 botocore==1.18.9
     # via
     #   awscli
     #   s3transfer
 cachetools==4.2.1
     # via google-auth
+celery==5.0.5
+    # via
+    #   -r requirements/base.in
+    #   django-celery-beat
 certifi==2020.12.5
     # via
     #   kubernetes
     #   requests
 chardet==4.0.0
     # via requests
+click-didyoumean==0.0.3
+    # via celery
+click-plugins==1.1.1
+    # via celery
+click-repl==0.1.6
+    # via celery
+click==7.1.2
+    # via
+    #   celery
+    #   click-didyoumean
+    #   click-plugins
+    #   click-repl
 colorama==0.4.3
     # via awscli
+django-celery-beat==2.2.0
+    # via -r requirements/base.in
 django-environ==0.4.5
     # via -r requirements/base.in
+django-timezone-field==4.1.2
+    # via django-celery-beat
 django==3.1.1
     # via
     #   -r requirements/base.in
+    #   django-celery-beat
+    #   django-timezone-field
     #   djangorestframework
 djangorestframework==3.11.1
     # via -r requirements/base.in
@@ -38,30 +64,44 @@ google-auth==1.28.0
     # via kubernetes
 idna==2.10
     # via requests
+importlib-metadata==3.10.0
+    # via kombu
 jmespath==0.10.0
     # via botocore
+kombu==5.0.2
+    # via celery
 kubernetes==12.0.1
     # via -r requirements/base.in
 mysqlclient==2.0.1
     # via -r requirements/base.in
 oauthlib==3.1.0
     # via requests-oauthlib
+prompt-toolkit==3.0.18
+    # via click-repl
 pyasn1-modules==0.2.8
     # via google-auth
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
     #   rsa
+python-crontab==2.5.1
+    # via django-celery-beat
 python-dateutil==2.8.1
     # via
     #   botocore
     #   kubernetes
+    #   python-crontab
 pytz==2020.1
-    # via django
+    # via
+    #   celery
+    #   django
+    #   django-timezone-field
 pyyaml==5.3.1
     # via
     #   awscli
     #   kubernetes
+redis==3.5.3
+    # via -r requirements/base.in
 requests-oauthlib==1.3.0
     # via kubernetes
 requests==2.25.1
@@ -76,19 +116,30 @@ s3transfer==0.3.6
     # via awscli
 six==1.15.0
     # via
+    #   click-repl
     #   google-auth
     #   kubernetes
     #   python-dateutil
     #   websocket-client
 sqlparse==0.3.1
     # via django
+typing-extensions==3.7.4.3
+    # via importlib-metadata
 urllib3==1.25.11
     # via
     #   botocore
     #   kubernetes
     #   requests
+vine==5.0.0
+    # via
+    #   amqp
+    #   celery
+wcwidth==0.2.5
+    # via prompt-toolkit
 websocket-client==0.58.0
     # via kubernetes
+zipp==3.4.1
+    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

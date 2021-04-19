@@ -28,7 +28,7 @@ class BaseTestCase(APITestCase):
         return token
 
     def make_request(self, method, resource=None, url_kwargs=None, data=None, user=None, status_code=200, token=None,
-                     paginated=False, load_all_content=True):
+                     paginated=False, load_all_content=True, params=None):
         resource = resource or self.resource
         url = reverse(resource, kwargs=url_kwargs)
 
@@ -48,6 +48,9 @@ class BaseTestCase(APITestCase):
 
         if token:
             self.client.credentials(HTTP_AUTHORIZATION='Token {}'.format(token))
+
+        if params is not None:
+            url += '?{}'.format('&'.join(['{}={}'.format(param, value) for param, value in params.items()]))
 
         response = request_func(url, format='json', data=data)
         response_content = self.get_response_content(response, status_code)
