@@ -8,6 +8,10 @@ class Project(models.Model):
     name = models.CharField(max_length=1000)
     users = models.ManyToManyField(User)
 
+    @property
+    def container_image(self):
+        return 'rodp63/books-img:v1.1'  # TODO: Replace this by container image with project pid name
+
 
 class Spider(models.Model):
     sid = models.AutoField(primary_key=True)
@@ -36,3 +40,7 @@ class SpiderJob(models.Model):
 
     class Meta:
         ordering = ['created']
+
+    @property
+    def name(self):
+        return '{}-{}'.format(self.spider.project.pid, self.jid)

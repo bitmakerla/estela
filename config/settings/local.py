@@ -7,3 +7,5 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
 ]
+
+RUN_JOBS_PER_LOT = 10

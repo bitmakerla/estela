@@ -24,7 +24,9 @@ env = environ.Env(
     DB_HOST=(str, 'db'),
     DB_PORT=(str, '3306'),
     CLUSTER_HOST=(str, 'dummy'),
-    CLUSTER_NAME=(str, 'dummy')
+    CLUSTER_NAME=(str, 'dummy'),
+    CELERY_BROKER_URL=(str, 'redis://redis'),
+    CELERY_RESULT_BACKEND=(str, 'redis://redis:6379/0'),
 )
 
 environ.Env.read_env(env_file='.env')
@@ -54,6 +56,7 @@ DEFAULT_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'django_celery_beat',
     'rest_framework',
     'rest_framework.authtoken',
 ]
@@ -160,3 +163,10 @@ API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
 
 CLUSTER_HOST = env('CLUSTER_HOST')
 CLUSTER_NAME = env('CLUSTER_NAME')
+
+
+# Celery settings
+
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

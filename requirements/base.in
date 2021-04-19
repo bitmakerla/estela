@@ -1,6 +1,9 @@
+celery
 django
+django-celery-beat
 django-environ
 djangorestframework
-mysqlclient
-kubernetes
 eks-token
+kubernetes
+mysqlclient
+redis

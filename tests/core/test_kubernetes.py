@@ -1,9 +1,5 @@
-import sys
 from core.kubernetes import get_api_instance, create_job, delete_job, read_job
 from tests.base import BaseTestCase, TEST_DOCKER_IMAGE
-import logging
-
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 class TestKubernetes(BaseTestCase):
