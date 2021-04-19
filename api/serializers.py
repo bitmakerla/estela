@@ -12,11 +12,11 @@ class SpiderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Spider
         fields = '__all__'
-        read_only_fields = ('sid', 'pid')
+        read_only_fields = ('sid', 'project')
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpiderJob
-        fields = '__all__'
-        read_only_fields = ('jid', 'sid', 'created', 'status')
+        fields = ('jid', 'spider', 'created', 'status', 'name')
+        read_only_fields = ('jid', 'spider', 'created', 'status', 'name')
