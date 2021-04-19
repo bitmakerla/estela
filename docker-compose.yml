@@ -15,6 +15,36 @@ services:
     ports:
       - "3306:3306"
 
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  celery-worker:
+    build: .
+    command: celery -A config.celery worker --loglevel=info
+    volumes:
+      - .:/home/bitmaker
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.local
+    depends_on:
+      - db
+      - redis
+    restart: on-failure
+
+  celery-beat:
+    build: .
+    command: celery -A config.celery beat --loglevel=info
+    volumes:
+      - .:/home/bitmaker
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.local
+    depends_on:
+      - db
+      - redis
+      - celery-worker
+    restart: on-failure
+
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
@@ -24,6 +54,9 @@ services:
       - DJANGO_SETTINGS_MODULE=config.settings.local
     depends_on:
       - db
+      - redis
+      - celery-worker
+      - celery-beat
     ports:
       - "8000:8000"
     restart: always

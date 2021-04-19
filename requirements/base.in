@@ -1,6 +1,9 @@
+celery
 ***REMOVED***
+***REMOVED***-celery-beat
 ***REMOVED***-environ
 ***REMOVED***restframework
-mysqlclient
-kubernetes
 eks-token
+kubernetes
+mysqlclient
+redis

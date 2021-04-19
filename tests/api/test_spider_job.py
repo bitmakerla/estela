@@ -1,9 +1,10 @@
 from api import errors
 from core.models import Spider, SpiderJob
+from core import kubernetes
 from tests.base import BaseTestCase
 
 
-class SpiderList(BaseTestCase):
+class SpiderJobList(BaseTestCase):
     resource = 'job-list'
 
     def test_get_spiders_jobs(self):
@@ -54,6 +55,11 @@ class SpiderList(BaseTestCase):
         )
         self.assertTrue(spider.jobs.filter(jid=response['jid']).exists())
 
+        api_instance = kubernetes.get_api_instance()
+        kube_response = kubernetes.read_job(response['name'], api_instance=api_instance)
+        self.assertEqual(kube_response._metadata.name, response['name'])
+        kubernetes.delete_job(response['name'], api_instance=api_instance)
+
     def test_check_paginated_response(self):
         project = self.user.project_set.create(name='test_project')
         spider = Spider.objects.create(project=project, name='test_spider')
@@ -79,7 +85,7 @@ class SpiderList(BaseTestCase):
         self.assertEqual(response.get('detail'), errors.NO_AUTH_CREDENTIALS)
 
 
-class SpiderDetail(BaseTestCase):
+class SpiderJobDetail(BaseTestCase):
     resource = 'job-detail'
 
     def test_get_spider_job(self):
@@ -100,6 +106,30 @@ class SpiderDetail(BaseTestCase):
         self.assertEqual(response['spider'], spider.sid)
         self.assertIn('created', response)
         self.assertIn('status', response)
+
+    def test_delete_spider_job(self):
+        project = self.user.project_set.create(name='test_project')
+        spider = Spider.objects.create(project=project, name='test_spider')
+        url_kwargs = {
+            'pid': project.pid,
+            'sid': spider.sid,
+        }
+        response = self.make_request(
+            method='POST',
+            user=self.user,
+            url_kwargs=url_kwargs,
+            status_code=201,
+            resource='job-list',
+        )
+        self.assertTrue(spider.jobs.filter(jid=response['jid']).exists())
+        url_kwargs['jid'] = response['jid']
+        self.make_request(
+            method='DELETE',
+            user=self.user,
+            url_kwargs=url_kwargs,
+            status_code=204,
+            resource='job-detail',
+        )
 
     def test_token_auth_failed(self):
         token = 'invalidtoken'
