@@ -1,6 +1,8 @@
 import uuid
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from urllib.parse import urlparse
 
 
 class Project(models.Model):
@@ -10,7 +12,13 @@ class Project(models.Model):
 
     @property
     def container_image(self):
-        return 'rodp63/books-img:v1.1'  # TODO: Replace this by container image with project pid name
+        parsed_container_host = urlparse(settings.REGISTRY_HOST)
+        container_image = '{}/{}:bm_{}'.format(
+            parsed_container_host.netloc,
+            settings.REPOSITORY_NAME,
+            self.pid,
+        )
+        return container_image
 
 
 class Spider(models.Model):
