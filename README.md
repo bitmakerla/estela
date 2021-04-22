@@ -48,3 +48,10 @@ $ eksctl delete cluster test --wait --region us-east-2  # Delete cluster
 ```
 
 After that, you need to put your AWS credentials and Cluster API server endpoint in the environment file (.env)
+
+## Set-up AWS ECR Container Registry
+
+Registry and Repository can be manually created in [AWS ECR](https://aws.amazon.com/ecr/)
+
+After that, you need to put your AWS credentials, Registry API server endpoint and Repository name in
+the environment file (.env)

@@ -25,6 +25,8 @@ env = environ.Env(
     DB_PORT=(str, '3306'),
     CLUSTER_HOST=(str, 'dummy'),
     CLUSTER_NAME=(str, 'dummy'),
+    REGISTRY_HOST=(str, 'dummy'),
+    REPOSITORY_NAME=(str, 'dummy'),
     CELERY_BROKER_URL=(str, 'redis://redis'),
     CELERY_RESULT_BACKEND=(str, 'redis://redis:6379/0'),
 )
@@ -163,6 +165,12 @@ API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
 
 CLUSTER_HOST = env('CLUSTER_HOST')
 CLUSTER_NAME = env('CLUSTER_NAME')
+
+
+# Container Registry Settings
+
+REGISTRY_HOST = env('REGISTRY_HOST')
+REPOSITORY_NAME = env('REPOSITORY_NAME')
 
 
 # Celery settings

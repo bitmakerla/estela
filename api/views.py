@@ -53,9 +53,9 @@ class SpiderJobViewSet(BaseViewSet, mixins.CreateModelMixin, mixins.RetrieveMode
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if async_param:
-            serializer.save(spider_id=self.kwargs['sid'])
+            serializer.save(spider_id=int(self.kwargs['sid']))
         else:
-            job = serializer.save(spider_id=self.kwargs['sid'], status=SpiderJob.RUNNING_STATUS)
+            job = serializer.save(spider_id=int(self.kwargs['sid']), status=SpiderJob.RUNNING_STATUS)
             create_job(job.name, container_image=job.spider.project.container_image)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
