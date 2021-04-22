@@ -24,10 +24,13 @@ billiard==3.6.4.0
     # via
     #   -r requirements/test.txt
     #   celery
+boto3==1.15.0
+    # via -r requirements/test.txt
 botocore==1.18.9
     # via
     #   -r requirements/test.txt
     #   awscli
+    #   boto3
     #   s3transfer
 cachetools==4.2.1
     # via
@@ -113,6 +116,7 @@ iniconfig==1.0.1
 jmespath==0.10.0
     # via
     #   -r requirements/test.txt
+    #   boto3
     #   botocore
 kombu==5.0.2
     # via
@@ -208,6 +212,7 @@ s3transfer==0.3.6
     # via
     #   -r requirements/test.txt
     #   awscli
+    #   boto3
 six==1.15.0
     # via
     #   -r requirements/test.txt
