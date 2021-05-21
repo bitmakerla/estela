@@ -8,7 +8,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('pid', 'name', 'token', 'container_image')
+        fields = ("pid", "name", "token", "container_image")
 
     def get_token(self, project):
         return get_registry_token()
@@ -17,12 +17,12 @@ class ProjectSerializer(serializers.ModelSerializer):
 class SpiderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Spider
-        fields = '__all__'
-        read_only_fields = ('sid', 'project')
+        fields = "__all__"
+        read_only_fields = ("sid", "project")
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpiderJob
-        fields = ('jid', 'spider', 'created', 'status', 'name')
-        read_only_fields = ('jid', 'spider', 'created', 'status', 'name')
+        fields = ("jid", "spider", "created", "status", "name")
+        read_only_fields = ("jid", "spider", "created", "status", "name")

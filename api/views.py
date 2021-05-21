@@ -10,7 +10,7 @@ from core.kubernetes import delete_job, create_job
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Project
     serializer_class = ProjectSerializer
-    lookup_field = 'pid'
+    lookup_field = "pid"
 
     def get_queryset(self):
         return self.request.user.project_set.all()
@@ -20,45 +20,67 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         instance.users.add(self.request.user)
 
 
-class SpiderViewSet(BaseViewSet, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin,
-                    mixins.DestroyModelMixin):
+class SpiderViewSet(
+    BaseViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+):
     model_class = Spider
     serializer_class = SpiderSerializer
-    lookup_field = 'sid'
+    lookup_field = "sid"
 
     def get_queryset(self):
         queryset = super(SpiderViewSet, self).get_queryset()
-        return queryset.filter(project__pid=self.kwargs['pid'])
+        return queryset.filter(project__pid=self.kwargs["pid"])
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(project_id=self.kwargs['pid'])
+        serializer.save(project_id=self.kwargs["pid"])
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
-class SpiderJobViewSet(BaseViewSet, mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.ListModelMixin,
-                       mixins.DestroyModelMixin):
+class SpiderJobViewSet(
+    BaseViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+):
     model_class = SpiderJob
     serializer_class = SpiderJobSerializer
-    lookup_field = 'jid'
+    lookup_field = "jid"
 
     def get_queryset(self):
         queryset = super(SpiderJobViewSet, self).get_queryset()
-        return queryset.filter(spider__project__pid=self.kwargs['pid'], spider__sid=self.kwargs['sid'])
+        return queryset.filter(
+            spider__project__pid=self.kwargs["pid"], spider__sid=self.kwargs["sid"]
+        )
 
     def create(self, request, *args, **kwargs):
-        async_param = request.query_params.get('async', False)
+        async_param = request.query_params.get("async", False)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if async_param:
-            serializer.save(spider_id=int(self.kwargs['sid']))
+            serializer.save(spider_id=int(self.kwargs["sid"]))
         else:
-            job = serializer.save(spider_id=int(self.kwargs['sid']), status=SpiderJob.RUNNING_STATUS)
-            create_job(job.name, container_image=job.spider.project.container_image)
+            job = serializer.save(
+                spider_id=int(self.kwargs["sid"]), status=SpiderJob.RUNNING_STATUS
+            )
+            create_job(
+                job.name,
+                job.spider.name,
+                container_image=job.spider.project.container_image,
+            )
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def destroy(self, request, *args, **kwargs):
         job = self.get_object()

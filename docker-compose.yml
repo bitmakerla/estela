@@ -2,6 +2,7 @@ version: '3'
 
 services:
   db:
+    container_name: bitmaker_db
     image: mysql:8
     volumes:
       - bitmaker_dbdata:/var/lib/mysql
@@ -16,11 +17,13 @@ services:
       - "3306:3306"
 
   redis:
+    container_name: bitmaker_redis
     image: redis:latest
     ports:
       - "6379:6379"
 
   celery-worker:
+    container_name: bitmaker_celery_worker
     build: .
     command: celery -A config.celery worker --loglevel=info
     volumes:
@@ -33,6 +36,7 @@ services:
     restart: on-failure
 
   celery-beat:
+    container_name: bitmaker_celery_beat
     build: .
     command: celery -A config.celery beat --loglevel=info
     volumes:
@@ -46,6 +50,7 @@ services:
     restart: on-failure
 
   web:
+    container_name: bitmaker_web
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
