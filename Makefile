@@ -1,18 +1,41 @@
-WEB = bitmaker_web_1
+WEB = bitmaker_web
 
-.PHONY: up
-up:
-	-docker-compose up
+.PHONY: setup
+setup: build up restart migrate createsuperuser
+
+
+.PHONY: rebuild
+rebuild: down build up
+
+
+.PHONY: start
+start:
+	-docker compose start
+
+
+.PHONY: restart
+restart:
+	-docker compose restart
+
+
+.PHONY: stop
+stop:
+	-docker compose stop
 
 
 .PHONY: down
 down:
-	-docker-compose down
+	-docker compose down
+
+
+.PHONY: up
+up:
+	-docker compose up -d
 
 
 .PHONY: build
 build:
-	-docker-compose build
+	-docker compose build
 
 
 .PHONY: test

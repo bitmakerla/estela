@@ -13,7 +13,7 @@ class Project(models.Model):
     @property
     def container_image(self):
         parsed_container_host = urlparse(settings.REGISTRY_HOST)
-        container_image = '{}/{}:bm_{}'.format(
+        container_image = "{}/{}:bm_{}".format(
             parsed_container_host.netloc,
             settings.REPOSITORY_NAME,
             self.pid,
@@ -24,31 +24,31 @@ class Project(models.Model):
 class Spider(models.Model):
     sid = models.AutoField(primary_key=True)
     name = models.CharField(max_length=1000)
-    project = models.ForeignKey(Project,
-                                on_delete=models.CASCADE,
-                                related_name='spiders')
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="spiders"
+    )
 
 
 class SpiderJob(models.Model):
-    WAITING_STATUS = 'WAITING'
-    RUNNING_STATUS = 'RUNNING'
-    COMPLETED_STATUS = 'COMPLETED'
+    WAITING_STATUS = "WAITING"
+    RUNNING_STATUS = "RUNNING"
+    COMPLETED_STATUS = "COMPLETED"
     STATUS_OPTIONS = [
-        (WAITING_STATUS, 'Waiting'),
-        (RUNNING_STATUS, 'Running'),
-        (COMPLETED_STATUS, 'Completed'),
+        (WAITING_STATUS, "Waiting"),
+        (RUNNING_STATUS, "Running"),
+        (COMPLETED_STATUS, "Completed"),
     ]
 
     jid = models.AutoField(primary_key=True)
-    spider = models.ForeignKey(Spider,
-                               on_delete=models.CASCADE,
-                               related_name='jobs')
-    status = models.CharField(max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS)
+    spider = models.ForeignKey(Spider, on_delete=models.CASCADE, related_name="jobs")
+    status = models.CharField(
+        max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
+    )
     created = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:
-        ordering = ['created']
+        ordering = ["created"]
 
     @property
     def name(self):
-        return '{}-{}'.format(self.spider.project.pid, self.jid)
+        return "{}-{}".format(self.spider.project.pid, self.jid)

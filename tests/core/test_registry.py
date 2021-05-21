@@ -6,4 +6,4 @@ class TestRegistry(BaseTestCase):
     def test_get_registry_token(self):
         token = get_registry_token()
         self.assertIsNotNone(token)
-        self.assertIsNot(token, '')
+        self.assertIsNot(token, "")
