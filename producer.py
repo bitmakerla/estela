@@ -23,5 +23,5 @@ producer = connect_kafka_producer()
 
 for e in range(20):
     data = {'number': str(e)}
-    producer.send('numtest', value=data)
+    producer.send('spider-items', value=data)
     producer.flush()
