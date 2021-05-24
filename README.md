@@ -19,16 +19,22 @@ Finally, add environment variables KAFKA_ADVERTISED_HOST_NAME and KAFKA_ADVERTIS
 ## Set-up Kubernetes Cluster
 
 ```sh
-$ eksctl create cluster -f kubernetes/cluster.yaml  # Create cluster
-$ kubectl create -f kubernetes/zookeeper-deployment.yaml
-$ kubectl create -f kubernetes/zookeeper-service.yaml
-$ kubectl create -f kubernetes/kafka-service.yaml
-$ kubectl get services  # get kafka-service external IP
-$ kubectl create -f kubernetes/kafka-deployment.yaml  # put kafka-service external IP as KAFKA_ADVERTISED_HOST_NAME
+$ eksctl create cluster -f kubernetes/cluster.yaml  # create cluster
+$ kubectl apply -f kubernetes/autoscaler.yaml
+$ kubectl apply -f kubernetes/zookeeper.yaml
+$ kubectl apply -f kubernetes/kafka.yaml
 
-check services and pods
+# check nodes, services and pods
+$ kubectl get nodes --show-labels
+$ kubectl get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName --all-namespaces
 $ kubectl get pods
 $ kubectl get services
+```
+
+If you want to delete the cluster:
+
+```sh
+$ eksctl delete cluster test --wait --region ***REMOVED***  # delete cluster in region ***REMOVED***
 ```
 
 ## Create Consumer and Producer Docker Images
@@ -44,14 +50,22 @@ $ docker push REPOSITORY/kafka-producer:latest
 $ docker push REPOSITORY/kafka-consumer:latest
 ```
 
-## Create producer deployment
+## Create consumer deployment
+
+```sh
+$ kubectl apply -f kubernetes/consumer.yaml
+```
+
+## Create producer job
 
 ```sh
 $ kubectl apply -f kubernetes/producer.yaml
 ```
 
-## Create consumer deployment
+## Horizontal Deployment Autoscaling
+
+If we want to autoscale a deployment we have to run the next command:
 
 ```sh
-$ kubectl apply -f kubernetes/consumer.yaml
+$ kubectl autoscale deployment DEPLOYMENT_NAME --cpu-percent=50 --min=1 --max=2
 ```
