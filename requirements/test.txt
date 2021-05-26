@@ -8,6 +8,10 @@ amqp==5.0.6
     # via
     #   -r requirements/base.txt
     #   kombu
+appdirs==1.4.4
+    # via
+    #   -r requirements/base.txt
+    #   black
 asgiref==3.2.10
     # via
     #   -r requirements/base.txt
@@ -22,6 +26,8 @@ billiard==3.6.4.0
     # via
     #   -r requirements/base.txt
     #   celery
+black==21.5b1
+    # via -r requirements/base.txt
 boto3==1.15.0
     # via -r requirements/base.txt
 botocore==1.18.9
@@ -62,6 +68,7 @@ click-repl==0.1.6
 click==7.1.2
     # via
     #   -r requirements/base.txt
+    #   black
     #   celery
     #   click-didyoumean
     #   click-plugins
@@ -100,12 +107,6 @@ idna==2.10
     # via
     #   -r requirements/base.txt
     #   requests
-importlib-metadata==3.10.0
-    # via
-    #   -r requirements/base.txt
-    #   kombu
-    #   pluggy
-    #   pytest
 iniconfig==1.0.1
     # via pytest
 jmespath==0.10.0
@@ -121,6 +122,10 @@ kubernetes==12.0.1
     # via -r requirements/base.txt
 more-itertools==8.5.0
     # via pytest
+mypy-extensions==0.4.3
+    # via
+    #   -r requirements/base.txt
+    #   black
 mysqlclient==2.0.1
     # via -r requirements/base.txt
 oauthlib==3.1.0
@@ -129,6 +134,10 @@ oauthlib==3.1.0
     #   requests-oauthlib
 packaging==20.4
     # via pytest
+pathspec==0.8.1
+    # via
+    #   -r requirements/base.txt
+    #   black
 pluggy==0.13.1
     # via pytest
 prompt-toolkit==3.0.18
@@ -175,6 +184,10 @@ pyyaml==5.3.1
     #   kubernetes
 redis==3.5.3
     # via -r requirements/base.txt
+regex==2021.4.4
+    # via
+    #   -r requirements/base.txt
+    #   black
 requests-oauthlib==1.3.0
     # via
     #   -r requirements/base.txt
@@ -207,12 +220,11 @@ sqlparse==0.3.1
     # via
     #   -r requirements/base.txt
     #   django
-toml==0.10.1
-    # via pytest
-typing-extensions==3.7.4.3
+toml==0.10.2
     # via
     #   -r requirements/base.txt
-    #   importlib-metadata
+    #   black
+    #   pytest
 urllib3==1.25.11
     # via
     #   -r requirements/base.txt
@@ -232,10 +244,6 @@ websocket-client==0.58.0
     # via
     #   -r requirements/base.txt
     #   kubernetes
-zipp==3.4.1
-    # via
-    #   -r requirements/base.txt
-    #   importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
