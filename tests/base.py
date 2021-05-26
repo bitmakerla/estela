@@ -5,14 +5,14 @@ from rest_framework.test import APITestCase
 
 import json
 
-TEST_DOCKER_IMAGE = 'rodp63/books-img:v1.1'
+TEST_DOCKER_IMAGE = "rodp63/books-img:v2.0"
 
 
 class BaseTestCase(APITestCase):
     resource = None
 
     def setUp(self):
-        self.user = User.objects.create_user(username='user-test')
+        self.user = User.objects.create_user(username="user-test")
 
     def get_response_content(self, response, status_code):
         if status_code:
@@ -27,16 +27,27 @@ class BaseTestCase(APITestCase):
         token = token.key
         return token
 
-    def make_request(self, method, resource=None, url_kwargs=None, data=None, user=None, status_code=200, token=None,
-                     paginated=False, load_all_content=True, params=None):
+    def make_request(
+        self,
+        method,
+        resource=None,
+        url_kwargs=None,
+        data=None,
+        user=None,
+        status_code=200,
+        token=None,
+        paginated=False,
+        load_all_content=True,
+        params=None,
+    ):
         resource = resource or self.resource
         url = reverse(resource, kwargs=url_kwargs)
 
-        if method == 'GET':
+        if method == "GET":
             request_func = self.client.get
-        elif method == 'UPDATE':
+        elif method == "UPDATE":
             request_func = self.client.put
-        elif method == 'DELETE':
+        elif method == "DELETE":
             request_func = self.client.delete
         else:
             request_func = self.client.post
@@ -47,24 +58,28 @@ class BaseTestCase(APITestCase):
             token = self.get_user_token(user)
 
         if token:
-            self.client.credentials(HTTP_AUTHORIZATION='Token {}'.format(token))
+            self.client.credentials(HTTP_AUTHORIZATION="Token {}".format(token))
 
         if params is not None:
-            url += '?{}'.format('&'.join(['{}={}'.format(param, value) for param, value in params.items()]))
+            url += "?{}".format(
+                "&".join(
+                    ["{}={}".format(param, value) for param, value in params.items()]
+                )
+            )
 
-        response = request_func(url, format='json', data=data)
+        response = request_func(url, format="json", data=data)
         response_content = self.get_response_content(response, status_code)
 
         if paginated:
             if load_all_content:
-                next_page = response_content['next']
-                content = response_content['results']
+                next_page = response_content["next"]
+                content = response_content["results"]
                 while next_page:
-                    response = self.client.get(next_page, format='json', data=data)
+                    response = self.client.get(next_page, format="json", data=data)
                     response_content = self.get_response_content(response, status_code)
-                    content += response_content['results']
-                    next_page = response_content['next']
+                    content += response_content["results"]
+                    next_page = response_content["next"]
                 return content
-            return response_content['results']
+            return response_content["results"]
 
         return response_content
