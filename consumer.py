@@ -1,7 +1,7 @@
 import os
 from kafka import KafkaConsumer
 from json import loads
-# from pymongo import MongoClient
+import pymongo
 
 
 def connect_kafka_consumer(topic_name):
@@ -11,8 +11,8 @@ def connect_kafka_consumer(topic_name):
                        os.getenv('KAFKA_ADVERTISED_PORT', '9092'))
     ]
     try:
-        _consumer = KafkaConsumer(topic_name, bootstrap_servers=bootstrap_server, api_version=(0, 10),
-                                  value_deserializer=lambda x: loads(x.decode('utf-8')))
+        _consumer = KafkaConsumer(topic_name, bootstrap_servers=bootstrap_server, auto_offset_reset='earliest',
+                                  enable_auto_commit=True, value_deserializer=lambda x: loads(x.decode('utf-8')))
     except Exception as ex:
         print('Exception while connecting Kafka')
         print(str(ex))
@@ -20,10 +20,13 @@ def connect_kafka_consumer(topic_name):
         return _consumer
 
 
+client = pymongo.MongoClient(os.getenv('MONGO_CONNECTION', 'localhost'))
+collection = client['bitmaker']['collection']
+
 consumer = connect_kafka_consumer('spider-items')
 
 for message in consumer:
     message_value = message.value
-    print(message_value)
+    collection.insert_one(message_value)
 
 consumer.close()
