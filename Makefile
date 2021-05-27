@@ -1,4 +1,5 @@
 WEB = bitmaker_web
+REPOSITORY = comjoueur
 
 .PHONY: setup
 setup: build up restart migrate createsuperuser
@@ -56,3 +57,28 @@ migrate:
 .PHONY: createsuperuser
 createsuperuser:
 	-docker exec -it $(WEB) python manage.py createsuperuser
+
+
+.PHONY: build-images
+build-images:
+	-docker build . --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api
+	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker
+	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat
+	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis
+
+
+.PHONY: upload-images
+upload-images:
+	-docker tag bitmaker-django-api:latest $(REPOSITORY)/bitmaker-django-api:latest
+	-docker tag bitmaker-celery-beat:latest $(REPOSITORY)/bitmaker-celery-beat:latest
+	-docker tag bitmaker-celery-worker:latest $(REPOSITORY)/bitmaker-celery-worker:latest
+	-docker tag bitmaker-redis:latest $(REPOSITORY)/bitmaker-redis:latest
+	-docker push $(REPOSITORY)/bitmaker-django-api:latest
+	-docker push $(REPOSITORY)/bitmaker-celery-beat:latest
+	-docker push $(REPOSITORY)/bitmaker-celery-worker:latest
+	-docker push $(REPOSITORY)/bitmaker-redis:latest
+
+
+.PHONY: lint
+lint:
+	-black .
