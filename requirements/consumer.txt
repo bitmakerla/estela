@@ -6,6 +6,8 @@
 #
 click==8.0.0
     # via pip-tools
+dnspython==1.16.0
+    # via pymongo
 importlib-metadata==4.0.1
     # via pep517
 kafka==1.3.5
@@ -14,7 +16,7 @@ pep517==0.10.0
     # via pip-tools
 pip-tools==6.1.0
     # via -r requirements/consumer.in
-pymongo==3.11.4
+pymongo[srv]==3.11.4
     # via -r requirements/consumer.in
 toml==0.10.2
     # via pep517

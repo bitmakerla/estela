@@ -10,7 +10,7 @@ def connect_kafka_producer():
                        os.getenv('KAFKA_ADVERTISED_PORT', '9092'))
     ]
     try:
-        _producer = KafkaProducer(bootstrap_servers=bootstrap_server, api_version=(0, 10),
+        _producer = KafkaProducer(bootstrap_servers=bootstrap_server,
                                   value_serializer=lambda x: dumps(x).encode('utf-8'))
     except Exception as ex:
         print('Exception while connecting Kafka')
@@ -21,7 +21,7 @@ def connect_kafka_producer():
 
 producer = connect_kafka_producer()
 
-for e in range(20):
+for e in range(10):
     data = {'number': str(e)}
     producer.send('spider-items', value=data)
     producer.flush()
