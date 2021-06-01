@@ -1,6 +1,7 @@
 from django.conf import settings
 from kubernetes import client
 from eks_token import get_token
+from json import dumps
 
 SPIDER_JOB_COMMANDS = [
     "bm-crawl",
@@ -42,6 +43,7 @@ def create_job_object(name, container_image, namespace, container_name, env_vars
         image=container_image,
         env=env_list,
         command=SPIDER_JOB_COMMANDS,
+        image_pull_policy="Always",
     )
     template.template.spec = client.V1PodSpec(
         containers=[container], restart_policy=POD_RESTART_POLICY
@@ -69,8 +71,10 @@ def create_job(
         env_vars = {}
     env_vars.update(
         [
+            ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
+            ("KAFKA_ADVERTISED_HOST_NAME", settings.KAFKA_HOST),
             ("FIFO_PATH", "/fifo-data/{}.fifo".format(spider_name)),
-            ("JOB_INFO", {"spider": spider_name, "key": name}),
+            ("JOB_INFO", dumps({"spider": spider_name, "key": name})),
         ]
     )
     body = create_job_object(name, container_image, namespace, container_name, env_vars)
