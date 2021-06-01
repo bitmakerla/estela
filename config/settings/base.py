@@ -29,6 +29,9 @@ env = environ.Env(
     REPOSITORY_NAME=(str, "dummy"),
     CELERY_BROKER_URL=(str, "redis://redis"),
     CELERY_RESULT_BACKEND=(str, "redis://redis:6379/0"),
+    DJANGO_ALLOWED_HOSTS=(str, "127.0.0.1"),
+    KAFKA_HOST=(str, "127.0.0.1"),
+    KAFKA_PORT=(str, "9092"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -178,3 +181,9 @@ REPOSITORY_NAME = env("REPOSITORY_NAME")
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
 CELERY_BEAT_SCHEDULER = "***REMOVED***_celery_beat.schedulers:DatabaseScheduler"
+
+
+# Kafka settings
+
+KAFKA_HOST = env("KAFKA_HOST")
+KAFKA_PORT = env("KAFKA_PORT")
