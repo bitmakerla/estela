@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 import json
 
 TEST_DOCKER_IMAGE = "rodp63/books-img:v2.0"
+TEST_SPIDER = "books"
 
 
 class BaseTestCase(APITestCase):
