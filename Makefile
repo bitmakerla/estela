@@ -1,5 +1,5 @@
 WEB = bitmaker_web
-REPOSITORY = comjoueur
+REPOSITORY = 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
 
 .PHONY: setup
 setup: build up restart migrate createsuperuser
