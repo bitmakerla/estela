@@ -43,8 +43,8 @@ To create a simple cluster you can use `config/cluster.yaml` configuration. You 
 to run the following commands.
 
 ```sh
-$ eksctl create cluster -f config/cluster.yaml          # Create cluster
-$ eksctl delete cluster test --wait --region ***REMOVED***  # Delete cluster
+$ eksctl create cluster -f config/kubernetes/cluster.yaml      # Create cluster
+$ eksctl delete cluster bitmaker --wait --region ***REMOVED***     # Delete cluster
 ```
 
 After that, you need to put your AWS credentials and Cluster API server endpoint in the environment file `.env`.
@@ -61,6 +61,20 @@ Once the `.env` file is completely filled, you need to rebuild the app with:
 $ make rebuild
 ```
 
+## Build and Upload the Images
+
+Change the `REPOSITORY` variable in the `Makefile` with your Container Registry if needed.
+
+```sh
+$ make build-images
+$ make upload-images
+```
+
+## Deploy the Application
+
+Apply the deployment files in `config/kubernetes` following this
+[guide](https://docs.google.com/document/d/1-09Birj-k2w1xQbhLkaWECYfqAl-WAzj0BbCPwsWCSU/edit?usp=sharing).
+
 ## Testing
 
 ```sh
@@ -70,5 +84,5 @@ $ make test
 ## Formatting
 
 ```sh
-$ black .
+$ make lint
 ```
