@@ -1,5 +1,5 @@
 from core.kubernetes import get_api_instance, create_job, delete_job, read_job
-from tests.base import BaseTestCase, TEST_DOCKER_IMAGE
+from tests.base import BaseTestCase, TEST_DOCKER_IMAGE, TEST_SPIDER
 
 
 class TestKubernetes(BaseTestCase):
@@ -13,18 +13,22 @@ class TestKubernetes(BaseTestCase):
 
     def test_create_job(self):
         response = create_job(
-            "test1", TEST_DOCKER_IMAGE, api_instance=self.api_instance
+            "test1", TEST_SPIDER, TEST_DOCKER_IMAGE, api_instance=self.api_instance
         )
         delete_job("test1")
         self.assertEqual(response._metadata.name, "test1")
 
     def test_read_job(self):
-        create_job("test2", TEST_DOCKER_IMAGE, api_instance=self.api_instance)
+        create_job(
+            "test2", TEST_SPIDER, TEST_DOCKER_IMAGE, api_instance=self.api_instance
+        )
         response = read_job("test2")
         delete_job("test2")
         self.assertEqual(response._metadata.name, "test2")
 
     def test_delete_job(self):
-        create_job("test3", TEST_DOCKER_IMAGE, api_instance=self.api_instance)
+        create_job(
+            "test3", TEST_SPIDER, TEST_DOCKER_IMAGE, api_instance=self.api_instance
+        )
         response = delete_job("test3")
         self.assertIsNone(response.message)

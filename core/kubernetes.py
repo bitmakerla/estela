@@ -3,11 +3,13 @@ from kubernetes import client
 from eks_token import get_token
 from json import dumps
 
-SPIDER_JOB_COMMANDS = [
-    "bm-crawl",
-]
+
+SPIDER_JOB_COMMANDS = ["bm-crawl"]
 JOB_TTL_SECONDS_AFTER_FINISHED = 600
+BACKOFF_LIMIT = 2
 POD_RESTART_POLICY = "Never"
+IMAGE_PULL_POLICY = "Always"
+SPIDER_NODE_ROLE = "bitmaker-spider"
 
 
 def get_api_token():
@@ -43,14 +45,17 @@ def create_job_object(name, container_image, namespace, container_name, env_vars
         image=container_image,
         env=env_list,
         command=SPIDER_JOB_COMMANDS,
-        image_pull_policy="Always",
+        image_pull_policy=IMAGE_PULL_POLICY,
     )
     template.template.spec = client.V1PodSpec(
-        containers=[container], restart_policy=POD_RESTART_POLICY
+        containers=[container],
+        restart_policy=POD_RESTART_POLICY,
+        node_selector={"role": SPIDER_NODE_ROLE},
     )
 
     body.spec = client.V1JobSpec(
         ttl_seconds_after_finished=JOB_TTL_SECONDS_AFTER_FINISHED,
+        backoff_limit=BACKOFF_LIMIT,
         template=template.template,
     )
     return body
