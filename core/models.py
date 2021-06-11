@@ -52,3 +52,10 @@ class SpiderJob(models.Model):
     @property
     def name(self):
         return "{}-{}".format(self.spider.project.pid, self.jid)
+
+
+class SpiderJobArg(models.Model):
+    aid = models.AutoField(primary_key=True)
+    job = models.ForeignKey(SpiderJob, on_delete=models.CASCADE, related_name="args")
+    name = models.CharField(max_length=1000)
+    value = models.CharField(max_length=1000)

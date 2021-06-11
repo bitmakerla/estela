@@ -50,7 +50,7 @@ def create_job_object(name, container_image, namespace, container_name, env_vars
     template.template.spec = client.V1PodSpec(
         containers=[container],
         restart_policy=POD_RESTART_POLICY,
-        node_selector={"role": SPIDER_NODE_ROLE},
+        # node_selector={"role": SPIDER_NODE_ROLE},
     )
 
     body.spec = client.V1JobSpec(
@@ -64,6 +64,7 @@ def create_job_object(name, container_image, namespace, container_name, env_vars
 def create_job(
     name,
     spider_name,
+    job_args,
     container_image,
     namespace="default",
     container_name="jobcontainer",
@@ -79,7 +80,16 @@ def create_job(
             ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
             ("KAFKA_ADVERTISED_HOST_NAME", settings.KAFKA_HOST),
             ("FIFO_PATH", "/fifo-data/{}.fifo".format(spider_name)),
-            ("JOB_INFO", dumps({"spider": spider_name, "key": name})),
+            (
+                "JOB_INFO",
+                dumps(
+                    {
+                        "spider": spider_name,
+                        "key": name,
+                        "args": job_args,
+                    }
+                ),
+            ),
         ]
     )
     body = create_job_object(name, container_image, namespace, container_name, env_vars)

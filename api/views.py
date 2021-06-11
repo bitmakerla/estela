@@ -72,9 +72,11 @@ class SpiderJobViewSet(
             job = serializer.save(
                 spider_id=int(self.kwargs["sid"]), status=SpiderJob.RUNNING_STATUS
             )
+            job_args = {arg.name: arg.value for arg in job.args.all()}
             create_job(
                 job.name,
                 job.spider.name,
+                job_args,
                 container_image=job.spider.project.container_image,
             )
         headers = self.get_success_headers(serializer.data)

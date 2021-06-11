@@ -13,14 +13,14 @@ class TestKubernetes(BaseTestCase):
 
     def test_create_job(self):
         response = create_job(
-            "test1", TEST_SPIDER, TEST_DOCKER_IMAGE, api_instance=self.api_instance
+            "test1", TEST_SPIDER, {}, TEST_DOCKER_IMAGE, api_instance=self.api_instance
         )
         delete_job("test1")
         self.assertEqual(response._metadata.name, "test1")
 
     def test_read_job(self):
         create_job(
-            "test2", TEST_SPIDER, TEST_DOCKER_IMAGE, api_instance=self.api_instance
+            "test2", TEST_SPIDER, {}, TEST_DOCKER_IMAGE, api_instance=self.api_instance
         )
         response = read_job("test2")
         delete_job("test2")
@@ -28,7 +28,7 @@ class TestKubernetes(BaseTestCase):
 
     def test_delete_job(self):
         create_job(
-            "test3", TEST_SPIDER, TEST_DOCKER_IMAGE, api_instance=self.api_instance
+            "test3", TEST_SPIDER, {}, TEST_DOCKER_IMAGE, api_instance=self.api_instance
         )
         response = delete_job("test3")
         self.assertIsNone(response.message)
