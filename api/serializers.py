@@ -1,4 +1,4 @@
-from core.models import Project, Spider, SpiderJob
+from core.models import Project, Spider, SpiderJob, SpiderJobArg
 from rest_framework import serializers
 from core.registry import get_registry_token
 
@@ -21,8 +21,23 @@ class SpiderSerializer(serializers.ModelSerializer):
         read_only_fields = ("sid", "project")
 
 
+class SpiderJobArgSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpiderJobArg
+        fields = ("name", "value")
+
+
 class SpiderJobSerializer(serializers.ModelSerializer):
+    args = SpiderJobArgSerializer(many=True, required=False)
+
     class Meta:
         model = SpiderJob
-        fields = ("jid", "spider", "created", "status", "name")
+        fields = ("jid", "spider", "created", "status", "name", "args")
         read_only_fields = ("jid", "spider", "created", "status", "name")
+
+    def create(self, validated_data):
+        args_data = validated_data.pop("args", [])
+        job = SpiderJob.objects.create(**validated_data)
+        for arg in args_data:
+            SpiderJobArg.objects.create(job=job, **arg)
+        return job
