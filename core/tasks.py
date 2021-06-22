@@ -12,9 +12,11 @@ def run_spider_jobs():
     api_instance = get_api_instance()
 
     for job in jobs:
+        job_args = {arg.name: arg.value for arg in job.args.all()}
         create_job(
             job.name,
             job.spider.name,
+            job_args,
             job.spider.project.container_image,
             api_instance=api_instance,
         )
