@@ -1,6 +1,5 @@
 from django.conf import settings
-from kubernetes import client
-from eks_token import get_token
+from kubernetes import client, config
 from json import dumps
 
 
@@ -12,19 +11,9 @@ IMAGE_PULL_POLICY = "Always"
 SPIDER_NODE_ROLE = "bitmaker-spider"
 
 
-def get_api_token():
-    response = get_token(cluster_name=settings.CLUSTER_NAME)
-    return response["status"]["token"]
-
-
 def get_api_instance():
-    configuration = client.Configuration()
-    configuration.host = settings.CLUSTER_HOST
-    configuration.verify_ssl = False
-    configuration.api_key = {
-        "authorization": "Bearer {}".format(get_api_token()),
-    }
-    api_instance = client.BatchV1Api(client.ApiClient(configuration))
+    config.load_incluster_config()
+    api_instance = client.BatchV1Api()
     return api_instance
 
 

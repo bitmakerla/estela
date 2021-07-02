@@ -1,74 +1,80 @@
-WEB = bitmaker_web
 REPOSITORY = 094814489188.dkr.ecr.us-east-2.amazonaws.com
-
-.PHONY: setup
-setup: build up restart migrate createsuperuser
-
-
-.PHONY: rebuild
-rebuild: down build up
+REGION = us-east-2
+APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 
 
 .PHONY: start
 start:
-	-docker compose start
-
-
-.PHONY: restart
-restart:
-	-docker compose restart
+	-minikube start --feature-gates="TTLAfterFinished=true"
 
 
 .PHONY: stop
 stop:
-	-docker compose stop
+	-minikube stop
+
+
+.PHONY: setup
+setup: start build-api-image upload-api-image
+	-kubectl create secret docker-registry regcred \
+	  --docker-server=$(REPOSITORY) \
+	  --docker-username=AWS \
+	  --docker-password=$$(aws ecr get-login-password --region $(REGION))
+	-kubectl apply -f config/kubernetes-local/services.yaml
+	-kubectl apply -f config/kubernetes-local/api.yaml
+	-kubectl apply -f config/kubernetes-local/kafka.yaml
+
+
+.PHONY: rebuild
+rebuild: build-api-image upload-api-image
+	-kubectl rollout restart deployment bitmaker-django-api
 
 
 .PHONY: down
 down:
-	-docker compose down
-
-
-.PHONY: up
-up:
-	-docker compose up -d
-
-
-.PHONY: build
-build:
-	-docker compose build
+	-kubectl delete secret regcred
+	-kubectl delete -f config/kubernetes-local/services.yaml
+	-kubectl delete -f config/kubernetes-local/api.yaml
+	-kubectl delete -f config/kubernetes-local/kafka.yaml
+	-kubectl delete jobs $(kubectl get jobs -o custom-columns=:.metadata.name)
+	-kubectl delete cronjobs $(kubectl get cronjobs -o custom-columns=:.metadata.name)
 
 
 .PHONY: test
 test:
-	-docker exec -it $(WEB) pytest -svx
+	-kubectl exec $(APIPOD) -- pytest -svx
 
 
 .PHONY: makemigrations
 makemigrations:
-	-docker exec -it $(WEB) python manage.py makemigrations
+	-kubectl exec $(APIPOD) -- python manage.py makemigrations
 
 
 .PHONY: migrate
 migrate:
-	-docker exec -it $(WEB) python manage.py migrate
+	-kubectl exec $(APIPOD) -- python manage.py migrate
 
 
 .PHONY: createsuperuser
 createsuperuser:
-	-docker exec -it $(WEB) python manage.py createsuperuser
+	-kubectl exec --stdin $(APIPOD) -- python manage.py createsuperuser
 
 
-.PHONY: build-images
-build-images:
+.PHONY: build-all-images
+build-all-images:
 	-docker build . --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api
 	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker
 	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat
 	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis
 
 
-.PHONY: upload-images
-upload-images:
+.PHONY: login-ecr
+login-ecr:
+	-aws ecr get-login-password --region $(REGION) | docker login \
+	   --username AWS --password-stdin  $(REPOSITORY)
+
+
+.PHONY: upload-all-images
+upload-all-images: login-ecr
 	-docker tag bitmaker-django-api:latest $(REPOSITORY)/bitmaker-django-api:latest
 	-docker tag bitmaker-celery-beat:latest $(REPOSITORY)/bitmaker-celery-beat:latest
 	-docker tag bitmaker-celery-worker:latest $(REPOSITORY)/bitmaker-celery-worker:latest
@@ -77,6 +83,17 @@ upload-images:
 	-docker push $(REPOSITORY)/bitmaker-celery-beat:latest
 	-docker push $(REPOSITORY)/bitmaker-celery-worker:latest
 	-docker push $(REPOSITORY)/bitmaker-redis:latest
+
+
+.PHONY: build-api-image
+build-api-image:
+	-docker build . --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api
+
+
+.PHONY: upload-api-image
+upload-api-image: login-ecr
+	-docker tag bitmaker-django-api:latest $(REPOSITORY)/bitmaker-django-api:latest
+	-docker push $(REPOSITORY)/bitmaker-django-api:latest
 
 
 .PHONY: lint
