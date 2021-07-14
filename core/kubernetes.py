@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from kubernetes import client, config
 from json import dumps
@@ -9,6 +11,7 @@ BACKOFF_LIMIT = 2
 POD_RESTART_POLICY = "Never"
 IMAGE_PULL_POLICY = "Always"
 SPIDER_NODE_ROLE = "bitmaker-spider"
+IMAGE_PULL_SECRET_NAME = "regcred"
 
 
 def get_api_instance():
@@ -36,11 +39,19 @@ def create_job_object(name, container_image, namespace, container_name, env_vars
         command=SPIDER_JOB_COMMANDS,
         image_pull_policy=IMAGE_PULL_POLICY,
     )
-    template.template.spec = client.V1PodSpec(
-        containers=[container],
-        restart_policy=POD_RESTART_POLICY,
-        # node_selector={"role": SPIDER_NODE_ROLE},
-    )
+    if os.getenv("STAGE") == "DEVELOPMENT":
+        template.template.spec = client.V1PodSpec(
+            containers=[container],
+            restart_policy=POD_RESTART_POLICY,
+            image_pull_secrets=[client.V1LocalObjectReference(IMAGE_PULL_SECRET_NAME)],
+        )
+    else:
+        template.template.spec = client.V1PodSpec(
+            containers=[container],
+            restart_policy=POD_RESTART_POLICY,
+            image_pull_secrets=[client.V1LocalObjectReference(IMAGE_PULL_SECRET_NAME)],
+            node_selector={"role": SPIDER_NODE_ROLE},
+        )
 
     body.spec = client.V1JobSpec(
         ttl_seconds_after_finished=JOB_TTL_SECONDS_AFTER_FINISHED,
@@ -89,7 +100,9 @@ def create_job(
 def delete_job(name, namespace="default", api_instance=None):
     if api_instance is None:
         api_instance = get_api_instance()
-    api_response = api_instance.delete_namespaced_job(name, namespace)
+    api_response = api_instance.delete_namespaced_job(
+        name, namespace, propagation_policy="Foreground"
+    )
     return api_response
 
 

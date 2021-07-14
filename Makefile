@@ -6,22 +6,22 @@ APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].m
 .PHONY: start
 start:
 	-minikube start --feature-gates="TTLAfterFinished=true"
+	-docker compose up -d
 
 
 .PHONY: stop
 stop:
 	-minikube stop
+	-docker compose stop
 
 
 .PHONY: setup
-setup: start build-api-image upload-api-image
-	-kubectl create secret docker-registry regcred \
-	  --docker-server=$(REPOSITORY) \
-	  --docker-username=AWS \
-	  --docker-password=$$(aws ecr get-login-password --region $(REGION))
-	-kubectl apply -f config/kubernetes-local/services.yaml
-	-kubectl apply -f config/kubernetes-local/api.yaml
-	-kubectl apply -f config/kubernetes-local/kafka.yaml
+setup: build-api-image upload-api-image
+	-kubectl apply -f config/kubernetes-local/bitmaker-secrets.yaml
+	-kubectl apply -f config/kubernetes-local/bitmaker-configmaps.yaml
+	-kubectl apply -f config/kubernetes-local/aws-registry-cronjob.yaml
+	-kubectl apply -f config/kubernetes-local/bitmaker-api-deployments.yaml
+	-kubectl apply -f config/kubernetes-local/bitmaker-kafka.yaml
 
 
 .PHONY: rebuild
@@ -31,12 +31,16 @@ rebuild: build-api-image upload-api-image
 
 .PHONY: down
 down:
-	-kubectl delete secret regcred
-	-kubectl delete -f config/kubernetes-local/services.yaml
-	-kubectl delete -f config/kubernetes-local/api.yaml
-	-kubectl delete -f config/kubernetes-local/kafka.yaml
-	-kubectl delete jobs $(kubectl get jobs -o custom-columns=:.metadata.name)
-	-kubectl delete cronjobs $(kubectl get cronjobs -o custom-columns=:.metadata.name)
+	-kubectl delete -f config/kubernetes-local/bitmaker-secrets.yaml
+	-kubectl delete -f config/kubernetes-local/bitmaker-configmaps.yaml
+	-kubectl delete -f config/kubernetes-local/aws-registry-cronjob.yaml
+	-kubectl delete -f config/kubernetes-local/bitmaker-api-services.yaml
+	-kubectl delete -f config/kubernetes-local/bitmaker-api-deployments.yaml
+	-kubectl delete -f config/kubernetes-local/bitmaker-kafka.yaml
+	-kubectl delete jobs $$(kubectl get jobs -o custom-columns=:.metadata.name)
+	-kubectl delete cronjobs $$(kubectl get cronjobs -o custom-columns=:.metadata.name)
+	-minikube delete
+	-docker compose down
 
 
 .PHONY: test
@@ -56,7 +60,13 @@ migrate:
 
 .PHONY: createsuperuser
 createsuperuser:
-	-kubectl exec --stdin $(APIPOD) -- python manage.py createsuperuser
+	-kubectl exec --stdin --tty $(APIPOD) -- python manage.py createsuperuser
+
+
+.PHONY: login-ecr
+login-ecr:
+	-aws ecr get-login-password --region $(REGION) | docker login \
+	   --username AWS --password-stdin  $(REPOSITORY)
 
 
 .PHONY: build-all-images
@@ -65,12 +75,6 @@ build-all-images:
 	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker
 	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat
 	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis
-
-
-.PHONY: login-ecr
-login-ecr:
-	-aws ecr get-login-password --region $(REGION) | docker login \
-	   --username AWS --password-stdin  $(REPOSITORY)
 
 
 .PHONY: upload-all-images
@@ -99,3 +103,32 @@ upload-api-image: login-ecr
 .PHONY: lint
 lint:
 	-black .
+
+
+.PHONY: deploy
+deploy: build-all-images upload-all-images
+	-kubectl apply -f config/kubernetes/bitmaker-secrets.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-configmaps.yaml
+	-kubectl apply -f config/kubernetes/aws-registry-cronjob.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-deployments.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-kafka.yaml
+
+
+.PHONY: apply
+apply: build-all-images upload-all-images
+	-kubectl rollout restart deployment bitmaker-django-api
+	-kubectl rollout restart deployment bitmaker-celery-beat
+	-kubectl rollout restart deployment bitmaker-celery-worker
+	-kubectl rollout restart deployment bitmaker-redis
+
+
+.PHONY: destroy
+destroy:
+	-kubectl delete -f config/kubernetes/bitmaker-secrets.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-configmaps.yaml
+	-kubectl delete -f config/kubernetes/aws-registry-cronjob.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-api-services.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-api-deployments.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-kafka.yaml
+	-kubectl delete jobs $$(kubectl get jobs -o custom-columns=:.metadata.name)
+	-kubectl delete cronjobs $$(kubectl get cronjobs -o custom-columns=:.metadata.name)
