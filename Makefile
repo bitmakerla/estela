@@ -71,64 +71,35 @@ login-ecr:
 
 .PHONY: build-all-images
 build-all-images:
-	-docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag bitmaker-***REMOVED***-api
-	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker
-	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat
-	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis
+	-docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag bitmaker-***REMOVED***-api:dev
+	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker:dev
+	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat:dev
+	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis:dev
 
 
 .PHONY: upload-all-images
 upload-all-images: login-ecr
-	-docker tag bitmaker-***REMOVED***-api:latest $(REPOSITORY)/bitmaker-***REMOVED***-api:latest
-	-docker tag bitmaker-celery-beat:latest $(REPOSITORY)/bitmaker-celery-beat:latest
-	-docker tag bitmaker-celery-worker:latest $(REPOSITORY)/bitmaker-celery-worker:latest
-	-docker tag bitmaker-redis:latest $(REPOSITORY)/bitmaker-redis:latest
-	-docker push $(REPOSITORY)/bitmaker-***REMOVED***-api:latest
-	-docker push $(REPOSITORY)/bitmaker-celery-beat:latest
-	-docker push $(REPOSITORY)/bitmaker-celery-worker:latest
-	-docker push $(REPOSITORY)/bitmaker-redis:latest
+	-docker tag bitmaker-***REMOVED***-api:dev $(REPOSITORY)/bitmaker-***REMOVED***-api:dev
+	-docker tag bitmaker-celery-beat:dev $(REPOSITORY)/bitmaker-celery-beat:dev
+	-docker tag bitmaker-celery-worker:dev $(REPOSITORY)/bitmaker-celery-worker:dev
+	-docker tag bitmaker-redis:dev $(REPOSITORY)/bitmaker-redis:dev
+	-docker push $(REPOSITORY)/bitmaker-***REMOVED***-api:dev
+	-docker push $(REPOSITORY)/bitmaker-celery-beat:dev
+	-docker push $(REPOSITORY)/bitmaker-celery-worker:dev
+	-docker push $(REPOSITORY)/bitmaker-redis:dev
 
 
 .PHONY: build-api-image
 build-api-image:
-	-docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag bitmaker-***REMOVED***-api
+	-docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag bitmaker-***REMOVED***-api:dev
 
 
 .PHONY: upload-api-image
 upload-api-image: login-ecr
-	-docker tag bitmaker-***REMOVED***-api:latest $(REPOSITORY)/bitmaker-***REMOVED***-api:latest
-	-docker push $(REPOSITORY)/bitmaker-***REMOVED***-api:latest
+	-docker tag bitmaker-***REMOVED***-api:dev $(REPOSITORY)/bitmaker-***REMOVED***-api:dev
+	-docker push $(REPOSITORY)/bitmaker-***REMOVED***-api:dev
 
 
 .PHONY: lint
 lint:
 	-black .
-
-
-.PHONY: deploy
-deploy: build-all-images upload-all-images
-	-kubectl apply -f config/kubernetes/bitmaker-secrets.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-configmaps.yaml
-	-kubectl apply -f config/kubernetes/aws-registry-cronjob.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-api-deployments.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-kafka.yaml
-
-
-.PHONY: apply
-apply: build-all-images upload-all-images
-	-kubectl rollout restart deployment bitmaker-***REMOVED***-api
-	-kubectl rollout restart deployment bitmaker-celery-beat
-	-kubectl rollout restart deployment bitmaker-celery-worker
-	-kubectl rollout restart deployment bitmaker-redis
-
-
-.PHONY: destroy
-destroy:
-	-kubectl delete -f config/kubernetes/bitmaker-secrets.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-configmaps.yaml
-	-kubectl delete -f config/kubernetes/aws-registry-cronjob.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-api-services.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-api-deployments.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-kafka.yaml
-	-kubectl delete jobs $$(kubectl get jobs -o custom-columns=:.metadata.name)
-	-kubectl delete cronjobs $$(kubectl get cronjobs -o custom-columns=:.metadata.name)
