@@ -4,5 +4,5 @@ venv/
 .env
 config/kubernetes-local/bitmaker-secrets.yaml
 config/kubernetes-local/bitmaker-configmaps.yaml
-config/kubernetes/bitmaker-secrets.yaml
-config/kubernetes/bitmaker-configmaps.yaml
+config/kubernetes-prod/bitmaker-secrets.yaml
+config/kubernetes-prod/bitmaker-configmaps.yaml
