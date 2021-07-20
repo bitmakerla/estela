@@ -41,19 +41,25 @@ deploy-master:
     entrypoint: [""]
   needs: [build-master]
   script:
-    - kubectl get deployment bitmaker-django-api || kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml
-    - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
-    - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
-    - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
-    - kubectl set image deployment/bitmaker-redis bitmaker-redis=$DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
-    - kubectl rollout status deployment/bitmaker-django-api
-    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-django-api
-    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-celery-beat
-    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-celery-worker
-    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-redis
-    - kubectl get pods -l app=bitmaker-django-api
-    - kubectl exec $(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}") -- python manage.py makemigrations
-    - kubectl exec $(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}") -- python manage.py migrate
+    - kubectl get deployment bitmaker-django-api --namespace=default || kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
+    - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-redis bitmaker-redis=$DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl rollout status deployment/bitmaker-django-api --namespace=default
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-django-api
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-beat
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-worker
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-redis
+    - kubectl get pods -l app=bitmaker-django-api --namespace=default
+    - >
+      kubectl exec --namespace=default
+      $(kubectl get pod -l app=bitmaker-django-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
+      -- python manage.py makemigrations
+    - >
+      kubectl exec --namespace=default
+      $(kubectl get pod -l app=bitmaker-django-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
+      -- python manage.py migrate
   only:
     - master
 
@@ -96,7 +102,10 @@ test-mr:
     - kubectl rollout status deployment/bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-django-api
     - kubectl get pods -l app=bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
-    - kubectl exec --namespace=$CI_COMMIT_SHORT_SHA $(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA) -- pytest -svx
+    - >
+      kubectl exec --namespace=$CI_COMMIT_SHORT_SHA
+      $(kubectl get pod -l app=bitmaker-django-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA)
+      -- pytest -svx
     - kubectl delete clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA
     - kubectl delete namespace $CI_COMMIT_SHORT_SHA
   only:
