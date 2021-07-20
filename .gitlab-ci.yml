@@ -1,0 +1,103 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: 094814489188.dkr.ecr.us-east-2.amazonaws.com
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
+build-master:
+  environment:
+    name: scraping-product
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - amazon-linux-extras install docker
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+  script:
+    - docker build . --file docker-conf/Dockerfile-django-api --tag $DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-celery-worker --tag $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-celery-beat --tag $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-redis --tag $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
+  only:
+    - master
+
+deploy-master:
+  environment:
+    name: scraping-product
+  stage: deploy
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  needs: [build-master]
+  script:
+    - kubectl get deployment bitmaker-django-api || kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml
+    - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/bitmaker-redis bitmaker-redis=$DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
+    - kubectl rollout status deployment/bitmaker-django-api
+    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-django-api
+    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-celery-beat
+    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-celery-worker
+    - kubectl wait --for=condition=available --timeout=300s deployment/bitmaker-redis
+    - kubectl get pods -l app=bitmaker-django-api
+    - kubectl exec $(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}") -- python manage.py makemigrations
+    - kubectl exec $(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}") -- python manage.py migrate
+  only:
+    - master
+
+build-mr:
+  environment:
+    name: scraping-product
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - amazon-linux-extras install docker
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+  script:
+    - docker build . --file docker-conf/Dockerfile-django-api --tag $DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA
+  only:
+    - merge_requests
+
+test-mr:
+  environment:
+    name: scraping-product
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  stage: test
+  needs: [build-mr]
+  script:
+    - kubectl create namespace $CI_COMMIT_SHORT_SHA
+    - kubectl get secret api-secrets --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
+    - kubectl get secret regcred --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
+    - kubectl get configmap api-config --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
+    - kubectl get clusterrole bitmaker-api-role || kubectl apply -f config/kubernetes-test/bitmaker-cluster-role.yaml
+    - kubectl create serviceaccount bitmaker-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl create clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA --clusterrole=bitmaker-api-role --serviceaccount=$CI_COMMIT_SHORT_SHA:bitmaker-api
+    - kubectl apply -f config/kubernetes-test/bitmaker-api-deployments.yaml --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl rollout status deployment/bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-django-api
+    - kubectl get pods -l app=bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl exec --namespace=$CI_COMMIT_SHORT_SHA $(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA) -- pytest -svx
+    - kubectl delete clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA
+    - kubectl delete namespace $CI_COMMIT_SHORT_SHA
+  only:
+    - merge_requests
