@@ -77,7 +77,9 @@ class SpiderJobViewSet(
                 job.name,
                 job.spider.name,
                 job_args,
-                container_image=job.spider.project.container_image,
+                job.spider.project.container_image,
+                job.job_type,
+                schedule=job.schedule,
             )
         headers = self.get_success_headers(serializer.data)
         return Response(
