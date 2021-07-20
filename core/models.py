@@ -39,12 +39,21 @@ class SpiderJob(models.Model):
         (COMPLETED_STATUS, "Completed"),
     ]
 
+    SINGLE_JOB = "SINGLE_JOB"
+    CRON_JOB = "CRON_JOB"
+    TYPE_OPTIONS = [
+        (SINGLE_JOB, "SingleJob"),
+        (CRON_JOB, "CronJob"),
+    ]
+
     jid = models.AutoField(primary_key=True)
     spider = models.ForeignKey(Spider, on_delete=models.CASCADE, related_name="jobs")
     status = models.CharField(
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
+    job_type = models.CharField(max_length=16, choices=TYPE_OPTIONS, default=SINGLE_JOB)
     created = models.DateTimeField(auto_now_add=True, editable=False)
+    schedule = models.CharField(max_length=20, blank=True)
 
     class Meta:
         ordering = ["created"]

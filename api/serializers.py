@@ -32,7 +32,16 @@ class SpiderJobSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SpiderJob
-        fields = ("jid", "spider", "created", "status", "name", "args")
+        fields = (
+            "jid",
+            "spider",
+            "created",
+            "status",
+            "name",
+            "args",
+            "job_type",
+            "schedule",
+        )
         read_only_fields = ("jid", "spider", "created", "status", "name")
 
     def create(self, validated_data):
