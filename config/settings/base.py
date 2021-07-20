@@ -187,3 +187,7 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 KAFKA_HOST = env("KAFKA_HOST")
 KAFKA_PORT = env("KAFKA_PORT")
+
+# Kubernetes settings
+
+MULTI_NODE_MODE = False
