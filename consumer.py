@@ -3,8 +3,14 @@ import sys
 import json
 import pymongo
 import logging
+import threading
 
+from queue import Queue
 from kafka import KafkaConsumer
+
+
+DEFAULT_WORKER_POOL = 10
+item_queue = Queue()
 
 
 def connect_kafka_consumer(topic_name):
@@ -32,7 +38,15 @@ def connect_kafka_consumer(topic_name):
         return _consumer
 
 
-def consume_from_kafka(topic_name):
+def read_from_queue(client):
+    while True:
+        item = item_queue.get()
+        client[item['database_name']][item['collection_name']].insert_one(item['payload'])
+        logging.info('Document inserted')
+        item_queue.task_done()
+
+
+def consume_from_kafka(topic_name, worker_pool):
     try:
         client = pymongo.MongoClient(os.getenv('MONGO_CONNECTION', 'localhost'))
         logging.info('DB connection established')
@@ -41,13 +55,20 @@ def consume_from_kafka(topic_name):
         return
 
     consumer = connect_kafka_consumer(topic_name)
+    workers = []
+    for i in range(worker_pool):
+        worker = threading.Thread(target=read_from_queue, args=(client,), daemon=True)
+        worker.start()
+        workers.append(worker)
 
     for message in consumer:
-        message_value = message.value
-        collection = client[message_value['jid']][topic_name]
-        collection.insert_one(message_value['payload'])
-        logging.info("Document inserted in '{}'".format(topic_name))
+        item_queue.put({
+            'payload': message.value['payload'],
+            'database_name': message.value['jid'],
+            'collection_name': topic_name,
+        })
 
+    item_queue.join()
     consumer.close()
     client.close()
 
@@ -55,10 +76,10 @@ def consume_from_kafka(topic_name):
 def main():
     logging.basicConfig(level=logging.INFO)
     try:
-        consume_from_kafka(sys.argv[1])
+        worker_pool = int(sys.argv[2]) if len(sys.argv) == 3 else DEFAULT_WORKER_POOL
+        consume_from_kafka(sys.argv[1], worker_pool)
     except Exception as ex:
         logging.error(str(ex))
-        logging.error('The consumer topic must be specified')
         return 1
     return 0
 
