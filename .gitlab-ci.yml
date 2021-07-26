@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - deploy
+  - cleanup
 
 variables:
   DOCKER_REGISTRY: 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
@@ -41,7 +42,8 @@ deploy-master:
     entrypoint: [""]
   needs: [build-master]
   script:
-    - kubectl get deployment bitmaker-***REMOVED***-api --namespace=default || kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
+    - kubectl apply -f config/kubernetes-prod/bitmaker-api-services.yaml --namespace=default
+    - kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
     - kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA --namespace=default
@@ -79,7 +81,10 @@ build-mr:
     - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
   only:
-    - merge_requests
+    refs:
+      - merge_requests
+    changes:
+      - "**/*.py"
 
 test-mr:
   environment:
@@ -94,7 +99,7 @@ test-mr:
     - kubectl get secret api-secrets --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
     - kubectl get secret regcred --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
     - kubectl get configmap api-config --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
-    - kubectl get clusterrole bitmaker-api-role || kubectl apply -f config/kubernetes-test/bitmaker-cluster-role.yaml
+    - kubectl apply -f config/kubernetes-test/bitmaker-cluster-role.yaml
     - kubectl create serviceaccount bitmaker-api --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl create clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA --clusterrole=bitmaker-api-role --serviceaccount=$CI_COMMIT_SHORT_SHA:bitmaker-api
     - kubectl apply -f config/kubernetes-test/bitmaker-api-deployments.yaml --namespace=$CI_COMMIT_SHORT_SHA
@@ -106,7 +111,25 @@ test-mr:
       kubectl exec --namespace=$CI_COMMIT_SHORT_SHA
       $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA)
       -- pytest -svx
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - "**/*.py"
+
+cleanup-mr-job:
+  environment:
+    name: scraping-product
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  stage: cleanup
+  script:
     - kubectl delete clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA
     - kubectl delete namespace $CI_COMMIT_SHORT_SHA
+  when: always
   only:
-    - merge_requests
+    refs:
+      - merge_requests
+    changes:
+      - "**/*.py"
