@@ -29,7 +29,8 @@ env = environ.Env(
     REPOSITORY_NAME=(str, "dummy"),
     CELERY_BROKER_URL=(str, "redis://redis"),
     CELERY_RESULT_BACKEND=(str, "redis://redis:6379/0"),
-    DJANGO_ALLOWED_HOSTS=(str, "127.0.0.1"),
+    DJANGO_API_HOST=(str, "127.0.0.1"),
+    DJANGO_ALLOWED_HOSTS=(str, ""),
     KAFKA_HOST=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "9092"),
 )
@@ -46,7 +47,8 @@ SECRET_KEY = "***REMOVED***"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+DJANGO_API_HOST = env("DJANGO_API_HOST")
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
 
 # Application definition

@@ -107,9 +107,9 @@ class SpiderJobDetail(BaseTestCase):
         self.assertEqual(response["jid"], job.jid)
         self.assertEqual(response["spider"], spider.sid)
         self.assertIn("created", response)
-        self.assertIn("status", response)
+        self.assertIn("job_status", response)
 
-    def test_delete_spider_job(self):
+    def test_stop_spider_job(self):
         project = self.user.project_set.create(name="test_project")
         spider = Spider.objects.create(project=project, name="test_spider")
         url_kwargs = {
@@ -123,15 +123,14 @@ class SpiderJobDetail(BaseTestCase):
             status_code=201,
             resource="job-list",
         )
-        self.assertTrue(spider.jobs.filter(jid=response["jid"]).exists())
         url_kwargs["jid"] = response["jid"]
-        self.make_request(
-            method="DELETE",
+        response = self.make_request(
+            method="UPDATE",
             user=self.user,
             url_kwargs=url_kwargs,
-            status_code=204,
-            resource="job-detail",
+            resource="job-stop",
         )
+        self.assertEqual(response["job_status"], SpiderJob.STOPPED_STATUS)
 
     def test_token_auth_failed(self):
         token = "invalidtoken"

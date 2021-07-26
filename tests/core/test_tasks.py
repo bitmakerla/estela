@@ -33,21 +33,13 @@ class RunSpiderJobs(BaseTestCase):
             resource="job-list",
             params=params,
         )
-        self.assertEqual(response["status"], SpiderJob.WAITING_STATUS)
+        self.assertEqual(response["job_status"], SpiderJob.WAITING_STATUS)
         run_spider_jobs()
         url_kwargs["jid"] = response["jid"]
         response = self.make_request(
             method="GET",
             user=self.user,
             url_kwargs=url_kwargs,
-            status_code=200,
             resource="job-detail",
         )
-        self.assertEqual(response["status"], SpiderJob.RUNNING_STATUS)
-        self.make_request(
-            method="DELETE",
-            user=self.user,
-            url_kwargs=url_kwargs,
-            status_code=204,
-            resource="job-detail",
-        )
+        delete_job(response["name"])
