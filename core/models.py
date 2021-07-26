@@ -1,8 +1,12 @@
 import uuid
+from datetime import timedelta
 from ***REMOVED***.conf import settings
 from ***REMOVED***.contrib.auth.models import User
 from ***REMOVED***.db import models
+from ***REMOVED***.utils import timezone
 from urllib.parse import urlparse
+
+from core.kubernetes import read_job_status, JOB_TIME_CREATION, SINGLE_JOB, CRON_JOB
 
 
 class Project(models.Model):
@@ -32,15 +36,21 @@ class Spider(models.Model):
 class SpiderJob(models.Model):
     WAITING_STATUS = "WAITING"
     RUNNING_STATUS = "RUNNING"
+    STOPPED_STATUS = "STOPPED"
+    INCOMPLETE_STATUS = "INCOMPLETE"
+    CANCELLED_STATUS = "CANCELLED"
     COMPLETED_STATUS = "COMPLETED"
+    ERROR_STATUS = "ERROR"
     STATUS_OPTIONS = [
         (WAITING_STATUS, "Waiting"),
         (RUNNING_STATUS, "Running"),
+        (STOPPED_STATUS, "Stopped"),
+        (INCOMPLETE_STATUS, "Incomplete"),
+        (CANCELLED_STATUS, "Cancelled"),
         (COMPLETED_STATUS, "Completed"),
+        (ERROR_STATUS, "Error"),
     ]
 
-    SINGLE_JOB = "SINGLE_JOB"
-    CRON_JOB = "CRON_JOB"
     TYPE_OPTIONS = [
         (SINGLE_JOB, "SingleJob"),
         (CRON_JOB, "CronJob"),
@@ -60,7 +70,28 @@ class SpiderJob(models.Model):
 
     @property
     def name(self):
-        return "{}-{}".format(self.spider.project.pid, self.jid)
+        return "spider-job-{}-{}".format(self.jid, self.spider.project.pid)
+
+    @property
+    def key(self):
+        return "{}.{}.{}".format(self.jid, self.spider.sid, self.spider.project.pid)
+
+    @property
+    def job_status(self):
+        if (
+            self.status == self.WAITING_STATUS
+            and timezone.now() - timedelta(seconds=JOB_TIME_CREATION) > self.created
+        ):
+            job_status = read_job_status(self.name, job_type=self.job_type)
+            if job_status is None:
+                self.status = self.ERROR_STATUS
+                self.save()
+            elif (
+                job_status.status.active is None and job_status.status.succeeded is None
+            ):
+                self.status = self.ERROR_STATUS
+                self.save()
+        return self.status
 
 
 class SpiderJobArg(models.Model):

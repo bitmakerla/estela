@@ -1,6 +1,8 @@
 from rest_framework import mixins, viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api import errors
 from api.mixins import BaseViewSet
 from api.serializers import ProjectSerializer, SpiderSerializer, SpiderJobSerializer
 from core.models import Project, Spider, SpiderJob
@@ -49,8 +51,8 @@ class SpiderJobViewSet(
     BaseViewSet,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
     mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
 ):
     model_class = SpiderJob
     serializer_class = SpiderJobSerializer
@@ -69,26 +71,38 @@ class SpiderJobViewSet(
         if async_param:
             serializer.save(spider_id=int(self.kwargs["sid"]))
         else:
-            job = serializer.save(
-                spider_id=int(self.kwargs["sid"]), status=SpiderJob.RUNNING_STATUS
-            )
+            job = serializer.save(spider_id=int(self.kwargs["sid"]))
             job_args = {arg.name: arg.value for arg in job.args.all()}
+            token = request.auth.key if request.auth else None
             create_job(
                 job.name,
+                job.key,
                 job.spider.name,
                 job_args,
                 job.spider.project.container_image,
                 job.job_type,
                 schedule=job.schedule,
+                auth_token=token,
             )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
-    def destroy(self, request, *args, **kwargs):
+    @action(detail=True, methods=["PUT"])
+    def stop(self, *args, **kwargs):
         job = self.get_object()
-        if job.status in (SpiderJob.RUNNING_STATUS, SpiderJob.COMPLETED_STATUS):
-            delete_job(job.name)
-        self.perform_destroy(job)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if job.job_status not in [SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS]:
+            return Response(
+                {"error": errors.JOB_NOT_STOPPED},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        response = delete_job(job.name, job_type=job.job_type)
+        if response is None:
+            return Response(
+                {"error": errors.JOB_INSTANCE_NOT_FOUND},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        job.status = SpiderJob.STOPPED_STATUS
+        job.save()
+        return Response(self.get_serializer(job).data, status=status.HTTP_200_OK)
