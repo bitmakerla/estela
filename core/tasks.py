@@ -14,6 +14,7 @@ def run_spider_jobs():
         job_args = {arg.name: arg.value for arg in job.args.all()}
         create_job(
             job.name,
+            job.key,
             job.spider.name,
             job_args,
             job.spider.project.container_image,
