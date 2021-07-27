@@ -93,10 +93,11 @@ If it is the first time you deploy the app, do the following steps:
 	```
 	_Note_: Write the port between quotation marks.
   - _<DB\_NAME>_: The database name for the API, use the database `bitmaker` created during the Terraform deployment.
-  - _<DJANGO\_ALLOWED\_HOSTS>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-django-api-service # Copy the EXTERNAL-IP
 	```
+  - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
   - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g. `us-east-2`.
   - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. _Note_: Write the ID number between quotation marks.
   - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g. `bitmaker-projects`.

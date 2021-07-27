@@ -1,13 +1,15 @@
-import os
-
 from django.conf import settings
 from kubernetes import client, config
+from kubernetes.client.exceptions import ApiException
 from json import dumps
 
 
+SINGLE_JOB = "SINGLE_JOB"
+CRON_JOB = "CRON_JOB"
 SPIDER_JOB_COMMANDS = ["bm-crawl"]
 JOB_TTL_SECONDS_AFTER_FINISHED = 600
 BACKOFF_LIMIT = 2
+JOB_TIME_CREATION = 20
 POD_RESTART_POLICY = "Never"
 IMAGE_PULL_POLICY = "Always"
 SPIDER_NODE_ROLE = "bitmaker-spider"
@@ -19,13 +21,13 @@ SUCCESSFUL_JOB_HISTORY_LIMIT = 2
 FAILED_JOB_HISTORY_LIMIT = 1
 
 
-def get_api_instance(api_class="SINGLE_JOB"):
+def get_api_instance(api_class=SINGLE_JOB):
     config.load_incluster_config()
     api_instance = None
 
-    if api_class == "SINGLE_JOB":
+    if api_class == SINGLE_JOB:
         api_instance = client.BatchV1Api()
-    elif api_class == "CRON_JOB":
+    elif api_class == CRON_JOB:
         api_instance = client.BatchV1beta1Api()
 
     return api_instance
@@ -112,15 +114,17 @@ def create_cronjob_object(
 
 def create_job(
     name,
+    key,
     spider_name,
     job_args,
     container_image,
-    job_type="SINGLE_JOB",
+    job_type=SINGLE_JOB,
     namespace="default",
     container_name="jobcontainer",
     schedule="",
     env_vars=None,
     api_instance=None,
+    auth_token=None,
 ):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
@@ -136,20 +140,25 @@ def create_job(
                 dumps(
                     {
                         "spider": spider_name,
-                        "key": name,
+                        "api_host": settings.DJANGO_API_HOST,
+                        "auth_token": auth_token,
+                        "key": key,
                         "args": job_args,
                     }
                 ),
             ),
         ]
     )
-    if job_type == "SINGLE_JOB":
+
+    api_response = None
+
+    if job_type == SINGLE_JOB:
         body = create_job_object(
             name, container_image, namespace, container_name, env_vars
         )
         api_response = api_instance.create_namespaced_job(namespace, body)
 
-    elif job_type == "CRON_JOB":
+    elif job_type == CRON_JOB:
         if not schedule:
             schedule = DEFAULT_SCHEDULE
         body = create_cronjob_object(
@@ -160,29 +169,62 @@ def create_job(
     return api_response
 
 
-def delete_job(name, namespace="default", api_instance=None, job_type="SINGLE_JOB"):
+def delete_job(
+    name, namespace="default", api_instance=None, job_type=SINGLE_JOB
+):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
 
-    if job_type == "SINGLE_JOB":
-        api_response = api_instance.delete_namespaced_job(
-            name, namespace, propagation_policy="Foreground"
-        )
-    elif job_type == "CRON_JOB":
-        api_response = api_instance.delete_namespaced_cron_job(
-            name, namespace, propagation_policy="Foreground"
-        )
+    api_response = None
+
+    try:
+        if job_type == SINGLE_JOB:
+            api_response = api_instance.delete_namespaced_job(
+                name, namespace, propagation_policy="Foreground"
+            )
+        elif job_type == CRON_JOB:
+            api_response = api_instance.delete_namespaced_cron_job(
+                name, namespace, propagation_policy="Foreground"
+            )
+    except ApiException:
+        return None
 
     return api_response
 
 
-def read_job(name, namespace="default", api_instance=None, job_type="SINGLE_JOB"):
+def read_job(
+    name, namespace="default", api_instance=None, job_type=SINGLE_JOB
+):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
 
-    if job_type == "SINGLE_JOB":
-        api_response = api_instance.read_namespaced_job(name, namespace)
-    elif job_type == "CRON_JOB":
-        api_response = api_instance.read_namespaced_cron_job(name, namespace)
+    api_response = None
+
+    try:
+        if job_type == SINGLE_JOB:
+            api_response = api_instance.read_namespaced_job(name, namespace)
+        elif job_type == CRON_JOB:
+            api_response = api_instance.read_namespaced_cron_job(name, namespace)
+    except ApiException:
+        return None
+
+    return api_response
+
+
+def read_job_status(
+    name, namespace="default", api_instance=None, job_type=SINGLE_JOB
+):
+    if api_instance is None:
+        api_instance = get_api_instance(job_type)
+
+    api_response = None
+
+    try:
+        if job_type == SINGLE_JOB:
+            api_response = api_instance.read_namespaced_job_status(name, namespace)
+        elif job_type == CRON_JOB:
+            api_response = api_instance.read_namespaced_cron_job_status(name, namespace)
+    except ApiException:
+        return None
 
     return api_response
