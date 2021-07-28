@@ -54,6 +54,7 @@ deploy-master:
     - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-worker
     - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-redis
     - kubectl get pods -l app=bitmaker-***REMOVED***-api --namespace=default
+    - sleep 10 # Wait for previous pod to terminate
     - >
       kubectl exec --namespace=default
       $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
@@ -107,6 +108,7 @@ test-mr:
     - kubectl rollout status deployment/bitmaker-***REMOVED***-api --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-***REMOVED***-api
     - kubectl get pods -l app=bitmaker-***REMOVED***-api --namespace=$CI_COMMIT_SHORT_SHA
+    - sleep 10 # Wait for previous pod to terminate
     - >
       kubectl exec --namespace=$CI_COMMIT_SHORT_SHA
       $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA)
