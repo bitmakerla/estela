@@ -1,71 +1,49 @@
-# Bitmaker Scraping Streaming Platform
+# Bitmaker Scraping Product - Kafka deployments
 
-## Set-up
+## Requirements
 
-To run locally you need to run Kafka locally with this [tutorial](https://kafka.apache.org/quickstart)
+- Install python dependencies:
+  ```bash
+  $ pip install -r requirements/consumer.txt
+  ```
 
-Set up your virtual environment and install consumer and producer requirements:
+## Local Set-up
 
-```sh
-$ pip install -r requirements/consumer.txt
+If it is the first time you build the app, you need to [set up locally the API](https://gitlab.com/bitmakerla/dev/bitmaker-scraping-product#local-setup), then, do the following steps:
+
+- Create a new file _bitmaker-kafka-secrets.yaml_ based on _bitmaker-kafka-secrets.yaml.example_. Then, modify the file with the appropriate values:
+  - _<MONGO\_CONNECTION\_BASE\_64>_: An active connection to a mongodb cluster formatted in base64.
+  
+- Apply the setup command, which build and upload the images, and apply all the kubernetes _yaml_ files:
+  ```bash
+  $ make setup
+  ```
+
+After the first setup, you can:
+```bash
+$ make start    # Start the kafka service
+$ make stop     # Stop the kafka service
+$ make rebuild  # Rebuild the kafka consumer
+$ make down     # Delete the kafka service
 ```
 
-```sh
-$ pip install -r requirements/producer.txt
-```
+## Deployment
 
-Finally, add environment variables KAFKA_ADVERTISED_HOST_NAME and KAFKA_ADVERTISED_PORT
+First, you need to [deploy the API](https://gitlab.com/bitmakerla/dev/bitmaker-scraping-product#deployment), then, do the following steps:
 
-## Set-up Kubernetes Cluster
+- Create a new file _bitmaker-kafka-secrets.yaml_ based on _bitmaker-kafka-secrets.yaml.example_. Then, modify the file with the appropriate values:
+  - _<MONGO\_CONNECTION\_BASE\_64>_: An active connection to a mongodb cluster formatted in base64.
+  
+- Apply the Secrets:
+  ```bash
+  $ kubectl apply -f kubernetes/prod/bitmaker-kafka-secrets.yaml
+  ```
 
-```sh
-$ eksctl create cluster -f kubernetes/cluster.yaml  # create cluster
-$ kubectl apply -f kubernetes/autoscaler.yaml
-$ kubectl apply -f kubernetes/zookeeper.yaml
-$ kubectl apply -f kubernetes/kafka.yaml
+- The building and uploading of the images will be done by the GitLab CI/CD job. As well as the deployment to the kubernetes cluster.
 
-# check nodes, services and pods
-$ kubectl get nodes --show-labels
-$ kubectl get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName --all-namespaces
-$ kubectl get pods
-$ kubectl get services
-```
-
-If you want to delete the cluster:
+## Upload Images to the Registry
 
 ```sh
-$ eksctl delete cluster test --wait --region us-east-2  # delete cluster in region us-east-2
-```
-
-## Create Consumer and Producer Docker Images
-
-```sh
-$ docker build . --file Dockerfile-producer --tag kafka-producer
-$ docker build . --file Dockerfile-consumer --tag kafka-consumer
-
-$ docker tag kafka-producer:latest REPOSITORY/kafka-producer:latest
-$ docker tag kafka-consumer:latest REPOSITORY/kafka-consumer:latest
-
-$ docker push REPOSITORY/kafka-producer:latest
-$ docker push REPOSITORY/kafka-consumer:latest
-```
-
-## Create consumer deployment
-
-```sh
-$ kubectl apply -f kubernetes/consumer.yaml
-```
-
-## Create producer job
-
-```sh
-$ kubectl apply -f kubernetes/producer.yaml
-```
-
-## Horizontal Deployment Autoscaling
-
-If we want to autoscale a deployment we have to run the next command:
-
-```sh
-$ kubectl autoscale deployment DEPLOYMENT_NAME --cpu-percent=50 --min=1 --max=2
+$ make build-consumer-image
+$ make upload-consumer-image
 ```
