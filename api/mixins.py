@@ -4,6 +4,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
+from api.permissions import IsProjectUser
+
 
 class APIPageNumberPagination(PageNumberPagination):
     page_size_query_param = "page_size"
@@ -15,9 +17,5 @@ class BaseViewSet(viewsets.GenericViewSet):
     """A custom viewset that contains reusable customized settings."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsProjectUser]
     pagination_class = APIPageNumberPagination
-    model_class = None
-
-    def get_queryset(self):
-        return self.model_class.objects.all()

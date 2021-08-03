@@ -3,8 +3,10 @@ boto3<=1.17
 celery
 django
 django-celery-beat
+django-cors-headers
 django-environ
 djangorestframework
+drf-yasg
 eks-token
 kubernetes
 mysqlclient

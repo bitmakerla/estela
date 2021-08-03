@@ -1,6 +1,7 @@
 REPOSITORY = 094814489188.dkr.ecr.us-east-2.amazonaws.com
 REGION = us-east-2
 APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
+API_DOC = docs/api.yaml
 DEVTAG = dev-$$USER
 
 
@@ -101,6 +102,14 @@ build-api-image:
 upload-api-image: login-ecr
 	-docker tag bitmaker-django-api:$(DEVTAG) $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+
+
+.PHONY: docs
+docs:
+	-rm $API_DOC
+	-kubectl exec $(APIPOD) -- rm $(API_DOC)
+	-kubectl exec $(APIPOD) -- python manage.py generate_swagger -f yaml $(API_DOC)
+	-(kubectl exec $(APIPOD) -- cat $(API_DOC)) > $(API_DOC)
 
 
 .PHONY: lint

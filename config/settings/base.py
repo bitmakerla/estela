@@ -33,6 +33,7 @@ env = environ.Env(
     DJANGO_ALLOWED_HOSTS=(str, ""),
     KAFKA_HOST=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "9092"),
+    CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -64,6 +65,7 @@ DEFAULT_APPS = [
 
 THIRD_PARTY_APPS = [
     "django_celery_beat",
+    "drf_yasg",
     "rest_framework",
     "rest_framework.authtoken",
 ]
@@ -83,7 +85,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
+
+CORS_ORIGIN_WHITELIST = env("CORS_ORIGIN_WHITELIST").split(",")
 
 ROOT_URLCONF = "config.urls"
 
@@ -193,3 +198,10 @@ KAFKA_PORT = env("KAFKA_PORT")
 # Kubernetes settings
 
 MULTI_NODE_MODE = False
+
+
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": "docs.settings.api_info",
+    "DEFAULT_GENERATOR_CLASS": "docs.settings.APISchemeGenerator",
+    "DEFAULT_API_URL": "http://127.0.0.1:8000",
+}

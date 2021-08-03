@@ -48,6 +48,8 @@ class BaseTestCase(APITestCase):
             request_func = self.client.get
         elif method == "UPDATE":
             request_func = self.client.put
+        elif method == "PATCH":
+            request_func = self.client.patch
         elif method == "DELETE":
             request_func = self.client.delete
         else:
