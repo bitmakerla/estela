@@ -169,9 +169,7 @@ def create_job(
     return api_response
 
 
-def delete_job(
-    name, namespace="default", api_instance=None, job_type=SINGLE_JOB
-):
+def delete_job(name, namespace="default", api_instance=None, job_type=SINGLE_JOB):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
 
@@ -192,9 +190,7 @@ def delete_job(
     return api_response
 
 
-def read_job(
-    name, namespace="default", api_instance=None, job_type=SINGLE_JOB
-):
+def read_job(name, namespace="default", api_instance=None, job_type=SINGLE_JOB):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
 
@@ -211,9 +207,7 @@ def read_job(
     return api_response
 
 
-def read_job_status(
-    name, namespace="default", api_instance=None, job_type=SINGLE_JOB
-):
+def read_job_status(name, namespace="default", api_instance=None, job_type=SINGLE_JOB):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
 
