@@ -21,3 +21,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# api swagger generated file
+api.yaml
+
+# local environment file
+.env.local
