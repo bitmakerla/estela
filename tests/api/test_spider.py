@@ -32,20 +32,6 @@ class SpiderList(BaseTestCase):
         )
         self.assertEqual(response.get("detail"), errors.INVALID_TOKEN)
 
-    def test_create_spider(self):
-        project = self.user.project_set.create(name="test_project")
-        data = {"name": "test_spider", "pid": project.pid}
-        url_kwargs = {"pid": project.pid}
-        response = self.make_request(
-            method="POST",
-            user=self.user,
-            url_kwargs=url_kwargs,
-            data=data,
-            status_code=201,
-        )
-        self.assertEqual(data["name"], response["name"])
-        self.assertTrue(project.spiders.filter(sid=response["sid"]).exists())
-
     def test_check_paginated_response(self):
         project = self.user.project_set.create(name="test_project")
         url_kwargs = {
@@ -86,21 +72,6 @@ class SpiderDetail(BaseTestCase):
         self.assertEqual(response["sid"], spider.sid)
         self.assertEqual(response["name"], spider.name)
         self.assertEqual(response["project"], str(project.pid))
-
-    def test_delete_spider(self):
-        project = self.user.project_set.create(name="test_project")
-        spider = Spider.objects.create(project=project, name="test_spider")
-        url_kwargs = {
-            "pid": project.pid,
-            "sid": spider.sid,
-        }
-        self.make_request(
-            method="DELETE",
-            user=self.user,
-            url_kwargs=url_kwargs,
-            status_code=204,
-        )
-        self.assertFalse(project.spiders.filter(sid=spider.sid).exists())
 
     def test_token_auth_failed(self):
         token = "invalidtoken"

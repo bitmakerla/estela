@@ -132,6 +132,25 @@ class SpiderJobDetail(BaseTestCase):
         )
         self.assertEqual(response["job_status"], SpiderJob.STOPPED_STATUS)
 
+    def test_update_job_status(self):
+        project = self.user.project_set.create(name="test_project")
+        spider = Spider.objects.create(project=project, name="test_spider")
+        job = SpiderJob.objects.create(spider=spider)
+        url_kwargs = {
+            "pid": project.pid,
+            "sid": spider.sid,
+            "jid": job.jid,
+        }
+        data = {"status": SpiderJob.RUNNING_STATUS}
+        self.make_request(
+            method="PATCH",
+            user=self.user,
+            url_kwargs=url_kwargs,
+            data=data,
+        )
+        job.refresh_from_db()
+        self.assertEqual(job.job_status, SpiderJob.RUNNING_STATUS)
+
     def test_token_auth_failed(self):
         token = "invalidtoken"
         url_kwargs = {
