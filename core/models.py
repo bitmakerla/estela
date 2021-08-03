@@ -31,6 +31,7 @@ class Spider(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="spiders"
     )
+    deleted = models.BooleanField(default=False)
 
 
 class SpiderJob(models.Model):

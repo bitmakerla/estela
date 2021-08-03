@@ -1,4 +1,5 @@
 from api import errors
+from core.models import Spider
 from tests.base import BaseTestCase
 
 
@@ -106,6 +107,29 @@ class ProjectDetail(BaseTestCase):
             status_code=401,
         )
         self.assertEqual(response.get("detail"), errors.INVALID_TOKEN)
+
+    def test_set_related_spiders(self):
+        project = self.user.project_set.create(name="test_project")
+        url_kwargs = {"pid": project.pid}
+        Spider.objects.bulk_create(
+            [
+                Spider(project=project, name="spider1"),
+                Spider(project=project, name="spider2"),
+                Spider(project=project, name="spider3", deleted=True),
+            ]
+        )
+        data = {"spiders_names": ["spider2", "spider3", "spider4"]}
+        self.make_request(
+            method="UPDATE",
+            resource="project-set-related-spiders",
+            user=self.user,
+            data=data,
+            url_kwargs=url_kwargs,
+        )
+        self.assertTrue(project.spiders.filter(name="spider1", deleted=True).exists())
+        self.assertTrue(project.spiders.filter(name="spider2", deleted=False).exists())
+        self.assertTrue(project.spiders.filter(name="spider3", deleted=False).exists())
+        self.assertTrue(project.spiders.filter(name="spider4", deleted=False).exists())
 
     def test_no_token_auth_failed(self):
         url_kwargs = {"pid": "1"}
