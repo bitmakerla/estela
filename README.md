@@ -100,6 +100,7 @@ If it is the first time you deploy the app, do the following steps:
 	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
+  - _<CORS\_ORIGIN\_WHITELIST>_: URLs from which API could be consumed.
   - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g. `***REMOVED***`.
   - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. _Note_: Write the ID number between quotation marks.
   - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g. `bitmaker-projects`.
