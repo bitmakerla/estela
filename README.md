@@ -38,12 +38,15 @@ If it is the first time you build the app, do the following steps:
   $ minikube tunnel
   ```
 
-- Create a new file _bitmaker-configmaps.yaml_ based on _bitmaker-configmaps.yaml.example_,
-  and a _bitmaker-secrets.yaml_ file based on _bitmaker-secrets.yaml.example_.
+- Create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_,
+  and a _bitmaker-api-secrets.yaml_ file based on _bitmaker-api-secrets.yaml.example_.
   Then, modify both files with the appropriate values:
-  - _<DJANGO\_ALLOWED\_HOSTS>_: The EXTERNAL-IP value of the `bitmaker-***REMOVED***-api-service`.
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL. e.g. _http://<EXTERNAL\_IP>:8000_. You can get this value with:
+	```bash
+	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
+	```
+  - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your credentials in base64.
-  - _<MONGO\_DB\_CONNECTION\_BASE\_64>_: An active connection to a mongodb cluster in base64.
 
 - Apply the setup command, which build and upload the images, and apply all the kubernetes _yaml_ files:
   ```bash
@@ -83,8 +86,7 @@ If it is the first time you deploy the app, do the following steps:
   $ kubectl apply -f config/kubernetes-prod/bitmaker-api-services.yaml
   ```
 
-- Create a new file _bitmaker-configmaps.yaml_ based on _bitmaker-configmaps.yaml.example_.
-  Then, modify both files with the appropriate values:
+- Create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_. Then, modify the file with the appropriate values:
   - _<DB\_HOST>_ and _<DB\_PORT>_: Go to  _DigitalOcean panel/databases/scraping-product-mysql_. Then copy the host and the port available in the connection details section.
 	You can also get this information with:
 	```bash
@@ -93,7 +95,7 @@ If it is the first time you deploy the app, do the following steps:
 	```
 	_Note_: Write the port between quotation marks.
   - _<DB\_NAME>_: The database name for the API, use the database `bitmaker` created during the Terraform deployment.
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL. e.g. _http://<EXTERNAL\_IP>:8000_. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
 	```
@@ -103,19 +105,17 @@ If it is the first time you deploy the app, do the following steps:
   - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g. `bitmaker-projects`.
 
 
-- Create a new file _bitmaker-secrets.yaml_ based on _bitmaker-secrets.yaml.example_.
-  Then, modify both files with the appropriate values. Do not forget to encode all the values in _base64_,
+- Create a new file _bitmaker-api-secrets.yaml_ based on _bitmaker-api-secrets.yaml.example_. Then, modify the file with the appropriate values. Do not forget to encode all the values in _base64_,
   use an [online tool](https://www.base64encode.org/) or the terminal `printf "<TEXT>" | base64`.
   - _<DB\_USER\_BASE\_64>_: The DB user of the API formatted in base64, use the user `bitmaker-api` created during the Terraform deployment.
   - _<DB\_PASSWORD\_BASE\_64>_: The DB password for the selected DB user formatted in base64. This value can be found in the _Users & Databases_ tab of the database panel.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials formatted in base64.
-  - _<MONGO\_DB\_CONNECTION\_BASE\_64>_: An active connection to a mongodb cluster formatted in base64.
 
 
 - Apply the Secrets, ConfigMaps and deploy the registry cron job helper:
   ```bash
-  $ kubectl apply -f config/kubernetes-prod/bitmaker-secrets.yaml
-  $ kubectl apply -f config/kubernetes-prod/bitmaker-configmaps.yaml
+  $ kubectl apply -f config/kubernetes-prod/bitmaker-api-secrets.yaml
+  $ kubectl apply -f config/kubernetes-prod/bitmaker-api-configmaps.yaml
   $ kubectl apply -f config/kubernetes-prod/aws-registry-cronjob.yaml
   ```
   
@@ -135,7 +135,7 @@ $ make makemigrations
 
 ## Access Django Admin
 
-Django Admin is running in `http://<DJANGO_ALLOWED_HOSTS>:8000/admin`,
+Django Admin is running in `<DJANGO_API_HOST>/admin`,
 login with your user (superuser) credentials.
 
 

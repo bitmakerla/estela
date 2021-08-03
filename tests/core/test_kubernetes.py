@@ -5,7 +5,7 @@ from core.kubernetes import (
     read_job,
     read_job_status,
     SINGLE_JOB,
-    CRON_JOB
+    CRON_JOB,
 )
 from tests.base import BaseTestCase, TEST_DOCKER_IMAGE, TEST_SPIDER
 

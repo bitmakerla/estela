@@ -2,7 +2,7 @@ venv/
 .idea/
 *.pyc
 .env
-config/kubernetes-local/bitmaker-secrets.yaml
-config/kubernetes-local/bitmaker-configmaps.yaml
-config/kubernetes-prod/bitmaker-secrets.yaml
-config/kubernetes-prod/bitmaker-configmaps.yaml
+config/kubernetes-local/bitmaker-api-secrets.yaml
+config/kubernetes-local/bitmaker-api-configmaps.yaml
+config/kubernetes-prod/bitmaker-api-secrets.yaml
+config/kubernetes-prod/bitmaker-api-configmaps.yaml
