@@ -62,10 +62,11 @@ def consume_from_kafka(topic_name, worker_pool):
         workers.append(worker)
 
     for message in consumer:
+        job, spider, project = message.value['jid'].split('.')
         item_queue.put({
             'payload': message.value['payload'],
-            'database_name': message.value['jid'],
-            'collection_name': topic_name,
+            'database_name': project,
+            'collection_name': "{}-{}-{}".format(spider, job, topic_name),
         })
 
     item_queue.join()
