@@ -20,7 +20,7 @@ stop:
 
 
 .PHONY: setup
-setup:
+setup: build-consumer-image upload-consumer-image
 	-docker compose up -d
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-secrets.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-services.yaml
@@ -54,3 +54,8 @@ build-consumer-image:
 upload-consumer-image: login-ecr
 	-docker tag bitmaker-consumer:$(DEVTAG) $(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+
+
+.PHONY: lint
+lint:
+	-black .
