@@ -1,5 +1,7 @@
 # Bitmaker Scraping Product - Kafka deployments
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 ## Requirements
 
 - Install python dependencies:
@@ -43,7 +45,13 @@ First, you need to [deploy the API](https://gitlab.com/bitmakerla/dev/bitmaker-s
 
 ## Upload Images to the Registry
 
-```sh
+```bash
 $ make build-consumer-image
 $ make upload-consumer-image
+```
+
+## Formatting
+
+```bash
+$ make lint
 ```
