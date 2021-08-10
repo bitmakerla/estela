@@ -473,10 +473,25 @@ definitions:
         title: Project
         type: string
         format: uuid
+  SpiderJobArg:
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        type: string
+        maxLength: 1000
+        minLength: 1
   SpiderJob:
     required:
       - spider
-      - args
     type: object
     properties:
       jid:
@@ -498,8 +513,7 @@ definitions:
       args:
         type: array
         items:
-          type: integer
-        uniqueItems: true
+          $ref: '#/definitions/SpiderJobArg'
       job_type:
         title: Job type
         type: string
@@ -514,22 +528,6 @@ definitions:
         title: Job status
         type: string
         readOnly: true
-  SpiderJobArg:
-    required:
-      - name
-      - value
-    type: object
-    properties:
-      name:
-        title: Name
-        type: string
-        maxLength: 1000
-        minLength: 1
-      value:
-        title: Value
-        type: string
-        maxLength: 1000
-        minLength: 1
   SpiderJobCreate:
     type: object
     properties:
