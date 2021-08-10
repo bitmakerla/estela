@@ -5,6 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
+import { Header } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -33,11 +34,12 @@ export class LoginPage extends Component<unknown> {
 
     render(): JSX.Element {
         return (
-            <Layout className="login-layout white-background">
-                <Content>
+            <Layout className="white-background">
+                <Header />
+                <Content className="login-content">
                     <Form onFinish={this.handleSubmit}>
-                        <Title>Log in</Title>
-                        <div>
+                        <Title className="text-center">Log in</Title>
+                        <div className="login-inputs">
                             <Form.Item
                                 label="Username"
                                 name="username"
@@ -55,7 +57,7 @@ export class LoginPage extends Component<unknown> {
                                 <Input.Password autoComplete="current-password" />
                             </Form.Item>
                         </div>
-                        <Button type="primary" block htmlType="submit">
+                        <Button type="primary" htmlType="submit" className="login-button">
                             Enter
                         </Button>
                     </Form>
