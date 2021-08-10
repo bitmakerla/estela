@@ -3,7 +3,15 @@ from rest_framework import serializers
 from core.models import SpiderJob, SpiderJobArg
 
 
+class SpiderJobArgSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpiderJobArg
+        fields = ("name", "value")
+
+
 class SpiderJobSerializer(serializers.ModelSerializer):
+    args = SpiderJobArgSerializer(many=True, required=False)
+
     class Meta:
         model = SpiderJob
         fields = (
@@ -16,12 +24,6 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "schedule",
             "job_status",
         )
-
-
-class SpiderJobArgSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SpiderJobArg
-        fields = ("name", "value")
 
 
 class SpiderJobCreateSerializer(serializers.ModelSerializer):
