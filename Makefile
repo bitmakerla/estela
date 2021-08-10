@@ -106,7 +106,7 @@ upload-api-image: login-ecr
 
 .PHONY: docs
 docs:
-	-rm $API_DOC
+	-rm $(API_DOC)
 	-kubectl exec $(APIPOD) -- rm $(API_DOC)
 	-kubectl exec $(APIPOD) -- python manage.py generate_swagger -f yaml $(API_DOC)
 	-(kubectl exec $(APIPOD) -- cat $(API_DOC)) > $(API_DOC)
