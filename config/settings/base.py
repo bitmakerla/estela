@@ -31,7 +31,7 @@ env = environ.Env(
     CELERY_RESULT_BACKEND=(str, "redis://redis:6379/0"),
     DJANGO_API_HOST=(str, "127.0.0.1"),
     DJANGO_ALLOWED_HOSTS=(str, ""),
-    KAFKA_HOST=(str, "127.0.0.1"),
+    KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "9092"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
 )
@@ -192,7 +192,7 @@ CELERY_BEAT_SCHEDULER = "***REMOVED***_celery_beat.schedulers:DatabaseScheduler"
 
 # Kafka settings
 
-KAFKA_HOST = env("KAFKA_HOST")
+KAFKA_HOSTS = env("KAFKA_HOSTS")
 KAFKA_PORT = env("KAFKA_PORT")
 
 # Kubernetes settings
