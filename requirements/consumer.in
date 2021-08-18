@@ -1,3 +1,4 @@
 pip-tools
 kafka
 pymongo[srv]
+black

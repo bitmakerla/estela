@@ -15,24 +15,25 @@ item_queue = Queue()
 
 def connect_kafka_consumer(topic_name):
     _consumer = None
-    bootstrap_server = [
-        '{}:{}'.format(
-            os.getenv('KAFKA_ADVERTISED_HOST_NAME', 'localhost'),
-            os.getenv('KAFKA_ADVERTISED_PORT', '9092')
-        )
+    kafka_advertised_port = os.getenv("KAFKA_ADVERTISED_PORT", "9092")
+    kafka_advertised_listeners = os.getenv("KAFKA_ADVERTISED_LISTENERS").split(",")
+    bootstrap_servers = [
+        "{}:{}".format(kafka_advertised_listener, kafka_advertised_port)
+        for kafka_advertised_listener in kafka_advertised_listeners
     ]
     try:
         _consumer = KafkaConsumer(
             topic_name,
-            bootstrap_servers=bootstrap_server,
-            auto_offset_reset='earliest',
+            bootstrap_servers=bootstrap_servers,
+            auto_offset_reset="earliest",
             enable_auto_commit=True,
-            group_id='group_{}'.format(topic_name),
+            auto_commit_interval_ms=3000,
+            group_id="group_{}".format(topic_name),
             api_version=(0, 10),
-            value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+            value_deserializer=lambda x: json.loads(x.decode("utf-8")),
         )
     except Exception as ex:
-        logging.error('Exception while connecting Kafka')
+        logging.error("Exception while connecting Kafka")
         logging.error(str(ex))
     finally:
         return _consumer
@@ -41,17 +42,19 @@ def connect_kafka_consumer(topic_name):
 def read_from_queue(client):
     while True:
         item = item_queue.get()
-        client[item['database_name']][item['collection_name']].insert_one(item['payload'])
-        logging.info('Document inserted')
+        client[item["database_name"]][item["collection_name"]].insert_one(
+            item["payload"]
+        )
+        logging.info("Document inserted")
         item_queue.task_done()
 
 
 def consume_from_kafka(topic_name, worker_pool):
     try:
-        client = pymongo.MongoClient(os.getenv('MONGO_CONNECTION', 'localhost'))
-        logging.info('DB connection established')
+        client = pymongo.MongoClient(os.getenv("MONGO_CONNECTION", "localhost"))
+        logging.info("DB connection established")
     except:
-        logging.error('Could not connect to the DB')
+        logging.error("Could not connect to the DB")
         return
 
     consumer = connect_kafka_consumer(topic_name)
@@ -62,12 +65,14 @@ def consume_from_kafka(topic_name, worker_pool):
         workers.append(worker)
 
     for message in consumer:
-        job, spider, project = message.value['jid'].split('.')
-        item_queue.put({
-            'payload': message.value['payload'],
-            'database_name': project,
-            'collection_name': "{}-{}-{}".format(spider, job, topic_name),
-        })
+        job, spider, project = message.value["jid"].split(".")
+        item_queue.put(
+            {
+                "payload": message.value["payload"],
+                "database_name": project,
+                "collection_name": "{}-{}-{}".format(spider, job, topic_name),
+            }
+        )
 
     item_queue.join()
     consumer.close()
@@ -85,5 +90,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
