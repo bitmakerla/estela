@@ -127,6 +127,11 @@ If it is the first time you deploy the app, do the following steps:
   ```bash
   $ make createsuperuser
   ```
+  
+## Cluster metrics
+
+Install the [kubernetes metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster. Then, you can use the tool `kubectl top`
+to see the resource consumption for nodes or pods.
 
 ## Update Migrations
 
