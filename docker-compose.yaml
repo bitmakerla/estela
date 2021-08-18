@@ -1,37 +1,39 @@
-version: '3'
+version: '3.2'
 
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    image: wurstmeister/zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - 22181:2181
-  
-  broker:
-    image: confluentinc/cp-server:latest
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-      - "9101:9101"
+    - 2181:2181
+
+  kafka:
+    container_name: kafka
+    image: wurstmeister/kafka:latest
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      # Check: minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+      KAFKA_ADVERTISED_LISTENERS: >- 
+        LISTENER_DOCKER_INTERNAL://kafka:19092, 
+        LISTENER_DOCKER_EXTERNAL://192.168.64.1:9092
+      KAFKA_LISTENERS: >-
+        LISTENER_DOCKER_INTERNAL://:19092,
+        LISTENER_DOCKER_EXTERNAL://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >- 
+        LISTENER_DOCKER_INTERNAL:PLAINTEXT,
+        LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_LOG4J_LOGGERS: >- 
+        kafka.controller=INFO,
+        kafka.producer.async.DefaultEventHandler=INFO,
+        state.change.logger=INFO
+    ports:
+    - 9092:9092
+    depends_on:
+    - zookeeper
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
