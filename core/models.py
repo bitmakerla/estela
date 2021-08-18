@@ -6,7 +6,12 @@ from ***REMOVED***.db import models
 from ***REMOVED***.utils import timezone
 from urllib.parse import urlparse
 
-from core.kubernetes import read_job_status, JOB_TIME_CREATION, SINGLE_JOB, CRON_JOB
+from core.kubernetes import (
+    read_job_status,
+    JOB_TIME_CREATION,
+    SINGLE_JOB,
+    CRON_JOB,
+)
 
 
 class Project(models.Model):
@@ -87,11 +92,10 @@ class SpiderJob(models.Model):
             if job_status is None:
                 self.status = self.ERROR_STATUS
                 self.save()
-            elif (
-                job_status.status.active is None and job_status.status.succeeded is None
-            ):
-                self.status = self.ERROR_STATUS
-                self.save()
+            elif job_status.status.active is None:
+                if self.job_type == SINGLE_JOB and job_status.status.succeeded is None:
+                    self.status = self.ERROR_STATUS
+                    self.save()
         return self.status
 
 
