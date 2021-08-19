@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    SpiderJobArg,
+    SpiderJobArgFromJSON,
+    SpiderJobArgFromJSONTyped,
+    SpiderJobArgToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -45,10 +52,10 @@ export interface SpiderJob {
     readonly name?: string;
     /**
      * 
-     * @type {Set<number>}
+     * @type {Array<SpiderJobArg>}
      * @memberof SpiderJob
      */
-    args: Set<number>;
+    args?: Array<SpiderJobArg>;
     /**
      * 
      * @type {string}
@@ -92,7 +99,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'spider': json['spider'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
         'name': !exists(json, 'name') ? undefined : json['name'],
-        'args': json['args'],
+        'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
         'jobType': !exists(json, 'job_type') ? undefined : json['job_type'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
@@ -109,7 +116,7 @@ export function SpiderJobToJSON(value?: SpiderJob | null): any {
     return {
         
         'spider': value.spider,
-        'args': value.args,
+        'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
         'job_type': value.jobType,
         'schedule': value.schedule,
     };

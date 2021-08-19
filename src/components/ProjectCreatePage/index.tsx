@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsCreateRequest, Project } from "../../services/api";
-import { Header, Sidenav } from "../../shared";
+import { authNotification, incorrectDataNotification, Header, Sidenav } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -15,7 +15,7 @@ export class ProjectCreatePage extends Component<unknown> {
 
     componentDidMount(): void {
         if (!AuthService.getAuthToken()) {
-            history.push("/login");
+            authNotification();
         }
     }
 
@@ -27,6 +27,7 @@ export class ProjectCreatePage extends Component<unknown> {
             },
             (error: unknown) => {
                 console.error(error);
+                incorrectDataNotification();
             },
         );
     };

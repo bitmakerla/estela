@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
-import { Header } from "../../shared";
+import { Header, credentialsIncorrectNotification } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -28,6 +28,7 @@ export class LoginPage extends Component<unknown> {
             },
             (error: unknown) => {
                 console.error(error);
+                credentialsIncorrectNotification();
             },
         );
     };

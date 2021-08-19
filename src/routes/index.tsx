@@ -8,6 +8,8 @@ import { ProjectDetailPage } from "../components/ProjectDetailPage";
 import { ProjectCreatePage } from "../components/ProjectCreatePage";
 import { SpiderListPage } from "../components/SpiderListPage";
 import { SpiderDetailPage } from "../components/SpiderDetailPage";
+import { JobDetailPage } from "../components/JobDetailPage";
+import { JobCreatePage } from "../components/JobCreatePage";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -23,6 +25,8 @@ export class MainRoutes extends Component<unknown, unknown> {
                     <Route path="/projects/:projectId" component={ProjectDetailPage} exact />
                     <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
                     <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
+                    <Route path="/projects/:projectId/spiders/:spiderId/jobs/create" component={JobCreatePage} exact />
+                    <Route path="/projects/:projectId/spiders/:spiderId/jobs/:jobId" component={JobDetailPage} exact />
                 </Switch>
             </Router>
         );
