@@ -1,12 +1,11 @@
 import React, { Component, Fragment } from "react";
-import { Layout, Typography, Row } from "antd";
-import { RouteComponentProps } from "react-router-dom";
+import { Button, Layout, Typography, Row } from "antd";
+import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsReadRequest, Project } from "../../services/api";
-import { Header, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Text, Title } = Typography;
@@ -30,7 +29,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
 
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
-            history.push("/login");
+            authNotification();
         } else {
             const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
             this.apiService.apiProjectsRead(requestParams).then(
@@ -39,7 +38,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 },
                 (error: unknown) => {
                     console.error(error);
-                    history.push("/login");
+                    resourceNotAllowedNotification();
                 },
             );
         }
@@ -63,6 +62,11 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                                         <b>Project ID:</b>&nbsp; {this.projectId}
                                     </Text>
                                 </Row>
+                                <Link to={`/projects/${this.projectId}/spiders`}>
+                                    <Button type="primary" className="go-to-spiders">
+                                        Go to spiders
+                                    </Button>
+                                </Link>
                             </Content>
                         </Fragment>
                     ) : (

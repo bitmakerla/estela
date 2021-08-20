@@ -1,12 +1,11 @@
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
-import { Layout, List, Typography } from "antd";
+import { Layout, List, Pagination, Typography } from "antd";
 
 import "./styles.scss";
-import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsListRequest, Project } from "../../services/api";
-import { Header, Sidenav, Spin } from "../../shared";
+import { authNotification, Header, Sidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -14,37 +13,53 @@ const { Title } = Typography;
 interface ProjectsPageState {
     projects: Project[];
     loaded: boolean;
+    count: number;
+    current: number;
 }
 
 export class ProjectListPage extends Component<unknown, ProjectsPageState> {
-    page = 1;
-    PAGE_SIZE = 30;
+    PAGE_SIZE = 10;
     totalProjects = 0;
 
     state: ProjectsPageState = {
         projects: [],
         loaded: false,
+        count: 0,
+        current: 0,
     };
     apiService = ApiService();
 
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
-            history.push("/login");
+            authNotification();
         } else {
-            const projects = await this.getProjects(this.page);
-            this.setState({ projects: [...projects], loaded: true });
+            const data = await this.getProjects(1);
+            const projects: Project[] = data.data;
+            this.setState({ projects: [...projects], count: data.count, current: data.current, loaded: true });
         }
     }
 
-    async getProjects(page: number): Promise<Project[]> {
+    async getProjects(page: number): Promise<{ data: Project[]; count: number; current: number }> {
         const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE };
         const data = await this.apiService.apiProjectsList(requestParams);
         this.totalProjects = data.count;
-        return data.results;
+        return { data: data.results, count: data.count, current: page };
     }
 
+    onPageChange = async (page: number): Promise<void> => {
+        this.setState({ loaded: false });
+        const data = await this.getProjects(page);
+        const projects: Project[] = data.data;
+        this.setState({
+            projects: [...projects],
+            count: data.count,
+            current: data.current,
+            loaded: true,
+        });
+    };
+
     render(): JSX.Element {
-        const { projects, loaded } = this.state;
+        const { projects, loaded, count, current } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -63,6 +78,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                         </List.Item>
                                     )}
                                     className="project-list"
+                                />
+                                <Pagination
+                                    className="pagination"
+                                    defaultCurrent={1}
+                                    total={count}
+                                    current={current}
+                                    pageSize={this.PAGE_SIZE}
+                                    onChange={this.onPageChange}
+                                    showSizeChanger={false}
                                 />
                             </Content>
                         </Fragment>
