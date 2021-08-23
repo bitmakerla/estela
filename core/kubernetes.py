@@ -7,7 +7,7 @@ from json import dumps
 SINGLE_JOB = "SINGLE_JOB"
 CRON_JOB = "CRON_JOB"
 SPIDER_JOB_COMMANDS = ["bm-crawl"]
-JOB_TTL_SECONDS_AFTER_FINISHED = 600
+JOB_TTL_SECONDS_AFTER_FINISHED = 86400  # 24 hours
 BACKOFF_LIMIT = 2
 JOB_TIME_CREATION = 20
 POD_RESTART_POLICY = "Never"
@@ -93,6 +93,7 @@ def create_cronjob_object(
     template.spec = client.V1PodSpec(
         containers=[container],
         restart_policy=POD_RESTART_POLICY,
+        image_pull_secrets=[client.V1LocalObjectReference(IMAGE_PULL_SECRET_NAME)],
         node_selector=(
             {"role": SPIDER_NODE_ROLE} if settings.MULTI_NODE_MODE else None
         ),
