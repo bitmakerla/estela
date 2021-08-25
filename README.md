@@ -102,6 +102,7 @@ If it is the first time you deploy the app, do the following steps:
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
   - _<CORS\_ORIGIN\_WHITELIST>_: URLs from which API could be consumed.
   - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g. `us-east-2`.
+  - _<AWS\_STORAGE\_BUCKET\_NAME>_ : The name of AWS S3 Storage where the static django files will be stored (the bucket must already exist) e.g. `bitmaker-api`.
   - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. _Note_: Write the ID number between quotation marks.
   - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g. `bitmaker-projects`.
 
