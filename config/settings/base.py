@@ -34,6 +34,9 @@ env = environ.Env(
     KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "9092"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
+    AWS_ACCESS_KEY_ID=(str, "dummy"),
+    AWS_SECRET_ACCESS_KEY=(str, "dummy"),
+    AWS_STORAGE_BUCKET_NAME=(str, "bitmaker-***REMOVED***-api"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -163,6 +166,7 @@ USE_TZ = True
 # https://docs.***REMOVED***project.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
 
 
 # Pagination settings used in api_app
