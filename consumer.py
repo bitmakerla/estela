@@ -9,7 +9,7 @@ from queue import Queue
 from kafka import KafkaConsumer
 
 
-DEFAULT_WORKER_POOL = 10
+DEFAULT_WORKER_POOL = 15
 item_queue = Queue()
 
 
@@ -42,10 +42,17 @@ def connect_kafka_consumer(topic_name):
 def read_from_queue(client):
     while True:
         item = item_queue.get()
-        client[item["database_name"]][item["collection_name"]].insert_one(
-            item["payload"]
-        )
-        logging.info("Document inserted")
+        try:
+            client[item["database_name"]][item["collection_name"]].insert_one(
+                item["payload"]
+            )
+            logging.debug("Document inserted.")
+        except:
+            logging.warning(
+                "An exception occurs during the insertion in: {}/{}.".format(
+                    item["database_name"], item["collection_name"]
+                )
+            )
         item_queue.task_done()
 
 
@@ -85,7 +92,7 @@ def main():
         worker_pool = int(sys.argv[2]) if len(sys.argv) == 3 else DEFAULT_WORKER_POOL
         consume_from_kafka(sys.argv[1], worker_pool)
     except Exception as ex:
-        logging.error(str(ex))
+        logging.exception(str(ex))
         return 1
     return 0
 
