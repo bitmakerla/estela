@@ -16,6 +16,11 @@ If it is the first time you build the app, you need to [set up locally the API](
 - Create a new file _bitmaker-kafka-secrets.yaml_ based on _bitmaker-kafka-secrets.yaml.example_. Then, modify the file with the appropriate values:
   - _<MONGO\_CONNECTION\_BASE\_64>_: An active connection to a mongodb cluster formatted in base64.
   
+- Check that the Endpoint ip in the `bitmaker-kafka-services.yaml` file, and the _LISTENER\_DOCKER\_EXTERNAL_ field in the `docker-compose.yaml` file are equal to:
+  ```
+  $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+  ```
+  
 - Apply the setup command, which build and upload the images, and apply all the kubernetes _yaml_ files:
   ```bash
   $ make setup
