@@ -22,6 +22,7 @@ setup: build-api-image upload-api-image
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
 	-kubectl apply -f config/kubernetes-local/aws-registry-cronjob.yaml
+	-kubectl apply -f config/kubernetes-local/bitmaker-filebeat.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-deployments.yaml
 	-kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
 
