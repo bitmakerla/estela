@@ -47,6 +47,7 @@ If it is the first time you build the app, do the following steps:
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your credentials in base64.
+  - _<ELASTIC\_CLOUD\_ID\_BASE\_64>_ and _<ELASTIC\_CLOUD\_AUTH\_BASE\_64>_: Enter your Elastic Cloud credentials in base64.
 
 - Apply the setup command, which build and upload the images, and apply all the kubernetes _yaml_ files:
   ```bash
@@ -112,12 +113,14 @@ If it is the first time you deploy the app, do the following steps:
   - _<DB\_USER\_BASE\_64>_: The DB user of the API formatted in base64, use the user `bitmaker-api` created during the Terraform deployment.
   - _<DB\_PASSWORD\_BASE\_64>_: The DB password for the selected DB user formatted in base64. This value can be found in the _Users & Databases_ tab of the database panel.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials formatted in base64.
+  - _<ELASTIC\_CLOUD\_ID\_BASE\_64>_ and _<ELASTIC\_CLOUD\_AUTH\_BASE\_64>_: Enter your Elastic Cloud credentials formatted in base64.
 
 
-- Apply the Secrets, ConfigMaps and deploy the registry cron job helper:
+- Apply the Secrets, the ConfigMaps, the Filebeat DaemonSet and the registry cron job helper:
   ```bash
   $ kubectl apply -f config/kubernetes-prod/bitmaker-api-secrets.yaml
   $ kubectl apply -f config/kubernetes-prod/bitmaker-api-configmaps.yaml
+  $ kubectl apply -f config/kubernetes-prod/bitmaker-filebeat.yaml
   $ kubectl apply -f config/kubernetes-prod/aws-registry-cronjob.yaml
   ```
   
@@ -131,8 +134,14 @@ If it is the first time you deploy the app, do the following steps:
   
 ## Cluster metrics
 
-Install the [kubernetes metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster. Then, you can use the tool `kubectl top`
-to see the resource consumption for nodes or pods.
+When running locally, enable the metrics add-on.
+```bash
+minikube addons enable metrics-server
+```
+
+In production, install the [kubernetes metrics-server](https://github.com/kubernetes-sigs/metrics-server) in the cluster.
+
+Then, you can use the tool `kubectl top` to watch the resource consumption for nodes or pods.
 
 ## Update Migrations
 
@@ -148,7 +157,11 @@ login with your user (superuser) credentials.
 
 ## Set-up AWS ECR Container Registry
 
-Registry and Repository can be manually created in [AWS ECR](https://aws.amazon.com/ecr/)
+Registry and Repository can be manually created in [AWS ECR](https://aws.amazon.com/ecr/).
+
+## Set-up Elastic Cloud for Logs Storage
+
+A deployment can be created in the [Elastic Cloud Panel](https://cloud.elastic.co). Once the ELK stack is running, you can get your cloud credentials.
 
 ## Upload Images to the Registry
 
