@@ -41,13 +41,14 @@ If it is the first time you build the app, do the following steps:
 - Create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_,
   and a _bitmaker-api-secrets.yaml_ file based on _bitmaker-api-secrets.yaml.example_.
   Then, modify both files with the appropriate values:
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL. e.g. _http://<EXTERNAL\_IP>:8000_. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL. e.g. `http://<EXTERNAL_IP>:8000`. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
-  - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your credentials in base64.
-  - _<ELASTIC\_CLOUD\_ID\_BASE\_64>_ and _<ELASTIC\_CLOUD\_AUTH\_BASE\_64>_: Enter your Elastic Cloud credentials in base64.
+  - _<ELASTICSEARCH\_HOST>_ and _<ELASTICSEARCH\_PORT>_: The host and port of the Elasticsearch service.
+  - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials in base64.
+  - _<ELASTICSEARCH\_USERNAME\_BASE\_64>_ and _<ELASTICSEARCH\_PASSWORD\_BASE\_64>_: Enter your Elasticsearch credentials in base64.
 
 - Apply the setup command, which build and upload the images, and apply all the kubernetes _yaml_ files:
   ```bash
@@ -106,14 +107,14 @@ If it is the first time you deploy the app, do the following steps:
   - _<AWS\_STORAGE\_BUCKET\_NAME>_ : The name of AWS S3 Storage where the static ***REMOVED*** files will be stored (the bucket must already exist) e.g. `bitmaker-***REMOVED***-api`.
   - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. _Note_: Write the ID number between quotation marks.
   - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g. `bitmaker-projects`.
-
+  - _<ELASTICSEARCH\_HOST>_: The endpoint of the Elasticsearch service running in AWS.
 
 - Create a new file _bitmaker-api-secrets.yaml_ based on _bitmaker-api-secrets.yaml.example_. Then, modify the file with the appropriate values. Do not forget to encode all the values in _base64_,
   use an [online tool](https://www.base64encode.org/) or the terminal `printf "<TEXT>" | base64`.
   - _<DB\_USER\_BASE\_64>_: The DB user of the API formatted in base64, use the user `bitmaker-api` created during the Terraform deployment.
   - _<DB\_PASSWORD\_BASE\_64>_: The DB password for the selected DB user formatted in base64. This value can be found in the _Users & Databases_ tab of the database panel.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials formatted in base64.
-  - _<ELASTIC\_CLOUD\_ID\_BASE\_64>_ and _<ELASTIC\_CLOUD\_AUTH\_BASE\_64>_: Enter your Elastic Cloud credentials formatted in base64.
+  - _<ELASTICSEARCH\_USERNAME\_BASE\_64>_ and _<ELASTICSEARCH\_PASSWORD\_BASE\_64>_: Enter your Elasticsearch credentials formatted in base64.
 
 
 - Apply the Secrets, the ConfigMaps, the Filebeat DaemonSet and the registry cron job helper:
@@ -158,10 +159,6 @@ login with your user (superuser) credentials.
 ## Set-up AWS ECR Container Registry
 
 Registry and Repository can be manually created in [AWS ECR](https://aws.amazon.com/ecr/).
-
-## Set-up Elastic Cloud for Logs Storage
-
-A deployment can be created in the [Elastic Cloud Panel](https://cloud.elastic.co). Once the ELK stack is running, you can get your cloud credentials.
 
 ## Upload Images to the Registry
 
