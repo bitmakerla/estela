@@ -38,8 +38,10 @@ deploy-master:
   needs: [build-master]
   script:
     - kubectl apply -f kubernetes/prod/bitmaker-kafka-services.yaml --namespace=default
-    - kubectl apply -f kubernetes/prod/bitmaker-kafka-deployments.yaml --namespace=default
-    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/kafka2
+    - kubectl apply -f kubernetes/prod/bitmaker-zookeeper-services.yaml --namespace=default
+    - kubectl apply -f kubernetes/prod/bitmaker-kafka-statefulsets.yaml --namespace=default
+    - kubectl apply -f kubernetes/prod/bitmaker-zookeeper-statefulsets.yaml --namespace=default
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default statefulset/kafka3
     - kubectl apply -f kubernetes/prod/bitmaker-kafka-consumers.yaml --namespace=default
     - kubectl set image deployment/kafka-items-consumer consumer=$DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/kafka-requests-consumer consumer=$DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA --namespace=default
