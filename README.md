@@ -23,7 +23,7 @@ If it is the first time you build the app, do the following steps:
   $ make start
   ```
 
-- Check that the IP address of the database endpoint in _config/kubernetes-local/bitmaker-api-services.yaml_ is the same as:
+- Edit _config/kubernetes-local/bitmaker-api-services.yaml_ and set the IP address of the database endpoint to the IP address you get after running the following command:
   ```bash
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
   # 192.168.64.1 -> This IP could change
@@ -38,16 +38,17 @@ If it is the first time you build the app, do the following steps:
   $ minikube tunnel
   ```
 
-- Create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_,
+- In _config/kubernetes-local/_, create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_,
   and a _bitmaker-api-secrets.yaml_ file based on _bitmaker-api-secrets.yaml.example_.
   Then, modify both files with the appropriate values:
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL. e.g. `http://<EXTERNAL_IP>:8000`. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>:8000`. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-django-api-service # Copy the EXTERNAL-IP
 	```
-  - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
+  - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed. This is the same as the EXTERNAL-IP value.
   - _<ELASTICSEARCH\_HOST>_ and _<ELASTICSEARCH\_PORT>_: The host and port of the Elasticsearch service.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials in base64.
+            You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
   - _<ELASTICSEARCH\_USERNAME\_BASE\_64>_ and _<ELASTICSEARCH\_PASSWORD\_BASE\_64>_: Enter your Elasticsearch credentials in base64.
 
 - Apply the setup command, which build and upload the images, and apply all the kubernetes _yaml_ files:
@@ -60,6 +61,8 @@ If it is the first time you build the app, do the following steps:
   $ make migrate
   $ make createsuperuser
   ```
+  If you get `error: unable to upgrade connection: container not found ("bitmaker-django-api")`, please allow a few minutes
+  for the service to be up and running.
 
 After the first setup, you can:
 ```bash
@@ -73,8 +76,8 @@ $ make down     # Delete the application
 
 If it is the first time you deploy the app, do the following steps:
 
-- Install [`doctl`](https://github.com/digitalocean/doctl), the command line interface for the DigitalOcean API. 
-  Then, authenticate yourself by providing an access token.
+- Install [`doctl`](https://github.com/digitalocean/doctl), the command-line interface for the DigitalOcean API. 
+  Then, authenticate yourself by providing an access token. You can find the instructions for authenticating [here](https://github.com/digitalocean/doctl#authenticating-with-digitalocean).
   
 - Deploy the infrastructure using the Terraform files available in [this repository](https://gitlab.com/bitmakerla/dev/terraform-deployment).
 
@@ -88,8 +91,8 @@ If it is the first time you deploy the app, do the following steps:
   $ kubectl apply -f config/kubernetes-prod/bitmaker-api-services.yaml
   ```
 
-- Create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_. Then, modify the file with the appropriate values:
-  - _<DB\_HOST>_ and _<DB\_PORT>_: Go to  _DigitalOcean panel/databases/scraping-product-mysql_. Then copy the host and the port available in the connection details section.
+- In _config/kubernetes-prod/_, create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_. Then, modify the file with the appropriate values:
+  - _<DB\_HOST>_ and _<DB\_PORT>_: Go to  _DigitalOcean panel/databases/scraping-product-mysql_. Then copy the host and the port available in the connection details section. _Note_ Write the PORT number between quotation marks.
 	You can also get this information with:
 	```bash
 	$ doctl databases list # get the ID of the scraping-product-mysql database
@@ -97,22 +100,41 @@ If it is the first time you deploy the app, do the following steps:
 	```
 	_Note_: Write the port between quotation marks.
   - _<DB\_NAME>_: The database name for the API, use the database `bitmaker` created during the Terraform deployment.
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL. e.g. _http://<EXTERNAL\_IP>:8000_. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>:8000`. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-django-api-service # Copy the EXTERNAL-IP
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
   - _<CORS\_ORIGIN\_WHITELIST>_: URLs from which API could be consumed.
-  - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g. `us-east-2`.
-  - _<AWS\_STORAGE\_BUCKET\_NAME>_ : The name of AWS S3 Storage where the static django files will be stored (the bucket must already exist) e.g. `bitmaker-django-api`.
-  - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. _Note_: Write the ID number between quotation marks.
-  - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g. `bitmaker-projects`.
+  - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g., `us-east-2`.
+  - _<AWS\_STORAGE\_BUCKET\_NAME>_ : The name of AWS S3 Storage where the static django files will be stored (the bucket must already exist), e.g., `bitmaker-django-api`.
+  - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. The _<REGISTRY\_ID>_ is the first segment of the repository URI. I.e, `<REGISTRY_ID>.dkr.ecr.<REGION>.amazonaws.com`. If you have already configured your aws client, you can use the following command to get information about your repositories. _Note_: Write the ID number between quotation marks.
+    ```bash
+    $ aws ecr describe-repositories
+    {
+      "repositories": [
+          {
+              "repositoryArn": "...",
+              "registryId": "012345678901", <-- This is the <REGISTRY_ID>
+              "repositoryName": "repository_name", <-- This is the <REPOSITORY_NAME>
+              "repositoryUri":
+                  "012345678901.dkr.ecr.us-east-2.amazonaws.com/repository_name",
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                   ^
+                   This is the <REGISTRY_HOST>
+              ...
+          }
+      ]
+    }
+    ```
+
+  - _<REPOSITORY\_NAME>_: The name of the repository destined to store the API projects, e.g., `bitmaker-projects`.
   - _<ELASTICSEARCH\_HOST>_: The endpoint of the Elasticsearch service running in AWS.
 
 - Create a new file _bitmaker-api-secrets.yaml_ based on _bitmaker-api-secrets.yaml.example_. Then, modify the file with the appropriate values. Do not forget to encode all the values in _base64_,
   use an [online tool](https://www.base64encode.org/) or the terminal `printf "<TEXT>" | base64`.
   - _<DB\_USER\_BASE\_64>_: The DB user of the API formatted in base64, use the user `bitmaker-api` created during the Terraform deployment.
-  - _<DB\_PASSWORD\_BASE\_64>_: The DB password for the selected DB user formatted in base64. This value can be found in the _Users & Databases_ tab of the database panel.
+  - _<DB\_PASSWORD\_BASE\_64>_: The DB password for the selected DB user formatted in base64. This value can be found in the _Users & Databases_ tab of the database panel in Digital Ocean.
   - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials formatted in base64.
   - _<ELASTICSEARCH\_USERNAME\_BASE\_64>_ and _<ELASTICSEARCH\_PASSWORD\_BASE\_64>_: Enter your Elasticsearch credentials formatted in base64.
 
