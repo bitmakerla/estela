@@ -27,12 +27,26 @@ setup: build-api-image upload-api-image
 	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 
 
-.PHONY: rebuild
-rebuild: build-api-image upload-api-image
+.PHONY: rebuild-api
+rebuild-api: build-api-image upload-api-image
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
 	-kubectl rollout restart deployment bitmaker-django-api
 	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+
+
+.PHONY: rebuild-all
+rebuild-all: build-all-images upload-all-images
+	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
+	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
+	-kubectl rollout restart deployment bitmaker-django-api
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-kubectl rollout restart deployment bitmaker-celery-worker
+	-kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
+	-kubectl rollout restart deployment bitmaker-celery-beat
+	-kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$(REPOSITORY)/bitmaker-celery-beat:$(DEVTAG)
+	-kubectl rollout restart deployment bitmaker-redis
+	-kubectl set image deployment/bitmaker-redis bitmaker-redis=$(REPOSITORY)/bitmaker-redis:$(DEVTAG)
 
 
 .PHONY: down
