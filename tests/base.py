@@ -5,7 +5,9 @@ from rest_framework.test import APITestCase
 
 import json
 
-TEST_DOCKER_IMAGE = "094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-project-demo:test"
+TEST_DOCKER_IMAGE = (
+    "094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-project-demo:test"
+)
 TEST_SPIDER = "books"
 
 
