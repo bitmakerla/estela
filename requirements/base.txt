@@ -35,6 +35,12 @@ certifi==2020.12.5
     #   requests
 chardet==4.0.0
     # via requests
+click-didyoumean==0.0.3
+    # via celery
+click-plugins==1.1.1
+    # via celery
+click-repl==0.1.6
+    # via celery
 click==7.1.2
     # via
     #   black
@@ -42,12 +48,6 @@ click==7.1.2
     #   click-didyoumean
     #   click-plugins
     #   click-repl
-click-didyoumean==0.0.3
-    # via celery
-click-plugins==1.1.1
-    # via celery
-click-repl==0.1.6
-    # via celery
 colorama==0.4.3
     # via awscli
 coreapi==2.3.3
@@ -55,16 +55,6 @@ coreapi==2.3.3
 coreschema==0.0.4
     # via
     #   coreapi
-    #   drf-yasg
-dataclasses==0.6
-    # via black
-django==3.1.1
-    # via
-    #   -r requirements/base.in
-    #   django-celery-beat
-    #   django-cors-headers
-    #   django-timezone-field
-    #   djangorestframework
     #   drf-yasg
 django-celery-beat==2.2.0
     # via -r requirements/base.in
@@ -74,10 +64,20 @@ django-environ==0.4.5
     # via -r requirements/base.in
 django-timezone-field==4.1.2
     # via django-celery-beat
+django==3.1.1
+    # via
+    #   -r requirements/base.in
+    #   django-celery-beat
+    #   django-cors-headers
+    #   django-timezone-field
+    #   djangorestframework
+    #   drf-yasg
 djangorestframework==3.11.1
     # via
     #   -r requirements/base.in
     #   drf-yasg
+dnspython==1.16.0
+    # via pymongo
 docutils==0.15.2
     # via awscli
 drf-yasg==1.20.0
@@ -88,8 +88,6 @@ google-auth==1.28.0
     # via kubernetes
 idna==2.10
     # via requests
-importlib-metadata==4.6.1
-    # via kombu
 inflection==0.5.1
     # via drf-yasg
 itypes==1.2.0
@@ -118,12 +116,14 @@ pathspec==0.8.1
     # via black
 prompt-toolkit==3.0.18
     # via click-repl
+pyasn1-modules==0.2.8
+    # via google-auth
 pyasn1==0.4.8
     # via
     #   pyasn1-modules
     #   rsa
-pyasn1-modules==0.2.8
-    # via google-auth
+pymongo[srv]==3.12.0
+    # via -r requirements/base.in
 pyparsing==2.4.7
     # via packaging
 python-crontab==2.5.1
@@ -146,21 +146,21 @@ redis==3.5.3
     # via -r requirements/base.in
 regex==2021.4.4
     # via black
+requests-oauthlib==1.3.0
+    # via kubernetes
 requests==2.25.1
     # via
     #   coreapi
     #   kubernetes
     #   requests-oauthlib
-requests-oauthlib==1.3.0
-    # via kubernetes
 rsa==4.5
     # via
     #   awscli
     #   google-auth
-ruamel.yaml==0.17.10
-    # via drf-yasg
 ruamel.yaml.clib==0.2.6
     # via ruamel.yaml
+ruamel.yaml==0.17.10
+    # via drf-yasg
 s3transfer==0.3.6
     # via
     #   awscli
@@ -176,12 +176,6 @@ sqlparse==0.3.1
     # via django
 toml==0.10.2
     # via black
-typed-ast==1.4.3
-    # via black
-typing-extensions==3.10.0.0
-    # via
-    #   black
-    #   importlib-metadata
 uritemplate==3.0.1
     # via
     #   coreapi
@@ -199,8 +193,6 @@ wcwidth==0.2.5
     # via prompt-toolkit
 websocket-client==0.58.0
     # via kubernetes
-zipp==3.5.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
