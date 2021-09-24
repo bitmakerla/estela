@@ -11,3 +11,4 @@ eks-token
 kubernetes
 mysqlclient
 redis
+pymongo[srv]
