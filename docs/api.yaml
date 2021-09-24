@@ -360,6 +360,66 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data:
+    get:
+      operationId: api_projects_spiders_jobs_data_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}:
+    get:
+      operationId: api_projects_spiders_jobs_data_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - api
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/spiders/{sid}/jobs/{jid}/stop:
     put:
       operationId: api_projects_spiders_jobs_stop
