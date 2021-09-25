@@ -16,10 +16,16 @@ interface ArgsData {
     value: string;
 }
 
+interface EnvVarsData {
+    name: string;
+    value: string;
+}
+
 interface JobDetailPageState {
     loaded: boolean;
     name: string | undefined;
     args: ArgsData[];
+    envVars: EnvVarsData[];
     date: string;
     type: string | undefined;
     schedule: string | undefined;
@@ -38,6 +44,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         loaded: false,
         name: "",
         args: [],
+        envVars: [],
         date: "",
         type: "",
         schedule: "",
@@ -63,9 +70,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     if (args === undefined) {
                         args = [];
                     }
+                    let envVars = response.envVars;
+                    if (envVars === undefined) {
+                        envVars = [];
+                    }
                     this.setState({
                         name: response.name,
                         args: [...args],
+                        envVars: [...envVars],
                         date: convertDateToString(response.created),
                         type: response.jobType,
                         status: response.jobStatus,
@@ -82,7 +94,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     }
 
     render(): JSX.Element {
-        const { loaded, name, args, date, type, status, schedule } = this.state;
+        const { loaded, name, args, envVars, date, type, status, schedule } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -129,6 +141,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 {args.map((arg: ArgsData, id) => (
                                                     <Tag key={id}>
                                                         {arg.name}: {arg.value}
+                                                    </Tag>
+                                                ))}
+                                            </Space>
+                                            <Space direction="vertical">
+                                                <b>Environment variables</b>
+                                                {envVars.map((envVar: EnvVarsData, id) => (
+                                                    <Tag key={id}>
+                                                        {envVar.name}: {envVar.value}
                                                     </Tag>
                                                 ))}
                                             </Space>

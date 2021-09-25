@@ -12,6 +12,7 @@ models/Spider.ts
 models/SpiderJob.ts
 models/SpiderJobArg.ts
 models/SpiderJobCreate.ts
+models/SpiderJobEnvVar.ts
 models/SpiderJobUpdate.ts
 models/Token.ts
 models/index.ts

@@ -18,6 +18,10 @@ import {
     SpiderJobArgFromJSON,
     SpiderJobArgFromJSONTyped,
     SpiderJobArgToJSON,
+    SpiderJobEnvVar,
+    SpiderJobEnvVarFromJSON,
+    SpiderJobEnvVarFromJSONTyped,
+    SpiderJobEnvVarToJSON,
 } from './';
 
 /**
@@ -44,6 +48,12 @@ export interface SpiderJobCreate {
      * @memberof SpiderJobCreate
      */
     args?: Array<SpiderJobArg>;
+    /**
+     * 
+     * @type {Array<SpiderJobEnvVar>}
+     * @memberof SpiderJobCreate
+     */
+    envVars?: Array<SpiderJobEnvVar>;
     /**
      * 
      * @type {string}
@@ -86,6 +96,7 @@ export function SpiderJobCreateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'name': !exists(json, 'name') ? undefined : json['name'],
         'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
+        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'jobType': !exists(json, 'job_type') ? undefined : json['job_type'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
@@ -102,6 +113,7 @@ export function SpiderJobCreateToJSON(value?: SpiderJobCreate | null): any {
     return {
         
         'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
+        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'job_type': value.jobType,
         'schedule': value.schedule,
     };

@@ -30,11 +30,20 @@ interface ArgsData {
     key: number;
 }
 
+interface EnvVarsData {
+    name: string;
+    value: string;
+    key: number;
+}
+
 interface JobCreatePageState {
     args: ArgsData[];
+    envVars: EnvVarsData[];
     type: string | undefined;
     newArgName: string;
     newArgValue: string;
+    newEnvVarName: string;
+    newEnvVarValue: string;
     spiderName: string;
 }
 
@@ -50,9 +59,12 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
     cronJob = "CRON_JOB";
     state: JobCreatePageState = {
         args: [],
+        envVars: [],
         type: this.singleJob,
         newArgName: "",
         newArgValue: "",
+        newEnvVarName: "",
+        newEnvVarValue: "",
         spiderName: "",
     };
     projectId: string = this.props.match.params.projectId;
@@ -78,6 +90,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
     handleSubmit = (data: { type: string; schedule: string }): void => {
         const requestData = {
             args: [...this.state.args],
+            envVars: [...this.state.envVars],
             jobType: SpiderJobCreateJobTypeEnum.SingleJob,
             schedule: "",
         };
@@ -109,6 +122,10 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             this.setState({ newArgName: value });
         } else if (name === "newArgValue") {
             this.setState({ newArgValue: value });
+        } else if (name === "newEnvVarName") {
+            this.setState({ newEnvVarName: value });
+        } else if (name === "newEnvVarValue") {
+            this.setState({ newEnvVarValue: value });
         }
     };
 
@@ -120,6 +137,12 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         const args = [...this.state.args];
         args.splice(id, 1);
         this.setState({ args: [...args] });
+    };
+
+    handleRemoveEnvVar = (id: number): void => {
+        const envVars = [...this.state.envVars];
+        envVars.splice(id, 1);
+        this.setState({ envVars: [...envVars] });
     };
 
     addArgument = (): void => {
@@ -134,8 +157,20 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
+    addEnvironmentVariable = (): void => {
+        const envVars = [...this.state.envVars];
+        const newEnvVarName = this.state.newEnvVarName.trim();
+        const newEnvVarValue = this.state.newEnvVarValue.trim();
+        if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
+            envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
+            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
+        } else {
+            incorrectDataNotification();
+        }
+    };
+
     render(): JSX.Element {
-        const { args, type, newArgName, newArgValue, spiderName } = this.state;
+        const { args, envVars, type, newArgName, newArgValue, newEnvVarName, newEnvVarValue, spiderName } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -200,6 +235,31 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                                 <Button className="job-create-button" onClick={this.addArgument}>
                                     Save Argument
+                                </Button>
+                                <div className="envVar-label">Environment variables:</div>
+                                <Space direction="vertical">
+                                    {envVars.map((envVar: EnvVarsData, id) => (
+                                        <Tag closable key={envVar.key} onClose={() => this.handleRemoveEnvVar(id)}>
+                                            {envVar.name}: {envVar.value}
+                                        </Tag>
+                                    ))}
+                                    <div className="envVars">
+                                        <Input
+                                            name="newEnvVarName"
+                                            placeholder="name"
+                                            value={newEnvVarName}
+                                            onChange={this.handleInputChange}
+                                        />
+                                        <Input
+                                            name="newEnvVarValue"
+                                            placeholder="value"
+                                            value={newEnvVarValue}
+                                            onChange={this.handleInputChange}
+                                        />
+                                    </div>
+                                </Space>
+                                <Button className="job-create-button" onClick={this.addEnvironmentVariable}>
+                                    Save Environment Variable
                                 </Button>
                                 <Button type="primary" htmlType="submit" className="job-create-button">
                                     Run Spider Job
