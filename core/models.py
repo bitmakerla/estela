@@ -104,3 +104,10 @@ class SpiderJobArg(models.Model):
     job = models.ForeignKey(SpiderJob, on_delete=models.CASCADE, related_name="args")
     name = models.CharField(max_length=1000)
     value = models.CharField(max_length=1000)
+
+
+class SpiderJobEnvVar(models.Model):
+    evid = models.AutoField(primary_key=True)
+    job = models.ForeignKey(SpiderJob, on_delete=models.CASCADE, related_name="env_vars")
+    name = models.CharField(max_length=1000)
+    value = models.CharField(max_length=1000)

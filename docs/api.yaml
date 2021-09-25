@@ -549,6 +549,22 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+  SpiderJobEnvVar:
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        type: string
+        maxLength: 1000
+        minLength: 1
   SpiderJob:
     required:
       - spider
@@ -574,6 +590,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
+      env_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       job_type:
         title: Job type
         type: string
@@ -603,6 +623,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
+      env_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       job_type:
         title: Job type
         type: string

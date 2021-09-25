@@ -1,5 +1,5 @@
 from django.contrib import admin
-from core.models import Project, Spider, SpiderJob, SpiderJobArg
+from core.models import Project, Spider, SpiderJob, SpiderJobArg, SpiderJobEnvVar
 
 
 @admin.register(Project)
@@ -16,8 +16,13 @@ class SpiderJobArgInline(admin.TabularInline):
     model = SpiderJobArg
 
 
+class SpiderJobEnvVarInline(admin.TabularInline):
+    model = SpiderJobEnvVar
+
+
 @admin.register(SpiderJob)
 class SpiderJobAdmin(admin.ModelAdmin):
     inlines = [
         SpiderJobArgInline,
+        SpiderJobEnvVarInline,
     ]
