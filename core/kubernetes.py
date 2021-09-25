@@ -118,20 +118,19 @@ def create_job(
     key,
     spider_name,
     job_args,
+    job_env_vars,
     container_image,
     job_type=SINGLE_JOB,
     namespace="default",
     container_name="jobcontainer",
     schedule="",
-    env_vars=None,
     api_instance=None,
     auth_token=None,
 ):
     if api_instance is None:
         api_instance = get_api_instance(job_type)
-    if env_vars is None:
-        env_vars = {}
-    env_vars.update(
+
+    job_env_vars.update(
         [
             ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
             ("KAFKA_ADVERTISED_LISTENERS", settings.KAFKA_HOSTS),
@@ -145,6 +144,7 @@ def create_job(
                         "auth_token": auth_token,
                         "key": key,
                         "args": job_args,
+                        "env_vars": job_env_vars,
                     }
                 ),
             ),
@@ -155,7 +155,7 @@ def create_job(
 
     if job_type == SINGLE_JOB:
         body = create_job_object(
-            name, container_image, namespace, container_name, env_vars
+            name, container_image, namespace, container_name, job_env_vars
         )
         api_response = api_instance.create_namespaced_job(namespace, body)
 
@@ -163,7 +163,7 @@ def create_job(
         if not schedule:
             schedule = DEFAULT_SCHEDULE
         body = create_cronjob_object(
-            name, container_image, namespace, container_name, env_vars, schedule
+            name, container_image, namespace, container_name, job_env_vars, schedule
         )
         api_response = api_instance.create_namespaced_cron_job(namespace, body)
 
