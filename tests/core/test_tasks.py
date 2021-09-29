@@ -1,7 +1,9 @@
 from core.tasks import run_spider_jobs
 from core.models import Project, Spider, SpiderJob
 from core.kubernetes import delete_job
-from tests.base import BaseTestCase
+from core.cronjob import create_cronjob, delete_cronjob
+
+from tests.base import BaseTestCase, TEST_DOCKER_IMAGE, TEST_SPIDER
 
 
 class RunSpiderJobs(BaseTestCase):
@@ -43,3 +45,13 @@ class RunSpiderJobs(BaseTestCase):
             resource="job-detail",
         )
         delete_job(response["name"])
+
+    def test_create_cronjob(self):
+        response = create_cronjob("1.1.1", [])
+        delete_cronjob(response.name)
+        self.assertEqual(response.name, "1.1.1")
+
+    def test_delete_cronjob(self):
+        cronjob = create_cronjob("1.1.1", [])
+        response = delete_cronjob(cronjob.name)
+        self.assertEqual(response, True)
