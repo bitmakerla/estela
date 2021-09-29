@@ -6,6 +6,7 @@ from api.views import (
     job as job_views,
     auth as auth_views,
     data as data_views,
+    cronjob as cronjob_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -29,6 +30,13 @@ router.register(
     viewset=data_views.RetrieveDataViewSet,
     basename="data",
 )
+
+router.register(
+    prefix=r"projects/(?P<pid>[0-9a-z-]+)/spiders/(?P<sid>\d+)/cronjobs",
+    viewset=cronjob_views.SpiderCronJobViewSet,
+    basename="cronjob",
+)
+
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 
 urlpatterns = router.urls

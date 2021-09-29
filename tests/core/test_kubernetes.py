@@ -1,6 +1,7 @@
 from core.kubernetes import (
     get_api_instance,
     create_job,
+    create_cronjob,
     delete_job,
     read_job,
     read_job_status,
@@ -61,62 +62,6 @@ class TestKubernetes(BaseTestCase):
         response = delete_job("test3", api_instance=self.job_api_instance)
         self.assertIsNone(response.message)
 
-    def test_create_cron_job(self):
-        response = create_job(
-            "test4",
-            "1.1.1",
-            TEST_SPIDER,
-            {},
-            TEST_DOCKER_IMAGE,
-            CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        delete_job(
-            "test4",
-            job_type=CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        self.assertEqual(response._metadata.name, "test4")
-
-    def test_read_cron_job(self):
-        create_job(
-            "test5",
-            "1.1.1",
-            TEST_SPIDER,
-            {},
-            TEST_DOCKER_IMAGE,
-            CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        response = read_job(
-            "test5",
-            job_type=CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        delete_job(
-            "test5",
-            job_type=CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        self.assertEqual(response._metadata.name, "test5")
-
-    def test_delete_cron_job(self):
-        create_job(
-            "test6",
-            "1.1.1",
-            TEST_SPIDER,
-            {},
-            TEST_DOCKER_IMAGE,
-            CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        response = delete_job(
-            "test6",
-            job_type=CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        self.assertIsNone(response.message)
-
     def test_read_status_job(self):
         create_job(
             "test7",
@@ -129,21 +74,3 @@ class TestKubernetes(BaseTestCase):
         response = read_job_status("test7", api_instance=self.job_api_instance)
         self.assertIsNotNone(response)
         delete_job("test7", api_instance=self.job_api_instance)
-
-    def test_read_status_cron_job(self):
-        create_job(
-            "test8",
-            "1.1.1",
-            TEST_SPIDER,
-            {},
-            TEST_DOCKER_IMAGE,
-            CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        response = read_job_status(
-            "test8",
-            job_type=CRON_JOB,
-            api_instance=self.cron_job_api_instance,
-        )
-        self.assertIsNotNone(response)
-        delete_job("test8", job_type=CRON_JOB)

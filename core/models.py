@@ -39,6 +39,35 @@ class Spider(models.Model):
     deleted = models.BooleanField(default=False)
 
 
+class SpiderCronJob(models.Model):
+    ACTIVE_STATUS = "ACTIVE"
+    DISABLED_STATUS = "DISABLED"
+    STATUS_OPTIONS = [
+        (ACTIVE_STATUS, "Active"),
+        (DISABLED_STATUS, "Disabled"),
+    ]
+    cjid = models.AutoField(primary_key=True)
+    spider = models.ForeignKey(
+        Spider, on_delete=models.CASCADE, related_name="cronjobs"
+    )
+    schedule = models.CharField(max_length=20, blank=True)
+    status = models.CharField(
+        max_length=16, choices=STATUS_OPTIONS, default=ACTIVE_STATUS
+    )
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+
+    class Meta:
+        ordering = ["-created"]
+
+    @property
+    def name(self):
+        return "spider-cjob-{}-{}".format(self.cjid, self.spider.project.pid)
+
+    @property
+    def key(self):
+        return "{}.{}.{}".format(self.cjid, self.spider.sid, self.spider.project.pid)
+
+
 class SpiderJob(models.Model):
     WAITING_STATUS = "WAITING"
     RUNNING_STATUS = "RUNNING"
@@ -57,19 +86,15 @@ class SpiderJob(models.Model):
         (ERROR_STATUS, "Error"),
     ]
 
-    TYPE_OPTIONS = [
-        (SINGLE_JOB, "SingleJob"),
-        (CRON_JOB, "CronJob"),
-    ]
-
     jid = models.AutoField(primary_key=True)
     spider = models.ForeignKey(Spider, on_delete=models.CASCADE, related_name="jobs")
+    cronjob = models.ForeignKey(
+        SpiderCronJob, on_delete=models.CASCADE, related_name="cronjobs", null=True
+    )
     status = models.CharField(
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
-    job_type = models.CharField(max_length=16, choices=TYPE_OPTIONS, default=SINGLE_JOB)
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    schedule = models.CharField(max_length=20, blank=True)
 
     class Meta:
         ordering = ["created"]
@@ -88,12 +113,12 @@ class SpiderJob(models.Model):
             self.status == self.WAITING_STATUS
             and timezone.now() - timedelta(seconds=JOB_TIME_CREATION) > self.created
         ):
-            job_status = read_job_status(self.name, job_type=self.job_type)
+            job_status = read_job_status(self.name, job_type=SINGLE_JOB)
             if job_status is None:
                 self.status = self.ERROR_STATUS
                 self.save()
             elif job_status.status.active is None:
-                if self.job_type == SINGLE_JOB and job_status.status.succeeded is None:
+                if job_status.status.succeeded is None:
                     self.status = self.ERROR_STATUS
                     self.save()
         return self.status
@@ -101,6 +126,11 @@ class SpiderJob(models.Model):
 
 class SpiderJobArg(models.Model):
     aid = models.AutoField(primary_key=True)
-    job = models.ForeignKey(SpiderJob, on_delete=models.CASCADE, related_name="args")
+    job = models.ForeignKey(
+        SpiderJob, on_delete=models.CASCADE, related_name="args", null=True
+    )
+    cronjob = models.ForeignKey(
+        SpiderCronJob, on_delete=models.CASCADE, related_name="cargs", null=True
+    )
     name = models.CharField(max_length=1000)
     value = models.CharField(max_length=1000)
