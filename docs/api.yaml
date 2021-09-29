@@ -238,6 +238,161 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/cronjobs:
+    get:
+      operationId: api_projects_spiders_cronjobs_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/SpiderCronJob'
+      tags:
+        - api
+    post:
+      operationId: api_projects_spiders_cronjobs_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SpiderCronJobCreate'
+        - name: async
+          in: query
+          type: string
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderCronJobCreate'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}:
+    get:
+      operationId: api_projects_spiders_cronjobs_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      tags:
+        - api
+    put:
+      operationId: api_projects_spiders_cronjobs_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      tags:
+        - api
+    patch:
+      operationId: api_projects_spiders_cronjobs_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      tags:
+        - api
+    parameters:
+      - name: cjid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}/stop:
+    put:
+      operationId: api_projects_spiders_cronjobs_stop
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      tags:
+        - api
+    parameters:
+      - name: cjid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/spiders/{sid}/jobs:
     get:
       operationId: api_projects_spiders_jobs_list
@@ -287,6 +442,9 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/SpiderJobCreate'
+        - name: async
+          in: query
+          type: string
       responses:
         '201':
           description: ''
@@ -549,6 +707,66 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+  SpiderCronJob:
+    required:
+      - spider
+    type: object
+    properties:
+      cjid:
+        title: Cjid
+        type: integer
+        readOnly: true
+      spider:
+        title: Spider
+        type: integer
+      created:
+        title: Created
+        type: string
+        format: date-time
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        readOnly: true
+      cargs:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobArg'
+      schedule:
+        title: Schedule
+        type: string
+        maxLength: 20
+      status:
+        title: Status
+        type: string
+        enum:
+          - ACTIVE
+          - DISABLED
+  SpiderCronJobCreate:
+    type: object
+    properties:
+      cjid:
+        title: Cjid
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        readOnly: true
+      cargs:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobArg'
+      schedule:
+        title: Schedule
+        type: string
+        maxLength: 20
+      status:
+        title: Status
+        type: string
+        enum:
+          - ACTIVE
+          - DISABLED
   SpiderJob:
     required:
       - spider
@@ -574,20 +792,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
-      job_type:
-        title: Job type
-        type: string
-        enum:
-          - SINGLE_JOB
-          - CRON_JOB
-      schedule:
-        title: Schedule
-        type: string
-        maxLength: 20
       job_status:
         title: Job status
         type: string
         readOnly: true
+      cronjob:
+        title: Cronjob
+        type: integer
+        x-nullable: true
   SpiderJobCreate:
     type: object
     properties:
@@ -603,20 +815,14 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
-      job_type:
-        title: Job type
-        type: string
-        enum:
-          - SINGLE_JOB
-          - CRON_JOB
-      schedule:
-        title: Schedule
-        type: string
-        maxLength: 20
       job_status:
         title: Job status
         type: string
         readOnly: true
+      cronjob:
+        title: Cronjob
+        type: integer
+        x-nullable: true
   SpiderJobUpdate:
     type: object
     properties:

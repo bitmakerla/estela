@@ -1,5 +1,6 @@
 from ***REMOVED***.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +13,7 @@ from api.serializers.job import (
     SpiderJobUpdateSerializer,
 )
 from core.kubernetes import delete_job, create_job
-from core.models import Spider, SpiderJob
+from core.models import Spider, SpiderJob, SpiderCronJob
 
 
 class SpiderJobViewSet(
@@ -34,15 +35,24 @@ class SpiderJobViewSet(
         )
 
     @swagger_auto_schema(
+        manual_parameters=[openapi.Parameter(name="async",in_=openapi.IN_QUERY,type=openapi.TYPE_STRING)],
         request_body=SpiderJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderJobCreateSerializer()},
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
+        cronjob_id = request.query_params.get("cronjob", False)
+        cronjob = None
+
+        if cronjob_id:
+            cronjob = get_object_or_404(SpiderCronJob, cjid=cronjob_id, deleted=False)
+
         async_param = request.query_params.get("async", False)
         serializer = SpiderJobCreateSerializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
         job = serializer.save(spider=spider)
+
         if not async_param:
             job_args = {arg.name: arg.value for arg in job.args.all()}
             token = request.auth.key if request.auth else None
@@ -52,8 +62,6 @@ class SpiderJobViewSet(
                 job.spider.name,
                 job_args,
                 job.spider.project.container_image,
-                job.job_type,
-                schedule=job.schedule,
                 auth_token=token,
             )
         headers = self.get_success_headers(serializer.data)
@@ -92,7 +100,7 @@ class SpiderJobViewSet(
                 {"error": errors.JOB_NOT_STOPPED.format(allowed_status)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        response = delete_job(job.name, job_type=job.job_type)
+        response = delete_job(job.name, job_type="SINGLE_JOB")
         if response is None:
             return Response(
                 {"error": errors.JOB_INSTANCE_NOT_FOUND},

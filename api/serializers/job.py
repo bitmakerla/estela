@@ -2,11 +2,7 @@ from rest_framework import serializers
 
 from core.models import SpiderJob, SpiderJobArg
 
-
-class SpiderJobArgSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SpiderJobArg
-        fields = ("name", "value")
+from api.serializers.arg import SpiderJobArgSerializer
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -20,9 +16,8 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "created",
             "name",
             "args",
-            "job_type",
-            "schedule",
             "job_status",
+            "cronjob",
         )
 
 
@@ -35,9 +30,8 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "jid",
             "name",
             "args",
-            "job_type",
-            "schedule",
             "job_status",
+            "cronjob",
         )
 
     def create(self, validated_data):
