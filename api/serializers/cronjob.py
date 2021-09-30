@@ -7,8 +7,8 @@ from api.serializers.env_var import SpiderJobEnvVarSerializer
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):
-    cjargs = SpiderJobArgSerializer(many=True, required=False)
-    cjenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
+    cargs = SpiderJobArgSerializer(many=True, required=False)
+    cenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
 
     class Meta:
         model = SpiderCronJob
@@ -17,31 +17,31 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
             "spider",
             "created",
             "name",
-            "cjargs",
-            "cjenv_vars",
+            "cargs",
+            "cenv_vars",
             "schedule",
             "status",
         )
 
 
 class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
-    cjargs = SpiderJobArgSerializer(many=True, required=False)
-    cjenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
+    cargs = SpiderJobArgSerializer(many=True, required=False)
+    cenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
 
     class Meta:
         model = SpiderCronJob
         fields = (
             "cjid",
             "name",
-            "cjargs",
-            "cjenv_vars",
+            "cargs",
+            "cenv_vars",
             "schedule",
             "status",
         )
 
     def create(self, validated_data):
-        args_data = validated_data.pop("cjargs", [])
-        env_vars_data = validated_data.pop("cjenv_vars", [])
+        args_data = validated_data.pop("cargs", [])
+        env_vars_data = validated_data.pop("cenv_vars", [])
 
         cronjob = SpiderCronJob.objects.create(**validated_data)
         for arg in args_data:
