@@ -15,4 +15,8 @@ app.conf.beat_schedule = {
         "task": "core.tasks.run_spider_jobs",
         "schedule": 120,
     },
+    "check-and-update-job-status-errors": {
+        "task": "core.tasks.check_and_update_job_status_errors",
+        "schedule": 60,
+    },
 }

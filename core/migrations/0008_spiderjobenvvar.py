@@ -7,23 +7,44 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0007_linkcronjob'),
+        ("core", "0007_linkcronjob"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='spiderjobarg',
-            name='cronjob',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cargs', to='core.spidercronjob'),
+            model_name="spiderjobarg",
+            name="cronjob",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="cargs",
+                to="core.spidercronjob",
+            ),
         ),
         migrations.CreateModel(
-            name='SpiderJobEnvVar',
+            name="SpiderJobEnvVar",
             fields=[
-                ('evid', models.AutoField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=1000)),
-                ('value', models.CharField(max_length=1000)),
-                ('cronjob', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='cenv_vars', to='core.spidercronjob')),
-                ('job', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='env_vars', to='core.spiderjob')),
+                ("evid", models.AutoField(primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=1000)),
+                ("value", models.CharField(max_length=1000)),
+                (
+                    "cronjob",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cenv_vars",
+                        to="core.spidercronjob",
+                    ),
+                ),
+                (
+                    "job",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="env_vars",
+                        to="core.spiderjob",
+                    ),
+                ),
             ],
         ),
     ]
