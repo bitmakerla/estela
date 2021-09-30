@@ -1,7 +1,6 @@
 from core.kubernetes import (
     get_api_instance,
     create_job,
-    create_cronjob,
     delete_job,
     read_job,
     read_job_status,
@@ -31,6 +30,7 @@ class TestKubernetes(BaseTestCase):
             "1.1.1",
             TEST_SPIDER,
             {},
+            {},
             TEST_DOCKER_IMAGE,
             api_instance=self.job_api_instance,
         )
@@ -42,6 +42,7 @@ class TestKubernetes(BaseTestCase):
             "test2",
             "1.1.1",
             TEST_SPIDER,
+            {},
             {},
             TEST_DOCKER_IMAGE,
             api_instance=self.job_api_instance,
@@ -56,6 +57,7 @@ class TestKubernetes(BaseTestCase):
             "1.1.1",
             TEST_SPIDER,
             {},
+            {},
             TEST_DOCKER_IMAGE,
             api_instance=self.job_api_instance,
         )
@@ -64,13 +66,14 @@ class TestKubernetes(BaseTestCase):
 
     def test_read_status_job(self):
         create_job(
-            "test7",
+            "test4",
             "1.1.1",
             TEST_SPIDER,
+            {},
             {},
             TEST_DOCKER_IMAGE,
             api_instance=self.job_api_instance,
         )
-        response = read_job_status("test7", api_instance=self.job_api_instance)
+        response = read_job_status("test4", api_instance=self.job_api_instance)
         self.assertIsNotNone(response)
-        delete_job("test7", api_instance=self.job_api_instance)
+        delete_job("test4", api_instance=self.job_api_instance)

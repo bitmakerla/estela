@@ -163,18 +163,17 @@ def create_job(
     key,
     spider_name,
     job_args,
+    job_env_vars,
     container_image,
     namespace="default",
     container_name="jobcontainer",
-    env_vars=None,
     api_instance=None,
     auth_token=None,
 ):
     if api_instance is None:
         api_instance = get_api_instance(SINGLE_JOB)
-    if env_vars is None:
-        env_vars = {}
-    env_vars.update(
+
+    job_env_vars.update(
         [
             ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
             ("KAFKA_ADVERTISED_LISTENERS", settings.KAFKA_HOSTS),
@@ -188,6 +187,7 @@ def create_job(
                         "auth_token": auth_token,
                         "key": key,
                         "args": job_args,
+                        "env_vars": job_env_vars,
                     }
                 ),
             ),
@@ -195,7 +195,7 @@ def create_job(
     )
     api_response = None
 
-    body = create_job_object(name, container_image, namespace, container_name, env_vars)
+    body = create_job_object(name, container_image, namespace, container_name, job_env_vars)
     api_response = api_instance.create_namespaced_job(namespace, body)
 
     return api_response

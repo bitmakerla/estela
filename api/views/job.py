@@ -55,12 +55,15 @@ class SpiderJobViewSet(
 
         if not async_param:
             job_args = {arg.name: arg.value for arg in job.args.all()}
+            job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
+
             token = request.auth.key if request.auth else None
             create_job(
                 job.name,
                 job.key,
                 job.spider.name,
                 job_args,
+                job_env_vars,
                 job.spider.project.container_image,
                 auth_token=token,
             )

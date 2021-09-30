@@ -3,7 +3,7 @@ from core.models import Project, Spider, SpiderJob
 from core.kubernetes import delete_job
 from core.cronjob import create_cronjob, delete_cronjob
 
-from tests.base import BaseTestCase, TEST_DOCKER_IMAGE, TEST_SPIDER
+from tests.base import BaseTestCase
 
 
 class RunSpiderJobs(BaseTestCase):

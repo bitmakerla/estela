@@ -11,7 +11,7 @@ from api.serializers.cronjob import (
     SpiderCronJobSerializer,
     SpiderCronJobCreateSerializer,
 )
-from core.models import Spider, SpiderJob, SpiderCronJob
+from core.models import Spider, SpiderCronJob
 from core.cronjob import create_cronjob, delete_cronjob
 
 
@@ -49,6 +49,7 @@ class SpiderCronJobViewSet(
             create_cronjob(
                 cronjob.key,
                 request.data["cargs"],
+                request.data["cenv_vargs"],
                 schedule=cronjob.schedule,
                 auth_token=token,
             )

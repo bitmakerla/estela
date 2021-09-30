@@ -4,8 +4,6 @@ from core.models import SpiderJob, Spider
 from core.kubernetes import create_job
 from api.serializers.job import SpiderJobCreateSerializer
 
-import os
-
 
 @celery_app.task
 def run_spider_jobs():
@@ -15,11 +13,13 @@ def run_spider_jobs():
 
     for job in jobs:
         job_args = {arg.name: arg.value for arg in job.args.all()}
+        job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
         create_job(
             job.name,
             job.key,
             job.spider.name,
             job_args,
+            job_env_vars,
             job.spider.project.container_image,
         )
         job.status = SpiderJob.RUNNING_STATUS
@@ -35,11 +35,13 @@ def launch_job(sid_, data_, token=None):
     job = serializer.save(spider=spider)
 
     job_args = {arg.name: arg.value for arg in job.args.all()}
+    job_env_vars = {env_var.nam: env_var.value for env_var in job.env_vars.all()}
     create_job(
         job.name,
         job.key,
         job.spider.name,
         job_args,
+        job_env_vars,
         job.spider.project.container_image,
         auth_token=token,
     )
