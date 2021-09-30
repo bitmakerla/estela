@@ -707,6 +707,22 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+  SpiderJobEnvVar:
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        type: string
+        maxLength: 1000
+        minLength: 1
   SpiderCronJob:
     required:
       - spider
@@ -732,6 +748,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
+      cenv_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       schedule:
         title: Schedule
         type: string
@@ -757,6 +777,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
+      cenv_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       schedule:
         title: Schedule
         type: string
@@ -792,6 +816,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
+      env_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       job_status:
         title: Job status
         type: string
@@ -815,6 +843,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
+      env_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       job_status:
         title: Job status
         type: string
