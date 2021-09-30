@@ -2,18 +2,25 @@ from django.conf import settings
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
 from json import dumps
+import os
 
 
 SINGLE_JOB = "SINGLE_JOB"
 CRON_JOB = "CRON_JOB"
 SPIDER_JOB_COMMANDS = ["bm-crawl"]
+SPIDER_CRONJOB_COMMANDS = ["python", "launch_job.py"]
 JOB_TTL_SECONDS_AFTER_FINISHED = 86400  # 24 hours
+CRONJOB_TTL_SECONDS_AFTER_FINISHED = 60  # 1 min
 BACKOFF_LIMIT = 2
 JOB_TIME_CREATION = 20
 POD_RESTART_POLICY = "Never"
 IMAGE_PULL_POLICY = "Always"
 SPIDER_NODE_ROLE = "bitmaker-spider"
 IMAGE_PULL_SECRET_NAME = "regcred"
+
+CRON_JOB_IMAGE = (
+    settings.REGISTRY_HOST.replace("https://", "") + "/bitmaker-cronjob:latest"
+)
 
 
 DEFAULT_SCHEDULE = "0 0 * * *"  # Run job every day at midnight
@@ -87,7 +94,7 @@ def create_cronjob_object(
         name=container_name,
         image=container_image,
         env=env_list,
-        command=SPIDER_JOB_COMMANDS,
+        command=SPIDER_CRONJOB_COMMANDS,
         image_pull_policy=IMAGE_PULL_POLICY,
     )
     template.spec = client.V1PodSpec(
@@ -100,6 +107,7 @@ def create_cronjob_object(
     )
 
     job_template.spec = client.V1JobSpec(
+        ttl_seconds_after_finished=CRONJOB_TTL_SECONDS_AFTER_FINISHED,
         backoff_limit=BACKOFF_LIMIT,
         template=template,
     )
@@ -113,6 +121,43 @@ def create_cronjob_object(
     return body
 
 
+def create_cronjob(
+    name,
+    key,
+    spider_name,
+    cronjob_args,
+    container_image,
+    namespace="default",
+    container_name="cronjobcontainer",
+    schedule="",
+    env_vars=None,
+    api_instance=None,
+    auth_token=None,
+):
+    if api_instance is None:
+        api_instance = get_api_instance(CRON_JOB)
+    if env_vars is None:
+        env_vars = {}
+    env_vars.update(
+        [
+            ("AUTH_TOKEN", auth_token),
+            ("KEY", key),
+            ("API_HOST", settings.DJANGO_API_HOST),
+            ("ARGS", dumps(cronjob_args)),
+        ]
+    )
+    api_response = None
+
+    if not schedule:
+        schedule = DEFAULT_SCHEDULE
+    body = create_cronjob_object(
+        name, CRON_JOB_IMAGE, namespace, container_name, env_vars, schedule
+    )
+    api_response = api_instance.create_namespaced_cron_job(namespace, body)
+
+    return api_response
+
+
 def create_job(
     name,
     key,
@@ -120,15 +165,13 @@ def create_job(
     job_args,
     job_env_vars,
     container_image,
-    job_type=SINGLE_JOB,
     namespace="default",
     container_name="jobcontainer",
-    schedule="",
     api_instance=None,
     auth_token=None,
 ):
     if api_instance is None:
-        api_instance = get_api_instance(job_type)
+        api_instance = get_api_instance(SINGLE_JOB)
 
     job_env_vars.update(
         [
@@ -150,22 +193,10 @@ def create_job(
             ),
         ]
     )
-
     api_response = None
 
-    if job_type == SINGLE_JOB:
-        body = create_job_object(
-            name, container_image, namespace, container_name, job_env_vars
-        )
-        api_response = api_instance.create_namespaced_job(namespace, body)
-
-    elif job_type == CRON_JOB:
-        if not schedule:
-            schedule = DEFAULT_SCHEDULE
-        body = create_cronjob_object(
-            name, container_image, namespace, container_name, job_env_vars, schedule
-        )
-        api_response = api_instance.create_namespaced_cron_job(namespace, body)
+    body = create_job_object(name, container_image, namespace, container_name, job_env_vars)
+    api_response = api_instance.create_namespaced_job(namespace, body)
 
     return api_response
 

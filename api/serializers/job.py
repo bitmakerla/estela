@@ -2,17 +2,8 @@ from rest_framework import serializers
 
 from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar
 
-
-class SpiderJobArgSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SpiderJobArg
-        fields = ("name", "value")
-
-
-class SpiderJobEnvVarSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SpiderJobEnvVar
-        fields = ("name", "value")
+from api.serializers.arg import SpiderJobArgSerializer
+from api.serializers.env_var import SpiderJobEnvVarSerializer
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -28,9 +19,8 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "name",
             "args",
             "env_vars",
-            "job_type",
-            "schedule",
             "job_status",
+            "cronjob",
         )
 
 
@@ -45,9 +35,8 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "name",
             "args",
             "env_vars",
-            "job_type",
-            "schedule",
             "job_status",
+            "cronjob",
         )
 
     def create(self, validated_data):
