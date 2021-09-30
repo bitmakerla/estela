@@ -87,6 +87,21 @@ export interface ApiProjectsSpidersJobsCreateRequest {
     data: SpiderJobCreate;
 }
 
+export interface ApiProjectsSpidersJobsDataListRequest {
+    jid: string;
+    pid: string;
+    sid: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProjectsSpidersJobsDataReadRequest {
+    id: string;
+    jid: string;
+    pid: string;
+    sid: string;
+}
+
 export interface ApiProjectsSpidersJobsListRequest {
     pid: string;
     sid: string;
@@ -422,6 +437,94 @@ export class ApiApi extends runtime.BaseAPI {
     async apiProjectsSpidersJobsCreate(requestParameters: ApiProjectsSpidersJobsCreateRequest): Promise<SpiderJobCreate> {
         const response = await this.apiProjectsSpidersJobsCreateRaw(requestParameters);
         return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataList.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsDataList.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsDataList.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/data`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<void> {
+        await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataReadRaw(requestParameters: ApiProjectsSpidersJobsDataReadRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiProjectsSpidersJobsDataRead.');
+        }
+
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataRead.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsDataRead.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsDataRead.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataRead(requestParameters: ApiProjectsSpidersJobsDataReadRequest): Promise<void> {
+        await this.apiProjectsSpidersJobsDataReadRaw(requestParameters);
     }
 
     /**
