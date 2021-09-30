@@ -35,7 +35,11 @@ class SpiderJobViewSet(
         )
 
     @swagger_auto_schema(
-        manual_parameters=[openapi.Parameter(name="async",in_=openapi.IN_QUERY,type=openapi.TYPE_STRING)],
+        manual_parameters=[
+            openapi.Parameter(
+                name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+            )
+        ],
         request_body=SpiderJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderJobCreateSerializer()},
     )
@@ -55,7 +59,9 @@ class SpiderJobViewSet(
 
         if not async_param:
             job_args = {arg.name: arg.value for arg in job.args.all()}
-            job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
+            job_env_vars = {
+                env_var.name: env_var.value for env_var in job.env_vars.all()
+            }
 
             token = request.auth.key if request.auth else None
             create_job(

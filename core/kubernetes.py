@@ -195,7 +195,9 @@ def create_job(
     )
     api_response = None
 
-    body = create_job_object(name, container_image, namespace, container_name, job_env_vars)
+    body = create_job_object(
+        name, container_image, namespace, container_name, job_env_vars
+    )
     api_response = api_instance.create_namespaced_job(namespace, body)
 
     return api_response
