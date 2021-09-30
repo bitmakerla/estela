@@ -1,7 +1,7 @@
 from ***REMOVED***.conf import settings
 from config.celery import app as celery_app
 from core.models import SpiderJob, Spider
-from core.kubernetes import create_job
+from core.kubernetes import create_job, read_job_status
 from api.serializers.job import SpiderJobCreateSerializer
 
 
@@ -22,8 +22,6 @@ def run_spider_jobs():
             job_env_vars,
             job.spider.project.container_image,
         )
-        job.status = SpiderJob.RUNNING_STATUS
-        job.save()
 
 
 @celery_app.task(name="core.tasks.launch_job")
@@ -45,3 +43,18 @@ def launch_job(sid_, data_, token=None):
         job.spider.project.container_image,
         auth_token=token,
     )
+
+
+@celery_app.task
+def check_and_update_job_status_errors():
+    jobs = SpiderJob.objects.filter(status=SpiderJob.WAITING_STATUS)[
+        : settings.CHECK_JOB_ERRORS_BATCH_SIZE
+    ]
+
+    for job in jobs:
+        job_status = read_job_status(job.name)
+        if job_status is None or (
+            job_status.status.active is None and job_status.status.succeeded is None
+        ):
+            job.status = SpiderJob.ERROR_STATUS
+            job.save()
