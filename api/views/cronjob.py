@@ -34,7 +34,11 @@ class SpiderCronJobViewSet(
         )
 
     @swagger_auto_schema(
-        manual_parameters=[openapi.Parameter(name="async",in_=openapi.IN_QUERY,type=openapi.TYPE_STRING)],
+        manual_parameters=[
+            openapi.Parameter(
+                name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+            )
+        ],
         request_body=SpiderCronJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderCronJobCreateSerializer()},
     )

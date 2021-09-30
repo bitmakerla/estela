@@ -1,8 +1,7 @@
 from core.tasks import run_spider_jobs
 from core.models import Project, Spider, SpiderJob
-from core.kubernetes import delete_job
+from core.kubernetes import delete_job, read_job
 from core.cronjob import create_cronjob, delete_cronjob
-
 from tests.base import BaseTestCase
 
 
@@ -14,8 +13,8 @@ class RunSpiderJobs(BaseTestCase):
         job = SpiderJob.objects.create(spider=spider)
         self.assertEqual(job.status, SpiderJob.WAITING_STATUS)
         run_spider_jobs()
-        job.refresh_from_db()
-        self.assertEqual(job.status, SpiderJob.RUNNING_STATUS)
+        job_info = read_job(job.name)
+        self.assertIsNotNone(job_info)
         delete_job(job.name)
 
     def test_run_jobs_from_endpoint(self):
