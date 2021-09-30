@@ -17,7 +17,7 @@ services:
       # Check: minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
       KAFKA_ADVERTISED_LISTENERS: >- 
         LISTENER_DOCKER_INTERNAL://kafka:19092, 
-        LISTENER_DOCKER_EXTERNAL://192.168.64.1:9092
+        LISTENER_DOCKER_EXTERNAL://192.168.49.1:9092
       KAFKA_LISTENERS: >-
         LISTENER_DOCKER_INTERNAL://:19092,
         LISTENER_DOCKER_EXTERNAL://:9092

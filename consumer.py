@@ -4,6 +4,8 @@ import json
 import pymongo
 import logging
 import threading
+import boto3
+import botocore
 
 from queue import Queue
 from kafka import KafkaConsumer
@@ -11,6 +13,27 @@ from kafka import KafkaConsumer
 
 DEFAULT_WORKER_POOL = 15
 item_queue = Queue()
+
+count = 0
+
+
+def get_certificate():
+    BUCKET_NAME = os.getenv("BUCKET_NAME")
+    KEY = os.getenv("CERTIFICATE_FILE")
+
+    s3 = boto3.resource(
+        "s3",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    )
+
+    try:
+        s3.Bucket(BUCKET_NAME).download_file(KEY, "certificate.crt")
+    except botocore.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            logging.error("The object does not exist.")
+        else:
+            raise
 
 
 def connect_kafka_consumer(topic_name):
@@ -46,7 +69,7 @@ def read_from_queue(client):
             client[item["database_name"]][item["collection_name"]].insert_one(
                 item["payload"]
             )
-            logging.debug("Document inserted.")
+            logging.debug("Document inserted {}.".format(item["collection_name"]))
         except:
             logging.warning(
                 "An exception occurs during the insertion in: {}/{}.".format(
@@ -58,13 +81,18 @@ def read_from_queue(client):
 
 def consume_from_kafka(topic_name, worker_pool):
     try:
-        client = pymongo.MongoClient(os.getenv("MONGO_CONNECTION", "localhost"))
+        client = pymongo.MongoClient(
+            os.getenv("MONGO_CONNECTION", "localhost"),
+            tls=True,
+            tlsCAFile="certificate.crt",
+        )
         logging.info("DB connection established")
     except:
         logging.error("Could not connect to the DB")
         return
 
     consumer = connect_kafka_consumer(topic_name)
+    partitions = consumer.partitions_for_topic(topic_name)
     workers = []
     for i in range(worker_pool):
         worker = threading.Thread(target=read_from_queue, args=(client,), daemon=True)
@@ -80,7 +108,6 @@ def consume_from_kafka(topic_name, worker_pool):
                 "collection_name": "{}-{}-{}".format(spider, job, topic_name),
             }
         )
-
     item_queue.join()
     consumer.close()
     client.close()
@@ -88,6 +115,7 @@ def consume_from_kafka(topic_name, worker_pool):
 
 def main():
     logging.basicConfig(level=logging.INFO)
+    get_certificate()
     try:
         worker_pool = int(sys.argv[2]) if len(sys.argv) == 3 else DEFAULT_WORKER_POOL
         consume_from_kafka(sys.argv[1], worker_pool)
