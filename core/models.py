@@ -10,7 +10,6 @@ from core.kubernetes import (
     read_job_status,
     JOB_TIME_CREATION,
     SINGLE_JOB,
-    CRON_JOB,
 )
 
 
@@ -130,7 +129,7 @@ class SpiderJobArg(models.Model):
         SpiderJob, on_delete=models.CASCADE, related_name="args", null=True
     )
     cronjob = models.ForeignKey(
-        SpiderCronJob, on_delete=models.CASCADE, related_name="cjargs", null=True
+        SpiderCronJob, on_delete=models.CASCADE, related_name="cargs", null=True
     )
     name = models.CharField(max_length=1000)
     value = models.CharField(max_length=1000)
@@ -142,7 +141,7 @@ class SpiderJobEnvVar(models.Model):
         SpiderJob, on_delete=models.CASCADE, related_name="env_vars", null=True
     )
     cronjob = models.ForeignKey(
-        SpiderCronJob, on_delete=models.CASCADE, related_name="cjenv_vars", null=True
+        SpiderCronJob, on_delete=models.CASCADE, related_name="cenv_vars", null=True
     )
     name = models.CharField(max_length=1000)
     value = models.CharField(max_length=1000)

@@ -744,11 +744,11 @@ definitions:
         title: Name
         type: string
         readOnly: true
-      cjargs:
+      cargs:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
-      cjenv_vars:
+      cenv_vars:
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
@@ -773,11 +773,11 @@ definitions:
         title: Name
         type: string
         readOnly: true
-      cjargs:
+      cargs:
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
-      cjenv_vars:
+      cenv_vars:
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'

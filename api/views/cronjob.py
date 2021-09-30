@@ -48,8 +48,8 @@ class SpiderCronJobViewSet(
             token = request.auth.key if request.auth else None
             create_cronjob(
                 cronjob.key,
-                request.data["cjargs"],
-                request.data["cjenv_vargs"],
+                request.data["cargs"],
+                request.data["cenv_vargs"],
                 schedule=cronjob.schedule,
                 auth_token=token,
             )
