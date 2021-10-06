@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 from core.kubernetes import (
     read_job_status,
     JOB_TIME_CREATION,
-    SINGLE_JOB,
 )
 
 
@@ -74,8 +73,10 @@ class SpiderJob(models.Model):
     INCOMPLETE_STATUS = "INCOMPLETE"
     CANCELLED_STATUS = "CANCELLED"
     COMPLETED_STATUS = "COMPLETED"
+    IN_QUEUE_STATUS = "IN_QUEUE"
     ERROR_STATUS = "ERROR"
     STATUS_OPTIONS = [
+        (IN_QUEUE_STATUS, "In queue"),
         (WAITING_STATUS, "Waiting"),
         (RUNNING_STATUS, "Running"),
         (STOPPED_STATUS, "Stopped"),
@@ -112,7 +113,7 @@ class SpiderJob(models.Model):
             self.status == self.WAITING_STATUS
             and timezone.now() - timedelta(seconds=JOB_TIME_CREATION) > self.created
         ):
-            job_status = read_job_status(self.name, job_type=SINGLE_JOB)
+            job_status = read_job_status(self.name)
             if job_status is None:
                 self.status = self.ERROR_STATUS
                 self.save()
