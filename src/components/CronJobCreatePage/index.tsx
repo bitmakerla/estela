@@ -7,8 +7,8 @@ import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import {
     ApiProjectsSpidersReadRequest,
-    ApiProjectsSpidersJobsCreateRequest,
-    SpiderJobCreate,
+    ApiProjectsSpidersCronjobsCreateRequest,
+    SpiderCronJobCreate,
     Spider,
 } from "../../services/api";
 import {
@@ -34,7 +34,8 @@ interface EnvVarsData {
     key: number;
 }
 
-interface JobCreatePageState {
+interface CronJobCreatePageState {
+    schedule: string;
     args: ArgsData[];
     envVars: EnvVarsData[];
     newArgName: string;
@@ -49,9 +50,10 @@ interface RouteParams {
     spiderId: string;
 }
 
-export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, JobCreatePageState> {
+export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams>, CronJobCreatePageState> {
     apiService = ApiService();
-    state: JobCreatePageState = {
+    state: CronJobCreatePageState = {
+        schedule: "",
         args: [],
         envVars: [],
         newArgName: "",
@@ -80,19 +82,20 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         );
     }
 
-    handleSubmit = (): void => {
+    handleSubmit = (data: { schedule: string }): void => {
         const requestData = {
-            args: [...this.state.args],
-            envVars: [...this.state.envVars],
+            cargs: [...this.state.args],
+            cenvVars: [...this.state.envVars],
+            schedule: data.schedule,
         };
-        const request: ApiProjectsSpidersJobsCreateRequest = {
+        const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
         };
-        this.apiService.apiProjectsSpidersJobsCreate(request).then(
-            (response: SpiderJobCreate) => {
-                history.push(`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${response.jid}`);
+        this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
+            (response: SpiderCronJobCreate) => {
+                history.push(`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${response.cjid}`);
             },
             (error: unknown) => {
                 console.error(error);
@@ -162,9 +165,23 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                         <Sidenav />
                         <Content className="content-padding">
                             <Title level={2} className="text-center">
-                                Run {spiderName} Job
+                                Create {spiderName} CronJob
                             </Title>
                             <Form className="project-create-form" onFinish={this.handleSubmit}>
+                                <Form.Item
+                                    label="Schedule"
+                                    name="schedule"
+                                    required
+                                    rules={[{ required: true, message: "Please input cronjob schedule" }]}
+                                >
+                                    <Input />
+                                </Form.Item>
+                                <div className="cronjobs-info">
+                                    More information about cron schedule expressions&nbsp;
+                                    <a href="https://crontab.guru/" target="_blank" rel="noreferrer">
+                                        here
+                                    </a>
+                                </div>
                                 <div className="arg-label">Arguments:</div>
                                 <Space direction="vertical">
                                     {args.map((arg: ArgsData, id) => (
@@ -216,7 +233,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                     Save Environment Variable
                                 </Button>
                                 <Button type="primary" htmlType="submit" className="job-create-button">
-                                    Run Spider Job
+                                    Create CronJob
                                 </Button>
                             </Form>
                         </Content>

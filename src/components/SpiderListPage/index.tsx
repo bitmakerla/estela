@@ -82,7 +82,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 </Link>
                                             </List.Item>
                                         )}
-                                        className="project-list"
+                                        className="spider-list"
                                     />
                                     <Pagination
                                         className="pagination"

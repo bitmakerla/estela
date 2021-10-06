@@ -38,6 +38,7 @@ export interface SpiderJobUpdate {
 * @enum {string}
 */
 export enum SpiderJobUpdateStatusEnum {
+    InQueue = 'IN_QUEUE',
     Waiting = 'WAITING',
     Running = 'RUNNING',
     Stopped = 'STOPPED',
