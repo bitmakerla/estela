@@ -59,28 +59,13 @@ export interface SpiderJobCreate {
      * @type {string}
      * @memberof SpiderJobCreate
      */
-    jobType?: SpiderJobCreateJobTypeEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof SpiderJobCreate
-     */
-    schedule?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SpiderJobCreate
-     */
     readonly jobStatus?: string;
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SpiderJobCreateJobTypeEnum {
-    SingleJob = 'SINGLE_JOB',
-    CronJob = 'CRON_JOB'
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJobCreate
+     */
+    cronjob?: number | null;
 }
 
 export function SpiderJobCreateFromJSON(json: any): SpiderJobCreate {
@@ -97,9 +82,8 @@ export function SpiderJobCreateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'name': !exists(json, 'name') ? undefined : json['name'],
         'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
-        'jobType': !exists(json, 'job_type') ? undefined : json['job_type'],
-        'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
+        'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
     };
 }
 
@@ -114,8 +98,7 @@ export function SpiderJobCreateToJSON(value?: SpiderJobCreate | null): any {
         
         'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
-        'job_type': value.jobType,
-        'schedule': value.schedule,
+        'cronjob': value.cronjob,
     };
 }
 

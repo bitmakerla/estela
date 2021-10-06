@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, ReactElement } from "react";
 import { Button, Layout, Pagination, Typography, Row, Space, Table } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
@@ -11,7 +11,6 @@ import {
     SpiderJob,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
-import { ReactElement } from "react";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -21,8 +20,8 @@ interface SpiderJobData {
     id: number | undefined;
     key: number | undefined;
     date: string;
-    jobType: string | undefined;
     status: string | undefined;
+    cronjob: number | null | undefined;
 }
 
 interface SpiderDetailPageState {
@@ -52,11 +51,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     spiderId: string = this.props.match.params.spiderId;
     columns = [
         {
-            title: "#",
-            dataIndex: "key",
-            key: "key",
-        },
-        {
             title: "Job ID",
             dataIndex: "id",
             key: "id",
@@ -70,9 +64,17 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             key: "date",
         },
         {
-            title: "Job Type",
-            dataIndex: "jobType",
-            key: "jobType",
+            title: "Cronjob",
+            key: "cronjob",
+            dataIndex: "cronjob",
+            render: (cronjob: number): ReactElement =>
+                cronjob ? (
+                    <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}>
+                        {cronjob}
+                    </Link>
+                ) : (
+                    <div></div>
+                ),
         },
         {
             title: "Status",
@@ -119,11 +121,10 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             id: job.jid,
             args: job.args,
             date: convertDateToString(job.created),
-            jobType: job.jobType,
             status: job.jobStatus,
-            schedule: job.schedule,
+            cronjob: job.cronjob,
         }));
-        return { data: data, count: response.count, current: page };
+        return { data, count: response.count, current: page };
     };
 
     onPageChange = async (page: number): Promise<void> => {
@@ -175,6 +176,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     />
                                     <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/create`}>
                                         <Button className="create-new-job">Create New Job</Button>
+                                    </Link>
+                                    <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs`}>
+                                        <Button className="create-new-job">Go to Cronjobs</Button>
                                     </Link>
                                 </Content>
                             </Layout>

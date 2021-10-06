@@ -27,6 +27,12 @@ import {
     InlineResponse2002,
     InlineResponse2002FromJSON,
     InlineResponse2002ToJSON,
+    InlineResponse2003,
+    InlineResponse2003FromJSON,
+    InlineResponse2003ToJSON,
+    InlineResponse2004,
+    InlineResponse2004FromJSON,
+    InlineResponse2004ToJSON,
     Project,
     ProjectFromJSON,
     ProjectToJSON,
@@ -36,6 +42,15 @@ import {
     Spider,
     SpiderFromJSON,
     SpiderToJSON,
+    SpiderCronJob,
+    SpiderCronJobFromJSON,
+    SpiderCronJobToJSON,
+    SpiderCronJobCreate,
+    SpiderCronJobCreateFromJSON,
+    SpiderCronJobCreateToJSON,
+    SpiderCronJobUpdate,
+    SpiderCronJobUpdateFromJSON,
+    SpiderCronJobUpdateToJSON,
     SpiderJob,
     SpiderJobFromJSON,
     SpiderJobToJSON,
@@ -81,10 +96,44 @@ export interface ApiProjectsSetRelatedSpidersRequest {
     data: SetRelatedSpidersProject;
 }
 
+export interface ApiProjectsSpidersCronjobsCreateRequest {
+    pid: string;
+    sid: string;
+    data: SpiderCronJobCreate;
+}
+
+export interface ApiProjectsSpidersCronjobsListRequest {
+    pid: string;
+    sid: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProjectsSpidersCronjobsPartialUpdateRequest {
+    cjid: string;
+    pid: string;
+    sid: string;
+    data: SpiderCronJob;
+}
+
+export interface ApiProjectsSpidersCronjobsReadRequest {
+    cjid: string;
+    pid: string;
+    sid: string;
+}
+
+export interface ApiProjectsSpidersCronjobsUpdateRequest {
+    cjid: string;
+    pid: string;
+    sid: string;
+    data: SpiderCronJobUpdate;
+}
+
 export interface ApiProjectsSpidersJobsCreateRequest {
     pid: string;
     sid: string;
     data: SpiderJobCreate;
+    async?: boolean;
 }
 
 export interface ApiProjectsSpidersJobsDataListRequest {
@@ -93,13 +142,7 @@ export interface ApiProjectsSpidersJobsDataListRequest {
     sid: string;
     page?: number;
     pageSize?: number;
-}
-
-export interface ApiProjectsSpidersJobsDataReadRequest {
-    id: string;
-    jid: string;
-    pid: string;
-    sid: string;
+    type?: string;
 }
 
 export interface ApiProjectsSpidersJobsListRequest {
@@ -107,30 +150,32 @@ export interface ApiProjectsSpidersJobsListRequest {
     sid: string;
     page?: number;
     pageSize?: number;
+    cronjob?: number;
+    status?: string;
 }
 
 export interface ApiProjectsSpidersJobsPartialUpdateRequest {
-    jid: string;
+    jid: number;
     pid: string;
     sid: string;
     data: SpiderJob;
 }
 
 export interface ApiProjectsSpidersJobsReadRequest {
-    jid: string;
+    jid: number;
     pid: string;
     sid: string;
 }
 
 export interface ApiProjectsSpidersJobsStopRequest {
-    jid: string;
+    jid: number;
     pid: string;
     sid: string;
     data: SpiderJob;
 }
 
 export interface ApiProjectsSpidersJobsUpdateRequest {
-    jid: string;
+    jid: number;
     pid: string;
     sid: string;
     data: SpiderJobUpdate;
@@ -399,6 +444,222 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiProjectsSpidersCronjobsCreateRaw(requestParameters: ApiProjectsSpidersCronjobsCreateRequest): Promise<runtime.ApiResponse<SpiderCronJobCreate>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SpiderCronJobCreateToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderCronJobCreateFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsCreate(requestParameters: ApiProjectsSpidersCronjobsCreateRequest): Promise<SpiderCronJobCreate> {
+        const response = await this.apiProjectsSpidersCronjobsCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2002>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsList.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsList.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2002FromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2002> {
+        const response = await this.apiProjectsSpidersCronjobsListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsPartialUpdateRaw(requestParameters: ApiProjectsSpidersCronjobsPartialUpdateRequest): Promise<runtime.ApiResponse<SpiderCronJob>> {
+        if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
+            throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsPartialUpdate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsPartialUpdate.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsPartialUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersCronjobsPartialUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}`.replace(`{${"cjid"}}`, encodeURIComponent(String(requestParameters.cjid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SpiderCronJobToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderCronJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsPartialUpdate(requestParameters: ApiProjectsSpidersCronjobsPartialUpdateRequest): Promise<SpiderCronJob> {
+        const response = await this.apiProjectsSpidersCronjobsPartialUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsReadRaw(requestParameters: ApiProjectsSpidersCronjobsReadRequest): Promise<runtime.ApiResponse<SpiderCronJob>> {
+        if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
+            throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsRead.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsRead.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsRead.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}`.replace(`{${"cjid"}}`, encodeURIComponent(String(requestParameters.cjid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderCronJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsRead(requestParameters: ApiProjectsSpidersCronjobsReadRequest): Promise<SpiderCronJob> {
+        const response = await this.apiProjectsSpidersCronjobsReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsUpdateRaw(requestParameters: ApiProjectsSpidersCronjobsUpdateRequest): Promise<runtime.ApiResponse<SpiderCronJobUpdate>> {
+        if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
+            throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsUpdate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsUpdate.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersCronjobsUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}`.replace(`{${"cjid"}}`, encodeURIComponent(String(requestParameters.cjid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SpiderCronJobUpdateToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderCronJobUpdateFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsUpdate(requestParameters: ApiProjectsSpidersCronjobsUpdateRequest): Promise<SpiderCronJobUpdate> {
+        const response = await this.apiProjectsSpidersCronjobsUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiProjectsSpidersJobsCreateRaw(requestParameters: ApiProjectsSpidersJobsCreateRequest): Promise<runtime.ApiResponse<SpiderJobCreate>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsCreate.');
@@ -413,6 +674,10 @@ export class ApiApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.async !== undefined) {
+            queryParameters['async'] = requestParameters.async;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -441,7 +706,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<void>> {
+    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataList.');
         }
@@ -464,6 +729,10 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['page_size'] = requestParameters.pageSize;
         }
 
+        if (requestParameters.type !== undefined) {
+            queryParameters['type'] = requestParameters.type;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -476,60 +745,19 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<void> {
-        await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
+    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2004> {
+        const response = await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
+        return await response.value();
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataReadRaw(requestParameters: ApiProjectsSpidersJobsDataReadRequest): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.id === null || requestParameters.id === undefined) {
-            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiProjectsSpidersJobsDataRead.');
-        }
-
-        if (requestParameters.jid === null || requestParameters.jid === undefined) {
-            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataRead.');
-        }
-
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsDataRead.');
-        }
-
-        if (requestParameters.sid === null || requestParameters.sid === undefined) {
-            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsDataRead.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     */
-    async apiProjectsSpidersJobsDataRead(requestParameters: ApiProjectsSpidersJobsDataReadRequest): Promise<void> {
-        await this.apiProjectsSpidersJobsDataReadRaw(requestParameters);
-    }
-
-    /**
-     */
-    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2002>> {
+    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2003>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsList.');
         }
@@ -548,6 +776,14 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['page_size'] = requestParameters.pageSize;
         }
 
+        if (requestParameters.cronjob !== undefined) {
+            queryParameters['cronjob'] = requestParameters.cronjob;
+        }
+
+        if (requestParameters.status !== undefined) {
+            queryParameters['status'] = requestParameters.status;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -560,12 +796,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2002FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2003FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2002> {
+    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2003> {
         const response = await this.apiProjectsSpidersJobsListRaw(requestParameters);
         return await response.value();
     }

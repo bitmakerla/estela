@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Layout, Typography, Row, Space, Tag } from "antd";
+import { Layout, Typography, Row, Space, Tag, Button } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -27,9 +27,8 @@ interface JobDetailPageState {
     args: ArgsData[];
     envVars: EnvVarsData[];
     date: string;
-    type: string | undefined;
-    schedule: string | undefined;
     status: string | undefined;
+    cronjob: number | undefined | null;
 }
 
 interface RouteParams {
@@ -39,21 +38,19 @@ interface RouteParams {
 }
 
 export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, JobDetailPageState> {
-    cronJob = "CRON_JOB";
     state: JobDetailPageState = {
         loaded: false,
         name: "",
         args: [],
         envVars: [],
         date: "",
-        type: "",
-        schedule: "",
         status: "",
+        cronjob: null,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
-    jobId: string = this.props.match.params.jobId;
+    jobId: number = parseInt(this.props.match.params.jobId);
 
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
@@ -79,9 +76,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         args: [...args],
                         envVars: [...envVars],
                         date: convertDateToString(response.created),
-                        type: response.jobType,
                         status: response.jobStatus,
-                        schedule: response.schedule,
+                        cronjob: response.cronjob,
                         loaded: true,
                     });
                 },
@@ -94,7 +90,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     }
 
     render(): JSX.Element {
-        const { loaded, name, args, envVars, date, type, status, schedule } = this.state;
+        const { loaded, args, envVars, date, status, cronjob } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -105,7 +101,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Layout className="white-background">
                                 <Content>
                                     <Title level={5} className="text-center">
-                                        {name}
+                                        Job {this.jobId}
                                     </Title>
                                     <Row justify="center" className="spider-data">
                                         <Space direction="vertical" size="large">
@@ -123,19 +119,19 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
                                             </Text>
                                             <Text>
-                                                <b>Date:</b>&nbsp; {date}
+                                                <b>Cronjob:</b>
+                                                <Link
+                                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}
+                                                >
+                                                    &nbsp; {cronjob}
+                                                </Link>
                                             </Text>
                                             <Text>
-                                                <b>Job Type:</b>&nbsp; {type}
+                                                <b>Date:</b>&nbsp; {date}
                                             </Text>
                                             <Text>
                                                 <b>Status:</b>&nbsp; {status}
                                             </Text>
-                                            {type === this.cronJob && (
-                                                <Text>
-                                                    <b>Schedule:</b>&nbsp; {schedule}
-                                                </Text>
-                                            )}
                                             <Space direction="vertical">
                                                 <b>Arguments</b>
                                                 {args.map((arg: ArgsData, id) => (
@@ -152,6 +148,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     </Tag>
                                                 ))}
                                             </Space>
+                                            <Link
+                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data`}
+                                            >
+                                                <Button type="primary" className="create-new-job">
+                                                    Go to spider job data
+                                                </Button>
+                                            </Link>
                                         </Space>
                                     </Row>
                                 </Content>
