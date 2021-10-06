@@ -4,24 +4,17 @@ from core.kubernetes import (
     delete_job,
     read_job,
     read_job_status,
-    SINGLE_JOB,
-    CRON_JOB,
 )
 from tests.base import BaseTestCase, TEST_DOCKER_IMAGE, TEST_SPIDER
 
 
 class TestKubernetes(BaseTestCase):
-    job_api_instance = get_api_instance(SINGLE_JOB)
-    cron_job_api_instance = get_api_instance(CRON_JOB)
+    job_api_instance = get_api_instance()
 
     def test_kubernetes_api(self):
         items = self.job_api_instance.list_job_for_all_namespaces().items
         self.assertEqual(type(items), list)
         items = self.job_api_instance.list_namespaced_job("default").items
-        self.assertEqual(type(items), list)
-        items = self.cron_job_api_instance.list_cron_job_for_all_namespaces().items
-        self.assertEqual(type(items), list)
-        items = self.cron_job_api_instance.list_namespaced_cron_job("default").items
         self.assertEqual(type(items), list)
 
     def test_create_job(self):
