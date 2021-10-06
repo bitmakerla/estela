@@ -1,9 +1,8 @@
 from rest_framework import serializers
 
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar
-
 from api.serializers.arg import SpiderJobArgSerializer
 from api.serializers.env_var import SpiderJobEnvVarSerializer
+from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):

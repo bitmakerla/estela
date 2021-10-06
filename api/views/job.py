@@ -1,4 +1,5 @@
 from ***REMOVED***.shortcuts import get_object_or_404
+from ***REMOVED***_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import mixins, status
@@ -13,7 +14,7 @@ from api.serializers.job import (
     SpiderJobUpdateSerializer,
 )
 from core.kubernetes import delete_job, create_job
-from core.models import Spider, SpiderJob, SpiderCronJob
+from core.models import Spider, SpiderJob
 
 
 class SpiderJobViewSet(
@@ -24,20 +25,48 @@ class SpiderJobViewSet(
     mixins.ListModelMixin,
 ):
     model_class = SpiderJob
+    queryset = SpiderJob.objects.all()
     serializer_class = SpiderJobSerializer
     lookup_field = "jid"
+    filter_backends = [DjangoFilterBackend]
+    filter_fields = ["cronjob", "status"]
 
     def get_queryset(self):
-        return self.model_class.objects.filter(
-            spider__project__pid=self.kwargs["pid"],
-            spider__sid=self.kwargs["sid"],
-            spider__deleted=False,
+        return (
+            super(SpiderJobViewSet, self)
+            .get_queryset()
+            .filter(
+                spider__project__pid=self.kwargs["pid"],
+                spider__sid=self.kwargs["sid"],
+                spider__deleted=False,
+            )
         )
 
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+                name="cronjob",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_NUMBER,
+                required=False,
+                description="Cronjob",
+            ),
+            openapi.Parameter(
+                name="status",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=False,
+                description="Job status",
+            ),
+        ],
+    )
+    def list(self, *args, **kwargs):
+        return super(SpiderJobViewSet, self).list(*args, **kwargs)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
             )
         ],
         request_body=SpiderJobCreateSerializer,
@@ -45,19 +74,13 @@ class SpiderJobViewSet(
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
-        cronjob_id = request.query_params.get("cronjob", False)
-        cronjob = None
-
-        if cronjob_id:
-            cronjob = get_object_or_404(SpiderCronJob, cjid=cronjob_id, deleted=False)
-
         async_param = request.query_params.get("async", False)
         serializer = SpiderJobCreateSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
-        job = serializer.save(spider=spider)
 
         if not async_param:
+            job = serializer.save(spider=spider)
             job_args = {arg.name: arg.value for arg in job.args.all()}
             job_env_vars = {
                 env_var.name: env_var.value for env_var in job.env_vars.all()
@@ -73,6 +96,8 @@ class SpiderJobViewSet(
                 job.spider.project.container_image,
                 auth_token=token,
             )
+        else:
+            serializer.save(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -106,10 +131,10 @@ class SpiderJobViewSet(
         ]
         if job.job_status not in allowed_status:
             return Response(
-                {"error": errors.JOB_NOT_STOPPED.format(allowed_status)},
+                {"error": errors.JOB_NOT_STOPPED.format(*allowed_status)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        response = delete_job(job.name, job_type="SINGLE_JOB")
+        response = delete_job(job.name)
         if response is None:
             return Response(
                 {"error": errors.JOB_INSTANCE_NOT_FOUND},
