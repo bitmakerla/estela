@@ -47,7 +47,7 @@ If it is the first time you build the app, do the following steps:
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed. This is the same as the EXTERNAL-IP value.
   - _<ELASTICSEARCH\_HOST>_ and _<ELASTICSEARCH\_PORT>_: The host and port of the Elasticsearch service.
-  - _<AWS\_ACCES\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials in base64.
+  - _<AWS\_ACCESS\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials in base64.
             You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
   - _<ELASTICSEARCH\_USERNAME\_BASE\_64>_ and _<ELASTICSEARCH\_PASSWORD\_BASE\_64>_: Enter your Elasticsearch credentials in base64.
 

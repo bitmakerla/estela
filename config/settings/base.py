@@ -37,6 +37,7 @@ env = environ.Env(
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_STORAGE_BUCKET_NAME=(str, "bitmaker-django-api"),
+    MONGO_CONNECTION=(str, "dummy"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -209,3 +210,7 @@ SWAGGER_SETTINGS = {
     "DEFAULT_GENERATOR_CLASS": "docs.settings.APISchemeGenerator",
     "DEFAULT_API_URL": "http://127.0.0.1:8000",
 }
+
+# Mongo settings
+MONGO_CONNECTION = env("MONGO_CONNECTION")
+MONGO_PRODUCTION = True

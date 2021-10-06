@@ -1,14 +1,16 @@
 black
 boto3<=1.17
 celery
+croniter
 django
 django-celery-beat
 django-cors-headers
 django-environ
+django-filter
 djangorestframework
 drf-yasg
 eks-token
 kubernetes
 mysqlclient
-redis
 pymongo[srv]
+redis
