@@ -4,17 +4,27 @@ APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].m
 API_DOC = docs/api.yaml
 DEVTAG = dev-$$USER
 
+ifeq ($(OS),Windows_NT)
+	DOCKER_COMPOSE = docker compose
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		DOCKER_COMPOSE = docker-compose
+	else # OSX
+		DOCKER_COMPOSE = docker compose
+	endif
+endif
 
 .PHONY: start
 start:
 	-minikube start --feature-gates="TTLAfterFinished=true"
-	-docker compose up -d
+	-$(DOCKER_COMPOSE) up -d
 
 
 .PHONY: stop
 stop:
 	-minikube stop
-	-docker compose stop
+	-$(DOCKER_COMPOSE) stop
 
 
 .PHONY: setup
@@ -59,7 +69,7 @@ down:
 	-kubectl delete jobs $$(kubectl get jobs -o custom-columns=:.metadata.name)
 	-kubectl delete cronjobs $$(kubectl get cronjobs -o custom-columns=:.metadata.name)
 	-minikube delete
-	-docker compose down
+	-$(DOCKER_COMPOSE) down
 
 
 .PHONY: test
