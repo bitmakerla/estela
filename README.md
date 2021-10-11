@@ -68,7 +68,8 @@ After the first setup, you can:
 ```bash
 $ make start    # Start the application
 $ make stop     # Stop the application
-$ make rebuild  # Rebuild the application after some changes in the API
+$ make rebuild-api  # Rebuild the application after some changes in the API
+$ make rebuild-all  # Rebuild the whole application including API, celery beat & worker, and redis
 $ make down     # Delete the application
 ```
 
