@@ -10,5 +10,7 @@ def get_registry_token():
         auth_data["authorizationToken"]
         for auth_data in response["authorizationData"]
         if auth_data["proxyEndpoint"] == settings.REGISTRY_HOST
-    ][0]
-    return token
+    ]
+    if token:
+        return token[0]
+    return None

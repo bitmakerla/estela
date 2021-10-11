@@ -3,6 +3,7 @@ REGION = ***REMOVED***
 APIPOD = $$(kubectl get pod -l app=bitmaker-***REMOVED***-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 DEVTAG = dev-$$USER
+REGISTRY_HOST = 192.168.49.1# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 
 ifeq ($(OS),Windows_NT)
 	DOCKER_COMPOSE = docker compose
@@ -17,7 +18,7 @@ endif
 
 .PHONY: start
 start:
-	-minikube start --feature-gates="TTLAfterFinished=true"
+	-minikube start --feature-gates="TTLAfterFinished=true" --insecure-registry $(REGISTRY_HOST):5000
 	-$(DOCKER_COMPOSE) up -d
 
 
@@ -30,6 +31,7 @@ stop:
 .PHONY: setup
 setup: build-api-image upload-api-image
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
+	-kubectl apply -f config/kubernetes-local/bitmaker-api-services.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
 	-kubectl apply -f config/kubernetes-local/aws-registry-cronjob.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-filebeat.yaml
