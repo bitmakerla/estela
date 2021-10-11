@@ -21,7 +21,7 @@ class Project(models.Model):
     def container_image(self):
         parsed_container_host = urlparse(settings.REGISTRY_HOST)
         container_image = "{}/{}:bm_{}".format(
-            parsed_container_host.netloc,
+            parsed_container_host.netloc or settings.REGISTRY_HOST,
             settings.REPOSITORY_NAME,
             self.pid,
         )

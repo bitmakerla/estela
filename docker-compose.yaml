@@ -13,6 +13,16 @@ services:
       - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
     ports:
       - "3306:3306"
+      
+  registry:
+    container_name: bitmaker_registry
+    restart: always
+    image: registry:2
+    ports:
+      - 5000:5000
+    volumes:
+      - registry_data:/var/lib/registry
 
 volumes:
   bitmaker_dbdata:
+  registry_data:
