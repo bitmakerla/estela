@@ -42,7 +42,6 @@ env = environ.Env(
 
 environ.Env.read_env(env_file=".env")
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.***REMOVED***project.com/en/3.1/howto/deployment/checklist/
 
