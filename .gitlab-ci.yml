@@ -37,7 +37,7 @@ deploy-master:
     entrypoint: [""]
   needs: [build-master]
   script:
-    - kubectl apply -f kubernetes/prod/bitmaker-zookeepers.yaml --namespace=default
+    - kubectl apply -f kubernetes/prod/bitmaker-zookeeper.yaml --namespace=default
     - kubectl apply -f kubernetes/prod/bitmaker-kafka.yaml --namespace=default
     - kubectl wait --for=condition=available --timeout=300s --namespace=default statefulset/kafka
     - kubectl apply -f kubernetes/prod/bitmaker-kafka-consumers.yaml --namespace=default
