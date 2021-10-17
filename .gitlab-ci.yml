@@ -21,6 +21,8 @@ build-master:
   before_script:
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - mkdir config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt config/mongo_certificate/ca-certificate.crt
   script:
     - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-worker --tag $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
@@ -78,6 +80,8 @@ build-mr:
   before_script:
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - mkdir config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt config/mongo_certificate/ca-certificate.crt
   script:
     - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
@@ -86,6 +90,7 @@ build-mr:
       - merge_requests
     changes:
       - "**/*.py"
+      - .gitlab-ci.yml
 
 test-mr:
   environment:
@@ -118,6 +123,7 @@ test-mr:
       - merge_requests
     changes:
       - "**/*.py"
+      - .gitlab-ci.yml
 
 cleanup-mr-job:
   environment:
@@ -135,3 +141,4 @@ cleanup-mr-job:
       - merge_requests
     changes:
       - "**/*.py"
+      - .gitlab-ci.yml
