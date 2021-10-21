@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "5.2.0",
+    "generators": {
+      "apiGenerator": {
+        "generatorName": "typescript-fetch",
+        "output": "#{cwd}/src/services/api/generated-api",
+        "inputSpec": "#{cwd}/api.yaml",
+        "additionalProperties": {
+          "typescriptThreePlus": true
+        }
+      }
+    }
+  }
+}
