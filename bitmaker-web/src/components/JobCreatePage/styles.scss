@@ -1,0 +1,20 @@
+.args, .envVars {
+    margin: 10px auto;
+}
+
+.arg-label, .envVar-label {
+    margin-bottom: 10px;
+}
+
+.arg-title {
+    font-weight: 700;
+}
+
+.job-create-button {
+    width: 200px;
+    margin: 10px calc(50% - 100px);
+}
+
+.cronjobs-info {
+    margin-bottom: 20px;
+}
