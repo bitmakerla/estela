@@ -1,0 +1,16 @@
+black
+boto3<=1.17
+celery
+croniter
+***REMOVED***
+***REMOVED***-celery-beat
+***REMOVED***-cors-headers
+***REMOVED***-environ
+***REMOVED***-filter
+***REMOVED***restframework
+drf-yasg
+eks-token
+kubernetes
+mysqlclient
+pymongo[srv]
+redis

@@ -1,0 +1,144 @@
+stages:
+  - build
+  - test
+  - deploy
+  - cleanup
+
+variables:
+  DOCKER_REGISTRY: 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
+build-master:
+  environment:
+    name: scraping-product
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - amazon-linux-extras install docker
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - mkdir config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt config/mongo_certificate/ca-certificate.crt
+  script:
+    - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-celery-worker --tag $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-celery-beat --tag $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-redis --tag $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
+  only:
+    - master
+
+deploy-master:
+  environment:
+    name: scraping-product
+  stage: deploy
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  needs: [build-master]
+  script:
+    - kubectl apply -f config/kubernetes-prod/bitmaker-api-services.yaml --namespace=default
+    - kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
+    - kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-redis bitmaker-redis=$DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl rollout status deployment/bitmaker-***REMOVED***-api --namespace=default
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-***REMOVED***-api
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-beat
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-worker
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-redis
+    - kubectl get pods -l app=bitmaker-***REMOVED***-api --namespace=default
+    - sleep 10 # Wait for previous pod to terminate
+    - >
+      kubectl exec --namespace=default
+      $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
+      -- python manage.py makemigrations
+    - >
+      kubectl exec --namespace=default
+      $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
+      -- python manage.py migrate
+  only:
+    - master
+
+build-mr:
+  environment:
+    name: scraping-product
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - amazon-linux-extras install docker
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - mkdir config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt config/mongo_certificate/ca-certificate.crt
+  script:
+    - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - "**/*.py"
+      - .gitlab-ci.yml
+
+test-mr:
+  environment:
+    name: scraping-product
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  stage: test
+  needs: [build-mr]
+  script:
+    - kubectl create namespace $CI_COMMIT_SHORT_SHA
+    - kubectl get secret api-secrets --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
+    - kubectl get secret regcred --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
+    - kubectl get configmap api-config --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
+    - kubectl apply -f config/kubernetes-test/bitmaker-cluster-role.yaml
+    - kubectl create serviceaccount bitmaker-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl create clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA --clusterrole=bitmaker-api-role --serviceaccount=$CI_COMMIT_SHORT_SHA:bitmaker-api
+    - kubectl apply -f config/kubernetes-test/bitmaker-api-deployments.yaml --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl rollout status deployment/bitmaker-***REMOVED***-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-***REMOVED***-api
+    - kubectl get pods -l app=bitmaker-***REMOVED***-api --namespace=$CI_COMMIT_SHORT_SHA
+    - sleep 10 # Wait for previous pod to terminate
+    - >
+      kubectl exec --namespace=$CI_COMMIT_SHORT_SHA
+      $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA)
+      -- pytest -svx
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - "**/*.py"
+      - .gitlab-ci.yml
+
+cleanup-mr-job:
+  environment:
+    name: scraping-product
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  stage: cleanup
+  script:
+    - kubectl delete clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA
+    - kubectl delete namespace $CI_COMMIT_SHORT_SHA
+  when: always
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - "**/*.py"
+      - .gitlab-ci.yml

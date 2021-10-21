@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  db:
+    container_name: bitmaker_db
+    image: mysql:8
+    volumes:
+      - bitmaker_dbdata:/var/lib/mysql
+      - ./docker-conf/db/mysql:/docker-entrypoint-initdb.d
+    restart: always
+    command: --default_authentication_plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
+    ports:
+      - "3306:3306"
+      
+  registry:
+    container_name: bitmaker_registry
+    restart: always
+    image: registry:2
+    ports:
+      - 5000:5000
+    volumes:
+      - registry_data:/var/lib/registry
+
+volumes:
+  bitmaker_dbdata:
+  registry_data:
