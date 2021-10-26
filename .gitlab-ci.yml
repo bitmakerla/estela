@@ -1,4 +1,5 @@
 stages:
+  - lint
   - build
   - test
   - deploy
@@ -8,8 +9,11 @@ variables:
   DOCKER_REGISTRY: 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
+  API_DIRECTORY: bitmaker-api
+  KAFKA_DIRECTORY: bitmaker-kafka
+  WEB_DIRECTORY: bitmaker-web
 
-build-master:
+build-main-api:
   environment:
     name: scraping-product
   image:
@@ -21,9 +25,10 @@ build-master:
   before_script:
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
-    - mkdir config/mongo_certificate/
-    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt config/mongo_certificate/ca-certificate.crt
+    - mkdir $API_DIRECTORY/config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt $API_DIRECTORY/config/mongo_certificate/ca-certificate.crt
   script:
+    - cd $API_DIRECTORY
     - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-worker --tag $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-beat --tag $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
@@ -33,17 +38,21 @@ build-master:
     - docker push $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
   only:
-    - master
+    refs:
+      - main
+    changes:
+      - bitmaker-api/**/*
 
-deploy-master:
+deploy-main-api:
   environment:
     name: scraping-product
   stage: deploy
   image:
     name: bitnami/kubectl
     entrypoint: [""]
-  needs: [build-master]
+  needs: [build-main-api]
   script:
+    - cd $API_DIRECTORY
     - kubectl apply -f config/kubernetes-prod/bitmaker-api-services.yaml --namespace=default
     - kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
     - kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA --namespace=default
@@ -66,9 +75,12 @@ deploy-master:
       $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
       -- python manage.py migrate
   only:
-    - master
+    refs:
+      - main
+    changes:
+      - bitmaker-api/**/*
 
-build-mr:
+build-mr-api:
   environment:
     name: scraping-product
   image:
@@ -80,27 +92,29 @@ build-mr:
   before_script:
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
-    - mkdir config/mongo_certificate/
-    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt config/mongo_certificate/ca-certificate.crt
+    - mkdir $API_DIRECTORY/config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt $API_DIRECTORY/config/mongo_certificate/ca-certificate.crt
   script:
+    - cd $API_DIRECTORY
     - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
   only:
     refs:
       - merge_requests
     changes:
-      - "**/*.py"
+      - bitmaker-api/**/*.py
       - .gitlab-ci.yml
 
-test-mr:
+test-mr-api:
   environment:
     name: scraping-product
   image:
     name: bitnami/kubectl
     entrypoint: [""]
   stage: test
-  needs: [build-mr]
+  needs: [build-mr-api]
   script:
+    - cd $API_DIRECTORY
     - kubectl create namespace $CI_COMMIT_SHORT_SHA
     - kubectl get secret api-secrets --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
     - kubectl get secret regcred --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
@@ -122,10 +136,10 @@ test-mr:
     refs:
       - merge_requests
     changes:
-      - "**/*.py"
+      - bitmaker-api/**/*.py
       - .gitlab-ci.yml
 
-cleanup-mr-job:
+cleanup-mr-job-api:
   environment:
     name: scraping-product
   image:
@@ -140,5 +154,108 @@ cleanup-mr-job:
     refs:
       - merge_requests
     changes:
-      - "**/*.py"
+      - bitmaker-api/**/*.py
       - .gitlab-ci.yml
+
+build-main-kafka:
+  environment:
+    name: scraping-product
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - amazon-linux-extras install docker
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+  script:
+    - cd $KAFKA_DIRECTORY
+    - docker build . --tag $DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA
+  only:
+    refs:
+      - main
+    changes:
+      - bitmaker-kafka/consumer.py
+
+deploy-main-kafka:
+  environment:
+    name: scraping-product
+  stage: deploy
+  image:
+    name: bitnami/kubectl
+    entrypoint: [""]
+  needs: [build-main-kafka]
+  script:
+    - kubectl apply -f $KAFKA_DIRECTORY/kubernetes/prod/bitmaker-zookeeper.yaml --namespace=default
+    - kubectl apply -f $KAFKA_DIRECTORY/kubernetes/prod/bitmaker-kafka.yaml --namespace=default
+    - kubectl rollout status --watch --timeout=300s --namespace=default sts/kafka
+    - kubectl apply -f $KAFKA_DIRECTORY/kubernetes/prod/bitmaker-kafka-consumers.yaml --namespace=default
+    - kubectl set image deployment/kafka-items-consumer consumer=$DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/kafka-requests-consumer consumer=$DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl rollout status deployment/kafka-items-consumer --namespace=default
+    - kubectl rollout status deployment/kafka-requests-consumer --namespace=default
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/kafka-items-consumer
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/kafka-requests-consumer
+    - kubectl get pods -l app=kafka-consumer --namespace=default
+  only:
+    refs:
+      - main
+    changes:
+      - bitmaker-kafka/consumer.py
+
+lint-web:
+  stage: lint
+  image: node:15.8.0
+
+  cache:
+    paths:
+      - $WEB_DIRECTORY/node_modules
+  script:
+    - cd $WEB_DIRECTORY
+    - yarn install
+    - yarn lint
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - bitmaker-web/**
+
+build-main-web:
+  stage: build
+  image: node:15.8.0
+
+  cache:
+    paths:
+      - $WEB_DIRECTORY/node_modules
+  needs: [lint-web]
+  script:
+    - cd $WEB_DIRECTORY
+    - yarn install
+    - yarn build
+  artifacts:
+    paths:
+      - $WEB_DIRECTORY/build
+    expire_in: 10 minutes
+  only:
+    refs:
+      - merge_requests
+      - main
+    changes:
+      - bitmaker-web/**
+
+deploy-to-s3-main-web:
+  stage: deploy
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  needs: [build-main-web]
+  script:
+    - cd $WEB_DIRECTORY
+    - aws s3 sync --delete ./build s3://$AWS_STAGING_S3
+  only:
+    refs:
+      - main
+    changes:
+      - bitmaker-web/**
