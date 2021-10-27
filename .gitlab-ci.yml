@@ -229,7 +229,6 @@ build-main-web:
   cache:
     paths:
       - $WEB_DIRECTORY/node_modules
-  needs: [lint-web]
   script:
     - cd $WEB_DIRECTORY
     - yarn install
