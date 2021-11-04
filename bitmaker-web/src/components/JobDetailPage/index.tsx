@@ -21,11 +21,16 @@ interface EnvVarsData {
     value: string;
 }
 
+interface TagsData {
+    name: string;
+}
+
 interface JobDetailPageState {
     loaded: boolean;
     name: string | undefined;
     args: ArgsData[];
     envVars: EnvVarsData[];
+    tags: TagsData[];
     date: string;
     status: string | undefined;
     cronjob: number | undefined | null;
@@ -43,6 +48,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         name: "",
         args: [],
         envVars: [],
+        tags: [],
         date: "",
         status: "",
         cronjob: null,
@@ -71,10 +77,15 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     if (envVars === undefined) {
                         envVars = [];
                     }
+                    let tags = response.tags;
+                    if (tags === undefined) {
+                        tags = [];
+                    }
                     this.setState({
                         name: response.name,
                         args: [...args],
                         envVars: [...envVars],
+                        tags: [...tags],
                         date: convertDateToString(response.created),
                         status: response.jobStatus,
                         cronjob: response.cronjob,
@@ -90,7 +101,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     }
 
     render(): JSX.Element {
-        const { loaded, args, envVars, date, status, cronjob } = this.state;
+        const { loaded, args, envVars, tags, date, status, cronjob } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -147,6 +158,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                         {envVar.name}: {envVar.value}
                                                     </Tag>
                                                 ))}
+                                            </Space>
+                                            <Space direction="vertical">
+                                                <b>Tags</b>
+                                                <Space direction="horizontal">
+                                                    {tags.map((tag: TagsData, id) => (
+                                                        <Tag key={id}>{tag.name}</Tag>
+                                                    ))}
+                                                </Space>
                                             </Space>
                                             <Link
                                                 to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data`}

@@ -45,11 +45,11 @@ class RunSpiderJobs(BaseTestCase):
         delete_job(response["name"])
 
     def test_create_cronjob(self):
-        response = create_cronjob("1.1.1", [], [], "* * * * *")
+        response = create_cronjob("1.1.1", [], [], [], "* * * * *")
         delete_cronjob(response.name)
         self.assertEqual(response.name, "1.1.1")
 
     def test_delete_cronjob(self):
-        cronjob = create_cronjob("1.1.1", [], [], "* * * * *")
+        cronjob = create_cronjob("1.1.1", [], [], [], "* * * * *")
         response = delete_cronjob(cronjob.name)
         self.assertEqual(response, True)

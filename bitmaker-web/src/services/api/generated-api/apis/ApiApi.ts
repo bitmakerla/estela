@@ -105,6 +105,7 @@ export interface ApiProjectsSpidersCronjobsCreateRequest {
 export interface ApiProjectsSpidersCronjobsListRequest {
     pid: string;
     sid: string;
+    tag?: string;
     page?: number;
     pageSize?: number;
 }
@@ -148,10 +149,11 @@ export interface ApiProjectsSpidersJobsDataListRequest {
 export interface ApiProjectsSpidersJobsListRequest {
     pid: string;
     sid: string;
-    page?: number;
-    pageSize?: number;
     cronjob?: number;
     status?: string;
+    tag?: string;
+    page?: number;
+    pageSize?: number;
 }
 
 export interface ApiProjectsSpidersJobsPartialUpdateRequest {
@@ -497,6 +499,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
+        if (requestParameters.tag !== undefined) {
+            queryParameters['tag'] = requestParameters.tag;
+        }
+
         if (requestParameters.page !== undefined) {
             queryParameters['page'] = requestParameters.page;
         }
@@ -768,20 +774,24 @@ export class ApiApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        if (requestParameters.page !== undefined) {
-            queryParameters['page'] = requestParameters.page;
-        }
-
-        if (requestParameters.pageSize !== undefined) {
-            queryParameters['page_size'] = requestParameters.pageSize;
-        }
-
         if (requestParameters.cronjob !== undefined) {
             queryParameters['cronjob'] = requestParameters.cronjob;
         }
 
         if (requestParameters.status !== undefined) {
             queryParameters['status'] = requestParameters.status;
+        }
+
+        if (requestParameters.tag !== undefined) {
+            queryParameters['tag'] = requestParameters.tag;
+        }
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
