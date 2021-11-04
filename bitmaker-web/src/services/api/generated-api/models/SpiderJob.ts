@@ -22,6 +22,10 @@ import {
     SpiderJobEnvVarFromJSON,
     SpiderJobEnvVarFromJSONTyped,
     SpiderJobEnvVarToJSON,
+    SpiderJobTag,
+    SpiderJobTagFromJSON,
+    SpiderJobTagFromJSONTyped,
+    SpiderJobTagToJSON,
 } from './';
 
 /**
@@ -68,6 +72,12 @@ export interface SpiderJob {
     envVars?: Array<SpiderJobEnvVar>;
     /**
      * 
+     * @type {Array<SpiderJobTag>}
+     * @memberof SpiderJob
+     */
+    tags?: Array<SpiderJobTag>;
+    /**
+     * 
      * @type {string}
      * @memberof SpiderJob
      */
@@ -96,6 +106,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'name': !exists(json, 'name') ? undefined : json['name'],
         'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
+        'tags': !exists(json, 'tags') ? undefined : ((json['tags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
     };
@@ -113,6 +124,7 @@ export function SpiderJobToJSON(value?: SpiderJob | null): any {
         'spider': value.spider,
         'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
+        'tags': value.tags === undefined ? undefined : ((value.tags as Array<any>).map(SpiderJobTagToJSON)),
         'cronjob': value.cronjob,
     };
 }
