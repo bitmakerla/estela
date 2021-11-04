@@ -243,6 +243,11 @@ paths:
       operationId: api_projects_spiders_cronjobs_list
       description: ''
       parameters:
+        - name: tag
+          in: query
+          description: Cronjob tag
+          required: false
+          type: string
         - name: page
           in: query
           description: A page number within the paginated result set.
@@ -365,16 +370,6 @@ paths:
       operationId: api_projects_spiders_jobs_list
       description: ''
       parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-        - name: page_size
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
         - name: cronjob
           in: query
           description: Cronjob
@@ -385,6 +380,21 @@ paths:
           description: Job status
           required: false
           type: string
+        - name: tag
+          in: query
+          description: Job tag
+          required: false
+          type: string
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
       responses:
         '200':
           description: ''
@@ -700,6 +710,16 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+  SpiderJobTag:
+    required:
+      - name
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+        maxLength: 50
+        minLength: 1
   SpiderCronJob:
     required:
       - spider
@@ -729,6 +749,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
+      ctags:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
       schedule:
         title: Schedule
         type: string
@@ -754,6 +778,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
+      ctags:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
       schedule:
         title: Schedule
         type: string
@@ -804,6 +832,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
       job_status:
         title: Job status
         type: string
@@ -831,6 +863,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
       job_status:
         title: Job status
         type: string

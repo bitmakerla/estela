@@ -22,6 +22,10 @@ import {
     SpiderJobEnvVarFromJSON,
     SpiderJobEnvVarFromJSONTyped,
     SpiderJobEnvVarToJSON,
+    SpiderJobTag,
+    SpiderJobTagFromJSON,
+    SpiderJobTagFromJSONTyped,
+    SpiderJobTagToJSON,
 } from './';
 
 /**
@@ -50,6 +54,12 @@ export interface SpiderCronJobCreate {
     cenvVars?: Array<SpiderJobEnvVar>;
     /**
      * 
+     * @type {Array<SpiderJobTag>}
+     * @memberof SpiderCronJobCreate
+     */
+    ctags?: Array<SpiderJobTag>;
+    /**
+     * 
      * @type {string}
      * @memberof SpiderCronJobCreate
      */
@@ -69,6 +79,7 @@ export function SpiderCronJobCreateFromJSONTyped(json: any, ignoreDiscriminator:
         'cjid': !exists(json, 'cjid') ? undefined : json['cjid'],
         'cargs': !exists(json, 'cargs') ? undefined : ((json['cargs'] as Array<any>).map(SpiderJobArgFromJSON)),
         'cenvVars': !exists(json, 'cenv_vars') ? undefined : ((json['cenv_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
+        'ctags': !exists(json, 'ctags') ? undefined : ((json['ctags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
     };
 }
@@ -84,6 +95,7 @@ export function SpiderCronJobCreateToJSON(value?: SpiderCronJobCreate | null): a
         
         'cargs': value.cargs === undefined ? undefined : ((value.cargs as Array<any>).map(SpiderJobArgToJSON)),
         'cenv_vars': value.cenvVars === undefined ? undefined : ((value.cenvVars as Array<any>).map(SpiderJobEnvVarToJSON)),
+        'ctags': value.ctags === undefined ? undefined : ((value.ctags as Array<any>).map(SpiderJobTagToJSON)),
         'schedule': value.schedule,
     };
 }

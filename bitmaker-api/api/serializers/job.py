@@ -1,13 +1,17 @@
 from rest_framework import serializers
 
-from api.serializers.arg import SpiderJobArgSerializer
-from api.serializers.env_var import SpiderJobEnvVarSerializer
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar
+from api.serializers.job_specific import (
+    SpiderJobArgSerializer,
+    SpiderJobEnvVarSerializer,
+    SpiderJobTagSerializer,
+)
+from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
     args = SpiderJobArgSerializer(many=True, required=False)
     env_vars = SpiderJobEnvVarSerializer(many=True, required=False)
+    tags = SpiderJobTagSerializer(many=True, required=False)
 
     class Meta:
         model = SpiderJob
@@ -18,6 +22,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "name",
             "args",
             "env_vars",
+            "tags",
             "job_status",
             "cronjob",
         )
@@ -26,6 +31,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
 class SpiderJobCreateSerializer(serializers.ModelSerializer):
     args = SpiderJobArgSerializer(many=True, required=False)
     env_vars = SpiderJobEnvVarSerializer(many=True, required=False)
+    tags = SpiderJobTagSerializer(many=True, required=False)
 
     class Meta:
         model = SpiderJob
@@ -34,6 +40,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "name",
             "args",
             "env_vars",
+            "tags",
             "job_status",
             "cronjob",
         )
@@ -41,6 +48,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         args_data = validated_data.pop("args", [])
         env_vars_data = validated_data.pop("env_vars", [])
+        tags_data = validated_data.pop("tags", [])
 
         job = SpiderJob.objects.create(**validated_data)
         for arg in args_data:
@@ -48,6 +56,12 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
 
         for env_var in env_vars_data:
             SpiderJobEnvVar.objects.create(job=job, **env_var)
+
+        for tag_data in tags_data:
+            tag, _ = SpiderJobTag.objects.get_or_create(**tag_data)
+            job.tags.add(tag)
+
+        job.save()
 
         return job
 

@@ -2,10 +2,10 @@ from ***REMOVED***_celery_beat.models import CrontabSchedule, PeriodicTask
 import json
 
 
-def create_cronjob(key, args, env_vars, schedule):
+def create_cronjob(key, args, env_vars, tags, schedule):
     cjid, sid, pid = key.split(".")
     m, h, d_w, d_m, m_y = schedule.split(" ")
-    data = {"cronjob": cjid, "args": args, "env_vars": env_vars}
+    data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
     schedule, _ = CrontabSchedule.objects.get_or_create(
         minute=m,
         hour=h,

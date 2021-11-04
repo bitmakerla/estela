@@ -34,14 +34,21 @@ interface EnvVarsData {
     key: number;
 }
 
+interface TagsData {
+    name: string;
+    key: number;
+}
+
 interface CronJobCreatePageState {
     schedule: string;
     args: ArgsData[];
     envVars: EnvVarsData[];
+    tags: TagsData[];
     newArgName: string;
     newArgValue: string;
     newEnvVarName: string;
     newEnvVarValue: string;
+    newTagName: string;
     spiderName: string;
 }
 
@@ -56,10 +63,12 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         schedule: "",
         args: [],
         envVars: [],
+        tags: [],
         newArgName: "",
         newArgValue: "",
         newEnvVarName: "",
         newEnvVarValue: "",
+        newTagName: "",
         spiderName: "",
     };
     projectId: string = this.props.match.params.projectId;
@@ -86,6 +95,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         const requestData = {
             cargs: [...this.state.args],
             cenvVars: [...this.state.envVars],
+            ctags: [...this.state.tags],
             schedule: data.schedule,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
@@ -116,6 +126,8 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             this.setState({ newEnvVarName: value });
         } else if (name === "newEnvVarValue") {
             this.setState({ newEnvVarValue: value });
+        } else if (name === "newTagName") {
+            this.setState({ newTagName: value });
         }
     };
 
@@ -129,6 +141,12 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         const envVars = [...this.state.envVars];
         envVars.splice(id, 1);
         this.setState({ envVars: [...envVars] });
+    };
+
+    handleRemoveTag = (id: number): void => {
+        const tags = [...this.state.tags];
+        tags.splice(id, 1);
+        this.setState({ tags: [...tags] });
     };
 
     addArgument = (): void => {
@@ -155,8 +173,21 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         }
     };
 
+    addTag = (): void => {
+        const tags = [...this.state.tags];
+        const newTagName = this.state.newTagName.trim();
+        if (newTagName && newTagName.indexOf(" ") == -1) {
+            tags.push({ name: newTagName, key: this.countKey++ });
+            this.setState({ tags: [...tags], newTagName: "" });
+        } else {
+            incorrectDataNotification();
+        }
+    };
+
     render(): JSX.Element {
-        const { args, envVars, newArgName, newArgValue, newEnvVarName, newEnvVarValue, spiderName } = this.state;
+        const { args, envVars, tags, newArgName, newArgValue, newEnvVarName, newEnvVarValue, newTagName, spiderName } =
+            this.state;
+
         return (
             <Layout className="general-container">
                 <Header />
@@ -231,6 +262,27 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                 </Space>
                                 <Button className="job-create-button" onClick={this.addEnvironmentVariable}>
                                     Save Environment Variable
+                                </Button>
+                                <div className="tag-label">Tags:</div>
+                                <Space direction="vertical">
+                                    <Space direction="horizontal">
+                                        {tags.map((tag: TagsData, id) => (
+                                            <Tag closable key={tag.key} onClose={() => this.handleRemoveTag(id)}>
+                                                {tag.name}
+                                            </Tag>
+                                        ))}
+                                    </Space>
+                                    <div className="tags">
+                                        <Input
+                                            name="newTagName"
+                                            placeholder="name"
+                                            value={newTagName}
+                                            onChange={this.handleInputChange}
+                                        />
+                                    </div>
+                                </Space>
+                                <Button className="job-create-button" onClick={this.addTag}>
+                                    Save Tag
                                 </Button>
                                 <Button type="primary" htmlType="submit" className="job-create-button">
                                     Create CronJob

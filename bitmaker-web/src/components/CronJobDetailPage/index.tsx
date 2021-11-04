@@ -28,6 +28,10 @@ interface EnvVarsData {
     value: string;
 }
 
+interface TagsData {
+    name: string;
+}
+
 interface SpiderJobData {
     id: number | undefined;
     key: number | undefined;
@@ -41,6 +45,7 @@ interface CronJobDetailPageState {
     name: string | undefined;
     args: ArgsData[];
     envVars: EnvVarsData[];
+    tags: TagsData[];
     status: string | undefined;
     jobs: SpiderJobData[];
     count: number;
@@ -61,6 +66,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         name: "",
         args: [],
         envVars: [],
+        tags: [],
         jobs: [],
         status: "",
         schedule: "",
@@ -124,12 +130,17 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     if (envVars === undefined) {
                         envVars = [];
                     }
+                    let tags = response.ctags;
+                    if (tags === undefined) {
+                        tags = [];
+                    }
                     const data = await this.getJobs(1);
                     const jobs: SpiderJobData[] = data.data;
                     this.setState({
                         name: response.name,
                         args: [...args],
                         envVars: [...envVars],
+                        tags: [...tags],
                         status: response.status,
                         schedule: response.schedule,
                         jobs: [...jobs],
@@ -198,7 +209,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     };
 
     render(): JSX.Element {
-        const { loaded, args, envVars, status, count, current, jobs, schedule } = this.state;
+        const { loaded, args, envVars, tags, status, count, current, jobs, schedule } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -247,6 +258,14 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                         {envVar.name}: {envVar.value}
                                                     </Tag>
                                                 ))}
+                                            </Space>
+                                            <Space direction="vertical">
+                                                <b>Tags</b>
+                                                <Space direction="horizontal">
+                                                    {tags.map((tag: TagsData, id) => (
+                                                        <Tag key={id}>{tag.name}</Tag>
+                                                    ))}
+                                                </Space>
                                             </Space>
                                             <Button danger className="create-new-job" onClick={this.updateStatus}>
                                                 {status == SpiderCronJobUpdateStatusEnum.Active ? (

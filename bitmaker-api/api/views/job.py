@@ -6,6 +6,7 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api.filters import SpiderJobFilter
 from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import (
@@ -29,7 +30,7 @@ class SpiderJobViewSet(
     serializer_class = SpiderJobSerializer
     lookup_field = "jid"
     filter_backends = [DjangoFilterBackend]
-    filter_fields = ["cronjob", "status"]
+    filterset_class = SpiderJobFilter
 
     def get_queryset(self):
         return (
@@ -57,6 +58,13 @@ class SpiderJobViewSet(
                 type=openapi.TYPE_STRING,
                 required=False,
                 description="Job status",
+            ),
+            openapi.Parameter(
+                name="tag",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                required=False,
+                description="Job tag",
             ),
         ],
     )
