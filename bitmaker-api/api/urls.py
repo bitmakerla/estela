@@ -30,7 +30,6 @@ router.register(
     viewset=job_data_views.JobDataViewSet,
     basename="job-data",
 )
-
 router.register(
     prefix=r"projects/(?P<pid>[0-9a-z-]+)/spiders/(?P<sid>\d+)/cronjobs",
     viewset=cronjob_views.SpiderCronJobViewSet,

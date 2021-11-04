@@ -1,4 +1,5 @@
 venv/
+.venv/
 .idea/
 
 kubernetes/prod/bitmaker-kafka-secrets.yaml

@@ -89,7 +89,7 @@ class SpiderJob(models.Model):
     jid = models.AutoField(primary_key=True)
     spider = models.ForeignKey(Spider, on_delete=models.CASCADE, related_name="jobs")
     cronjob = models.ForeignKey(
-        SpiderCronJob, on_delete=models.CASCADE, related_name="cronjobs", null=True
+        SpiderCronJob, on_delete=models.CASCADE, related_name="jobs", null=True
     )
     status = models.CharField(
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
@@ -97,7 +97,7 @@ class SpiderJob(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:
-        ordering = ["created"]
+        ordering = ["-created"]
 
     @property
     def name(self):
@@ -146,3 +146,10 @@ class SpiderJobEnvVar(models.Model):
     )
     name = models.CharField(max_length=1000)
     value = models.CharField(max_length=1000)
+
+
+class SpiderJobTag(models.Model):
+    tid = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50)
+    jobs = models.ManyToManyField(SpiderJob, related_name="tags", blank=True)
+    cronjobs = models.ManyToManyField(SpiderCronJob, related_name="ctags", blank=True)
