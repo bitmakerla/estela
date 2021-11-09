@@ -124,13 +124,11 @@ class SpiderJobDetail(BaseTestCase):
             resource="job-list",
         )
         url_kwargs["jid"] = response["jid"]
+        data = {"status": SpiderJob.STOPPED_STATUS}
         response = self.make_request(
-            method="UPDATE",
-            user=self.user,
-            url_kwargs=url_kwargs,
-            resource="job-stop",
+            method="PATCH", user=self.user, url_kwargs=url_kwargs, data=data
         )
-        self.assertEqual(response["job_status"], SpiderJob.STOPPED_STATUS)
+        self.assertEqual(response["status"], SpiderJob.STOPPED_STATUS)
 
     def test_update_job_status(self):
         project = self.user.project_set.create(name="test_project")

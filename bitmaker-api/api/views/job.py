@@ -7,14 +7,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.filters import SpiderJobFilter
-from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobCreateSerializer,
     SpiderJobUpdateSerializer,
 )
-from core.kubernetes import delete_job, create_job
+from core.kubernetes import create_job
 from core.models import Spider, SpiderJob
 
 
@@ -33,6 +32,8 @@ class SpiderJobViewSet(
     filterset_class = SpiderJobFilter
 
     def get_queryset(self):
+        if self.request is None:
+            return SpiderJob.objects.none()
         return (
             super(SpiderJobViewSet, self)
             .get_queryset()
@@ -127,28 +128,4 @@ class SpiderJobViewSet(
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
 
-        return Response(serializer.data)
-
-    @action(detail=True, methods=["PUT"])
-    def stop(self, *args, **kwargs):
-        job = self.get_object()
-        allowed_status = [
-            SpiderJob.WAITING_STATUS,
-            SpiderJob.RUNNING_STATUS,
-            SpiderJob.ERROR_STATUS,
-        ]
-        if job.job_status not in allowed_status:
-            return Response(
-                {"error": errors.JOB_NOT_STOPPED.format(*allowed_status)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        response = delete_job(job.name)
-        if response is None:
-            return Response(
-                {"error": errors.JOB_INSTANCE_NOT_FOUND},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        job.status = SpiderJob.STOPPED_STATUS
-        job.save()
-        serializer = self.get_serializer(job)
         return Response(serializer.data)
