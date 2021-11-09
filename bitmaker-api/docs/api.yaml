@@ -564,37 +564,6 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/stop:
-    put:
-      operationId: api_projects_spiders_jobs_stop
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/SpiderJob'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/SpiderJob'
-      tags:
-        - api
-    parameters:
-      - name: jid
-        in: path
-        description: A unique integer value identifying this spider job.
-        required: true
-        type: integer
-      - name: pid
-        in: path
-        required: true
-        type: string
-      - name: sid
-        in: path
-        required: true
-        type: string
 definitions:
   AuthToken:
     required:
