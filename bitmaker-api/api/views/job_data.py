@@ -2,6 +2,7 @@ import json
 
 from bson.json_util import loads
 from ***REMOVED***.conf import settings
+from ***REMOVED***.http.response import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
@@ -25,10 +26,12 @@ class JobDataViewSet(
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
         data_type = request.query_params.get("type", "items")
+        mode = request.query_params.get("mode", "paged")
         page_size = int(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
-        return page, data_type, page_size
+        export_format = request.query_params.get("format", "json")
+        return page, data_type, mode, page_size, export_format
 
     def get_paginated_link(self, page_number):
         if page_number < 1:
@@ -76,7 +79,7 @@ class JobDataViewSet(
         ],
     )
     def list(self, request, *args, **kwargs):
-        page, data_type, page_size = self.get_parameters(request)
+        page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
             return Response(
                 {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
@@ -101,6 +104,13 @@ class JobDataViewSet(
             kwargs["sid"], kwargs["jid"], data_type
         )
         job_collection = client[kwargs["pid"]][job_collection_name]
+
+        if mode == "all":
+            result = job_collection.find()
+            result = loads(json.dumps(list(result), default=str))
+            response = JsonResponse(result, safe=False)
+            return response
+
         result = job_collection.find().skip(page_size * (page - 1)).limit(page_size)
         result = loads(json.dumps(list(result), default=str))
         count = job_collection.estimated_document_count()
