@@ -90,7 +90,11 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             if status == SpiderJob.STOPPED_STATUS:
                 if not instance.status in self.allowed_status_to_stop:
                     raise serializers.ValidationError(
-                        {"error": errors.JOB_NOT_STOPPED.format(*allowed_status_to_stop)}
+                        {
+                            "error": errors.JOB_NOT_STOPPED.format(
+                                *allowed_status_to_stop
+                            )
+                        }
                     )
                 else:
                     delete_job(instance.name)
