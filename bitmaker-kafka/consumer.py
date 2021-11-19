@@ -9,32 +9,13 @@ import botocore
 
 from queue import Queue
 from kafka import KafkaConsumer
+from pymongo.errors import ConnectionFailure
 
 
 DEFAULT_WORKER_POOL = 15
 item_queue = Queue()
 
 count = 0
-
-
-def get_certificate():
-    BUCKET_NAME = os.getenv("BUCKET_NAME")
-    KEY = os.getenv("CERTIFICATE_FILE")
-
-    s3 = boto3.resource(
-        "s3",
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-    )
-
-    try:
-        s3.Bucket(BUCKET_NAME).download_file(KEY, "certificate.crt")
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] == "404":
-            logging.error("The object does not exist.")
-        else:
-            raise
-
 
 def connect_kafka_consumer(topic_name):
     _consumer = None
@@ -78,16 +59,26 @@ def read_from_queue(client):
             )
         item_queue.task_done()
 
+def get_client(db_connection):
+    try:
+        if bool(os.getenv("MONGO_PRODUCTION")):
+            client = pymongo.MongoClient(
+                db_connection,
+                tls=True,
+                tlsCAFile="config/mongo_certificate/ca-certificate.crt",
+            )
+            client.admin.command("ismaster")
+        else:
+            client = pymongo.MongoClient(db_connection)
+    except ConnectionFailure:
+        return None
+    return client
 
 def consume_from_kafka(topic_name, worker_pool):
-    try:
-        client = pymongo.MongoClient(
-            os.getenv("MONGO_CONNECTION", "localhost"),
-            tls=True,
-            tlsCAFile="certificate.crt",
-        )
-        logging.info("DB connection established")
-    except:
+    client = get_client(os.getenv("MONGO_CONNECTION"))
+    if client:
+        logging.debug("DB connection established")
+    else:
         logging.error("Could not connect to the DB")
         return
 
@@ -115,7 +106,6 @@ def consume_from_kafka(topic_name, worker_pool):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    get_certificate()
     try:
         worker_pool = int(sys.argv[2]) if len(sys.argv) == 3 else DEFAULT_WORKER_POOL
         consume_from_kafka(sys.argv[1], worker_pool)

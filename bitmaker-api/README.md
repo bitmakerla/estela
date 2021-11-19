@@ -1,18 +1,29 @@
-# Bitmaker Scraping Product
+<h1 align="center"> Bitmaker Cloud API </h1>
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-## Requirements
+Bitmaker API consists of three main components:
+- bitmaker ***REMOVED*** api: The ***REMOVED*** app from which requests are handled.
+- bitmaker celery worker and beat: Responsible for executing the tasks and periodic tasks ordered by the API.
+- bitmaker redis: Keeps a record of the tasks and periodic tasks to be executed.
+
+All these components have a corresponding docker config file to build their images and run in docker containers.
+
+<h2> Requirements </h2>
 
 - Minikube v1.22.0
-- Docker v20.10.7
+- Docker v20.10.7 *include docker-compose*
 - aws-cli v2.2.18
 - Install python dependencies:
   ```bash
   $ pip install -r requirements/dev.txt
   ```
 
-## Local Setup
+<h2> Local Setup </h2>
+
+To run bitmaker API in a local environment, we use minikube as a cluster for kubernetes. 
+- The database for ***REMOVED*** API is configured as a Docker service.
+- In local we use a local registry setting as a Docker service. *in deployment we use aws registry*
 
 If it is the first time you build the app, do the following steps:
 
@@ -41,11 +52,12 @@ If it is the first time you build the app, do the following steps:
 - In _config/kubernetes-local/_, create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_,
   and a _bitmaker-api-secrets.yaml_ file based on _bitmaker-api-secrets.yaml.example_.
   Then, modify both files with the appropriate values:
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>:8000`. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>`. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed. This is the same as the EXTERNAL-IP value.
+  - _<MONGO_CONNECTION>_: The connection to Mongo DB formatted in base64 where all the data collected from the spiders is stored.
   - _<ELASTICSEARCH\_HOST>_ and _<ELASTICSEARCH\_PORT>_: The host and port of the Elasticsearch service.
   - _<AWS\_ACCESS\_KEY\_ID\_BASE\_64>_ and _<AWS\_SECRET\_ACCESS\_KEY\_BASE\_64>_: Enter your AWS credentials in base64.
             You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
@@ -64,16 +76,18 @@ If it is the first time you build the app, do the following steps:
   If you get `error: unable to upgrade connection: container not found ("bitmaker-***REMOVED***-api")`, please allow a few minutes
   for the service to be up and running.
 
+<h3> Commands </h3>
+
 After the first setup, you can:
 ```bash
 $ make start    # Start the application
 $ make stop     # Stop the application
-$ make rebuild-api  # Rebuild the application after some changes in the API
+$ make rebuild-api  # Rebuild only the API after some changes in the API
 $ make rebuild-all  # Rebuild the whole application including API, celery beat & worker, and redis
 $ make down     # Delete the application
 ```
 
-## Deployment
+<h2> Deployment </h2>
 
 If it is the first time you deploy the app, do the following steps:
 
@@ -156,7 +170,7 @@ If it is the first time you deploy the app, do the following steps:
   $ make createsuperuser
   ```
   
-## Cluster metrics
+<h2> Cluster metrics </h2>
 
 When running locally, enable the metrics add-on.
 ```bash
@@ -167,23 +181,23 @@ In production, install the [kubernetes metrics-server](https://github.com/kubern
 
 Then, you can use the tool `kubectl top` to watch the resource consumption for nodes or pods.
 
-## Update Migrations
+<h2> Update Migrations </h2>
 
 ```sh
 $ make makemigrations
 ```
 
-## Access Django Admin
+<h2> Access Django Admin </h2>
 
 Django Admin is running in `<DJANGO_API_HOST>/admin`,
 login with your user (superuser) credentials.
 
 
-## Set-up AWS ECR Container Registry
+<h2> Set-up AWS ECR Container Registry </h2>
 
 Registry and Repository can be manually created in [AWS ECR](https://aws.amazon.com/ecr/).
 
-## Upload Images to the Registry
+<h2> Upload Images to the Registry </h2>
 
 You need to configure the aws client. Check [the official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for more information.
 
@@ -192,13 +206,20 @@ $ make build-all-images
 $ make upload-all-images
 ```
 
-## Testing
+<h2> Testing </h2>
 
 ```sh
 $ make test
 ```
+<h2> Docs </h2>
 
-## Formatting
+It is important to run the `docs` command every time views, serializers and/or models are modified to obtain the api.yaml that will be used in bitmaker-web module.
+
+```sh
+$ make docs
+```
+
+<h2> Formatting </h2>
 
 ```sh
 $ make lint

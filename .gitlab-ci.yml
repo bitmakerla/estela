@@ -169,6 +169,8 @@ build-main-kafka:
   before_script:
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+    - mkdir -p $KAFKA_DIRECTORY/config/mongo_certificate/
+    - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt $KAFKA_DIRECTORY/config/mongo_certificate/ca-certificate.crt
   script:
     - cd $KAFKA_DIRECTORY
     - docker build . --tag $DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA
