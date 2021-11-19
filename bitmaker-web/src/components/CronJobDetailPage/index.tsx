@@ -190,16 +190,16 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     };
 
     updateStatus = (): void => {
-        status = SpiderCronJobUpdateStatusEnum.Disabled;
-        if (this.state.status == status) {
-            status = SpiderCronJobUpdateStatusEnum.Active;
+        let _status = SpiderCronJobUpdateStatusEnum.Disabled;
+        if (this.state.status == _status) {
+            _status = SpiderCronJobUpdateStatusEnum.Active;
         }
         const request: ApiProjectsSpidersCronjobsUpdateRequest = {
             cjid: this.cronjobId,
             sid: this.spiderId,
             pid: this.projectId,
             data: {
-                status: SpiderCronJobUpdateStatusEnum.Disabled,
+                status: _status,
                 schedule: this.state.schedule,
             },
         };
