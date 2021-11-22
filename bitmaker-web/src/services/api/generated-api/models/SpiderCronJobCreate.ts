@@ -42,6 +42,12 @@ export interface SpiderCronJobCreate {
     readonly cjid?: number;
     /**
      * 
+     * @type {string}
+     * @memberof SpiderCronJobCreate
+     */
+    readonly name?: string;
+    /**
+     * 
      * @type {Array<SpiderJobArg>}
      * @memberof SpiderCronJobCreate
      */
@@ -77,6 +83,7 @@ export function SpiderCronJobCreateFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'cjid': !exists(json, 'cjid') ? undefined : json['cjid'],
+        'name': !exists(json, 'name') ? undefined : json['name'],
         'cargs': !exists(json, 'cargs') ? undefined : ((json['cargs'] as Array<any>).map(SpiderJobArgFromJSON)),
         'cenvVars': !exists(json, 'cenv_vars') ? undefined : ((json['cenv_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'ctags': !exists(json, 'ctags') ? undefined : ((json['ctags'] as Array<any>).map(SpiderJobTagFromJSON)),
