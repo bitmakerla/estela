@@ -169,13 +169,6 @@ export interface ApiProjectsSpidersJobsReadRequest {
     sid: string;
 }
 
-export interface ApiProjectsSpidersJobsStopRequest {
-    jid: number;
-    pid: string;
-    sid: string;
-    data: SpiderJob;
-}
-
 export interface ApiProjectsSpidersJobsUpdateRequest {
     jid: number;
     pid: string;
@@ -898,52 +891,6 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersJobsRead(requestParameters: ApiProjectsSpidersJobsReadRequest): Promise<SpiderJob> {
         const response = await this.apiProjectsSpidersJobsReadRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiProjectsSpidersJobsStopRaw(requestParameters: ApiProjectsSpidersJobsStopRequest): Promise<runtime.ApiResponse<SpiderJob>> {
-        if (requestParameters.jid === null || requestParameters.jid === undefined) {
-            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsStop.');
-        }
-
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsStop.');
-        }
-
-        if (requestParameters.sid === null || requestParameters.sid === undefined) {
-            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsStop.');
-        }
-
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersJobsStop.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/stop`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: SpiderJobToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderJobFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiProjectsSpidersJobsStop(requestParameters: ApiProjectsSpidersJobsStopRequest): Promise<SpiderJob> {
-        const response = await this.apiProjectsSpidersJobsStopRaw(requestParameters);
         return await response.value();
     }
 

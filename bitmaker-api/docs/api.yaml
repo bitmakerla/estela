@@ -739,6 +739,10 @@ definitions:
         title: Cjid
         type: integer
         readOnly: true
+      name:
+        title: Name
+        type: string
+        readOnly: true
       cargs:
         type: array
         items:
