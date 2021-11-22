@@ -48,6 +48,7 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
         model = SpiderCronJob
         fields = (
             "cjid",
+            "name",
             "cargs",
             "cenv_vars",
             "ctags",
