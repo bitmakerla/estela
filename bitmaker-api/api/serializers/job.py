@@ -92,7 +92,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {
                             "error": errors.JOB_NOT_STOPPED.format(
-                                *allowed_status_to_stop
+                                *self.allowed_status_to_stop
                             )
                         }
                     )
