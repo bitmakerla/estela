@@ -61,7 +61,8 @@ def read_from_queue(client):
 
 def get_client(db_connection):
     try:
-        if bool(os.getenv("MONGO_PRODUCTION")):
+        if bool(os.getenv("PRODUCTION")):
+            logging.info("--PRODUCTION--")
             client = pymongo.MongoClient(
                 db_connection,
                 tls=True,
@@ -69,6 +70,7 @@ def get_client(db_connection):
             )
             client.admin.command("ismaster")
         else:
+            logging.info("--LOCAL--")
             client = pymongo.MongoClient(db_connection)
     except ConnectionFailure:
         return None
