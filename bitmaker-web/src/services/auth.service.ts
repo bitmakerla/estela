@@ -1,4 +1,5 @@
 const TOKEN_ITEM_NAME = "authToken";
+const USERNAME_ITEM_NAME = "username";
 
 export const AuthService = {
     getAuthToken(): string | null {
@@ -16,5 +17,14 @@ export const AuthService = {
             return {};
         }
         return { Authorization: `Token ${token}` };
+    },
+    getUserUsername(): string | null {
+        return localStorage.getItem(USERNAME_ITEM_NAME);
+    },
+    removeUserUsername(): void {
+        localStorage.removeItem(USERNAME_ITEM_NAME);
+    },
+    setUserUsername(username: string): void {
+        localStorage.setItem(USERNAME_ITEM_NAME, username);
     },
 };

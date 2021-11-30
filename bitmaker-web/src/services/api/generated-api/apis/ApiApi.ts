@@ -63,10 +63,17 @@ import {
     Token,
     TokenFromJSON,
     TokenToJSON,
+    User,
+    UserFromJSON,
+    UserToJSON,
 } from '../models';
 
 export interface ApiAuthLoginRequest {
     data: AuthToken;
+}
+
+export interface ApiAuthRegisterRequest {
+    data: User;
 }
 
 export interface ApiProjectsCreateRequest {
@@ -228,6 +235,40 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiAuthLogin(requestParameters: ApiAuthLoginRequest): Promise<Token> {
         const response = await this.apiAuthLoginRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthRegisterRaw(requestParameters: ApiAuthRegisterRequest): Promise<runtime.ApiResponse<Token>> {
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthRegister.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/register`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthRegister(requestParameters: ApiAuthRegisterRequest): Promise<Token> {
+        const response = await this.apiAuthRegisterRaw(requestParameters);
         return await response.value();
     }
 
