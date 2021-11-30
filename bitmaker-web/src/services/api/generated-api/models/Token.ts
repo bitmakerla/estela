@@ -24,6 +24,12 @@ export interface Token {
      * @type {string}
      * @memberof Token
      */
+    readonly user?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Token
+     */
     key: string;
 }
 
@@ -37,6 +43,7 @@ export function TokenFromJSONTyped(json: any, ignoreDiscriminator: boolean): Tok
     }
     return {
         
+        'user': !exists(json, 'user') ? undefined : json['user'],
         'key': json['key'],
     };
 }

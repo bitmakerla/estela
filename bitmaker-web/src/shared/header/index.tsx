@@ -14,6 +14,10 @@ export class CustomHeader extends Component<unknown> {
         return Boolean(AuthService.getAuthToken());
     };
 
+    getUser = (): string => {
+        return String(AuthService.getUserUsername());
+    };
+
     logout = (): void => {
         AuthService.removeAuthToken();
         history.push("/login");
@@ -28,6 +32,7 @@ export class CustomHeader extends Component<unknown> {
                 <Row justify="end">
                     {this.isLogged() ? (
                         <Fragment>
+                            <Col className="header-item">{this.getUser()}</Col>
                             <Col className="header-item">
                                 <Link className="header-item" to="/">
                                     Home
@@ -39,6 +44,9 @@ export class CustomHeader extends Component<unknown> {
                         </Fragment>
                     ) : (
                         <Col>
+                            <Link className="header-item" to="/register">
+                                Register
+                            </Link>
                             <Link className="header-item" to="/login">
                                 Login
                             </Link>

@@ -21,5 +21,6 @@ models/SpiderJobEnvVar.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
 models/Token.ts
+models/User.ts
 models/index.ts
 runtime.ts
