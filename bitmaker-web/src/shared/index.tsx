@@ -7,4 +7,6 @@ export {
     resourceNotAllowedNotification,
     credentialsIncorrectNotification,
     incorrectDataNotification,
+    badPasswordNotification,
+    invalidDataNotification,
 } from "./notifications";

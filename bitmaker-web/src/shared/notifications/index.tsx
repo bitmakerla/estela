@@ -32,3 +32,19 @@ export const incorrectDataNotification = (): void => {
         description: "Check form fields or data.",
     });
 };
+
+export const badPasswordNotification = (message: string): void => {
+    notification.warn({
+        message: "Insecure password",
+        description: message,
+    });
+};
+
+export const invalidDataNotification = (): void => {
+    notification.open({
+        message: "Invalid Data",
+        description: `Invalid email or username. You might be using an email or 
+                      username that is already taken or your password is not 
+                      strong enough.`,
+    });
+};
