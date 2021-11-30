@@ -35,6 +35,24 @@ paths:
       tags:
         - api
     parameters: []
+  /api/auth/register:
+    post:
+      operationId: api_auth_register
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Token'
+      tags:
+        - api
+    parameters: []
   /api/projects:
     get:
       operationId: api_projects_list
@@ -584,10 +602,43 @@ definitions:
       - key
     type: object
     properties:
+      user:
+        title: User
+        type: string
+        pattern: ^[\w.@+-]+$
+        readOnly: true
       key:
         title: Key
         type: string
         maxLength: 40
+        minLength: 1
+  User:
+    required:
+      - username
+      - password
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      email:
+        title: Email address
+        type: string
+        format: email
+        maxLength: 254
+      username:
+        title: Username
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        type: string
+        pattern: ^[\w.@+-]+$
+        maxLength: 150
+        minLength: 1
+      password:
+        title: Password
+        type: string
+        maxLength: 128
         minLength: 1
   Project:
     required:
