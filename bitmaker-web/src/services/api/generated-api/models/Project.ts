@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    Permission,
+    PermissionFromJSON,
+    PermissionFromJSONTyped,
+    PermissionToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -43,6 +50,12 @@ export interface Project {
      * @memberof Project
      */
     readonly containerImage?: string;
+    /**
+     * 
+     * @type {Array<Permission>}
+     * @memberof Project
+     */
+    users?: Array<Permission>;
 }
 
 export function ProjectFromJSON(json: any): Project {
@@ -59,6 +72,7 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'name': json['name'],
         'token': !exists(json, 'token') ? undefined : json['token'],
         'containerImage': !exists(json, 'container_image') ? undefined : json['container_image'],
+        'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(PermissionFromJSON)),
     };
 }
 
@@ -72,6 +86,7 @@ export function ProjectToJSON(value?: Project | null): any {
     return {
         
         'name': value.name,
+        'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(PermissionToJSON)),
     };
 }
 

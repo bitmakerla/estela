@@ -30,6 +30,8 @@ class SpiderCronJobViewSet(
     filterset_class = SpiderCronJobFilter
 
     def get_queryset(self):
+        if self.request is None:
+            return SpiderCronJob.objects.none()
         return self.model_class.objects.filter(
             spider__project__pid=self.kwargs["pid"],
             spider__sid=self.kwargs["sid"],

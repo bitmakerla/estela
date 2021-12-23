@@ -124,18 +124,49 @@ paths:
         - api
     put:
       operationId: api_projects_update
+      summary: Update Project information
       description: ''
       parameters:
         - name: data
           in: body
           required: true
           schema:
-            $ref: '#/definitions/Project'
+            required:
+              - name
+            type: object
+            properties:
+              action:
+                description: Action to perform
+                type: string
+              email:
+                description: User's email
+                type: string
+              name:
+                description: Project Name
+                type: string
+              permission:
+                description: Type of permission
+                type: string
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/Project'
+            required:
+              - name
+            type: object
+            properties:
+              action:
+                description: Action to perform
+                type: string
+              email:
+                description: User's email
+                type: string
+              name:
+                description: Project Name
+                type: string
+              permission:
+                description: Type of permission
+                type: string
       tags:
         - api
     patch:
@@ -640,6 +671,36 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
+  UserDetail:
+    required:
+      - username
+    type: object
+    properties:
+      username:
+        title: Username
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        type: string
+        pattern: ^[\w.@+-]+$
+        maxLength: 150
+        minLength: 1
+      email:
+        title: Email address
+        type: string
+        format: email
+        maxLength: 254
+  Permission:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/UserDetail'
+      permission:
+        title: Permission
+        type: string
+        enum:
+          - EDITOR
+          - VIEWER
+          - OWNER
   Project:
     required:
       - name
@@ -663,6 +724,10 @@ definitions:
         title: Container image
         type: string
         readOnly: true
+      users:
+        type: array
+        items:
+          $ref: '#/definitions/Permission'
   SetRelatedSpidersProject:
     required:
       - spiders_names
