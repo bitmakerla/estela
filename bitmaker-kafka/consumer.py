@@ -17,6 +17,7 @@ item_queue = Queue()
 
 count = 0
 
+
 def connect_kafka_consumer(topic_name):
     _consumer = None
     kafka_advertised_port = os.getenv("KAFKA_ADVERTISED_PORT", "9092")
@@ -59,6 +60,7 @@ def read_from_queue(client):
             )
         item_queue.task_done()
 
+
 def get_client(db_connection):
     try:
         if bool(os.getenv("PRODUCTION")):
@@ -75,6 +77,7 @@ def get_client(db_connection):
     except ConnectionFailure:
         return None
     return client
+
 
 def consume_from_kafka(topic_name, worker_pool):
     client = get_client(os.getenv("MONGO_CONNECTION"))

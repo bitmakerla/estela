@@ -15,7 +15,7 @@ from core.kubernetes import (
 class Project(models.Model):
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
-    users = models.ManyToManyField(User)
+    users = models.ManyToManyField(User, through="Permission")
 
     @property
     def container_image(self):
@@ -26,6 +26,22 @@ class Project(models.Model):
             self.pid,
         )
         return container_image
+
+
+class Permission(models.Model):
+    EDITOR_PERMISSION = "EDITOR"
+    VIEWER_PERMISSION = "VIEWER"
+    OWNER_PERMISSION = "OWNER"
+    PERMISSIONS_OPTIONS = [
+        (EDITOR_PERMISSION, "Editor"),
+        (VIEWER_PERMISSION, "Viewer"),
+        (OWNER_PERMISSION, "Owner"),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    permission = models.CharField(
+        max_length=16, choices=PERMISSIONS_OPTIONS, default=VIEWER_PERMISSION
+    )
 
 
 class Spider(models.Model):
