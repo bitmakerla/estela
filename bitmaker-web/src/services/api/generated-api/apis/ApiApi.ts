@@ -18,6 +18,9 @@ import {
     AuthToken,
     AuthTokenFromJSON,
     AuthTokenToJSON,
+    InlineObject,
+    InlineObjectFromJSON,
+    InlineObjectToJSON,
     InlineResponse200,
     InlineResponse200FromJSON,
     InlineResponse200ToJSON,
@@ -196,7 +199,7 @@ export interface ApiProjectsSpidersReadRequest {
 
 export interface ApiProjectsUpdateRequest {
     pid: string;
-    data: Project;
+    data: InlineObject;
 }
 
 /**
@@ -1056,8 +1059,9 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Update Project information
      */
-    async apiProjectsUpdateRaw(requestParameters: ApiProjectsUpdateRequest): Promise<runtime.ApiResponse<Project>> {
+    async apiProjectsUpdateRaw(requestParameters: ApiProjectsUpdateRequest): Promise<runtime.ApiResponse<InlineObject>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsUpdate.');
         }
@@ -1080,15 +1084,16 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: ProjectToJSON(requestParameters.data),
+            body: InlineObjectToJSON(requestParameters.data),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineObjectFromJSON(jsonValue));
     }
 
     /**
+     * Update Project information
      */
-    async apiProjectsUpdate(requestParameters: ApiProjectsUpdateRequest): Promise<Project> {
+    async apiProjectsUpdate(requestParameters: ApiProjectsUpdateRequest): Promise<InlineObject> {
         const response = await this.apiProjectsUpdateRaw(requestParameters);
         return await response.value();
     }

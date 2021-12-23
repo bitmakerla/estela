@@ -9,4 +9,5 @@ export {
     incorrectDataNotification,
     badPasswordNotification,
     invalidDataNotification,
+    nonExistentUserNotification,
 } from "./notifications";

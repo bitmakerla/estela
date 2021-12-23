@@ -8,7 +8,9 @@ class SpiderJobList(BaseTestCase):
     resource = "job-list"
 
     def test_get_spiders_jobs(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         job_1 = SpiderJob.objects.create(spider=spider)
         job_2 = SpiderJob.objects.create(spider=spider)
@@ -41,7 +43,9 @@ class SpiderJobList(BaseTestCase):
         self.assertEqual(response.get("detail"), errors.INVALID_TOKEN)
 
     def test_create_spider_job(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         url_kwargs = {
             "pid": project.pid,
@@ -61,7 +65,9 @@ class SpiderJobList(BaseTestCase):
         kubernetes.delete_job(response["name"], api_instance=api_instance)
 
     def test_check_paginated_response(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         url_kwargs = {
             "pid": project.pid,
@@ -91,7 +97,9 @@ class SpiderJobDetail(BaseTestCase):
     resource = "job-detail"
 
     def test_get_spider_job(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         job = SpiderJob.objects.create(spider=spider)
         url_kwargs = {
@@ -110,7 +118,9 @@ class SpiderJobDetail(BaseTestCase):
         self.assertIn("job_status", response)
 
     def test_stop_spider_job(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         url_kwargs = {
             "pid": project.pid,
@@ -131,7 +141,9 @@ class SpiderJobDetail(BaseTestCase):
         self.assertEqual(response["status"], SpiderJob.STOPPED_STATUS)
 
     def test_update_job_status(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         job = SpiderJob.objects.create(spider=spider)
         url_kwargs = {

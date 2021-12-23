@@ -28,8 +28,8 @@ export const credentialsIncorrectNotification = (): void => {
 
 export const incorrectDataNotification = (): void => {
     notification.open({
-        message: "Incorrect Data",
-        description: "Check form fields or data.",
+        message: "Incorrect Data or Insufficient permissions.",
+        description: "Check form fields, data and permissions.",
     });
 };
 
@@ -46,5 +46,12 @@ export const invalidDataNotification = (): void => {
         description: `Invalid email or username. You might be using an email or 
                       username that is already taken or your password is not 
                       strong enough.`,
+    });
+};
+
+export const nonExistentUserNotification = (): void => {
+    notification.open({
+        message: "Invalid Data",
+        description: `User does not exist.`,
     });
 };
