@@ -3,11 +3,13 @@ apis/ApiApi.ts
 apis/index.ts
 index.ts
 models/AuthToken.ts
+models/InlineObject.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
 models/InlineResponse2002.ts
 models/InlineResponse2003.ts
 models/InlineResponse2004.ts
+models/Permission.ts
 models/Project.ts
 models/SetRelatedSpidersProject.ts
 models/Spider.ts
@@ -22,5 +24,6 @@ models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
 models/Token.ts
 models/User.ts
+models/UserDetail.ts
 models/index.ts
 runtime.ts

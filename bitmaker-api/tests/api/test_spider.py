@@ -7,7 +7,9 @@ class SpiderList(BaseTestCase):
     resource = "spider-list"
 
     def test_get_spiders(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider_1 = Spider.objects.create(project=project, name="test_spider_1")
         spider_2 = Spider.objects.create(project=project, name="test_spider_2")
         url_kwargs = {"pid": project.pid}
@@ -33,7 +35,9 @@ class SpiderList(BaseTestCase):
         self.assertEqual(response.get("detail"), errors.INVALID_TOKEN)
 
     def test_check_paginated_response(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         url_kwargs = {
             "pid": project.pid,
         }
@@ -58,7 +62,9 @@ class SpiderDetail(BaseTestCase):
     resource = "spider-detail"
 
     def test_get_spider(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="test_spider")
         url_kwargs = {
             "pid": project.pid,

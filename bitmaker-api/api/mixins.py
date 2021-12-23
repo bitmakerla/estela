@@ -4,7 +4,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
-from api.permissions import IsProjectUser
+from api.permissions import IsProjectUser, IsOwnerOrReadOnly
 
 
 class APIPageNumberPagination(PageNumberPagination):
@@ -17,5 +17,5 @@ class BaseViewSet(viewsets.GenericViewSet):
     """A custom viewset that contains reusable customized settings."""
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, IsProjectUser]
+    permission_classes = [IsAuthenticated, IsProjectUser, IsOwnerOrReadOnly]
     pagination_class = APIPageNumberPagination

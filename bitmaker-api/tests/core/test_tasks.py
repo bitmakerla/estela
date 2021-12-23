@@ -18,7 +18,9 @@ class RunSpiderJobs(BaseTestCase):
 
     def test_run_jobs_from_endpoint(self):
         SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).delete()
-        project = self.user.project_set.create(name="project test 2")
+        project = self.user.project_set.create(
+            name="project test 2", through_defaults={"permission": "OWNER"}
+        )
         spider = Spider.objects.create(project=project, name="spider test")
         url_kwargs = {
             "pid": project.pid,

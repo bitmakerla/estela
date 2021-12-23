@@ -8,8 +8,12 @@ class ProjectList(BaseTestCase):
     url_kwargs = {}
 
     def test_get_projects(self):
-        project_1 = self.user.project_set.create(name="test_project_1")
-        project_2 = self.user.project_set.create(name="test_project_2")
+        project_1 = self.user.project_set.create(
+            name="test_project_1", through_defaults={"permission": "OWNER"}
+        )
+        project_2 = self.user.project_set.create(
+            name="test_project_2", through_defaults={"permission": "OWNER"}
+        )
         response = self.make_request(
             method="GET",
             url_kwargs=self.url_kwargs,
@@ -63,7 +67,9 @@ class ProjectDetail(BaseTestCase):
     resource = "project-detail"
 
     def test_get_project(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         url_kwargs = {"pid": project.pid}
         response = self.make_request(
             method="GET",
@@ -74,11 +80,13 @@ class ProjectDetail(BaseTestCase):
         self.assertEqual(response["name"], project.name)
 
     def test_update_project(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         url_kwargs = {"pid": project.pid}
         data = {"name": "new_name"}
         self.make_request(
-            method="UPDATE",
+            method="PATCH",
             user=self.user,
             url_kwargs=url_kwargs,
             data=data,
@@ -87,7 +95,9 @@ class ProjectDetail(BaseTestCase):
         self.assertEqual(project.name, data["name"])
 
     def test_delete_project(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         url_kwargs = {"pid": project.pid}
         self.make_request(
             method="DELETE",
@@ -109,7 +119,9 @@ class ProjectDetail(BaseTestCase):
         self.assertEqual(response.get("detail"), errors.INVALID_TOKEN)
 
     def test_set_related_spiders(self):
-        project = self.user.project_set.create(name="test_project")
+        project = self.user.project_set.create(
+            name="test_project", through_defaults={"permission": "OWNER"}
+        )
         url_kwargs = {"pid": project.pid}
         Spider.objects.bulk_create(
             [
