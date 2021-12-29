@@ -85,6 +85,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         status = validated_data.get("status", instance.status)
         if status != instance.status:
+            if instance.status == SpiderJob.STOPPED_STATUS:
+                raise serializers.ValidationError({"error": "Job is stopped"})
             if status == SpiderJob.WAITING_STATUS:
                 raise serializers.ValidationError({"error": "Invalid status"})
             if status == SpiderJob.STOPPED_STATUS:

@@ -11,8 +11,16 @@ import {
     SpiderCronJob,
     SpiderJob,
     SpiderCronJobUpdateStatusEnum,
+    SpiderCronJobUpdate,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import {
+    authNotification,
+    resourceNotAllowedNotification,
+    incorrectDataNotification,
+    Header,
+    ProjectSidenav,
+    Spin,
+} from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -51,6 +59,7 @@ interface CronJobDetailPageState {
     count: number;
     current: number;
     schedule: string | undefined;
+    new_schedule: string | undefined;
 }
 
 interface RouteParams {
@@ -61,6 +70,7 @@ interface RouteParams {
 
 export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams>, CronJobDetailPageState> {
     PAGE_SIZE = 10;
+    initial_schedule = "";
     state = {
         loaded: false,
         name: "",
@@ -70,6 +80,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         jobs: [],
         status: "",
         schedule: "",
+        new_schedule: "",
         count: 0,
         current: 0,
     };
@@ -134,6 +145,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     if (tags === undefined) {
                         tags = [];
                     }
+                    this.initial_schedule = response.schedule || "";
                     const data = await this.getJobs(1);
                     const jobs: SpiderJobData[] = data.data;
                     this.setState({
@@ -156,6 +168,32 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             );
         }
     }
+
+    handleInputChange = (event: string): void => {
+        this.setState({ new_schedule: event });
+        this.updateSchedule(event);
+    };
+
+    updateSchedule = (_schedule: string): void => {
+        const requestData: SpiderCronJobUpdate = {
+            schedule: _schedule,
+        };
+        const request: ApiProjectsSpidersCronjobsUpdateRequest = {
+            cjid: this.cronjobId,
+            pid: this.projectId,
+            sid: this.spiderId,
+            data: requestData,
+        };
+        this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
+            (response: SpiderCronJobUpdate) => {
+                this.setState({ schedule: response.schedule });
+            },
+            (error: unknown) => {
+                console.log(error);
+                incorrectDataNotification();
+            },
+        );
+    };
 
     getJobs = async (page: number): Promise<{ data: SpiderJobData[]; count: number; current: number }> => {
         const requestParams: ApiProjectsSpidersJobsListRequest = {
@@ -240,7 +278,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                             <Text>
                                                 <b>Status:</b>&nbsp; {status}
                                             </Text>
-                                            <Text>
+                                            <Text
+                                                editable={{
+                                                    tooltip: "click to edit text",
+                                                    onChange: this.handleInputChange,
+                                                }}
+                                            >
                                                 <b>Schedule:</b>&nbsp; {schedule}
                                             </Text>
                                             <Space direction="vertical">

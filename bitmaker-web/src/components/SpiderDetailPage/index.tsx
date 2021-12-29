@@ -162,7 +162,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                 <b>Project ID:</b>
                                                 <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
                                             </Text>
-                                            <Table columns={this.columns} dataSource={jobs} pagination={false} />
+                                            <Table
+                                                columns={this.columns}
+                                                dataSource={jobs}
+                                                pagination={false}
+                                                size="middle"
+                                            />
                                         </Space>
                                     </Row>
                                     <Pagination
