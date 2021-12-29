@@ -4,8 +4,21 @@ import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsSpidersJobsReadRequest, SpiderJob } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import {
+    ApiProjectsSpidersJobsReadRequest,
+    SpiderJobUpdateStatusEnum,
+    ApiProjectsSpidersJobsUpdateRequest,
+    SpiderJob,
+    SpiderJobUpdate,
+} from "../../services/api";
+import {
+    authNotification,
+    resourceNotAllowedNotification,
+    incorrectDataNotification,
+    Header,
+    ProjectSidenav,
+    Spin,
+} from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -100,6 +113,27 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         }
     }
 
+    stopJob = (): void => {
+        const request: ApiProjectsSpidersJobsUpdateRequest = {
+            jid: this.jobId,
+            sid: this.spiderId,
+            pid: this.projectId,
+            data: {
+                jid: this.jobId,
+                status: SpiderJobUpdateStatusEnum.Stopped,
+            },
+        };
+        this.apiService.apiProjectsSpidersJobsUpdate(request).then(
+            (response: SpiderJobUpdate) => {
+                this.setState({ status: response.status });
+            },
+            (error: unknown) => {
+                console.error(error);
+                incorrectDataNotification();
+            },
+        );
+    };
+
     render(): JSX.Element {
         const { loaded, args, envVars, tags, date, status, cronjob } = this.state;
         return (
@@ -174,6 +208,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     Go to spider job data
                                                 </Button>
                                             </Link>
+                                            <Button danger className="stop-job" onClick={this.stopJob}>
+                                                <div>Stop Job</div>
+                                            </Button>
                                         </Space>
                                     </Row>
                                 </Content>
