@@ -13,7 +13,7 @@ from api.serializers.job import (
     SpiderJobCreateSerializer,
     SpiderJobUpdateSerializer,
 )
-from core.kubernetes import create_job
+from config.job_manager import job_manager
 from core.models import Spider, SpiderJob
 
 
@@ -96,7 +96,7 @@ class SpiderJobViewSet(
             }
 
             token = request.auth.key if request.auth else None
-            create_job(
+            job_manager.create_job(
                 job.name,
                 job.key,
                 job.spider.name,

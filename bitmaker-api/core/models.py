@@ -6,10 +6,7 @@ from ***REMOVED***.db import models
 from ***REMOVED***.utils import timezone
 from urllib.parse import urlparse
 
-from core.kubernetes import (
-    read_job_status,
-    JOB_TIME_CREATION,
-)
+from config.job_manager import job_manager
 
 
 class Project(models.Model):
@@ -127,14 +124,15 @@ class SpiderJob(models.Model):
     def job_status(self):
         if (
             self.status == self.WAITING_STATUS
-            and timezone.now() - timedelta(seconds=JOB_TIME_CREATION) > self.created
+            and timezone.now() - timedelta(seconds=job_manager.JOB_TIME_CREATION)
+            > self.created
         ):
-            job_status = read_job_status(self.name)
+            job_status = job_manager.read_job_status(self.name)
             if job_status is None:
                 self.status = self.ERROR_STATUS
                 self.save()
-            elif job_status.status.active is None:
-                if job_status.status.succeeded is None:
+            elif job_status.active is None:
+                if job_status.succeeded is None:
                     self.status = self.ERROR_STATUS
                     self.save()
         return self.status

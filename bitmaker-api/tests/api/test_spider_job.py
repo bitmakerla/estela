@@ -1,6 +1,6 @@
 from api import errors
 from core.models import Spider, SpiderJob
-from core import kubernetes
+from config.job_manager import job_manager
 from tests.base import BaseTestCase
 
 
@@ -59,10 +59,12 @@ class SpiderJobList(BaseTestCase):
         )
         self.assertTrue(spider.jobs.filter(jid=response["jid"]).exists())
 
-        api_instance = kubernetes.get_api_instance()
-        kube_response = kubernetes.read_job(response["name"], api_instance=api_instance)
-        self.assertEqual(kube_response._metadata.name, response["name"])
-        kubernetes.delete_job(response["name"], api_instance=api_instance)
+        api_instance = job_manager.get_api_instance()
+        kube_response = job_manager.read_job(
+            response["name"], api_instance=api_instance
+        )
+        self.assertEqual(kube_response.name, response["name"])
+        job_manager.delete_job(response["name"], api_instance=api_instance)
 
     def test_check_paginated_response(self):
         project = self.user.project_set.create(
