@@ -7,7 +7,7 @@ from api.serializers.job_specific import (
     SpiderJobTagSerializer,
 )
 from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
-from core.kubernetes import delete_job
+from config.job_manager import job_manager
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -99,7 +99,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                         }
                     )
                 else:
-                    delete_job(instance.name)
+                    job_manager.delete_job(instance.name)
             instance.status = status
             instance.save()
         return instance

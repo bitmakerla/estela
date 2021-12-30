@@ -1,6 +1,6 @@
 from core.tasks import run_spider_jobs
 from core.models import Project, Spider, SpiderJob
-from core.kubernetes import delete_job, read_job
+from config.job_manager import job_manager
 from core.cronjob import create_cronjob, delete_cronjob
 from tests.base import BaseTestCase
 
@@ -12,9 +12,9 @@ class RunSpiderJobs(BaseTestCase):
         spider = Spider.objects.create(project=project, name="spider test")
         job = SpiderJob.objects.create(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
         run_spider_jobs()
-        job_info = read_job(job.name)
+        job_info = job_manager.read_job(job.name)
         self.assertIsNotNone(job_info)
-        delete_job(job.name)
+        job_manager.delete_job(job.name)
 
     def test_run_jobs_from_endpoint(self):
         SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).delete()
@@ -44,7 +44,7 @@ class RunSpiderJobs(BaseTestCase):
             url_kwargs=url_kwargs,
             resource="job-detail",
         )
-        delete_job(response["name"])
+        job_manager.delete_job(response["name"])
 
     def test_create_cronjob(self):
         response = create_cronjob("1.1.1", [], [], [], "* * * * *")

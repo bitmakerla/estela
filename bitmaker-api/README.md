@@ -224,3 +224,42 @@ $ make docs
 ```sh
 $ make lint
 ```
+
+<h1>Engines</h1>
+
+The project was thinking to work in kubernetes but is possible running in any other instance. The api handle all with celery and models, you just need to define an engine as class that contains Job and Status inner classes accord to your needs but respecting a base methods. Add your engine in engines/config.py with a name:
+```py
+def JobManager(engine):
+    engines = {
+        "kubernetes": KubernetesEngine,
+        "your_engine": YourEngine,
+    }
+
+    return engines[engine]()
+```
+
+To use it, just define it in config/job_manager.py:
+```py
+job_manager = JobManager(engine="your_engine")
+```
+
+<h3> Status </h3>
+This class represents the status of the job, initially it must contain three attributes:
+
+* active: A positive number if job is active and None in other case, e.g. In Kubernetes how many pods are active.
+* succed: A positive number if job was succed and None in other case, e.g. In Kubernetes how many pods were succed.
+* failed: A positive number if job failed and None in other case, e.g. In Kubernetes how many pods failed.
+
+<h3> Job </h3>
+This class represents a job, initially it must contain two attributes:
+
+* name: This could be a job name or job id, but must be a way to identify a job, e.g. job name in kubernetes or container name in Docker.
+* status: A status object that represent the job status.
+
+<h3> Create your Engine </h3>
+
+This class controls the creation, deletion and reading of jobs, initially it must have four methods:
+* create_job: This function must contain the logic about how a job should be create. e.g. Kubernetes Job or Docker Container. Must return a Job Object.
+* delete_job: This function must contain the logic about how a job should be create. Is not neccesary a return.
+* read_job: This function must return a Job Object accord to Job name.
+* read_status: This function must return a Status Object from Job.
