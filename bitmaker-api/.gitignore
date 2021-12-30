@@ -7,3 +7,5 @@ config/kubernetes-local/bitmaker-api-secrets.yaml
 config/kubernetes-local/bitmaker-api-configmaps.yaml
 config/kubernetes-prod/bitmaker-api-secrets.yaml
 config/kubernetes-prod/bitmaker-api-configmaps.yaml
+
+config/**/*.crt
