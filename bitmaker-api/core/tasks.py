@@ -1,7 +1,7 @@
 from django.conf import settings
 from config.celery import app as celery_app
 from core.models import SpiderJob, Spider
-from core.kubernetes import create_job, read_job_status
+from config.job_manager import job_manager
 from rest_framework.authtoken.models import Token
 
 from api.serializers.job import SpiderJobCreateSerializer
@@ -26,7 +26,7 @@ def run_spider_jobs():
         job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
         job.status = SpiderJob.WAITING_STATUS
         job.save()
-        create_job(
+        job_manager.create_job(
             job.name,
             job.key,
             job.spider.name,
@@ -50,7 +50,7 @@ def launch_job(sid_, data_, token=None):
 
     job_args = {arg.name: arg.value for arg in job.args.all()}
     job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
-    create_job(
+    job_manager.create_job(
         job.name,
         job.key,
         job.spider.name,
@@ -68,9 +68,9 @@ def check_and_update_job_status_errors():
     ]
 
     for job in jobs:
-        job_status = read_job_status(job.name)
+        job_status = job_manager.read_job_status(job.name)
         if job_status is None or (
-            job_status.status.active is None and job_status.status.succeeded is None
+            job_status.active is None and job_status.succeeded is None
         ):
             job.status = SpiderJob.ERROR_STATUS
             job.save()
