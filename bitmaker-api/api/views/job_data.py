@@ -21,7 +21,7 @@ class JobDataViewSet(
     MAX_PAGINATION_SIZE = 100
     MIN_PAGINATION_SIZE = 1
     DEFAULT_PAGINATION_SIZE = 50
-    JOB_DATA_TYPES = ["items", "requests"]
+    JOB_DATA_TYPES = ["items", "requests", "logs"]
 
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
