@@ -25,6 +25,7 @@ setup: build-consumer-image upload-consumer-image
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-secrets.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-services.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-consumers.yaml
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
 	-kubectl set image deployment/kafka-items-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
 	-kubectl set image deployment/kafka-requests-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
 
@@ -41,7 +42,11 @@ down:
 rebuild: build-consumer-image upload-consumer-image
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-secrets.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-consumers.yaml
+	-kubectl rollout restart deployment kafka-logs-consumer
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+	-kubectl rollout restart deployment kafka-items-consumer
 	-kubectl set image deployment/kafka-items-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+	-kubectl rollout restart deployment kafka-requests-consumer
 	-kubectl set image deployment/kafka-requests-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
 
 

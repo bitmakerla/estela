@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Layout, Typography, Row, Space, Tag, Button } from "antd";
+import { Layout, Typography, Collapse, Row, Space, Tag, Button } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -8,6 +8,7 @@ import {
     ApiProjectsSpidersJobsReadRequest,
     SpiderJobUpdateStatusEnum,
     ApiProjectsSpidersJobsUpdateRequest,
+    ApiProjectsSpidersJobsDataListRequest,
     SpiderJob,
     SpiderJobUpdate,
 } from "../../services/api";
@@ -23,6 +24,11 @@ import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 const { Text, Title } = Typography;
+const { Panel } = Collapse;
+
+interface Dictionary {
+    [Key: string]: string;
+}
 
 interface ArgsData {
     name: string;
@@ -47,6 +53,7 @@ interface JobDetailPageState {
     date: string;
     status: string | undefined;
     cronjob: number | undefined | null;
+    stats: Dictionary;
 }
 
 interface RouteParams {
@@ -65,11 +72,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         date: "",
         status: "",
         cronjob: null,
+        stats: {},
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
     jobId: number = parseInt(this.props.match.params.jobId);
+    newJobId: string = this.props.match.params.jobId;
 
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
@@ -134,8 +143,35 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
+    getStats = (key: string | string[]): void => {
+        if (key.length === 0) {
+            return;
+        }
+        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.newJobId,
+            type: "logs",
+        };
+        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
+            (response) => {
+                let data: Dictionary = {};
+                console.log(response.results?.length);
+                if (response.results?.length) {
+                    const safe_data: unknown[] = response.results ?? [];
+                    data = safe_data[0] as Dictionary;
+                    this.setState({ stats: data });
+                }
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+
     render(): JSX.Element {
-        const { loaded, args, envVars, tags, date, status, cronjob } = this.state;
+        const { loaded, args, envVars, tags, date, status, cronjob, stats } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -211,6 +247,19 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             <Button danger className="stop-job" onClick={this.stopJob}>
                                                 <div>Stop Job</div>
                                             </Button>
+                                            <Collapse onChange={this.getStats}>
+                                                <Panel header="Scrapy Stats" key="1">
+                                                    <Text>
+                                                        {Object.keys(stats).map((key, idx) => {
+                                                            return (
+                                                                <div key={idx}>
+                                                                    <b>{key}</b>: {stats[key]}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </Text>
+                                                </Panel>
+                                            </Collapse>
                                         </Space>
                                     </Row>
                                 </Content>
