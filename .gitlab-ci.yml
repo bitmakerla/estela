@@ -255,6 +255,7 @@ deploy-to-s3-main-web:
   script:
     - cd $WEB_DIRECTORY
     - aws s3 sync --delete ./build s3://$AWS_STAGING_S3
+    - aws cloudfront create-invalidation --distribution-id $STAGING_CF_DISTRIBUTION --paths '/*'
   only:
     refs:
       - main
