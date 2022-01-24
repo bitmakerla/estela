@@ -848,6 +848,9 @@ definitions:
         enum:
           - ACTIVE
           - DISABLED
+      unique_collection:
+        title: Unique collection
+        type: boolean
   SpiderCronJobCreate:
     type: object
     properties:
@@ -875,6 +878,9 @@ definitions:
         title: Schedule
         type: string
         maxLength: 20
+      unique_collection:
+        title: Unique collection
+        type: boolean
   SpiderCronJobUpdate:
     type: object
     properties:
@@ -892,6 +898,9 @@ definitions:
         title: Schedule
         type: string
         maxLength: 20
+      unique_collection:
+        title: Unique collection
+        type: boolean
   SpiderJob:
     required:
       - spider

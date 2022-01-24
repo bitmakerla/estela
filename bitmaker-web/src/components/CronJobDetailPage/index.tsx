@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Typography, Row, Space, Tag, Pagination, Table, Button } from "antd";
+import { Layout, Typography, Row, Space, Tag, Pagination, Table, Switch } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -59,7 +59,9 @@ interface CronJobDetailPageState {
     count: number;
     current: number;
     schedule: string | undefined;
+    unique_collection: boolean | undefined;
     new_schedule: string | undefined;
+    loading_status: boolean;
 }
 
 interface RouteParams {
@@ -80,9 +82,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         jobs: [],
         status: "",
         schedule: "",
+        unique_collection: false,
         new_schedule: "",
         count: 0,
         current: 0,
+        loading_status: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -155,6 +159,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         tags: [...tags],
                         status: response.status,
                         schedule: response.schedule,
+                        unique_collection: response.uniqueCollection,
                         jobs: [...jobs],
                         count: data.count,
                         current: data.current,
@@ -227,7 +232,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         });
     };
 
-    updateStatus = (): void => {
+    updateStatus = (active: boolean): void => {
+        console.log(active);
+        this.setState({ loading_status: true });
         let _status = SpiderCronJobUpdateStatusEnum.Disabled;
         if (this.state.status == _status) {
             _status = SpiderCronJobUpdateStatusEnum.Active;
@@ -242,12 +249,25 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             },
         };
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then((response) => {
-            this.setState({ status: response.status });
+            this.setState({ status: response.status, loading_status: false });
+            console.log("Everything is gona be okay");
         });
     };
 
     render(): JSX.Element {
-        const { loaded, args, envVars, tags, status, count, current, jobs, schedule } = this.state;
+        const {
+            loaded,
+            args,
+            envVars,
+            tags,
+            status,
+            count,
+            current,
+            jobs,
+            schedule,
+            unique_collection,
+            loading_status,
+        } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -276,7 +296,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
                                             </Text>
                                             <Text>
-                                                <b>Status:</b>&nbsp; {status}
+                                                <b>Active:</b>&nbsp;
+                                                <Switch
+                                                    loading={loading_status}
+                                                    defaultChecked={status == SpiderCronJobUpdateStatusEnum.Active}
+                                                    onChange={this.updateStatus}
+                                                />
                                             </Text>
                                             <Text
                                                 editable={{
@@ -285,6 +310,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 }}
                                             >
                                                 <b>Schedule:</b>&nbsp; {schedule}
+                                            </Text>
+                                            <Text>
+                                                <b>Unique Collection:</b>&nbsp;
+                                                {unique_collection ? "Yes" : "No"}
                                             </Text>
                                             <Space direction="vertical">
                                                 <b>Arguments</b>
@@ -310,13 +339,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                     ))}
                                                 </Space>
                                             </Space>
-                                            <Button danger className="create-new-job" onClick={this.updateStatus}>
-                                                {status == SpiderCronJobUpdateStatusEnum.Active ? (
-                                                    <div>Disable CronJob</div>
-                                                ) : (
-                                                    <div>Enable CronJob</div>
-                                                )}
-                                            </Button>
                                         </Space>
                                     </Row>
                                     <Row justify="center" className="cronjob-data">

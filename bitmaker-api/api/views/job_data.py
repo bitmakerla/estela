@@ -12,6 +12,7 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.mixins import BaseViewSet
 from core.mongo import get_client
+from core.models import SpiderJob
 
 
 class JobDataViewSet(
@@ -94,15 +95,21 @@ class JobDataViewSet(
                 {"error": errors.INVALID_JOB_DATA_TYPE},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         client = get_client(settings.MONGO_CONNECTION)
         if not client:
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        job_collection_name = "{}-{}-job_{}".format(
-            kwargs["sid"], kwargs["jid"], data_type
-        )
+        if job.cronjob is not None and job.cronjob.unique_collection and data_type == "items":
+            job_collection_name = "{}-scj{}-job_{}".format(
+                kwargs["sid"], job.cronjob.cjid, data_type
+            )
+        else:
+            job_collection_name = "{}-{}-job_{}".format(
+                kwargs["sid"], kwargs["jid"], data_type
+            )
         job_collection = client[kwargs["pid"]][job_collection_name]
 
         if mode == "all":
