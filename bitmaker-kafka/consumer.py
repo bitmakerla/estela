@@ -48,9 +48,14 @@ def read_from_queue(client):
     while True:
         item = item_queue.get()
         try:
-            client[item["database_name"]][item["collection_name"]].insert_one(
-                item["payload"]
-            )
+            if item["unique"] == "True":
+                client[item["database_name"]][item["collection_name"]].update_one(
+                    item["payload"], {"$set": item["payload"]}, upsert=True
+                )
+            else:
+                client[item["database_name"]][item["collection_name"]].insert_one(
+                    item["payload"]
+                )
             logging.debug("Document inserted {}.".format(item["collection_name"]))
         except:
             logging.warning(
@@ -63,7 +68,7 @@ def read_from_queue(client):
 
 def get_client(db_connection):
     try:
-        if bool(os.getenv("PRODUCTION")):
+        if os.getenv("PRODUCTION") == "True":
             logging.info("--PRODUCTION--")
             client = pymongo.MongoClient(
                 db_connection,
@@ -102,6 +107,7 @@ def consume_from_kafka(topic_name, worker_pool):
                 "payload": message.value["payload"],
                 "database_name": project,
                 "collection_name": "{}-{}-{}".format(spider, job, topic_name),
+                "unique": message.value.get("unique", "False"),
             }
         )
     item_queue.join()

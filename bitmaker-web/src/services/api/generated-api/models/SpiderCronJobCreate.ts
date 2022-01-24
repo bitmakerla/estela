@@ -70,6 +70,12 @@ export interface SpiderCronJobCreate {
      * @memberof SpiderCronJobCreate
      */
     schedule?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof SpiderCronJobCreate
+     */
+    uniqueCollection?: boolean;
 }
 
 export function SpiderCronJobCreateFromJSON(json: any): SpiderCronJobCreate {
@@ -88,6 +94,7 @@ export function SpiderCronJobCreateFromJSONTyped(json: any, ignoreDiscriminator:
         'cenvVars': !exists(json, 'cenv_vars') ? undefined : ((json['cenv_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'ctags': !exists(json, 'ctags') ? undefined : ((json['ctags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
+        'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
     };
 }
 
@@ -104,6 +111,7 @@ export function SpiderCronJobCreateToJSON(value?: SpiderCronJobCreate | null): a
         'cenv_vars': value.cenvVars === undefined ? undefined : ((value.cenvVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'ctags': value.ctags === undefined ? undefined : ((value.ctags as Array<any>).map(SpiderJobTagToJSON)),
         'schedule': value.schedule,
+        'unique_collection': value.uniqueCollection,
     };
 }
 

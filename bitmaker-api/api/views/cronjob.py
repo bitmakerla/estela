@@ -62,6 +62,7 @@ class SpiderCronJobViewSet(
         serializer.is_valid(raise_exception=True)
         cronjob = serializer.save(spider=spider)
         create_cronjob(
+            cronjob.name,
             cronjob.key,
             request.data.get("cargs", []),
             request.data.get("cenv_vars", []),

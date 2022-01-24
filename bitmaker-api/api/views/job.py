@@ -99,6 +99,7 @@ class SpiderJobViewSet(
             job_manager.create_job(
                 job.name,
                 job.key,
+                job.key,
                 job.spider.name,
                 job_args,
                 job_env_vars,

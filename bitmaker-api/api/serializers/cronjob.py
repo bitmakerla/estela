@@ -28,6 +28,7 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
             "ctags",
             "schedule",
             "status",
+            "unique_collection",
         )
 
 
@@ -53,6 +54,7 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
             "cenv_vars",
             "ctags",
             "schedule",
+            "unique_collection",
         )
 
     def create(self, validated_data):
@@ -87,20 +89,23 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SpiderCronJob
-        fields = ("cjid", "status", "schedule")
+        fields = ("cjid", "status", "schedule", "unique_collection")
 
     def update(self, instance, validated_data):
         status = validated_data.get("status", "")
         schedule = validated_data.get("schedule", "")
-        key = instance.key
+        unique_collection = validated_data.get("unique_collection", False)
+        name = instance.name
         if "schedule" in validated_data:
             instance.schedule = schedule
-            update_schedule(key, schedule)
+            update_schedule(name, schedule)
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
-                enable_cronjob(key)
+                enable_cronjob(name)
             elif status == SpiderCronJob.DISABLED_STATUS:
-                disable_cronjob(key)
+                disable_cronjob(name)
+        if "unique_collection" in validated_data:
+            instance.unique_collection = unique_collection
         instance.save()
         return instance
