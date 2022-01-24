@@ -72,6 +72,7 @@ class KubernetesEngine:
         self,
         name,
         key,
+        collection,
         spider_name,
         job_args,
         job_env_vars,
@@ -80,6 +81,7 @@ class KubernetesEngine:
         container_name="jobcontainer",
         api_instance=None,
         auth_token=None,
+        unique=False,
     ):
         if api_instance is None:
             api_instance = self.get_api_instance()
@@ -97,8 +99,10 @@ class KubernetesEngine:
                             "api_host": settings.DJANGO_API_HOST,
                             "auth_token": auth_token,
                             "key": key,
+                            "collection": collection,
                             "args": job_args,
                             "env_vars": job_env_vars,
+                            "unique": str(unique),
                         }
                     ),
                 ),

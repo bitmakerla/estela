@@ -37,6 +37,12 @@ export interface SpiderCronJobUpdate {
      * @memberof SpiderCronJobUpdate
      */
     schedule?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof SpiderCronJobUpdate
+     */
+    uniqueCollection?: boolean;
 }
 
 /**
@@ -61,6 +67,7 @@ export function SpiderCronJobUpdateFromJSONTyped(json: any, ignoreDiscriminator:
         'cjid': !exists(json, 'cjid') ? undefined : json['cjid'],
         'status': !exists(json, 'status') ? undefined : json['status'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
+        'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
     };
 }
 
@@ -75,6 +82,7 @@ export function SpiderCronJobUpdateToJSON(value?: SpiderCronJobUpdate | null): a
         
         'status': value.status,
         'schedule': value.schedule,
+        'unique_collection': value.uniqueCollection,
     };
 }
 

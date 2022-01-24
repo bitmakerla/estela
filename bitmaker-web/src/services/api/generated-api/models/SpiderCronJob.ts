@@ -88,6 +88,12 @@ export interface SpiderCronJob {
      * @memberof SpiderCronJob
      */
     status?: SpiderCronJobStatusEnum;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof SpiderCronJob
+     */
+    uniqueCollection?: boolean;
 }
 
 /**
@@ -118,6 +124,7 @@ export function SpiderCronJobFromJSONTyped(json: any, ignoreDiscriminator: boole
         'ctags': !exists(json, 'ctags') ? undefined : ((json['ctags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'status': !exists(json, 'status') ? undefined : json['status'],
+        'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
     };
 }
 
@@ -136,6 +143,7 @@ export function SpiderCronJobToJSON(value?: SpiderCronJob | null): any {
         'ctags': value.ctags === undefined ? undefined : ((value.ctags as Array<any>).map(SpiderJobTagToJSON)),
         'schedule': value.schedule,
         'status': value.status,
+        'unique_collection': value.uniqueCollection,
     };
 }
 

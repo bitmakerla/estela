@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Layout, Typography, Space, Tag } from "antd";
+import { Button, Form, Input, Checkbox, Layout, Typography, Space, Tag } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -50,6 +50,7 @@ interface CronJobCreatePageState {
     newEnvVarValue: string;
     newTagName: string;
     spiderName: string;
+    uniqueCollection: boolean;
 }
 
 interface RouteParams {
@@ -70,6 +71,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         newEnvVarValue: "",
         newTagName: "",
         spiderName: "",
+        uniqueCollection: false,
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -91,12 +93,14 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         );
     }
 
-    handleSubmit = (data: { schedule: string }): void => {
+    handleSubmit = (data: { schedule: string; unique_collection: boolean }): void => {
+        console.log(data);
         const requestData = {
             cargs: [...this.state.args],
             cenvVars: [...this.state.envVars],
             ctags: [...this.state.tags],
             schedule: data.schedule,
+            uniqueCollection: data.unique_collection,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,
@@ -213,6 +217,9 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                         here
                                     </a>
                                 </div>
+                                <Form.Item name="unique_collection" valuePropName="checked">
+                                    <Checkbox>Unique Collection</Checkbox>
+                                </Form.Item>
                                 <div className="arg-label">Arguments:</div>
                                 <Space direction="vertical">
                                     {args.map((arg: ArgsData, id) => (

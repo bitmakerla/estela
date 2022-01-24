@@ -15,6 +15,7 @@ class TestKubernetes(BaseTestCase):
         response = job_manager.create_job(
             "test1",
             "1.1.1",
+            "1.1.1",
             TEST_SPIDER,
             {},
             {},
@@ -27,6 +28,7 @@ class TestKubernetes(BaseTestCase):
     def test_read_job(self):
         job_manager.create_job(
             "test2",
+            "1.1.1",
             "1.1.1",
             TEST_SPIDER,
             {},
@@ -42,6 +44,7 @@ class TestKubernetes(BaseTestCase):
         job_manager.create_job(
             "test3",
             "1.1.1",
+            "1.1.1",
             TEST_SPIDER,
             {},
             {},
@@ -54,6 +57,7 @@ class TestKubernetes(BaseTestCase):
     def test_read_status_job(self):
         job_manager.create_job(
             "test4",
+            "1.1.1",
             "1.1.1",
             TEST_SPIDER,
             {},
