@@ -66,13 +66,16 @@ class SpiderCronJob(models.Model):
         max_length=16, choices=STATUS_OPTIONS, default=ACTIVE_STATUS
     )
     created = models.DateTimeField(auto_now_add=True, editable=False)
+    unique_collection = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created"]
 
     @property
     def name(self):
-        return "spider-cjob-{}-{}".format(self.cjid, self.spider.project.pid)
+        return "scj-{}-{}-{}".format(
+            self.cjid, self.spider.sid, self.spider.project.pid
+        )
 
     @property
     def key(self):
@@ -114,7 +117,7 @@ class SpiderJob(models.Model):
 
     @property
     def name(self):
-        return "spider-job-{}-{}".format(self.jid, self.spider.project.pid)
+        return "sj-{}-{}".format(self.jid, self.spider.project.pid)
 
     @property
     def key(self):

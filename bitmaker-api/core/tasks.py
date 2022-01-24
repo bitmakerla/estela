@@ -29,6 +29,7 @@ def run_spider_jobs():
         job_manager.create_job(
             job.name,
             job.key,
+            job.key,
             job.spider.name,
             job_args,
             job_env_vars,
@@ -45,6 +46,11 @@ def launch_job(sid_, data_, token=None):
     serializer.is_valid(raise_exception=True)
     job = serializer.save(spider=spider)
 
+    collection = job.key
+
+    if job.cronjob.unique_collection:
+        collection = "scj{}".format(job.cronjob.key)
+
     if token is None:
         token = get_default_token(job)
 
@@ -53,11 +59,13 @@ def launch_job(sid_, data_, token=None):
     job_manager.create_job(
         job.name,
         job.key,
+        collection,
         job.spider.name,
         job_args,
         job_env_vars,
         job.spider.project.container_image,
         auth_token=token,
+        unique=job.cronjob.unique_collection,
     )
 
 

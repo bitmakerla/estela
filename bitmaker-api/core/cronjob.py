@@ -2,9 +2,9 @@ from ***REMOVED***_celery_beat.models import CrontabSchedule, PeriodicTask
 import json
 
 
-def create_cronjob(key, args, env_vars, tags, schedule):
-    cjid, sid, pid = key.split(".")
+def create_cronjob(name, key, args, env_vars, tags, schedule):
     m, h, d_w, d_m, m_y = schedule.split(" ")
+    cjid, sid, pid = key.split(".")
     data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
     schedule, _ = CrontabSchedule.objects.get_or_create(
         minute=m,
@@ -15,7 +15,7 @@ def create_cronjob(key, args, env_vars, tags, schedule):
     )
     response = PeriodicTask.objects.create(
         crontab=schedule,
-        name=key,
+        name=name,
         task="core.tasks.launch_job",
         args=json.dumps([sid, data]),
     )
