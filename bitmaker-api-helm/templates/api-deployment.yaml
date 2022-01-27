@@ -1,0 +1,126 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-django-api
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-django-api
+  template:
+    metadata:
+      labels:
+        app: bitmaker-django-api
+    spec:
+      serviceAccountName: bitmaker-api
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: bitmaker-django-api
+        image: {{ .Values.registryHost }}/bitmaker-django-api
+        imagePullPolicy: Always
+        command: ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
+        envFrom:
+        - secretRef:
+            name: {{ .Values.secret }}
+        - configMapRef:
+            name: {{ .Values.config }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-celery-beat
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-celery-beat
+  template:
+    metadata:
+      labels:
+        app: bitmaker-celery-beat
+    spec:
+      serviceAccountName: bitmaker-api
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: bitmaker-celery-beat
+        image: {{ .Values.registryHost }}/bitmaker-celery-beat
+        command: ['celery', '-A', 'config.celery', 'beat', '--loglevel=info']
+        envFrom:
+        - secretRef:
+            name: {{ .Values.secret }}
+        - configMapRef:
+            name: {{ .Values.config }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-celery-worker
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-celery-worker
+  template:
+    metadata:
+      labels:
+        app: bitmaker-celery-worker
+    spec:
+      serviceAccountName: bitmaker-api
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: bitmaker-celery-worker
+        image: {{ .Values.registryHost }}/bitmaker-celery-worker
+        command: ['celery', '-A', 'config.celery', 'worker', '--loglevel=info']
+        envFrom:
+        - secretRef:
+            name: {{ .Values.secret }}
+        - configMapRef:
+            name: {{ .Values.config }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-redis
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-redis
+  template:
+    metadata:
+      labels:
+        app: bitmaker-redis
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: bitmaker-redis
+        image: {{ .Values.registryHost }}/bitmaker-redis
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
