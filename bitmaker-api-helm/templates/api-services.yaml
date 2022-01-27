@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-***REMOVED***-api-service
+  labels:
+    app: bitmaker-***REMOVED***-api
+spec:
+  ports:
+  - port: 80
+    targetPort: 8000
+    name: bitmaker-***REMOVED***-api-port
+    protocol: TCP
+  selector:
+    app: bitmaker-***REMOVED***-api
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+    protocol: TCP
+---
+{{- if .Values.Local }}
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: database
+subsets:
+  - addresses:
+    - ip: {{ .Values.Endpoint_ip }}
+    ports:
+    - port: 3306
+---
+{{- end  }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-celery-beat-service
+  labels:
+    app: bitmaker-celery-beat
+spec:
+  ports:
+  - port: 8000
+    name: bitmaker-celery-beat-port
+    protocol: TCP
+  selector:
+    app: bitmaker-celery-beat
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-celery-worker-service
+  labels:
+    app: bitmaker-celery-worker
+spec:
+  ports:
+  - port: 8000
+    name: bitmaker-celery-worker-port
+    protocol: TCP
+  selector:
+    app: bitmaker-celery-worker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: bitmaker-redis-service
+  labels:
+    app: bitmaker-redis
+spec:
+  ports:
+  - port: 6379
+    name:  bitmaker-redis-port
+    protocol: TCP
+  selector:
+    app:  bitmaker-redis
