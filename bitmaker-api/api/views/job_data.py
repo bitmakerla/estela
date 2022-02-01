@@ -1,8 +1,10 @@
 import json
+import csv
+import codecs
 
 from bson.json_util import loads
 from django.conf import settings
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
@@ -102,7 +104,11 @@ class JobDataViewSet(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if job.cronjob is not None and job.cronjob.unique_collection and data_type == "items":
+        if (
+            job.cronjob is not None
+            and job.cronjob.unique_collection
+            and data_type == "items"
+        ):
             job_collection_name = "{}-scj{}-job_{}".format(
                 kwargs["sid"], job.cronjob.cjid, data_type
             )
@@ -112,10 +118,26 @@ class JobDataViewSet(
             )
         job_collection = client[kwargs["pid"]][job_collection_name]
 
-        if mode == "all":
+        if mode == "json":
             result = job_collection.find()
             result = loads(json.dumps(list(result), default=str))
             response = JsonResponse(result, safe=False)
+            return response
+        if mode == "csv":
+            result = job_collection.find()
+            result = loads(json.dumps(list(result), default=str))
+            response = HttpResponse(content_type="text/csv; charset=utf-8")
+            response["Content-Disposition"] = "attachment; {}.csv".format(
+                job_collection_name
+            )
+            # Force response to be UTF-8 - This is where the magic happens
+            response.write(codecs.BOM_UTF8)
+            csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
+            csv_writer.writeheader()
+
+            for item in result:
+                csv_writer.writerow(item)
+
             return response
 
         result = job_collection.find().skip(page_size * (page - 1)).limit(page_size)
