@@ -13,50 +13,43 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    SpiderJob,
-    SpiderJobFromJSON,
-    SpiderJobFromJSONTyped,
-    SpiderJobToJSON,
-} from './';
-
 /**
  * 
  * @export
- * @interface InlineResponse2004
+ * @interface InlineResponse2005
  */
-export interface InlineResponse2004 {
+export interface InlineResponse2005 {
     /**
      * 
      * @type {number}
-     * @memberof InlineResponse2004
+     * @memberof InlineResponse2005
      */
     count: number;
     /**
      * 
      * @type {string}
-     * @memberof InlineResponse2004
+     * @memberof InlineResponse2005
      */
     next?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof InlineResponse2004
+     * @memberof InlineResponse2005
      */
     previous?: string | null;
     /**
      * 
-     * @type {Array<SpiderJob>}
-     * @memberof InlineResponse2004
+     * @type {Array<object>}
+     * @memberof InlineResponse2005
      */
-    results: Array<SpiderJob>;
+    results?: Array<object>;
 }
 
-export function InlineResponse2004FromJSON(json: any): InlineResponse2004 {
-    return InlineResponse2004FromJSONTyped(json, false);
+export function InlineResponse2005FromJSON(json: any): InlineResponse2005 {
+    return InlineResponse2005FromJSONTyped(json, false);
 }
 
-export function InlineResponse2004FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse2004 {
+export function InlineResponse2005FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse2005 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -65,11 +58,11 @@ export function InlineResponse2004FromJSONTyped(json: any, ignoreDiscriminator: 
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(SpiderJobFromJSON)),
+        'results': !exists(json, 'results') ? undefined : json['results'],
     };
 }
 
-export function InlineResponse2004ToJSON(value?: InlineResponse2004 | null): any {
+export function InlineResponse2005ToJSON(value?: InlineResponse2005 | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -81,7 +74,7 @@ export function InlineResponse2004ToJSON(value?: InlineResponse2004 | null): any
         'count': value.count,
         'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(SpiderJobToJSON)),
+        'results': value.results,
     };
 }
 

@@ -5,7 +5,6 @@ from json import dumps
 
 
 class KubernetesEngine:
-    SPIDER_JOB_COMMANDS = ["bm-crawl"]  # Command to init crawling.
     JOB_TTL_SECONDS_AFTER_FINISHED = 86400  # 24 hours.
     BACKOFF_LIMIT = 2  # The number of retries before considering a Job as failed.
     JOB_TIME_CREATION = 20  # Tolerance time for a Job to be created.
@@ -30,7 +29,14 @@ class KubernetesEngine:
         return client.BatchV1Api()
 
     def create_job_object(
-        self, name, container_image, namespace, container_name, env_vars
+        self,
+        name,
+        container_image,
+        namespace,
+        container_name,
+        env_vars,
+        volume_spec,
+        command,
     ):
         body = client.V1Job(api_version="batch/v1", kind="Job")
         body.metadata = client.V1ObjectMeta(namespace=namespace, name=name)
@@ -42,20 +48,35 @@ class KubernetesEngine:
         env_list = []
         for env_name, env_value in env_vars.items():
             env_list.append(client.V1EnvVar(name=env_name, value=env_value))
-
+        volume = volume_mount = None
+        if volume_spec:
+            volume_mount = client.V1VolumeMount(
+                name=volume_spec["name"],
+                mount_path=volume_spec["path"],
+            )
+            host_path = client.V1HostPathVolumeSource(
+                path=volume_spec["path"],
+            )
+            volume = client.V1Volume(
+                name=volume_spec["name"],
+                host_path=host_path,
+            )
         container = client.V1Container(
             name=container_name,
             image=container_image,
             env=env_list,
-            command=self.SPIDER_JOB_COMMANDS,
+            command=command,
             image_pull_policy=self.IMAGE_PULL_POLICY,
+            volume_mounts=[volume_mount] if volume_mount else None,
         )
+
         template.template.spec = client.V1PodSpec(
             containers=[container],
             restart_policy=self.POD_RESTART_POLICY,
             image_pull_secrets=[
                 client.V1LocalObjectReference(self.IMAGE_PULL_SECRET_NAME)
             ],
+            volumes=[volume] if volume else None,
             node_selector=(
                 {"role": self.SPIDER_NODE_ROLE} if settings.MULTI_NODE_MODE else None
             ),
@@ -72,16 +93,18 @@ class KubernetesEngine:
         self,
         name,
         key,
-        collection,
-        spider_name,
-        job_args,
-        job_env_vars,
-        container_image,
+        collection="",
+        spider_name="",
+        job_args=[],
+        job_env_vars=[],
+        container_image="",
         namespace="default",
         container_name="jobcontainer",
         api_instance=None,
         auth_token=None,
         unique=False,
+        volume={},
+        command=["bm-crawl"],
     ):
         if api_instance is None:
             api_instance = self.get_api_instance()
@@ -110,7 +133,13 @@ class KubernetesEngine:
         )
 
         body = self.create_job_object(
-            name, container_image, namespace, container_name, job_env_vars
+            name,
+            container_image,
+            namespace,
+            container_name,
+            job_env_vars,
+            volume,
+            command,
         )
         api_response = api_instance.create_namespaced_job(namespace, body)
 
