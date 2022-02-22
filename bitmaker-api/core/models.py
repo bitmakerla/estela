@@ -50,6 +50,30 @@ class Spider(models.Model):
     deleted = models.BooleanField(default=False)
 
 
+class Deploy(models.Model):
+    SUCCESS_STATUS = "SUCCESS"
+    BUILDING_STATUS = "BUILDING"
+    FAILURE_STATUS = "FAILURE"
+    CANCELED_STATUS = "CANCELED"
+    STATUS_OPTIONS = [
+        (SUCCESS_STATUS, "Success"),
+        (BUILDING_STATUS, "Building"),
+        (FAILURE_STATUS, "Failure"),
+        (CANCELED_STATUS, "Canceled"),
+    ]
+    did = models.AutoField(primary_key=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    spiders = models.ManyToManyField(Spider)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=12, choices=STATUS_OPTIONS, default=BUILDING_STATUS
+    )
+
+    class Meta:
+        ordering = ["-created"]
+
+
 class SpiderCronJob(models.Model):
     ACTIVE_STATUS = "ACTIVE"
     DISABLED_STATUS = "DISABLED"

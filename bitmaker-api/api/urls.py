@@ -2,6 +2,7 @@ from rest_framework import routers
 
 from api.views import (
     project as project_views,
+    deploy as deploy_views,
     spider as spider_views,
     job as job_views,
     auth as auth_views,
@@ -14,6 +15,11 @@ router.register(
     prefix=r"projects",
     viewset=project_views.ProjectViewSet,
     basename="project",
+)
+router.register(
+    prefix=r"projects/(?P<pid>[0-9a-z-]+)/deploys",
+    viewset=deploy_views.DeployViewSet,
+    basename="deploy",
 )
 router.register(
     prefix=r"projects/(?P<pid>[0-9a-z-]+)/spiders",

@@ -3,12 +3,16 @@ apis/ApiApi.ts
 apis/index.ts
 index.ts
 models/AuthToken.ts
+models/Deploy.ts
+models/DeployCreate.ts
+models/DeployUpdate.ts
 models/InlineObject.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
 models/InlineResponse2002.ts
 models/InlineResponse2003.ts
 models/InlineResponse2004.ts
+models/InlineResponse2005.ts
 models/Permission.ts
 models/Project.ts
 models/SetRelatedSpidersProject.ts

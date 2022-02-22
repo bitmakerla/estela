@@ -14,10 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    SpiderJob,
-    SpiderJobFromJSON,
-    SpiderJobFromJSONTyped,
-    SpiderJobToJSON,
+    SpiderCronJob,
+    SpiderCronJobFromJSON,
+    SpiderCronJobFromJSONTyped,
+    SpiderCronJobToJSON,
 } from './';
 
 /**
@@ -46,10 +46,10 @@ export interface InlineResponse2003 {
     previous?: string | null;
     /**
      * 
-     * @type {Array<SpiderJob>}
+     * @type {Array<SpiderCronJob>}
      * @memberof InlineResponse2003
      */
-    results: Array<SpiderJob>;
+    results: Array<SpiderCronJob>;
 }
 
 export function InlineResponse2003FromJSON(json: any): InlineResponse2003 {
@@ -65,7 +65,7 @@ export function InlineResponse2003FromJSONTyped(json: any, ignoreDiscriminator: 
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(SpiderJobFromJSON)),
+        'results': ((json['results'] as Array<any>).map(SpiderCronJobFromJSON)),
     };
 }
 
@@ -81,7 +81,7 @@ export function InlineResponse2003ToJSON(value?: InlineResponse2003 | null): any
         'count': value.count,
         'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(SpiderJobToJSON)),
+        'results': ((value.results as Array<any>).map(SpiderCronJobToJSON)),
     };
 }
 

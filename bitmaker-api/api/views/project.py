@@ -1,18 +1,11 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
 
 from api.mixins import BaseViewSet
-from api.serializers.project import (
-    ProjectSerializer,
-    ProjectUpdateSerializer,
-    SetRelatedSpidersProjectSerializer,
-)
+from api.serializers.project import ProjectSerializer
 from core.models import Project, User, Permission
-from django.forms.models import model_to_dict
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -85,18 +78,4 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                 )
         instance.save()
         serializer = ProjectSerializer(instance)
-        return Response(serializer.data)
-
-    @swagger_auto_schema(
-        request_body=SetRelatedSpidersProjectSerializer,
-        responses={status.HTTP_200_OK: SetRelatedSpidersProjectSerializer()},
-    )
-    @action(methods=["PUT"], detail=True)
-    def set_related_spiders(self, request, *args, **kwargs):
-        project = self.get_object()
-        serializer = SetRelatedSpidersProjectSerializer(
-            data=request.data, context={"project": project}
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
         return Response(serializer.data)
