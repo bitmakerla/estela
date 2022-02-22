@@ -4,6 +4,8 @@ from core.models import Project, Permission
 
 class IsProjectUser(BasePermission):
     def has_permission(self, request, view):
+        if request.user.is_superuser:
+            return True
         pid = view.kwargs.get("pid")
         return bool(
             pid is None
@@ -24,6 +26,8 @@ class IsOwnerOrReadOnly(BasePermission):
             return True
         # In case the project is just going to be created.
         if pid is None:
+            return True
+        if request.user.is_superuser:
             return True
         # Write permissions are only allowed to the owner of the snippet.
         project = Project.objects.filter(pid=pid).get()

@@ -36,8 +36,10 @@ env = environ.Env(
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
+    AWS_DEFAULT_REGION=(str, "***REMOVED***"),
     AWS_STORAGE_BUCKET_NAME=(str, "bitmaker-***REMOVED***-api"),
     MONGO_CONNECTION=(str, "dummy"),
+    BUCKET_NAME_PROJECTS=(str, "dummy"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -222,3 +224,16 @@ SWAGGER_SETTINGS = {
 # Mongo settings
 MONGO_CONNECTION = env("MONGO_CONNECTION")
 MONGO_PRODUCTION = True
+
+# AWS configurations
+AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
+AWS_DEFAULT_REGION = env("AWS_DEFAULT_REGION")
+
+# S3 Bucket for projects
+PROJECT_BUCKET = env("BUCKET_NAME_PROJECTS")
+
+# Project image name
+BUILD_PROJECT_IMAGE = (
+    "094814489188.dkr.ecr.***REMOVED***.amazonaws.com/bitmaker-build-project"
+)
