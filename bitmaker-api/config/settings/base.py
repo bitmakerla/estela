@@ -40,6 +40,7 @@ env = environ.Env(
     AWS_STORAGE_BUCKET_NAME=(str, "bitmaker-django-api"),
     MONGO_CONNECTION=(str, "dummy"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
+    SECRET_KEY=(str, "dummy"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -48,7 +49,7 @@ environ.Env.read_env(env_file=".env")
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "***REMOVED***"
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

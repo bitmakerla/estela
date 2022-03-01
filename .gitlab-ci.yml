@@ -19,16 +19,23 @@ build-main-api:
   image:
     name: amazon/aws-cli
     entrypoint: [""]
+  cache:
+    paths:
+      - $API_DIRECTORY/terraform-deployment
   stage: build
   services:
     - docker:dind
   before_script:
+    - yum update -y
+    - yum install git -y
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
     - mkdir $API_DIRECTORY/config/mongo_certificate/
     - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt $API_DIRECTORY/config/mongo_certificate/ca-certificate.crt
   script:
     - cd $API_DIRECTORY
+    - rm -rf terraform-deployment
+    - git clone https://${USERNAME_REPO}:${PASSWORD_REPO}@gitlab.com/bitmakerla/dev/terraform-deployment.git
     - docker build . --file docker-conf/Dockerfile-django-api --tag $DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-worker --tag $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-beat --tag $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
@@ -50,11 +57,14 @@ deploy-main-api:
   image:
     name: bitnami/kubectl
     entrypoint: [""]
+  cache:
+    paths:
+      - $API_DIRECTORY/terraform-deployment
   needs: [build-main-api]
   script:
     - cd $API_DIRECTORY
-    - kubectl apply -f config/kubernetes-prod/bitmaker-api-services.yaml --namespace=default
-    - kubectl apply -f config/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
+    - kubectl apply -f terraform-deployment/config-files/api/kubernetes-prod/bitmaker-api-services.yaml --namespace=default
+    - kubectl apply -f terraform-deployment/config-files/api/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
     - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA --namespace=default
@@ -86,16 +96,23 @@ build-mr-api:
   image:
     name: amazon/aws-cli
     entrypoint: [""]
+  cache:
+    paths:
+      - $API_DIRECTORY/terraform-deployment
   stage: build
   services:
     - docker:dind
   before_script:
+    - yum update -y
+    - yum install git -y
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
     - mkdir $API_DIRECTORY/config/mongo_certificate/
     - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt $API_DIRECTORY/config/mongo_certificate/ca-certificate.crt
   script:
     - cd $API_DIRECTORY
+    - rm -rf terraform-deployment
+    - git clone https://${USERNAME_REPO}:${PASSWORD_REPO}@gitlab.com/bitmakerla/dev/terraform-deployment.git
     - docker build . --file docker-conf/Dockerfile-django-api --tag $DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA
   only:
@@ -111,6 +128,9 @@ test-mr-api:
   image:
     name: bitnami/kubectl
     entrypoint: [""]
+  cache:
+    paths:
+      - $API_DIRECTORY/terraform-deployment
   stage: test
   needs: [build-mr-api]
   script:
@@ -119,10 +139,10 @@ test-mr-api:
     - kubectl get secret api-secrets --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
     - kubectl get secret regcred --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
     - kubectl get configmap api-config --namespace=default -oyaml | grep -v '^\s*namespace:\s' | kubectl apply --namespace=$CI_COMMIT_SHORT_SHA -f -
-    - kubectl apply -f config/kubernetes-test/bitmaker-cluster-role.yaml
+    - kubectl apply -f terraform-deployment/config-files/api/kubernetes-test/bitmaker-cluster-role.yaml
     - kubectl create serviceaccount bitmaker-api --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl create clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA --clusterrole=bitmaker-api-role --serviceaccount=$CI_COMMIT_SHORT_SHA:bitmaker-api
-    - kubectl apply -f config/kubernetes-test/bitmaker-api-deployments.yaml --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl apply -f terraform-deployment/config-files/api/kubernetes-test/bitmaker-api-deployments.yaml --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl rollout status deployment/bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-django-api
@@ -163,16 +183,23 @@ build-main-kafka:
   image:
     name: amazon/aws-cli
     entrypoint: [""]
+  cache:
+    paths:
+      - $KAFKA_DIRECTORY/terraform-deployment
   stage: build
   services:
     - docker:dind
   before_script:
+    - yum update -y
+    - yum install git -y
     - amazon-linux-extras install docker
     - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
     - mkdir -p $KAFKA_DIRECTORY/config/mongo_certificate/
     - aws s3api get-object --bucket bitmaker-api-certificates --key ca-certificate.crt $KAFKA_DIRECTORY/config/mongo_certificate/ca-certificate.crt
   script:
     - cd $KAFKA_DIRECTORY
+    - rm -rf terraform-deployment
+    - git clone https://${USERNAME_REPO}:${PASSWORD_REPO}@gitlab.com/bitmakerla/dev/terraform-deployment.git
     - docker build . --tag $DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA
   only:
@@ -188,12 +215,16 @@ deploy-main-kafka:
   image:
     name: bitnami/kubectl
     entrypoint: [""]
+  cache:
+    paths:
+      - $KAFKA_DIRECTORY/terraform-deployment
   needs: [build-main-kafka]
   script:
-    - kubectl apply -f $KAFKA_DIRECTORY/kubernetes/prod/bitmaker-zookeeper.yaml --namespace=default
-    - kubectl apply -f $KAFKA_DIRECTORY/kubernetes/prod/bitmaker-kafka.yaml --namespace=default
+    - cd $KAFKA_DIRECTORY
+    - kubectl apply -f terraform-deployment/config-files/kafka/prod/bitmaker-zookeeper.yaml --namespace=default
+    - kubectl apply -f terraform-deployment/config-files/kafka/prod/bitmaker-kafka.yaml --namespace=default
     - kubectl rollout status --watch --timeout=300s --namespace=default sts/kafka
-    - kubectl apply -f $KAFKA_DIRECTORY/kubernetes/prod/bitmaker-kafka-consumers.yaml --namespace=default
+    - kubectl apply -f terraform-deployment/config-files/kafka/prod/bitmaker-kafka-consumers.yaml --namespace=default
     - kubectl set image deployment/kafka-items-consumer consumer=$DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/kafka-requests-consumer consumer=$DOCKER_REGISTRY/bitmaker-consumer:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl rollout status deployment/kafka-items-consumer --namespace=default
