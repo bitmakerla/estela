@@ -1,4 +1,4 @@
-REPOSITORY = 094814489188.dkr.ecr.us-east-2.amazonaws.com
+REPOSITORY = my_repository # here you need to put your aws registry host
 REGION = us-east-2
 DEVTAG = dev-$$USER
 
