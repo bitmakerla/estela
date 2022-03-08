@@ -264,6 +264,7 @@ build-main-web:
       - $WEB_DIRECTORY/node_modules
   script:
     - cd $WEB_DIRECTORY
+    - echo "REACT_APP_API_BASE_URL=$BMC_API_URL" > .env
     - yarn install
     - yarn build
   artifacts:
