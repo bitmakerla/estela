@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from urllib.parse import urlparse
 import environ
 from pathlib import Path
 
@@ -235,6 +236,11 @@ AWS_DEFAULT_REGION = env("AWS_DEFAULT_REGION")
 PROJECT_BUCKET = env("BUCKET_NAME_PROJECTS")
 
 # Project image name
-BUILD_PROJECT_IMAGE = (
-    "{}/bitmaker-build-project".format(REGISTRY_HOST)
+BUILD_PROJECT_IMAGE = "{}/bitmaker-build-project".format(
+    urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
+)
+
+# Test image name
+TEST_DOCKER_IMAGE = "{}/bitmaker-project-demo:test".format(
+    urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
 )
