@@ -3,7 +3,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Bitmaker API consists of three main components:
-- bitmaker ***REMOVED*** api: The ***REMOVED*** app from which requests are handled.
+- bitmaker django api: The django app from which requests are handled.
 - bitmaker celery worker and beat: Responsible for executing the tasks and periodic tasks ordered by the API.
 - bitmaker redis: Keeps a record of the tasks and periodic tasks to be executed.
 
@@ -22,7 +22,7 @@ All these components have a corresponding docker config file to build their imag
 <h2> Local Setup </h2>
 
 To run bitmaker API in a local environment, we use minikube as a cluster for kubernetes. 
-- The database for ***REMOVED*** API is configured as a Docker service.
+- The database for django API is configured as a Docker service.
 - In local we use a local registry setting as a Docker service. *in deployment we use aws registry*
 
 If it is the first time you build the app, do the following steps:
@@ -52,9 +52,9 @@ If it is the first time you build the app, do the following steps:
 - In _config/kubernetes-local/_, create a new file _bitmaker-api-configmaps.yaml_ based on _bitmaker-api-configmaps.yaml.example_,
   and a _bitmaker-api-secrets.yaml_ file based on _bitmaker-api-secrets.yaml.example_.
   Then, modify both files with the appropriate values:
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>`. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>`. You can get this value with:
 	```bash
-	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
+	$ kubectl get svc bitmaker-django-api-service # Copy the EXTERNAL-IP
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed. This is the same as the EXTERNAL-IP value.
   - _<MONGO_CONNECTION>_: The connection to Mongo DB formatted in base64 where all the data collected from the spiders is stored.
@@ -73,7 +73,7 @@ If it is the first time you build the app, do the following steps:
   $ make migrate
   $ make createsuperuser
   ```
-  If you get `error: unable to upgrade connection: container not found ("bitmaker-***REMOVED***-api")`, please allow a few minutes
+  If you get `error: unable to upgrade connection: container not found ("bitmaker-django-api")`, please allow a few minutes
   for the service to be up and running.
 
 <h3> Commands </h3>
@@ -115,14 +115,14 @@ If it is the first time you deploy the app, do the following steps:
 	```
 	_Note_: Write the port between quotation marks.
   - _<DB\_NAME>_: The database name for the API, use the database `bitmaker` created during the Terraform deployment.
-  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-***REMOVED***-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>:8000`. You can get this value with:
+  - _<DJANGO\_API\_HOST>_: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>:8000`. You can get this value with:
 	```bash
-	$ kubectl get svc bitmaker-***REMOVED***-api-service # Copy the EXTERNAL-IP
+	$ kubectl get svc bitmaker-django-api-service # Copy the EXTERNAL-IP
 	```
   - _<DJANGO\_ALLOWED\_HOSTS>_: Allowed hosts where API could be deployed.
   - _<CORS\_ORIGIN\_WHITELIST>_: URLs from which API could be consumed.
-  - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g., `***REMOVED***`.
-  - _<AWS\_STORAGE\_BUCKET\_NAME>_ : The name of AWS S3 Storage where the static ***REMOVED*** files will be stored (the bucket must already exist), e.g., `bitmaker-***REMOVED***-api`.
+  - _<AWS\_DEFAULT\_REGION>_: The AWS default region of the container registry, e.g., `us-east-2`.
+  - _<AWS\_STORAGE\_BUCKET\_NAME>_ : The name of AWS S3 Storage where the static django files will be stored (the bucket must already exist), e.g., `bitmaker-django-api`.
   - _<REGISTRY\_ID>_ and _<REGISTRY\_HOST>_: ID and host of the registry service, check these values in the Amazon ECR panel. The _<REGISTRY\_ID>_ is the first segment of the repository URI. I.e, `<REGISTRY_ID>.dkr.ecr.<REGION>.amazonaws.com`. If you have already configured your aws client, you can use the following command to get information about your repositories. _Note_: Write the ID number between quotation marks.
     ```bash
     $ aws ecr describe-repositories
@@ -133,7 +133,7 @@ If it is the first time you deploy the app, do the following steps:
               "registryId": "012345678901", <-- This is the <REGISTRY_ID>
               "repositoryName": "repository_name", <-- This is the <REPOSITORY_NAME>
               "repositoryUri":
-                  "012345678901.dkr.ecr.***REMOVED***.amazonaws.com/repository_name",
+                  "012345678901.dkr.ecr.us-east-2.amazonaws.com/repository_name",
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                    ^
                    This is the <REGISTRY_HOST>

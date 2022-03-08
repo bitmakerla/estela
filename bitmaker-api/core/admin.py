@@ -1,4 +1,4 @@
-from ***REMOVED***.contrib import admin
+from django.contrib import admin
 from core.models import Project, Spider, SpiderJob, SpiderJobArg, SpiderJobEnvVar
 
 

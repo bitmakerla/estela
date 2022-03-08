@@ -1,4 +1,4 @@
-from ***REMOVED***.conf import settings
+from django.conf import settings
 from config.celery import app as celery_app
 from core.models import SpiderJob, Spider
 from config.job_manager import job_manager

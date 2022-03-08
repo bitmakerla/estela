@@ -1,8 +1,8 @@
-from ***REMOVED***.contrib.auth.models import User
+from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from config.job_manager import job_manager
 
-from ***REMOVED***.conf import settings
+from django.conf import settings
 from core.registry import get_registry_token
 
 

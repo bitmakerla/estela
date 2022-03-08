@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS bitmaker;
 
-CREATE USER '***REMOVED***-api'@'localhost' IDENTIFIED BY 'bitmaker12345';
-GRANT ALL PRIVILEGES ON *.* TO '***REMOVED***-api'@'localhost' WITH GRANT OPTION;
-CREATE USER '***REMOVED***-api'@'%' IDENTIFIED BY 'bitmaker12345';
-GRANT ALL PRIVILEGES ON *.* TO '***REMOVED***-api'@'%' WITH GRANT OPTION;
+CREATE USER 'django-api'@'localhost' IDENTIFIED BY 'bitmaker12345';
+GRANT ALL PRIVILEGES ON *.* TO 'django-api'@'localhost' WITH GRANT OPTION;
+CREATE USER 'django-api'@'%' IDENTIFIED BY 'bitmaker12345';
+GRANT ALL PRIVILEGES ON *.* TO 'django-api'@'%' WITH GRANT OPTION;

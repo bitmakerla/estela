@@ -1,5 +1,5 @@
-from ***REMOVED***.shortcuts import get_object_or_404
-from ***REMOVED***_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import mixins, status

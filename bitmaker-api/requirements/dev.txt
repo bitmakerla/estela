@@ -15,7 +15,7 @@ appdirs==1.4.4
 asgiref==3.2.10
     # via
     #   -r requirements/test.txt
-    #   ***REMOVED***
+    #   django
 attrs==20.2.0
     # via
     #   -r requirements/test.txt
@@ -45,7 +45,7 @@ cachetools==4.2.1
 celery==5.0.5
     # via
     #   -r requirements/test.txt
-    #   ***REMOVED***-celery-beat
+    #   django-celery-beat
 certifi==2020.12.5
     # via
     #   -r requirements/test.txt
@@ -95,31 +95,31 @@ dataclasses==0.8
     # via
     #   -r requirements/test.txt
     #   black
-***REMOVED***==3.1.1
+django==3.1.1
     # via
     #   -r requirements/test.txt
-    #   ***REMOVED***-celery-beat
-    #   ***REMOVED***-cors-headers
-    #   ***REMOVED***-filter
-    #   ***REMOVED***-storages
-    #   ***REMOVED***-timezone-field
-    #   ***REMOVED***restframework
+    #   django-celery-beat
+    #   django-cors-headers
+    #   django-filter
+    #   django-storages
+    #   django-timezone-field
+    #   djangorestframework
     #   drf-yasg
-***REMOVED***-celery-beat==2.2.0
+django-celery-beat==2.2.0
     # via -r requirements/test.txt
-***REMOVED***-cors-headers==3.7.0
+django-cors-headers==3.7.0
     # via -r requirements/test.txt
-***REMOVED***-environ==0.4.5
+django-environ==0.4.5
     # via -r requirements/test.txt
-***REMOVED***-filter==21.1
+django-filter==21.1
     # via -r requirements/test.txt
-***REMOVED***-storages==1.11.1
+django-storages==1.11.1
     # via -r requirements/test.txt
-***REMOVED***-timezone-field==4.1.2
+django-timezone-field==4.1.2
     # via
     #   -r requirements/test.txt
-    #   ***REMOVED***-celery-beat
-***REMOVED***restframework==3.11.1
+    #   django-celery-beat
+djangorestframework==3.11.1
     # via
     #   -r requirements/test.txt
     #   drf-yasg
@@ -235,13 +235,13 @@ pyparsing==2.4.7
 pytest==6.0.2
     # via
     #   -r requirements/test.txt
-    #   pytest-***REMOVED***
-pytest-***REMOVED***==3.10.0
+    #   pytest-django
+pytest-django==3.10.0
     # via -r requirements/test.txt
 python-crontab==2.5.1
     # via
     #   -r requirements/test.txt
-    #   ***REMOVED***-celery-beat
+    #   django-celery-beat
 python-dateutil==2.8.1
     # via
     #   -r requirements/test.txt
@@ -253,8 +253,8 @@ pytz==2020.1
     # via
     #   -r requirements/test.txt
     #   celery
-    #   ***REMOVED***
-    #   ***REMOVED***-timezone-field
+    #   django
+    #   django-timezone-field
 pyyaml==5.3.1
     # via
     #   -r requirements/test.txt
@@ -306,7 +306,7 @@ six==1.15.0
 sqlparse==0.3.1
     # via
     #   -r requirements/test.txt
-    #   ***REMOVED***
+    #   django
 toml==0.10.2
     # via
     #   -r requirements/test.txt

@@ -1,6 +1,6 @@
 import pymongo
 
-from ***REMOVED***.conf import settings
+from django.conf import settings
 from pymongo.errors import ConnectionFailure
 
 

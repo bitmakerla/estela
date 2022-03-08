@@ -2,15 +2,15 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-***REMOVED***-api
+  name: bitmaker-django-api
 spec:
   selector:
     matchLabels:
-      app: bitmaker-***REMOVED***-api
+      app: bitmaker-django-api
   template:
     metadata:
       labels:
-        app: bitmaker-***REMOVED***-api
+        app: bitmaker-django-api
     spec:
       serviceAccountName: bitmaker-api
       {{- with .Values.imagePullSecrets }}
@@ -18,8 +18,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: bitmaker-***REMOVED***-api
-        image: {{ .Values.registryHost }}/bitmaker-***REMOVED***-api
+      - name: bitmaker-django-api
+        image: {{ .Values.registryHost }}/bitmaker-django-api
         imagePullPolicy: Always
         command: ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
         envFrom:

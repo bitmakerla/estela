@@ -1,9 +1,9 @@
 import uuid
 from datetime import timedelta
-from ***REMOVED***.conf import settings
-from ***REMOVED***.contrib.auth.models import User
-from ***REMOVED***.db import models
-from ***REMOVED***.utils import timezone
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
 from urllib.parse import urlparse
 
 from config.job_manager import job_manager

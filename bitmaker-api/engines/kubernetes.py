@@ -1,4 +1,4 @@
-from ***REMOVED***.conf import settings
+from django.conf import settings
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
 from json import dumps

@@ -5,7 +5,7 @@
 In values:
 
 - Local: If we deploy in local set in true.
-- Endpoint_ip: In case we set Local in true, this is the endpoint to connect with database for ***REMOVED***-api.
+- Endpoint_ip: In case we set Local in true, this is the endpoint to connect with database for django-api.
 - config and secrets: The name of configmap and secrets for api.
 - registryHost: The registry host of bitmaker api images.
 
@@ -13,11 +13,11 @@ In values:
 
 First is necesary complete values in _values.yaml_:
 
-- _<DB\_HOST>_: Host of bitmaker ***REMOVED*** api database.
+- _<DB\_HOST>_: Host of bitmaker django api database.
 
-- _<DB\_PORT>_: Port of bitmaker ***REMOVED*** api database.
+- _<DB\_PORT>_: Port of bitmaker django api database.
 
-- _<DB\_NAME>_: Database name for bitmaker ***REMOVED*** api.
+- _<DB\_NAME>_: Database name for bitmaker django api.
 
 - _<AWS\_DEFAULT\_REGION>_: Region of aws that you use.
 
@@ -43,7 +43,7 @@ First is necesary complete values in _values.yaml_:
 
 The next values need to be in base64:
 
-- _<DB\_USER>_: User name of bitmaker ***REMOVED*** api database.
+- _<DB\_USER>_: User name of bitmaker django api database.
 
 - _<DB\_PASSWORD>_: Password for db user.
 
@@ -66,17 +66,17 @@ minikube tunnel
 ```
 Now you get the ip of loadbalancer:
 ```
-kubectl get services -n <NAMESPACE> bitmaker-***REMOVED***-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 And now we upgrade the api with this value, remember API just allow this Ip:
 ```
-helm upgrade --install <RELEASE_NAME> . --set ***REMOVED***_api_host=<IP_LOADBALANCER> -n <NAMESPACE>
+helm upgrade --install <RELEASE_NAME> . --set django_api_host=<IP_LOADBALANCER> -n <NAMESPACE>
 ```
-To apply the changes in bitmaker-***REMOVED***-api deployment rollout it:
+To apply the changes in bitmaker-django-api deployment rollout it:
 ```
-kubectl rollout restart deploy bitmaker-***REMOVED***-api -n <NAMESPACE>
+kubectl rollout restart deploy bitmaker-django-api -n <NAMESPACE>
 ```
-To create your super user for ***REMOVED*** admin:
+To create your super user for django admin:
 ```
 kubectl exec --stdin --tty $(APIPOD) -- python manage.py createsuperuser
 ```

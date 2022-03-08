@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
-from ***REMOVED***.conf import settings
+from django.conf import settings
 
 ecr_client = boto3.client("ecr")
 

@@ -1,8 +1,8 @@
 import os
 from io import StringIO
 
-from ***REMOVED***.core.management import call_command
-from ***REMOVED***.test import SimpleTestCase
+from django.core.management import call_command
+from django.test import SimpleTestCase
 
 
 class TestOpenAPISpec(SimpleTestCase):

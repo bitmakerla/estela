@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from core.models import Project, Permission
-from ***REMOVED***.contrib.auth.models import User
+from django.contrib.auth.models import User
 
 
 class UserDetailSerializer(serializers.ModelSerializer):

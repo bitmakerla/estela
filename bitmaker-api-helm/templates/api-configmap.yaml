@@ -7,8 +7,8 @@ data:
   DB_HOST: {{ .Values.DB_HOST }}
   DB_PORT: {{ .Values.DB_PORT | quote }}
   DB_NAME: {{ .Values.DB_NAME }}
-  DJANGO_API_HOST: http://{{ .Values.***REMOVED***_api_host }}
-  DJANGO_ALLOWED_HOSTS: {{ .Values.***REMOVED***_api_host }},localhost
+  DJANGO_API_HOST: http://{{ .Values.django_api_host }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.django_api_host }},localhost
   AWS_DEFAULT_REGION: {{ .Values.AWS_DEFAULT_REGION }}
   REGISTRY_ID: {{ .Values.REGISTRY_ID | quote }}
   REGISTRY_HOST: {{ .Values.REGISTRY_HOST }}

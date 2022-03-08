@@ -1,6 +1,6 @@
 REPOSITORY = my_repository # here you need to put your aws registry host
-REGION = ***REMOVED***
-APIPOD = $$(kubectl get pod -l app=bitmaker-***REMOVED***-api -o jsonpath="{.items[0].metadata.name}")
+REGION = us-east-2
+APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 DEVTAG = dev-$$USER
 REGISTRY_HOST = 192.168.49.1# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
@@ -36,23 +36,23 @@ setup: build-api-image upload-api-image
 	-kubectl apply -f config/kubernetes-local/aws-registry-cronjob.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-filebeat.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-deployments.yaml
-	-kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: rebuild-api
 rebuild-api: build-api-image upload-api-image
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
-	-kubectl rollout restart deployment bitmaker-***REMOVED***-api
-	-kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
+	-kubectl rollout restart deployment bitmaker-django-api
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: rebuild-all
 rebuild-all: build-all-images upload-all-images
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
 	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
-	-kubectl rollout restart deployment bitmaker-***REMOVED***-api
-	-kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
+	-kubectl rollout restart deployment bitmaker-django-api
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 	-kubectl rollout restart deployment bitmaker-celery-worker
 	-kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
 	-kubectl rollout restart deployment bitmaker-celery-beat
@@ -102,7 +102,7 @@ login-ecr:
 
 .PHONY: build-all-images
 build-all-images:
-	-docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag bitmaker-***REMOVED***-api:$(DEVTAG)
+	-docker build . --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api:$(DEVTAG)
 	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker:$(DEVTAG)
 	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat:$(DEVTAG)
 	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis:$(DEVTAG)
@@ -110,11 +110,11 @@ build-all-images:
 
 .PHONY: upload-all-images
 upload-all-images: login-ecr
-	-docker tag bitmaker-***REMOVED***-api:$(DEVTAG) $(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
+	-docker tag bitmaker-django-api:$(DEVTAG) $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 	-docker tag bitmaker-celery-beat:$(DEVTAG) $(REPOSITORY)/bitmaker-celery-beat:$(DEVTAG)
 	-docker tag bitmaker-celery-worker:$(DEVTAG) $(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
 	-docker tag bitmaker-redis:$(DEVTAG) $(REPOSITORY)/bitmaker-redis:$(DEVTAG)
-	-docker push $(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-celery-beat:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-redis:$(DEVTAG)
@@ -122,13 +122,13 @@ upload-all-images: login-ecr
 
 .PHONY: build-api-image
 build-api-image:
-	-docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag bitmaker-***REMOVED***-api:$(DEVTAG)
+	-docker build . --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: upload-api-image
 upload-api-image: login-ecr
-	-docker tag bitmaker-***REMOVED***-api:$(DEVTAG) $(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
-	-docker push $(REPOSITORY)/bitmaker-***REMOVED***-api:$(DEVTAG)
+	-docker tag bitmaker-django-api:$(DEVTAG) $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: docs

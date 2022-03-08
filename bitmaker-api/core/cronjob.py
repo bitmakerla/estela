@@ -1,4 +1,4 @@
-from ***REMOVED***_celery_beat.models import CrontabSchedule, PeriodicTask
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 import json
 
 

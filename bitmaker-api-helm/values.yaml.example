@@ -39,8 +39,8 @@ registryHost: your.registry.host
 # Image pull secrets if is required or not
 imagePullSecrets: [ name: regcred ]
 
-# API HOST: kubectl get services -n <NAMESPACE> bitmaker-***REMOVED***-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
-***REMOVED***_api_host: 10.99.125.226
+# API HOST: kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+django_api_host: 10.99.125.226
 
 aws_registry: true
 

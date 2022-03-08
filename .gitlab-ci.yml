@@ -36,11 +36,11 @@ build-main-api:
     - cd $API_DIRECTORY
     - rm -rf terraform-deployment
     - git clone https://${USERNAME_REPO}:${PASSWORD_REPO}@gitlab.com/bitmakerla/dev/terraform-deployment.git
-    - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-django-api --tag $DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-worker --tag $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-celery-beat --tag $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
     - docker build . --file docker-conf/Dockerfile-redis --tag $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA
@@ -65,24 +65,24 @@ deploy-main-api:
     - cd $API_DIRECTORY
     - kubectl apply -f terraform-deployment/config-files/api/kubernetes-prod/bitmaker-api-services.yaml --namespace=default
     - kubectl apply -f terraform-deployment/config-files/api/kubernetes-prod/bitmaker-api-deployments.yaml --namespace=default
-    - kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$DOCKER_REGISTRY/bitmaker-***REMOVED***-api:$CI_COMMIT_SHORT_SHA --namespace=default
+    - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$DOCKER_REGISTRY/bitmaker-celery-beat:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$DOCKER_REGISTRY/bitmaker-celery-worker:$CI_COMMIT_SHORT_SHA --namespace=default
     - kubectl set image deployment/bitmaker-redis bitmaker-redis=$DOCKER_REGISTRY/bitmaker-redis:$CI_COMMIT_SHORT_SHA --namespace=default
-    - kubectl rollout status deployment/bitmaker-***REMOVED***-api --namespace=default
-    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-***REMOVED***-api
+    - kubectl rollout status deployment/bitmaker-django-api --namespace=default
+    - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-django-api
     - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-beat
     - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-celery-worker
     - kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/bitmaker-redis
-    - kubectl get pods -l app=bitmaker-***REMOVED***-api --namespace=default
+    - kubectl get pods -l app=bitmaker-django-api --namespace=default
     - sleep 10 # Wait for previous pod to terminate
     - >
       kubectl exec --namespace=default
-      $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
+      $(kubectl get pod -l app=bitmaker-django-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
       -- python manage.py makemigrations
     - >
       kubectl exec --namespace=default
-      $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
+      $(kubectl get pod -l app=bitmaker-django-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=default)
       -- python manage.py migrate
   only:
     refs:
@@ -113,8 +113,8 @@ build-mr-api:
     - cd $API_DIRECTORY
     - rm -rf terraform-deployment
     - git clone https://${USERNAME_REPO}:${PASSWORD_REPO}@gitlab.com/bitmakerla/dev/terraform-deployment.git
-    - docker build . --file docker-conf/Dockerfile-***REMOVED***-api --tag $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
-    - docker push $DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA
+    - docker build . --file docker-conf/Dockerfile-django-api --tag $DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA
   only:
     refs:
       - merge_requests
@@ -143,14 +143,14 @@ test-mr-api:
     - kubectl create serviceaccount bitmaker-api --namespace=$CI_COMMIT_SHORT_SHA
     - kubectl create clusterrolebinding bitmaker-api-bind-$CI_COMMIT_SHORT_SHA --clusterrole=bitmaker-api-role --serviceaccount=$CI_COMMIT_SHORT_SHA:bitmaker-api
     - kubectl apply -f terraform-deployment/config-files/api/kubernetes-test/bitmaker-api-deployments.yaml --namespace=$CI_COMMIT_SHORT_SHA
-    - kubectl set image deployment/bitmaker-***REMOVED***-api bitmaker-***REMOVED***-api=$DOCKER_REGISTRY/bitmaker-***REMOVED***-api:test_$CI_COMMIT_SHORT_SHA --namespace=$CI_COMMIT_SHORT_SHA
-    - kubectl rollout status deployment/bitmaker-***REMOVED***-api --namespace=$CI_COMMIT_SHORT_SHA
-    - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-***REMOVED***-api
-    - kubectl get pods -l app=bitmaker-***REMOVED***-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$DOCKER_REGISTRY/bitmaker-django-api:test_$CI_COMMIT_SHORT_SHA --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl rollout status deployment/bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
+    - kubectl wait --for=condition=available --timeout=300s --namespace=$CI_COMMIT_SHORT_SHA deployment/bitmaker-django-api
+    - kubectl get pods -l app=bitmaker-django-api --namespace=$CI_COMMIT_SHORT_SHA
     - sleep 10 # Wait for previous pod to terminate
     - >
       kubectl exec --namespace=$CI_COMMIT_SHORT_SHA
-      $(kubectl get pod -l app=bitmaker-***REMOVED***-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA)
+      $(kubectl get pod -l app=bitmaker-django-api --field-selector=status.phase==Running -o jsonpath="{.items[0].metadata.name}" --namespace=$CI_COMMIT_SHORT_SHA)
       -- pytest -svx
   only:
     refs:
@@ -264,6 +264,7 @@ build-main-web:
       - $WEB_DIRECTORY/node_modules
   script:
     - cd $WEB_DIRECTORY
+    - echo "REACT_APP_API_BASE_URL=$BMC_API_URL" > .env
     - yarn install
     - yarn build
   artifacts:
