@@ -1,4 +1,4 @@
-REPOSITORY = 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
+REPOSITORY = my_repository # here you need to put your aws registry host
 REGION = ***REMOVED***
 APIPOD = $$(kubectl get pod -l app=bitmaker-***REMOVED***-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml

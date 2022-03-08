@@ -1,4 +1,4 @@
-REPOSITORY = 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
+REPOSITORY = my_repository # here you need to put your aws registry host
 REGION = ***REMOVED***
 DEVTAG = dev-$$USER
 

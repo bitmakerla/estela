@@ -6,7 +6,7 @@ stages:
   - cleanup
 
 variables:
-  DOCKER_REGISTRY: 094814489188.dkr.ecr.***REMOVED***.amazonaws.com
+  DOCKER_REGISTRY: $DOCKER_REGISTRY
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
   API_DIRECTORY: bitmaker-api
