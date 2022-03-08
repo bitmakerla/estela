@@ -34,7 +34,7 @@ AWS_SECRET_ACCESS_KEY: <AWS_SECRET_ACCESS_KEY_BASE_64>
 MONGO_CONNECTION: <MONGO_CONNECTION_BASE_64>
 
 # Registry
-registryHost: 094814489188.dkr.ecr.us-east-2.amazonaws.com
+registryHost: your.registry.host
 
 # Image pull secrets if is required or not
 imagePullSecrets: [ name: regcred ]

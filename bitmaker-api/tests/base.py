@@ -2,12 +2,11 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
+from django.conf import settings
 
 import json
 
-TEST_DOCKER_IMAGE = (
-    "094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-project-demo:test"
-)
+TEST_DOCKER_IMAGE = settings.TEST_DOCKER_IMAGE
 TEST_SPIDER = "books"
 
 

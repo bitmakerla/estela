@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from urllib.parse import urlparse
 import environ
 from pathlib import Path
 
@@ -22,7 +23,7 @@ env = environ.Env(
     DB_USER=(str, "dummy"),
     DB_PASSWORD=(str, "dummy"),
     DB_HOST=(str, "db"),
-    DB_PORT=(str, "3306"),
+    DB_PORT=(str, "port"),
     CLUSTER_HOST=(str, "dummy"),
     CLUSTER_NAME=(str, "dummy"),
     REGISTRY_HOST=(str, "dummy"),
@@ -32,7 +33,7 @@ env = environ.Env(
     DJANGO_API_HOST=(str, "127.0.0.1"),
     DJANGO_ALLOWED_HOSTS=(str, ""),
     KAFKA_HOSTS=(str, "127.0.0.1"),
-    KAFKA_PORT=(str, "9092"),
+    KAFKA_PORT=(str, "dummy"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
@@ -235,6 +236,11 @@ AWS_DEFAULT_REGION = env("AWS_DEFAULT_REGION")
 PROJECT_BUCKET = env("BUCKET_NAME_PROJECTS")
 
 # Project image name
-BUILD_PROJECT_IMAGE = (
-    "094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-build-project"
+BUILD_PROJECT_IMAGE = "{}/bitmaker-build-project".format(
+    urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
+)
+
+# Test image name
+TEST_DOCKER_IMAGE = "{}/bitmaker-project-demo:test".format(
+    urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
 )

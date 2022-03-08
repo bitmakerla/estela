@@ -1,4 +1,4 @@
-REPOSITORY = 094814489188.dkr.ecr.us-east-2.amazonaws.com
+REPOSITORY = my_repository # here you need to put your aws registry host
 REGION = us-east-2
 APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
