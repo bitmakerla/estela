@@ -3,7 +3,7 @@ REGION = us-east-2
 APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 DEVTAG = dev-$$USER
-REGISTRY_HOST_FROM_MINIKUBE = 192.168.49.1# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+MINIKUBE_REGISTRY_HOST = 192.168.49.1# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 
 ifeq ($(OS),Windows_NT)
 	DOCKER_COMPOSE = docker compose

@@ -21,7 +21,7 @@ spec:
         command: ['python', 'consumer.py', 'job_items']
         env:
         - name: KAFKA_ADVERTISED_PORT
-          value: "0000"
+          value: "9092"
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
@@ -55,7 +55,7 @@ spec:
         command: ['python', 'consumer.py', 'job_requests']
         env:
         - name: KAFKA_ADVERTISED_PORT
-          value: "0000"
+          value: "9092"
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
@@ -89,7 +89,7 @@ spec:
         command: ['python', 'consumer.py', 'job_logs']
         env:
         - name: KAFKA_ADVERTISED_PORT
-          value: "0000"
+          value: "9092"
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
