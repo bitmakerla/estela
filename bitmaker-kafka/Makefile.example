@@ -1,4 +1,4 @@
-REPOSITORY = my_repository # here you need to put your aws registry host
+REPOSITORY = <YOUR_REGISTRY> # here you need to put your aws registry host
 REGION = us-east-2
 DEVTAG = dev-$$USER
 
