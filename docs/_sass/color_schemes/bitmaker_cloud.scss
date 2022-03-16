@@ -1,0 +1,35 @@
+//
+// Typography
+//
+
+$body-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+$mono-font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+        monospace;
+$root-font-size: 16px; // Base font-size for rems
+$body-line-height: 1.4;
+$content-line-height: 1.6;
+$body-heading-line-height: 1.25;
+
+//
+// Colors
+//
+
+$dark-blue: #001529;
+$light-blue: #1890ff;
+
+$body-background-color: $white;
+$sidebar-color: $dark-blue;
+$search-background-color: $white;
+$table-background-color: $white;
+$code-background-color: $grey-lt-000;
+$feedback-color: darken($sidebar-color, 3%);
+
+$body-text-color: $grey-dk-200;
+$body-heading-color: $grey-dk-300;
+$search-result-preview-color: $grey-lt-000;
+$nav-child-link-color: $grey-lt-300;
+$link-color: $light-blue;
+$btn-primary-color: $light-blue;
+$base-button-color: #f7f7f7;
