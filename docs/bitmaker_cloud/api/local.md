@@ -8,16 +8,23 @@ grand_parent: Bitmaker Cloud
 ---
 
 # Local Setup
+The following steps describe the way we deploy Bitmaker Cloud locally using Kubernetes
+on Minikube and AWS ECR as our registry host. Feel free to modify any files
+to fit your needs and propose your changes to expand the compatibility of Bitmaker Cloud
+with other platforms.
 
-To run bitmaker API in a local environment, we use minikube as a cluster for kubernetes. 
-- The database for django API is configured as a Docker service.
-- In local we use a local registry setting as a Docker service. *in deployment we use aws registry*
+To run the Bitmaker Cloud API in a local environment, we use Minikube as a cluster for Kubernetes. 
+- The database for Django API is configured as a Docker service.
+- In local we use a local registry setting as a Docker service. (*in production we use AWS ECR*)
 
-If it is the first time you build the app, do the following steps:
+If this is the first time you build the app, take the following steps:
 
-- Configure the aws client with your credentials. Check [the official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for more information.
+- Create a `Makefile` using the `Makefile.example` file in `bitmaker-api/`. Set the value of
+  the `REPOSITORY` variable to your AWS registry host.
 
-- Start the minikube cluster and the database container.
+- Configure the AWS CLI with your credentials. Check [the official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for more information.
+
+- Start the Minikube cluster and the database container.
   ```bash
   $ make start
   ```
@@ -51,7 +58,7 @@ If it is the first time you build the app, do the following steps:
             You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
   - `<ELASTICSEARCH_USERNAME_BASE_64>` and `<ELASTICSEARCH_PASSWORD_BASE_64>`: Enter your Elasticsearch credentials encoded in base64.
 
-- Apply the setup command, which build and upload the images, and apply all the kubernetes `yaml` files:
+- Apply the setup command, which build and upload the images, and apply all the Kubernetes `yaml` files:
   ```bash
   $ make setup
   ```
