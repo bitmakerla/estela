@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Install the Bitmaker CLI
-permalink: /cli/install/
+permalink: /cli/install
 parent: Bitmaker Cloud CLI
 ---
 

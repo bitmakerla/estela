@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Bitmaker Cloud CLI
-permalink: /cli/
+permalink: /cli
 nav_order: 3
 has_children: true
 ---

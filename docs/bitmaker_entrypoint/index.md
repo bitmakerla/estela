@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Bitmaker Cloud Entrypoint
-permalink: /entrypoint/
+permalink: /entrypoint
 nav_order: 4
 has_children: true
 ---

@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Local Setup
-permalink: /cloud/api/local
+permalink: /cloud/api/local-setup
 nav_order: 1
 parent: API
 grand_parent: Bitmaker Cloud
@@ -47,16 +47,16 @@ If this is the first time you build the app, take the following steps:
 - In `config/kubernetes-local/`, create a new file `bitmaker-api-configmaps.yaml` based on `bitmaker-api-configmaps.yaml.example`,
   and a `bitmaker-api-secrets.yaml` file based on `bitmaker-api-secrets.yaml.example`.
   Then, modify both files with the appropriate values:
-  - `<DJANGO_API_HOST>`: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>`. You can get this value with:
+  - **\<DJANGO_API_HOST\>**: The EXTERNAL-IP value of the LoadBalancer _bitmaker-django-api-service_ formatted as URL., e.g., `http://<EXTERNAL_IP>`. You can get this value with:
 	```bash
 	$ kubectl get svc bitmaker-django-api-service # Copy the EXTERNAL-IP
 	```
-  - `<DJANGO_ALLOWED_HOSTS>`: Allowed hosts where API could be deployed. This is the same as the EXTERNAL-IP value.
-  - `<MONGO_CONNECTION>`: The connection to Mongo DB encoded in base64 where all the data collected from the spiders is stored.
-  - `<ELASTICSEARCH_HOST>` and `<ELASTICSEARCH_PORT>`: The host and port of the Elasticsearch service.
-  - `<AWS_ACCESS_KEY_ID_BASE_64>` and `<AWS_SECRET_ACCESS_KEY_BASE_64>`: Enter your AWS credentials encoded in base64.
+  - **\<DJANGO_ALLOWED_HOSTS\>**: Allowed hosts where API could be deployed. This is the same as the EXTERNAL-IP value.
+  - **\<MONGO_CONNECTION\>**: The connection to Mongo DB encoded in base64 where all the data collected from the spiders is stored.
+  - **\<ELASTICSEARCH_HOST\>** and <ELASTICSEARCH_PORT\>: The host and port of the Elasticsearch service.
+  - **\<AWS_ACCESS_KEY_ID_BASE_64\>** and **<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials encoded in base64.
             You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
-  - `<ELASTICSEARCH_USERNAME_BASE_64>` and `<ELASTICSEARCH_PASSWORD_BASE_64>`: Enter your Elasticsearch credentials encoded in base64.
+  - **\<ELASTICSEARCH_USERNAME_BASE_64\>** and **<ELASTICSEARCH_PASSWORD_BASE_64\>**: Enter your Elasticsearch credentials encoded in base64.
 
 - Apply the setup command, which build and upload the images, and apply all the Kubernetes `yaml` files:
   ```bash
@@ -71,22 +71,22 @@ If this is the first time you build the app, take the following steps:
   If you get `error: unable to upgrade connection: container not found ("bitmaker-django-api")`, please allow a few minutes
   for the service to be up and running.
 
-<h3> Commands </h3>
+### Commands
 
 After the first setup, you can:
 ```bash
-$ make start    # Start the application
-$ make stop     # Stop the application
+$ make start        # Start the application
+$ make stop         # Stop the application
 $ make rebuild-api  # Rebuild only the API after some changes in the API
 $ make rebuild-all  # Rebuild the whole application including API, celery beat & worker, and redis
-$ make down     # Delete the application
+$ make down         # Delete the application
 ```
 
 ## Cluster metrics
 
 When running locally, enable the metrics add-on.
 ```bash
-minikube addons enable metrics-server
+$ minikube addons enable metrics-server
 ```
 
 Then, you can use the tool `kubectl top` to watch the resource consumption for nodes or pods.

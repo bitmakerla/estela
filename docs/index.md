@@ -25,7 +25,7 @@ There are Kafka consumers that read the information and send data to a data stor
 
 ## Architecture
 
-![](./assets/images/architecture.png)
+![Bitmaker Cloud Architecture](./assets/images/architecture.png)
 
 ## Structure
 - [Bitmaker Cloud](https://github.com/bitmakerla/bitmaker-cloud/): It is composed of modules that work independently of the rest, and

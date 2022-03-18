@@ -1,7 +1,7 @@
 ---
 layout: page
 title: API
-permalink: /cloud/api/
+permalink: /cloud/api
 nav_order: 2
 parent: Bitmaker Cloud
 has_children: true

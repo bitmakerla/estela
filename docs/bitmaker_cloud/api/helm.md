@@ -82,33 +82,33 @@ Make sure to be located in the `bitmaker-api-helm/` directory before running thi
 ## In Minikube
 
 If you use minikube, you need run:
-```
-minikube tunnel
+```bash
+$ minikube tunnel
 ```
 
 Next, get the IP of the loadbalancer:
-```
-kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```bash
+$ kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
 ```
 
 And now, upgrade the API with this value. Remember that the API only allows this IP:
-```
-helm upgrade --install <RELEASE_NAME> . --set django_api_host=<IP_LOADBALANCER> -n <NAMESPACE>
+```bash
+$ helm upgrade --install <RELEASE_NAME> . --set django_api_host=<IP_LOADBALANCER> -n <NAMESPACE>
 ```
 
 To apply the changes in `bitmaker-django-api` deployment, restart the deployment:
-```
-kubectl rollout restart deploy bitmaker-django-api -n <NAMESPACE>
+```bash
+$ kubectl rollout restart deploy bitmaker-django-api -n <NAMESPACE>
 ```
 
 To create your superuser for Django admin:
-```
-kubectl exec --stdin --tty $(APIPOD) -- python manage.py createsuperuser
+```bash
+$ kubectl exec --stdin --tty $(APIPOD) -- python manage.py createsuperuser
 ```
 
 ## Uninstall API
 To uninstall the API run the following command:
 
-```
-helm uninstall <RELEASE_NAME> -n <NAMESPACE>
+```bash
+$ helm uninstall <RELEASE_NAME> -n <NAMESPACE>
 ```
