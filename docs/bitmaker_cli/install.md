@@ -2,6 +2,7 @@
 layout: page
 title: Install the Bitmaker CLI
 permalink: /cli/install
+nav_order: 1
 parent: Bitmaker Cloud CLI
 ---
 
