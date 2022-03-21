@@ -32,7 +32,7 @@ Bitmaker CLI will prompt for your credentials. You should see the following outp
 
 ```bash
 $ bitmaker login
-Host [http://178.128.134.208]:
+Host [https://api.cloud.bitmaker.dev]:
 Username: admin
 Password:
 Successful login. API Token stored in ~/.bitmaker.yaml.

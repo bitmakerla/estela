@@ -3,6 +3,7 @@ layout: page
 title: CLI Command Reference
 permalink: /cli/command-reference
 parent: Bitmaker Cloud CLI
+has_children: true
 ---
 
 # Bitmaker CLI Command Reference
