@@ -43,5 +43,5 @@ There are Kafka consumers that read the information and send data to a data stor
 ## Get Started
 From here, we recommend reading through the following docs:
 
-- [Install the Bitmaker CLI]
-- [Configure your Deployment]
+- Set up the [Bitmaker Cloud API]({% link bitmaker_cloud/api/api.md %}).
+- [Install the Bitmaker CLI]({% link bitmaker_cli/install.md %}).
