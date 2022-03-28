@@ -12,11 +12,9 @@ spec:
       labels:
         app: kafka-consumer
     spec:
-      imagePullSecrets:
-      - name: regcred # Here if you have credentials to access your registry host 
       containers:
       - name: consumer
-        image: your.registry.host/bitmaker-consumer
+        image: 192.168.49.1:5000/bitmaker-consumer
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_items']
         env:
@@ -25,7 +23,7 @@ spec:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
-          value: "False"
+          value: "True"
         - name: MONGO_CONNECTION
           valueFrom:
             secretKeyRef:
@@ -47,10 +45,10 @@ spec:
         app: kafka-consumer
     spec:
       imagePullSecrets:
-      - name: regcred # Here if you have credentials to access your registry host 
+      - name: regcred
       containers:
       - name: consumer
-        image: your.registry.host/bitmaker-consumer
+        image: 192.168.49.1:5000/bitmaker-consumer
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_requests']
         env:
@@ -59,7 +57,7 @@ spec:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
-          value: "False"
+          value: "True"
         - name: MONGO_CONNECTION
           valueFrom:
             secretKeyRef:
@@ -81,10 +79,10 @@ spec:
         app: kafka-consumer
     spec:
       imagePullSecrets:
-      - name: regcred # Here if you have credentials to access your registry host 
+      - name: regcred
       containers:
       - name: consumer
-        image: your.registry.host/bitmaker-consumer
+        image: 192.168.49.1:5000/bitmaker-consumer
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_logs']
         env:
@@ -93,7 +91,7 @@ spec:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
-          value: "False"
+          value: "True  "
         - name: MONGO_CONNECTION
           valueFrom:
             secretKeyRef:
