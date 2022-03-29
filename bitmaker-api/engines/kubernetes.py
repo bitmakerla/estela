@@ -1,3 +1,4 @@
+from distutils.command.build import build
 from django.conf import settings
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
@@ -12,6 +13,7 @@ class KubernetesEngine:
     IMAGE_PULL_POLICY = "Always"
     SPIDER_NODE_ROLE = "bitmaker-spider"
     IMAGE_PULL_SECRET_NAME = "regcred"
+    CREDENTIALS = None
 
     class Status:
         def __init__(self, kubernetes_status):
@@ -37,6 +39,7 @@ class KubernetesEngine:
         env_vars,
         volume_spec,
         command,
+        isbuild,
     ):
         body = client.V1Job(api_version="batch/v1", kind="Job")
         body.metadata = client.V1ObjectMeta(namespace=namespace, name=name)
@@ -48,6 +51,10 @@ class KubernetesEngine:
         env_list = []
         for env_name, env_value in env_vars.items():
             env_list.append(client.V1EnvVar(name=env_name, value=env_value))
+        if isbuild:
+            for env_name, env_value in self.CREDENTIALS.credentials.items():
+                env_list.append(client.V1EnvVar(name=env_name, value=env_value))
+
         volume = volume_mount = None
         if volume_spec:
             volume_mount = client.V1VolumeMount(
@@ -105,6 +112,7 @@ class KubernetesEngine:
         unique=False,
         volume={},
         command=["bm-crawl"],
+        isbuild=False,
     ):
         if api_instance is None:
             api_instance = self.get_api_instance()
@@ -140,6 +148,7 @@ class KubernetesEngine:
             job_env_vars,
             volume,
             command,
+            isbuild,
         )
         api_response = api_instance.create_namespaced_job(namespace, body)
 
