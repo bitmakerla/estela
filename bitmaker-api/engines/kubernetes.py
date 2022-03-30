@@ -52,7 +52,7 @@ class KubernetesEngine:
         for env_name, env_value in env_vars.items():
             env_list.append(client.V1EnvVar(name=env_name, value=env_value))
         if isbuild:
-            for env_name, env_value in self.CREDENTIALS.credentials.items():
+            for env_name, env_value in self.CREDENTIALS.get_credentials().items():
                 env_list.append(client.V1EnvVar(name=env_name, value=env_value))
 
         volume = volume_mount = None

@@ -1,4 +1,3 @@
-from curses.ascii import CR
 from engines.config import JobManager
 from credentials.config import Credentials
 from django.conf import settings

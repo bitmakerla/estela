@@ -1,10 +1,14 @@
+from credentials import Credentials
 
-
-class LocalCredentials:
+class LocalCredentials(Credentials):
     credentials = {}
 
     def __init__(self):
-        self.credentials["REGISTRY_TOKEN"] = self.get_registry_token()
+        pass
     
     def get_registry_token(self):
         return None
+    
+    def get_credentials(self):
+        self.credentials["REGISTRY_TOKEN"] = self.get_registry_token()
+        return self.credentials
