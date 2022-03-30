@@ -118,7 +118,7 @@ def main():
 
         logging.info("Image building...")
         build_image(PROJECT_PATH, DOCKERFILE_PATH)
-        logging.info("Image builded successfully.")
+        logging.info("Image built successfully.")
 
         logging.info("Getting spiders...")
         spiders = get_spiders()
