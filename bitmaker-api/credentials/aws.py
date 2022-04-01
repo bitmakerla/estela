@@ -4,7 +4,7 @@ from credentials import Credentials
 
     
 class AWSCredentials(Credentials):
-    credentials = {}
+    
     def __init__(self):
         self.credentials["AWS_ACCESS_KEY_ID"] = settings.AWS_ACCESS_KEY_ID
         self.credentials["AWS_SECRET_ACCESS_KEY"] = settings.AWS_SECRET_ACCESS_KEY

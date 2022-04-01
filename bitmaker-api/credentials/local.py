@@ -1,7 +1,6 @@
 from credentials import Credentials
 
 class LocalCredentials(Credentials):
-    credentials = {}
 
     def __init__(self):
         pass
