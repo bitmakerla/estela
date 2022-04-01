@@ -40,8 +40,12 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
 
     users = UserDetailSerializer(many=True, required=False)
     email = serializers.EmailField(write_only=True, required=False)
-    action = serializers.ChoiceField(write_only=True, choices=ACTION_CHOICES, required=False)
-    permission = serializers.ChoiceField(write_only=True, choices=PERMISSION_CHOICES, required=False)
+    action = serializers.ChoiceField(
+        write_only=True, choices=ACTION_CHOICES, required=False
+    )
+    permission = serializers.ChoiceField(
+        write_only=True, choices=PERMISSION_CHOICES, required=False
+    )
 
     class Meta:
         model = Project

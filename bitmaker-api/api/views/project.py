@@ -69,6 +69,4 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         serializer.save()
 
         headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_200_OK, headers=headers
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
