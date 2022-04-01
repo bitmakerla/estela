@@ -43,12 +43,6 @@ export interface Project {
      * @type {string}
      * @memberof Project
      */
-    readonly token?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Project
-     */
     readonly containerImage?: string;
     /**
      * 
@@ -70,7 +64,6 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         
         'pid': !exists(json, 'pid') ? undefined : json['pid'],
         'name': json['name'],
-        'token': !exists(json, 'token') ? undefined : json['token'],
         'containerImage': !exists(json, 'container_image') ? undefined : json['container_image'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(PermissionFromJSON)),
     };

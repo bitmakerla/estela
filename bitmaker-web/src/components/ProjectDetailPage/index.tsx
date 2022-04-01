@@ -4,7 +4,14 @@ import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsReadRequest, Project, ApiProjectsUpdateRequest, InlineObject } from "../../services/api";
+import {
+    ApiProjectsReadRequest,
+    Project,
+    ProjectUpdate,
+    ProjectUpdateActionEnum,
+    ProjectUpdatePermissionEnum,
+    ApiProjectsUpdateRequest,
+} from "../../services/api";
 import {
     authNotification,
     resourceNotAllowedNotification,
@@ -25,7 +32,7 @@ interface ProjectDetailPageState {
     users: Permission[];
     loaded: boolean;
     newUser: string;
-    permission: string;
+    permission: ProjectUpdatePermissionEnum;
 }
 
 interface RouteParams {
@@ -38,7 +45,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
         users: [],
         loaded: false,
         newUser: "",
-        permission: "VIEWER",
+        permission: ProjectUpdatePermissionEnum.Viewer,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -69,18 +76,20 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
     }
 
     addUser = (): void => {
-        const requestData = {
+        const action = ProjectUpdateActionEnum.Add;
+        const requestData: ProjectUpdate = {
             email: this.state.newUser,
-            action: "add",
+            action: action,
             permission: this.state.permission,
             name: this.state.name,
         };
+
         const request: ApiProjectsUpdateRequest = {
             data: requestData,
             pid: this.projectId,
         };
         this.apiService.apiProjectsUpdate(request).then(
-            (response: InlineObject) => {
+            (response: ProjectUpdate) => {
                 if (response.email == "User does not exist.") {
                     nonExistentUserNotification();
                 }
@@ -95,9 +104,9 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
     };
 
     removeUser = (): void => {
-        const requestData = {
+        const requestData: ProjectUpdate = {
             email: this.state.newUser,
-            action: "remove",
+            action: ProjectUpdateActionEnum.Remove,
             name: this.state.name,
         };
         const request: ApiProjectsUpdateRequest = {
@@ -105,7 +114,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
             pid: this.projectId,
         };
         this.apiService.apiProjectsUpdate(request).then(
-            (response: InlineObject) => {
+            (response: ProjectUpdate) => {
                 if (response.email == "User does not exist.") {
                     nonExistentUserNotification();
                 }
@@ -128,7 +137,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
         }
     };
 
-    handleSelectChange = (value: string): void => {
+    handleSelectChange = (value: ProjectUpdatePermissionEnum): void => {
         this.setState({ permission: value });
         console.log(value);
     };
@@ -182,12 +191,12 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                                             onChange={this.handleInputChange}
                                         />
                                         <Select
-                                            defaultValue="VIEWER"
+                                            defaultValue={ProjectUpdatePermissionEnum.Viewer}
                                             style={{ width: 120 }}
                                             onChange={this.handleSelectChange}
                                         >
-                                            <Option value="EDITOR">Editor</Option>
-                                            <Option value="VIEWER">Viewer</Option>
+                                            <Option value={ProjectUpdatePermissionEnum.Editor}>Editor</Option>
+                                            <Option value={ProjectUpdatePermissionEnum.Viewer}>Viewer</Option>
                                         </Select>
                                     </Space>
                                     <Button className="job-create-button" onClick={this.addUser}>

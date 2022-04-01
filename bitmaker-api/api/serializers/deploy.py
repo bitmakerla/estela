@@ -15,9 +15,11 @@ class DeploySerializer(serializers.ModelSerializer):
 
 
 class DeployCreateSerializer(serializers.ModelSerializer):
+    project_zip = serializers.FileField(write_only=True)
+
     class Meta:
         model = Deploy
-        fields = ["did", "status", "created"]
+        fields = ["did", "status", "created", "project_zip"]
 
 
 class DeployUpdateSerializer(serializers.ModelSerializer):

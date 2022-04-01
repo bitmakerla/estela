@@ -39,27 +39,17 @@ class DeployViewSet(
 
     @swagger_auto_schema(
         operation_summary="Create a new Deploy",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "project_zip": openapi.Schema(
-                    type=openapi.TYPE_FILE,
-                    description="Project zip",
-                ),
-            },
-            required=["project_zip"],
-        ),
+        request_body=DeployCreateSerializer,
+        responses={status.HTTP_201_CREATED: DeployCreateSerializer()},
     )
     def create(self, request, *args, **kwargs):
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         user = request.user
         serializer = DeployCreateSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
 
+        project_zip = serializer.validated_data.pop("project_zip", None)
         serializer.save(project=project, user=user)
-
-        project_zip = request.FILES.get("project_zip", False)
 
         if not project_zip:
             return Response(

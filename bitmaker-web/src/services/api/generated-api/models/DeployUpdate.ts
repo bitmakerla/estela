@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    Spider,
-    SpiderFromJSON,
-    SpiderFromJSONTyped,
-    SpiderToJSON,
-} from './';
-
 /**
  * 
  * @export
@@ -40,10 +33,10 @@ export interface DeployUpdate {
     status?: DeployUpdateStatusEnum;
     /**
      * 
-     * @type {Array<Spider>}
+     * @type {Array<string>}
      * @memberof DeployUpdate
      */
-    spiders?: Array<Spider>;
+    spidersNames?: Array<string>;
 }
 
 /**
@@ -69,7 +62,7 @@ export function DeployUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolea
         
         'did': !exists(json, 'did') ? undefined : json['did'],
         'status': !exists(json, 'status') ? undefined : json['status'],
-        'spiders': !exists(json, 'spiders') ? undefined : ((json['spiders'] as Array<any>).map(SpiderFromJSON)),
+        'spidersNames': !exists(json, 'spiders_names') ? undefined : json['spiders_names'],
     };
 }
 
@@ -83,7 +76,7 @@ export function DeployUpdateToJSON(value?: DeployUpdate | null): any {
     return {
         
         'status': value.status,
-        'spiders': value.spiders === undefined ? undefined : ((value.spiders as Array<any>).map(SpiderToJSON)),
+        'spiders_names': value.spidersNames,
     };
 }
 

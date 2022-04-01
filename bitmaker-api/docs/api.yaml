@@ -131,42 +131,12 @@ paths:
           in: body
           required: true
           schema:
-            required:
-              - name
-            type: object
-            properties:
-              action:
-                description: Action to perform
-                type: string
-              email:
-                description: User's email
-                type: string
-              name:
-                description: Project Name
-                type: string
-              permission:
-                description: Type of permission
-                type: string
+            $ref: '#/definitions/ProjectUpdate'
       responses:
         '200':
           description: ''
           schema:
-            required:
-              - name
-            type: object
-            properties:
-              action:
-                description: Action to perform
-                type: string
-              email:
-                description: User's email
-                type: string
-              name:
-                description: Project Name
-                type: string
-              permission:
-                description: Type of permission
-                type: string
+            $ref: '#/definitions/ProjectUpdate'
       tags:
         - api
     patch:
@@ -248,24 +218,12 @@ paths:
           in: body
           required: true
           schema:
-            required:
-              - project_zip
-            type: object
-            properties:
-              project_zip:
-                description: Project zip
-                type: file
+            $ref: '#/definitions/DeployCreate'
       responses:
         '201':
           description: ''
           schema:
-            required:
-              - project_zip
-            type: object
-            properties:
-              project_zip:
-                description: Project zip
-                type: file
+            $ref: '#/definitions/DeployCreate'
       tags:
         - api
     parameters:
@@ -839,6 +797,42 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Permission'
+  ProjectUpdate:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      users:
+        type: array
+        items:
+          $ref: '#/definitions/UserDetail'
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
+      action:
+        title: Action
+        type: string
+        enum:
+          - remove
+          - add
+      permission:
+        title: Permission
+        type: string
+        enum:
+          - EDITOR
+          - VIEWER
   Spider:
     required:
       - name
@@ -891,6 +885,31 @@ definitions:
         type: string
         format: date-time
         readOnly: true
+  DeployCreate:
+    type: object
+    properties:
+      did:
+        title: Did
+        type: integer
+        readOnly: true
+      status:
+        title: Status
+        type: string
+        enum:
+          - SUCCESS
+          - BUILDING
+          - FAILURE
+          - CANCELED
+      created:
+        title: Created
+        type: string
+        format: date-time
+        readOnly: true
+      project_zip:
+        title: Project zip
+        type: string
+        readOnly: true
+        format: uri
   DeployUpdate:
     type: object
     properties:
