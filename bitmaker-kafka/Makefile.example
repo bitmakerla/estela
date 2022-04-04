@@ -1,7 +1,18 @@
 REPOSITORY = <YOUR_REGISTRY> # here you need to put your aws registry host
 REGION = us-east-2
-DEVTAG = dev-$$USER
+DEVTAG = latest#dev-$$USER
+MINIKUBE_REGISTRY_HOST = 192.168.49.1:5000
 
+ifeq ($(OS),Windows_NT)
+	DOCKER_COMPOSE = docker compose
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		DOCKER_COMPOSE = docker-compose
+	else # OSX
+		DOCKER_COMPOSE = docker compose
+	endif
+endif
 
 .PHONY: login-ecr
 login-ecr:
@@ -11,12 +22,12 @@ login-ecr:
 
 .PHONY: start
 start:
-	-docker compose start
+	-$(DOCKER_COMPOSE) up -d
 
 
 .PHONY: stop
 stop:
-	-docker compose stop
+	-$(DOCKER_COMPOSE) stop
 
 
 .PHONY: setup
@@ -25,9 +36,9 @@ setup: build-consumer-image upload-consumer-image
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-secrets.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-services.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-consumers.yaml
-	-kubectl set image deployment/kafka-logs-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
-	-kubectl set image deployment/kafka-items-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
-	-kubectl set image deployment/kafka-requests-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(MINIKUBE_REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-items-consumer consumer=$(MINIKUBE_REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-requests-consumer consumer=$(MINIKUBE_REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
 
 
 .PHONY: down
@@ -43,11 +54,11 @@ rebuild: build-consumer-image upload-consumer-image
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-secrets.yaml
 	-kubectl apply -f kubernetes/local/bitmaker-kafka-consumers.yaml
 	-kubectl rollout restart deployment kafka-logs-consumer
-	-kubectl set image deployment/kafka-logs-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(MINIKUBE_REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
 	-kubectl rollout restart deployment kafka-items-consumer
-	-kubectl set image deployment/kafka-items-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-items-consumer consumer=$(MINIKUBE_REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
 	-kubectl rollout restart deployment kafka-requests-consumer
-	-kubectl set image deployment/kafka-requests-consumer consumer=$(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-requests-consumer consumer=$(MINIKUBE_REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
 
 
 .PHONY: build-consumer-image
@@ -59,6 +70,10 @@ build-consumer-image:
 upload-consumer-image: login-ecr
 	-docker tag bitmaker-consumer:$(DEVTAG) $(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-consumer:$(DEVTAG)
+
+
+.PHONY: set-up-image
+set-up-images: build-consumer-image upload-consumer-images
 
 
 .PHONY: lint

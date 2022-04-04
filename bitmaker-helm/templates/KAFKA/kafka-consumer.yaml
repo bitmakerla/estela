@@ -1,0 +1,107 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: kafka-items-consumer
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: consumer
+        image: {{ .Values.registryHost }}/bitmaker-consumer
+        imagePullPolicy: Always
+        command: ['python', 'consumer.py', 'job_items']
+        env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: kafka
+        - name: PRODUCTION
+          value: "False"
+        - name: MONGO_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: MONGO_CONNECTION
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: kafka-requests-consumer
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: consumer
+        image: {{ .Values.registryHost }}/bitmaker-consumer
+        imagePullPolicy: Always
+        command: ['python', 'consumer.py', 'job_requests']
+        env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: kafka
+        - name: PRODUCTION
+          value: "False"
+        - name: MONGO_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: MONGO_CONNECTION
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: kafka-logs-consumer
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: consumer
+        image: {{ .Values.registryHost }}/bitmaker-consumer
+        imagePullPolicy: Always
+        command: ['python', 'consumer.py', 'job_logs']
+        env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: kafka
+        - name: PRODUCTION
+          value: "False"
+        - name: MONGO_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: MONGO_CONNECTION

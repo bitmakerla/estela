@@ -11,6 +11,8 @@ In values:
 
 <h3> Install API </h3>
 
+You need to build the api images, celery worker, celery beat and redis. This can be done using the ´make set-up-images´ command in kafka and api directories.
+
 First is necesary complete values in _values.yaml_:
 
 - _<DB\_HOST>_: Host of bitmaker django api database.
