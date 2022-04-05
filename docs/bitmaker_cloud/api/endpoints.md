@@ -7,7 +7,7 @@ grand_parent: Bitmaker Cloud
 ---
 
 # Bitmaker API v1.0 Documentation
-Bitmaker API Swagger Specification. Version v1.
+Bitmaker API Specification. Version v1.
 
 Bitmaker Cloud uses [Django REST framework (DRF)](https://www.django-rest-framework.org/) for its API.
 In [`bitmaker-cloud/bitmaker-api/api/`](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api/api/),
@@ -87,7 +87,7 @@ List projects.
 
 | Code | Schema |
 | ---- | ------ |
-| 200 | object |
+| 200 | [PaginatedResults](#paginatedresults)[[Project](#project)] |
 
 </details>
 
@@ -150,13 +150,13 @@ Update Project information
 | Name | Located in | Required | Schema |
 | ---- | ---------- | -------- | ---- |
 | pid | path | Yes | string |
-| data | body | Yes | object |
+| data | body | Yes | [ProjectUpdate](#projectupdate) |
 
 ##### **Responses**
 
 | Code | Schema |
 | ---- | ------ |
-| 200 | object |
+| 200 | [ProjectUpdate](#projectupdate) |
 
 </details>
 
@@ -229,7 +229,7 @@ List project deploys.
 
 | Code | Schema |
 | ---- | ------ |
-| 200 | object |
+| 200 | [PaginatedResults](#paginatedresults)[[Deploy](#deploy)] |
 
 </details>
 
@@ -248,13 +248,13 @@ Create a new Deploy
 | Name | Located in | Required | Schema |
 | ---- | ---------- | -------- | ---- |
 | pid | path | Yes | string |
-| data | body | Yes | object |
+| data | body | Yes | [DeployCreate](#deploycreate) |
 
 ##### **Responses**
 
 | Code | Schema |
 | ---- | ------ |
-| 201 | object |
+| 201 | [DeployCreate](#deploycreate) |
 
 </details>
 
@@ -376,7 +376,7 @@ List project spiders.
 
 | Code | Schema |
 | ---- | ------ |
-| 200 | object |
+| 200 | [PaginatedResults](#paginatedresults)[[Spider](#spider)] |
 
 </details>
 
@@ -429,7 +429,7 @@ List spider cronjobs.
 
 | Code | Schema |
 | ---- | ------ |
-| 200 | object |
+| 200 | [PaginatedResults](#paginatedresults)[[SpiderCronjob](#spidercronjob)] |
 
 </details>
 
@@ -516,18 +516,18 @@ Partial update spider cronjob.
 
 ##### **Parameters**
 
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| cjid | path |  | Yes | string |
-| pid | path |  | Yes | string |
-| sid | path |  | Yes | string |
-| data | body |  | Yes | [SpiderCronJob](#spidercronjob) |
+| Name | Located in | Required | Schema |
+| ---- | ---------- | -------- | ---- |
+| cjid | path | Yes | string |
+| pid | path | Yes | string |
+| sid | path | Yes | string |
+| data | body | Yes | [SpiderCronJob](#spidercronjob) |
 
 ##### **Responses**
 
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 |  | [SpiderCronJob](#spidercronjob) |
+| Code | Schema |
+| ---- | ------ |
+| 200 | [SpiderCronJob](#spidercronjob) |
 
 </details>
 
@@ -557,9 +557,9 @@ List spider jobs.
 
 ##### **Responses**
 
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 |  | object |
+| Code | Schema |
+| ---- | ------ |
+| 200 | [PaginatedResults](#paginatedresults)[[SpiderJob](#spiderjob)] |
 
 </details>
 
@@ -582,9 +582,9 @@ Create spider job.
 
 ##### **Responses**
 
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 201 |  | [SpiderJobCreate](#spiderjobcreate) |
+| Code | Schema |
+| ---- | ------ |
+| 201 | [SpiderJobCreate](#spiderjobcreate) |
 
 </details>
 
@@ -685,7 +685,7 @@ Get job data.
 
 | Code | Schema |
 | ---- | ------ |
-| 200 | object |
+| 200 | [PaginatedResults](#paginatedresults)[] |
 
 </details>
 
@@ -759,6 +759,20 @@ in [`bitmaker-api/api/serializers/`](https://github.com/bitmakerla/bitmaker-clou
 </details>
 
 <details>
+<summary markdown="span" id="projectupdate">**ProjectUpdate**</summary>
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| pid | string (uuid) |  | No |
+| name | string |  | Yes |
+| users | [ [UserDetail](#userdetail) ] |  | No |
+| email | string (email) |  | No |
+| action | string | _Enum:_ `"remove"`, `"add"` | No |
+| permission | string | _Enum:_ `"EDITOR"`, `"VIEWER"` | No |
+
+</details>
+
+<details>
 <summary markdown="span" id="spider">**Spider**</summary>
 
 | Name | Type | Required |
@@ -780,6 +794,18 @@ in [`bitmaker-api/api/serializers/`](https://github.com/bitmakerla/bitmaker-clou
 | status | string | _Enum:_ `"SUCCESS"`, `"BUILDING"`, `"FAILURE"`, `"CANCELED"` | No |
 | spiders | [ [Spider](#spider) ] |  | No |
 | created | dateTime |  | No |
+
+</details>
+
+<details>
+<summary markdown="span" id="deploycreate">**DeployCreate**</summary>
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| did | integer |  | No |
+| status | string | _Enum:_ `"SUCCESS"`, `"BUILDING"`, `"FAILURE"`, `"CANCELED"` | No |
+| created | dateTime |  | No |
+| project_zip | string (uri) |  | No |
 
 </details>
 
@@ -907,6 +933,18 @@ in [`bitmaker-api/api/serializers/`](https://github.com/bitmakerla/bitmaker-clou
 | ---- | ---- | ----------- | -------- |
 | jid | integer |  | No |
 | status | string | _Enum:_ `"IN_QUEUE"`, `"WAITING"`, `"RUNNING"`, `"STOPPED"`, `"INCOMPLETE"`, `"CANCELLED"`, `"COMPLETED"`, `"ERROR"` | No |
+
+</details>
+
+<details>
+<summary markdown="span" id="paginatedresults">**PaginatedResults**</summary>
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| count | integer |  | Yes |
+| next | string($uri) |  | No |
+| previous | string($uri) |  | No |
+| results | [object] | The type of this attribute will vary throughout the documentation. This is an array of objects, depending on what object is being queried. | yes |
 
 </details>
 
