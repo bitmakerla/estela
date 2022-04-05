@@ -16,15 +16,11 @@ The Bitmaker Cloud API consists of three main components:
 - `bitmaker-celery-worker` and `bitmaker-celery-beat`: Responsible for executing the tasks and periodic tasks ordered by the API.
 - `bitmaker-redis`: Keeps a record of the tasks and periodic tasks to be executed.
 
-All of these components have a corresponding docker config file to build their images
-and run in docker containers.
+These components have a corresponding Docker config file to build their images
+and run in Docker containers.
 
 ## Prerequisites
 - Minikube v1.22.0
 - Docker v20.10.7 (include docker-compose)
 - aws-cli v2.2.18
 - Python v3.6
-
-## Set up an AWS ECR Container Registry
-
-Registry and Repository can be manually created in [AWS ECR](https://aws.amazon.com/ecr/).

@@ -7,7 +7,8 @@ parent: Bitmaker Cloud
 
 # Bitmaker Cloud Web
 
-This project is made by using React Framework (along with Ant Design) and Typescript.
+This project is made using the [React Framework](https://reactjs.org/)
+(along with [Ant Design](https://ant.design/)) and Typescript.
 
 ## Local Setup
 
@@ -20,15 +21,3 @@ To run the app, use `yarn install`. Then, you can:
 - To generate or update the API client, you need to paste the API swagger file (`api.yaml`)
   in the `bitmaker-web/` directory. Then, use `yarn generate-api`.
 - To build the app, use `yarn build`.
-
-## Deployment
-
-The frontend is deployed to an S3 bucket by using Gitlab CI/CD using `.env` as environment file.
-
-You need to configure the aws client with your credentials. Check [the official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for more information.
-
-To upload the built project to S3 bucket:
-
-```bash
-$ aws s3 sync --delete ./build s3://<AWS_S3_BUCKET>
-```
