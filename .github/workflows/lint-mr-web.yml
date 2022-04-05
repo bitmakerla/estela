@@ -1,0 +1,89 @@
+name: Lint MR
+
+on:
+  pull_request:
+    paths:
+      - bitmaker-web/**/*
+      - .github/workflows/*.yml
+
+env:
+  WEB_DIRECTORY: bitmaker-web
+
+jobs:
+  lint-web:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: setup node version
+        uses: actions/setup-node@v2
+        with:
+          node-version: 15.8.0
+        
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: $WEB_DIRECTORY/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Check Lint
+        run: |
+          cd $WEB_DIRECTORY
+          yarn install
+          yarn lint
+  build-main-web:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: $WEB_DIRECTORY/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Build Web
+        run: |
+          cd $WEB_DIRECTORY
+          echo "REACT_APP_API_BASE_URL=${{ secrets.BMC_API_URL }}" > .env
+          yarn install
+          yarn build
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-web
+          path: bitmaker-web/build/
+          retention-days: 1
+  deploy-to-s3-main-web:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: build-main-web
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      
+      - name: Download build Web
+        uses: actions/download-artifact@v3
+        with:
+          name: build-web
+          path: bitmaker-web/build/
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+      
+      - name: Deploy web to s3
+        run: |
+          cd $WEB_DIRECTORY
+          aws s3 sync --delete ./build s3://${{ secrets.AWS_STAGING_S3 }}
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.STAGING_CF_DISTRIBUTION }} --paths '/*'
