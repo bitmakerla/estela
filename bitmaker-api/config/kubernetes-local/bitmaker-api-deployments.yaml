@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bitmaker-api
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bitmaker-api-role
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["batch", "extensions"]
+  resources: ["jobs", "cronjobs", "jobs/status", "cronjobs/status"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bitmaker-api-bind
+subjects:
+- kind: ServiceAccount
+  name: bitmaker-api
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: bitmaker-api-role
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: bitmaker-django-api
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-django-api
+  template:
+    metadata:
+      labels:
+        app: bitmaker-django-api
+    spec:
+      serviceAccountName: bitmaker-api
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: bitmaker-django-api
+        image: 094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-django-api
+        imagePullPolicy: Always
+        command: ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
+        envFrom:
+        - secretRef:
+            name: api-secrets
+        - configMapRef:
+            name: api-config
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: bitmaker-celery-beat
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-celery-beat
+  template:
+    metadata:
+      labels:
+        app: bitmaker-celery-beat
+    spec:
+      serviceAccountName: bitmaker-api
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: bitmaker-celery-beat
+        image: 094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-celery-beat
+        command: ['celery', '-A', 'config.celery', 'beat', '--loglevel=info']
+        envFrom:
+        - secretRef:
+            name: api-secrets
+        - configMapRef:
+            name: api-config
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: bitmaker-celery-worker
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-celery-worker
+  template:
+    metadata:
+      labels:
+        app: bitmaker-celery-worker
+    spec:
+      serviceAccountName: bitmaker-api
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: bitmaker-celery-worker
+        image: 094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-celery-worker
+        command: ['celery', '-A', 'config.celery', 'worker', '--loglevel=info']
+        envFrom:
+        - secretRef:
+            name: api-secrets
+        - configMapRef:
+            name: api-config
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: bitmaker-redis
+spec:
+  selector:
+    matchLabels:
+      app: bitmaker-redis
+  template:
+    metadata:
+      labels:
+        app: bitmaker-redis
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: bitmaker-redis
+        image: 094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-redis
+

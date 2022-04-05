@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: default
+data:
+  DB_HOST: database
+  DB_PORT: "3306"
+  DB_NAME: bitmaker
+  DJANGO_API_HOST: <DJANGO_API_HOST>
+  DJANGO_ALLOWED_HOSTS: <DJANGO_ALLOWED_HOSTS>
+  AWS_DEFAULT_REGION: us-east-2
+  REGISTRY_ID: "094814489188"
+  REGISTRY_HOST: 192.168.49.1:5000 # minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+  REPOSITORY_NAME: bitmaker-projects
+  CORS_ORIGIN_WHITELIST: http://localhost:3000
+  KAFKA_HOSTS: kafka
+  KAFKA_PORT: "9092"
+  STAGE: DEVELOPMENT
+  DJANGO_SETTINGS_MODULE: config.settings.test
+  CELERY_BROKER_URL: redis://bitmaker-redis-service
+  CELERY_RESULT_BACKEND: redis://bitmaker-redis-service:6379/0
+  CERTIFICATE_FILE: ca-certificate.crt # replace with your object key
+  BUCKET_NAME_CERTIFICATE: bitmaker-api-certificates # replace with your object key
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-configmap
+  namespace: kube-system
+data:
+  ELASTICSEARCH_HOST: <ELASTICSEARCH_HOST>
+  ELASTICSEARCH_PORT: <ELASTICSEARCH_PORT>

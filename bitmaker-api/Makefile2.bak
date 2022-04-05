@@ -1,9 +1,10 @@
-REGISTRY_HOST = <REGISTRY_HOST># here you need to put your aws registry host
+REPOSITORY = 094814489188.dkr.ecr.us-east-2.amazonaws.com# here you need to put your aws registry host
 REGION = us-east-2
 APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
-DEVTAG = latest#dev-$$USER
-MINIKUBE_REGISTRY_HOST = 192.168.49.1:5000# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+# DEVTAG = latest#dev-$$USER
+DEVTAG = dev-$$USER
+MINIKUBE_REGISTRY_HOST = 094814489188.dkr.ecr.us-east-2.amazonaws.com# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 
 ifeq ($(OS),Windows_NT)
 	DOCKER_COMPOSE = docker compose
@@ -97,7 +98,7 @@ createsuperuser:
 .PHONY: login-ecr
 login-ecr:
 	-aws ecr get-login-password --region $(REGION) | docker login \
-	   --username AWS --password-stdin  $(REGISTRY_HOST)
+	   --username AWS --password-stdin  $(REPOSITORY)
 
 
 .PHONY: build-all-images
@@ -111,20 +112,16 @@ build-all-images:
 
 .PHONY: upload-all-images
 upload-all-images: login-ecr
-	-docker tag bitmaker-django-api:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-docker tag bitmaker-celery-beat:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-celery-beat:$(DEVTAG)
-	-docker tag bitmaker-celery-worker:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-celery-worker:$(DEVTAG)
-	-docker tag bitmaker-redis:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-redis:$(DEVTAG)
-	-docker tag bitmaker-build-project:$(DEVTAG) $(MINIKUBE_REGISTRY_HOST)/bitmaker-build-project:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-celery-beat:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-celery-worker:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-redis:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-build-project:$(DEVTAG)
-
-
-.PHONY: set-up-images
-set-up-images: build-all-images upload-all-images
+	-docker tag bitmaker-django-api:$(DEVTAG) $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-docker tag bitmaker-celery-beat:$(DEVTAG) $(REPOSITORY)/bitmaker-celery-beat:$(DEVTAG)
+	-docker tag bitmaker-celery-worker:$(DEVTAG) $(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
+	-docker tag bitmaker-redis:$(DEVTAG) $(REPOSITORY)/bitmaker-redis:$(DEVTAG)
+	-docker tag bitmaker-build-project:$(DEVTAG) $(REPOSITORY)/bitmaker-build-project:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-celery-beat:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-redis:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-build-project:$(DEVTAG)
 
 
 .PHONY: set-up-images
@@ -138,8 +135,8 @@ build-api-image:
 
 .PHONY: upload-api-image
 upload-api-image: login-ecr
-	-docker tag bitmaker-django-api:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
+	-docker tag bitmaker-django-api:$(DEVTAG) $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-docker push $(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: docs
