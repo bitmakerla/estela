@@ -22,7 +22,7 @@ $ bitmaker create job --help
 ```
 
 ## Basic Usage
-To start using the Bitmaker CLI with Bitmaker Cloud, first you need to login:
+To start using the Bitmaker CLI with Bitmaker Cloud, first, you need to log in:
 
 ```bash
 $ bitmaker login
@@ -38,17 +38,17 @@ Password:
 Successful login. API Token stored in ~/.bitmaker.yaml.
 ```
 
-This will save your Bitmaker Cloud API key to the file `~/.bitmaker.yaml` and it is
+This will save your Bitmaker Cloud API key to the file `~/.bitmaker.yaml`, and it is
 needed to access projects associated with your account.
 
 ### Creating a project
 
-In Bitmaker Cloud, a project is an identifier that groups spiders and is linked to the
+In Bitmaker Cloud, a project is an identifier that groups spiders. It is linked to the
 Docker image of a Scrapy project. A project's spiders are extracted automatically from the Scrapy
 project.
 
-To create a project, use the command `bitmaker create project <project_name>`, which on success
-should return the a message like the following:
+To create a project, use the command `bitmaker create project <project_name>`, which on success,
+should return a message like the following:
 
 ```bash
 $ bitmaker create project proj_test
@@ -56,8 +56,9 @@ project/proj_test created.
 Hint: Run 'bitmaker init 23ea584d-f39c-85bd-74c1-9b725ffcab1d7' to activate this project
 ```
 
-With this, we have created a project in Bitmaker Cloud. Note the hint in the last line of the
-output. This shows us the ID of the project we have just created, which is in UUID format.
+With this, we have created a project in Bitmaker Cloud. Note the hint in the last
+line of the output. It shows us the ID of the project we have just created in
+UUID format.
 
 ### Linking a project
 
@@ -83,21 +84,21 @@ $ bitmaker init 23ea584d-f39c-85bd-74c1-9b725ffcab1d7
 ```
 
 This will create the files `.bitmaker/Dockerfile-bitmaker.yaml` and `bitmaker.yaml`
-in your project directory. `bitmaker.yaml` contains the project ID and the name the
-Docker image will use in the AWS registry. This file will also serve to
-[configure your project]({% link bitmaker_cli/configuration.md %}), allowing to change
-the Python version, requirements file path, and files to ignore when deploying (like
-your virtual environment).
+in your project directory. `bitmaker.yaml` contains the project ID and the Docker
+image's name in the AWS registry. This file will also
+[configure your project]({% link bitmaker_cli/configuration.md %}), allowing you to
+change the Python version, requirements file path, and files to ignore when
+deploying (like your virtual environment).
 
-Alternatively, if you created the project via the [web interface]({% link bitmaker_cloud/web.md %}),
-you can directly use the `bitmaker init <project_id>` command with the project ID that you can
-find in the project detail page.
+Alternatively, suppose you created the project via the [web interface]({% link bitmaker_cloud/web.md %}).
+In that case, you can directly use the `bitmaker init <project_id>` command with
+the project ID that you can find on the project detail page.
 
-With this, we have linked our Bitmaker Cloud project with our Scrapy project.
+We have successfully linked our Bitmaker Cloud project with our Scrapy project.
 
 ### Deploying a project
-This is a simple and important step. Once the Bitmaker Cloud and Scrapy projects are linked,
-we will proceeed to build the Docker image and upload it to the AWS registry. This whole process
+This is a simple and essential step. Once the Bitmaker Cloud and Scrapy projects are linked,
+we will proceed to build the Docker image and upload it to the AWS registry. This whole process
 will be done automatically and scheduled by the [API]({% link bitmaker_cloud/api/api.md %}) with
 the command:
 
@@ -105,8 +106,8 @@ the command:
 $ bitmaker deploy
 ```
 
-This must be run in the root directory of our Scrapy project (where the `bitmaker.yaml` file is).
-This will verify if any changes to the Dockerfile are needed, caused by making changes in the `bitmaker.yaml` file.
+You must run this command in the root directory of your Scrapy project (where the `bitmaker.yaml` file is).
+This will verify whether any changes to the Dockerfile are needed, caused by making changes in the `bitmaker.yaml` file.
 Then, it will zip our Scrapy project and upload it to the API, which will take care of the rest
 of the process.
 

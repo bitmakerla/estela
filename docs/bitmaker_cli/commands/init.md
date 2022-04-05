@@ -28,15 +28,15 @@ scrapy_project_dir
 ```
 
 This command will create the files `.bitmaker/Dockerfile-bitmaker.yaml` and `bitmaker.yaml`
-in your project directory. `bitmaker.yaml` contains the project ID and the name the
-Docker image will use in the AWS registry. This file will also serve to
-[configure your project]({% link bitmaker_cli/configuration.md %}), allowing to change
+in your project directory. `bitmaker.yaml` contains the project ID and the
+Docker image's name in the AWS registry. This file will also
+[configure your project]({% link bitmaker_cli/configuration.md %}), allowing you to change
 the Python version, requirements file path, and files to ignore when deploying (like
 your virtual environment).
 
-Alternatively, if you created the project via the [web interface]({% link bitmaker_cloud/web.md %}),
-you can directly use the `bitmaker init <project_id>` command with the project ID that you can
-find in the project detail page.
+Alternatively, suppose you created the project via the [web interface]({% link bitmaker_cloud/web.md %}).
+In that case, you can directly use the `bitmaker init <project_id>` command with the project ID that you can
+find on the project detail page.
 
 ## Usage
 

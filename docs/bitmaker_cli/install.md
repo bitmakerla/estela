@@ -9,18 +9,18 @@ parent: Bitmaker Cloud CLI
 # Install the Bitmaker CLI
 
 ## Overview
-Bitmaker Cloud CLI is the command line client to interact with Bitmaker Cloud API.
+Bitmaker Cloud CLI is the command-line client to interact with Bitmaker Cloud API.
 Allows the user to perform the following actions:
 
 - Link a Scrapy project with a project in Bitmaker Cloud.
 - Create projects, jobs, and cronjobs in Bitmaker Cloud.
 - Get the data of a job.
 
-This guide provides instructions for how to install the Bitmaker CLI.
+This guide provides instructions on how to install the Bitmaker CLI.
 
 ## Prerequisites
 To install and use the Bitmaker CLI on Linux, Mac, or Windows, you must have:
-- Python (v3.6 or higher).
+- Python (v3.6 or higher)
 
 ## Install the Bitmaker CLI
 1. Clone the Bitmaker CLI repository:
@@ -45,4 +45,4 @@ bitmaker, version 0.1
 
 ## Next Steps
 Now that you've installed the Bitmaker CLI, you're ready to create a Bitmaker Cloud
-project and start devoloping locally. For instructions, read [Create a Bitmaker Cloud project]().
+project and start developing locally. For instructions, read the [quickstart guide]({% link bitmaker_cli/quickstart.md %}).

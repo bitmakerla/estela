@@ -10,9 +10,9 @@ grand_parent: Bitmaker Cloud CLI
 
 ## Description
 
-Authenticate to Bitmaker Cloud. After you run this command, the CLI prompts you for 
-the host API endpoint to send the requests, your username, and your password. Once you
-are logged in, the CLI saves your authentication token and host address in `~/.bitmaker.yaml`.
+Authenticate to Bitmaker Cloud. After running this command, the CLI prompts you for
+the host API endpoint to send the requests, your username, and your password. Once
+logged in, the CLI saves your authentication token and host address in `~/.bitmaker.yaml`.
 
 ## Usage
 

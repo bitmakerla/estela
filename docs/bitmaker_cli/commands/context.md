@@ -11,8 +11,8 @@ grand_parent: Bitmaker Cloud CLI
 ## Description
 
 Show your current context. This command will test your connection to your host and then set the project
-in the current directory as the active bitmaker cloud project in case you are in a located in one.
-It will first try to test your connection using the environment variables `BM_API_HOST`,
+in the current directory as the active bitmaker cloud project if you are located in one.
+First, it will try to test your connection using the environment variables `BM_API_HOST`,
 `BM_USERNAME`, and `BM_PASSWORD`. If any of these is not set, it will try to read your bitmaker CLI configuration file
 `~/.bitmaker.yaml`. If this file does not exist, the command will not work and you will have to 
 [bitmaker login]({% link bitmaker_cli/commands/login.md %}) first.

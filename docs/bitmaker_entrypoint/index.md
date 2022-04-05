@@ -11,32 +11,36 @@ The [Bitmaker Cloud Entrypoint](https://github.com/bitmakerla/bitmaker-entrypoin
 is a package that implements a wrapper layer to extract job data from the environment,
 prepare the job properly, and execute it using Scrapy.
 
-It can be seen as the implementation of a [contract](#contract-statements) to run spiders.
-Namely, a set of requirements that any image has to comply with to be able to run on Bitmaker Cloud.
+It can be seen as the implementation of a [contract](#contract-statements) to run
+spiders, namely, a set of requirements that any image has to comply with to run
+on Bitmaker Cloud.
 
-Besides fulfilling the contract, the entrypoint does:
+Besides fulfilling the contract, the entry point does:
 - Running the job with Scrapy.
 - Transparent integration with Bitmaker Cloud Storage
 - Keep synchronization between the job and Bitmaker Cloud.
 
 ## Contract statements
 
-1. The image should be able to start the job via `bm-crawl` command without arguments.
+1. The image should be able to start the job via the `bm-crawl` command without
+   arguments.
    ```bash
    $ bm-crawl
    2022-03-19 14:00:05 [scrapy.utils.log] INFO: Scrapy 2.5.1 started (bot: books)
    ...
    ```
-2. The image should be able to return its metadata via `bm-describe-project` command without arguments.
-   The metadata must be a JSON object containing two fields: 
+2. The image should be able to return its metadata via the `bm-describe-project`
+   command without arguments. The metadata must be a JSON object containing two
+   fields:
    - `project_type`: The type of the project, e.g. 'scrapy'.
    - `spiders`: A list of the spider names within the project.
-   
+
    ```bash
    $ bm-describe-project
    {"project_type": "scrapy", "spiders": ["spider_1", "spider_2"]}
    ```
-3. The job should be able to get all needed information using [environment variables](#environment-variables).
+3. The job should be able to get all needed information using
+   [environment variables](#environment-variables).
 
 ## Environment variables
 
@@ -61,5 +65,5 @@ List of advertised hosts in a comma-separated style.
 This field is required since Bitmaker Cloud uses Kafka to handle the data pipeline.
 
 ### `KAFKA_ADVERTISED_PORT` (Required)
-   
-The port of the Kafka advertised listeners, default value: 9092.
+
+The port of the Kafka advertised listeners. Default value: `9092`.

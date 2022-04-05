@@ -11,9 +11,9 @@ grand_parent: Bitmaker Cloud CLI
 ## Description
 
 Deploy the current project directory to Bitmaker Cloud. This will create a zip
-file of the project and upload it to the API, which will take care of building
-a Docker image of the project and updating the project information (e.g., list
-of spiders) after a successful build.
+file of the project and upload it to the API, which will build
+a Docker image of the project. AFTER A SUCCESSFUL BUILD, the API will update the
+project information (e.g., list of spiders).
 
 ## Usage
 
