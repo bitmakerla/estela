@@ -24,6 +24,7 @@ STAGE: DEVELOPMENT
 DJANGO_SETTINGS_MODULE: config.settings.test
 CELERY_BROKER_URL: redis://bitmaker-redis-service
 CELERY_RESULT_BACKEND: redis://bitmaker-redis-service:6379/0
+BUCKET_NAME_PROJECTS: bitmaker-api-projects
 
 # Secrets
 secret: api-secrets
@@ -32,6 +33,7 @@ DB_PASSWORD: <DB_PASSWORD_BASE_64>
 AWS_ACCESS_KEY_ID: <AWS_ACCESS_KEY_ID_BASE_64>
 AWS_SECRET_ACCESS_KEY: <AWS_SECRET_ACCESS_KEY_BASE_64>
 MONGO_CONNECTION: <MONGO_CONNECTION_BASE_64>
+SECRET_KEY: <SECRET_KEY>
 
 # Registry
 registryHost: your.registry.host

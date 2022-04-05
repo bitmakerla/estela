@@ -42,10 +42,12 @@ jobs:
           docker build . --file docker-conf/Dockerfile-celery-worker --tag ${{ secrets.DOCKER_REGISTRY }}/bitmaker-celery-worker:${GITHUB_SHA::7}
           docker build . --file docker-conf/Dockerfile-celery-beat --tag ${{ secrets.DOCKER_REGISTRY }}/bitmaker-celery-beat:${GITHUB_SHA::7}
           docker build . --file docker-conf/Dockerfile-redis --tag ${{ secrets.DOCKER_REGISTRY }}/bitmaker-redis:${GITHUB_SHA::7}
+          docker build . --file docker-conf/Dockerfile-build-project --tag ${{ secrets.DOCKER_REGISTRY }}/bitmaker-build-project:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_REGISTRY }}/bitmaker-django-api:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_REGISTRY }}/bitmaker-celery-beat:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_REGISTRY }}/bitmaker-celery-worker:${GITHUB_SHA::7}
           docker push ${{ secrets.DOCKER_REGISTRY }}/bitmaker-redis:${GITHUB_SHA::7}
+          docker push ${{ secrets.DOCKER_REGISTRY }}/bitmaker-build-project:${GITHUB_SHA::7}
   deploy:
     needs: build
     runs-on: ubuntu-latest

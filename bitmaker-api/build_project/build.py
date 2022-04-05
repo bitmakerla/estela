@@ -5,6 +5,7 @@ import boto3
 import docker
 import base64
 import requests
+import logging
 
 from zipfile import ZipFile
 
@@ -106,22 +107,31 @@ def update_deploy_status(STATUS, spiders=[]):
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     try:
         download_zip()
         unzip_project()
-
+        logging.info("Project downloaded successfully.")
         PROJECT_PATH = next(os.scandir(".")).name
         PROJECT_PATH = os.path.join(os.path.abspath("."), PROJECT_PATH)
         DOCKERFILE_PATH = os.path.join(PROJECT_PATH, BITMAKER_DIR, DOCKERFILE_NAME)
 
+        logging.info("Image building...")
         build_image(PROJECT_PATH, DOCKERFILE_PATH)
-        upload_image()
+        logging.info("Image built successfully.")
 
+        logging.info("Getting spiders...")
         spiders = get_spiders()
+        logging.info("Spiders {} successfully obtained.".format(" ".join(spiders)))
+
+        logging.info("Image uploading...")
+        upload_image()
+        logging.info("Image uploaded successfully.")
 
         update_deploy_status("SUCCESS", spiders)
     except Exception as ex:
         update_deploy_status("FAILURE")
+        logging.info(ex)
 
 
 if __name__ == "__main__":

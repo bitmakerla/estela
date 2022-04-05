@@ -2,8 +2,8 @@ REPOSITORY = <YOUR_REGISTRY> # here you need to put your aws registry host
 REGION = us-east-2
 APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
-DEVTAG = dev-$$USER
-MINIKUBE_REGISTRY_HOST = 192.168.49.1# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+DEVTAG = latest#dev-$$USER
+MINIKUBE_REGISTRY_HOST = 192.168.49.1:5000# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 
 ifeq ($(OS),Windows_NT)
 	DOCKER_COMPOSE = docker compose
@@ -18,7 +18,7 @@ endif
 
 .PHONY: start
 start:
-	-minikube start --feature-gates="TTLAfterFinished=true" --insecure-registry $(REGISTRY_HOST_FROM_MINIKUBE):5000
+	-minikube start --feature-gates="TTLAfterFinished=true" --insecure-registry $(MINIKUBE_REGISTRY_HOST)
 	-$(DOCKER_COMPOSE) up -d
 
 
@@ -30,44 +30,44 @@ stop:
 
 .PHONY: setup
 setup: build-api-image upload-api-image
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-services.yaml
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
-	-kubectl apply -f config/kubernetes-local/aws-registry-cronjob.yaml
-	-kubectl apply -f config/kubernetes-local/bitmaker-filebeat.yaml
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-deployments.yaml
-	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-kubectl apply -f config/kubernetes/bitmaker-api-secrets.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-services.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-configmaps.yaml
+	-kubectl apply -f config/kubernetes/aws-registry-cronjob.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-filebeat.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-deployments.yaml
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(MINIKUBE_REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: rebuild-api
 rebuild-api: build-api-image upload-api-image
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-secrets.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-configmaps.yaml
 	-kubectl rollout restart deployment bitmaker-django-api
-	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(MINIKUBE_REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
 
 
 .PHONY: rebuild-all
 rebuild-all: build-all-images upload-all-images
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-secrets.yaml
-	-kubectl apply -f config/kubernetes-local/bitmaker-api-configmaps.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-secrets.yaml
+	-kubectl apply -f config/kubernetes/bitmaker-api-configmaps.yaml
 	-kubectl rollout restart deployment bitmaker-django-api
-	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REPOSITORY)/bitmaker-django-api:$(DEVTAG)
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(MINIKUBE_REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
 	-kubectl rollout restart deployment bitmaker-celery-worker
-	-kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
+	-kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$(MINIKUBE_REGISTRY_HOST)/bitmaker-celery-worker:$(DEVTAG)
 	-kubectl rollout restart deployment bitmaker-celery-beat
-	-kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$(REPOSITORY)/bitmaker-celery-beat:$(DEVTAG)
+	-kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$(MINIKUBE_REGISTRY_HOST)/bitmaker-celery-beat:$(DEVTAG)
 	-kubectl rollout restart deployment bitmaker-redis
-	-kubectl set image deployment/bitmaker-redis bitmaker-redis=$(REPOSITORY)/bitmaker-redis:$(DEVTAG)
+	-kubectl set image deployment/bitmaker-redis bitmaker-redis=$(MINIKUBE_REGISTRY_HOST)/bitmaker-redis:$(DEVTAG)
 
 
 .PHONY: down
 down:
-	-kubectl delete -f config/kubernetes-local/bitmaker-api-secrets.yaml
-	-kubectl delete -f config/kubernetes-local/bitmaker-api-configmaps.yaml
-	-kubectl delete -f config/kubernetes-local/aws-registry-cronjob.yaml
-	-kubectl delete -f config/kubernetes-local/bitmaker-api-services.yaml
-	-kubectl delete -f config/kubernetes-local/bitmaker-api-deployments.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-api-secrets.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-api-configmaps.yaml
+	-kubectl delete -f config/kubernetes/aws-registry-cronjob.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-api-services.yaml
+	-kubectl delete -f config/kubernetes/bitmaker-api-deployments.yaml
 	-kubectl delete jobs $$(kubectl get jobs -o custom-columns=:.metadata.name)
 	-kubectl delete cronjobs $$(kubectl get cronjobs -o custom-columns=:.metadata.name)
 	-minikube delete
@@ -121,6 +121,10 @@ upload-all-images: login-ecr
 	-docker push $(REPOSITORY)/bitmaker-celery-worker:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-redis:$(DEVTAG)
 	-docker push $(REPOSITORY)/bitmaker-build-project:$(DEVTAG)
+
+
+.PHONY: set-up-images
+set-up-images: build-all-images upload-all-images
 
 
 .PHONY: build-api-image
