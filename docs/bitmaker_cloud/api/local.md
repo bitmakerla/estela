@@ -9,23 +9,26 @@ grand_parent: Bitmaker Cloud
 
 # Local Setup
 The following steps describe how we deploy Bitmaker Cloud locally using Kubernetes
-on Minikube. We use an AWS container registry, but it can also be deployed using
-a local registry. Feel free to modify any files to fit your needs and propose your
+on Minikube. We will show how to deploy it using a local registry.
+Feel free to modify any files to fit your needs and propose your
 changes to expand the compatibility of Bitmaker Cloud with other platforms.
 
-We recommend using the provided [helm chart]({% link bitmaker_cloud/api/helm.md %})
-for a more seamless deployment.
+Currently, project zips uploaded to Bitmaker Cloud for deployment are uploaded
+to an AWS S3 bucket, from where they are later fetched to build their docker image.
+For this reason, you will need access to an AWS S3 bucket to be able to deploy 
+these projects.
 
-To run the Bitmaker Cloud API in a local environment, we use Minikube as a cluster for Kubernetes. 
+If you want to deploy Bitmaker Cloud to a production environment, we recommend
+using the provided [helm chart]({% link bitmaker_cloud/api/helm.md %}) for a
+more seamless deployment.
+
+To run the Bitmaker Cloud API in a local environment, we use Minikube as a cluster for Kubernetes.
 - The database for Django API is configured as a Docker service.
 - In local we use a local registry setting as a Docker service. (*in production we use AWS ECR*)
 
 If this is the first time you build the app, take the following steps:
 
-- Create a `Makefile` using the `Makefile.example` file in `bitmaker-api/`. Edit the following variable:
-  - **\<REGISTRY_HOST\>**: If you use a registry service like AWS ECR, you need to use your AWS registry host here.
-            If you plan to use the local registry, use a placeholder for this value (e.g., `192.168.49.1`), continue with
-            the other steps and later check that the registry host is correct.
+- Create a `Makefile` using the `Makefile.example` file in `bitmaker-api/`.
 
 - Start the Minikube cluster and the database container.
   ```bash
@@ -37,17 +40,16 @@ If this is the first time you build the app, take the following steps:
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
   # 192.168.49.1 -> This IP could change
   ```
-  Make sure that the **MINIKUBE_REGISTRY_HOST** IP in your `Makefile` is the same as this value, keeping the port `5000`
-  as it is specified for the local registry service (e.g., `192.168.49.1:5000`). Projects deployed in local will be kept
-  there and not pushed to AWS ECR or other services you may be using.
+  Make sure that the **REGISTRY_HOST** IP in your `Makefile` is the same as this value, keeping the port `5000`
+  as it is specified for the local registry service (e.g., `192.168.49.1:5000`). In case it is different, please use
+  `make down` and then use `make start` again with the updated IP. This is needed in order to avoid conflicts in the
+  local registry.
 
-  If you use the local registry as you **REGISTRY_HOST**, you should verify that the registry host IP
-  and the IP you got in this step are the same.
   Then, apply the `bitmaker-api-services.yaml` file:
   ```bash
   $ kubectl apply -f config/kubernetes/bitmaker-api-services.yaml
   ```
-  
+
 - In order to give an external IP to the API, open a new terminal an create a tunnel:
   ```bash
   $ minikube tunnel
@@ -64,6 +66,10 @@ If this is the first time you build the app, take the following steps:
 	```
   - **\<DJANGO_ALLOWED_HOSTS\>**: Allowed hosts where API could be deployed. In local, this is the same as the EXTERNAL-IP value.
   - **\<CORS_ORIGIN_WHITELIST\>**: URLs from which API could be consumed.
+  - **\<ENGINE\>**: The engine used to deploy the API. Currently, only `kubernetes` is supported, but you can [implement your engine]({% link bitmaker_cloud/api/engines.md %}).
+  - **\<CREDENTIALS\>**: The type of credentials you'll use for the registry. It is `local` by default, but `aws` is also supported
+            in case you use AWS ECR as your registry host. If you wish use another container registry service, you can add a new
+            [credentials configuration](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api/credentials).
   - **\<MONGO_CONNECTION\>**: The connection to Mongo DB encoded in base64 where all the data collected from the spiders is stored.
   - **\<ELASTICSEARCH_HOST\>** and <ELASTICSEARCH_PORT\>: The host and port of the Elasticsearch service.
   - **\<AWS_ACCESS_KEY_ID_BASE_64\>** and **<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials encoded in base64.
@@ -86,7 +92,7 @@ If this is the first time you build the app, take the following steps:
   use an [online tool](https://www.base64encode.org/) or the terminal `printf "<TEXT>" | base64`.
   - **\<DB_USER_BASE_64\>**: The DB user of the API.
   - **\<DB_PASSWORD_BASE_64\>**: The DB password for the selected DB user.
-  - **\<AWS_ACCES_KEY_ID_BASE_64\>** and **\<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials.
+  - **\<AWS_ACCES_KEY_ID_BASE_64\>** and **\<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials. Needed to upload the project zips to the AWS S3 bucket.
   - **\<SECRET_KEY\>**: Your Django app secret key.
   - **\<ELASTICSEARCH_USERNAME_BASE_64\>** and **\<ELASTICSEARCH_PASSWORD_BASE_64\>**: Enter your Elasticsearch credentials.
 

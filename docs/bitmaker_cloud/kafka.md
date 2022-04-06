@@ -24,8 +24,9 @@ Then, take the following steps inside [`bitmaker-kafka/`](https://github.com/bit
   Then, modify the file with the appropriate values:
   - **\<MONGO_CONNECTION_BASE_64\>**: An active connection to a MongoDB cluster formatted in _base64_.
   
-- Check that the endpoint IP in the `kubernetes/bitmaker-kafka-services.yaml` file, and the
-  `LISTENER_DOCKER_EXTERNAL` field in the `docker-compose.yaml` file are equal to:
+- Check that the endpoint IP in the `kubernetes/bitmaker-kafka-services.yaml` file, the
+  `LISTENER_DOCKER_EXTERNAL` field in the `docker-compose.yaml` file, and the IPs of the images' names
+  in `kubernetes/bitmaker-kafka-consumers.yaml` are equal to:
   ```bash
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
   ```
