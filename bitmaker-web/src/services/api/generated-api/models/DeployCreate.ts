@@ -13,17 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    Project,
-    ProjectFromJSON,
-    ProjectFromJSONTyped,
-    ProjectToJSON,
-    UserDetail,
-    UserDetailFromJSON,
-    UserDetailFromJSONTyped,
-    UserDetailToJSON,
-} from './';
-
 /**
  * 
  * @export
@@ -38,18 +27,6 @@ export interface DeployCreate {
     readonly did?: number;
     /**
      * 
-     * @type {Project}
-     * @memberof DeployCreate
-     */
-    project?: Project;
-    /**
-     * 
-     * @type {UserDetail}
-     * @memberof DeployCreate
-     */
-    user?: UserDetail;
-    /**
-     * 
      * @type {string}
      * @memberof DeployCreate
      */
@@ -60,6 +37,12 @@ export interface DeployCreate {
      * @memberof DeployCreate
      */
     readonly created?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof DeployCreate
+     */
+    readonly projectZip?: string;
 }
 
 /**
@@ -84,10 +67,9 @@ export function DeployCreateFromJSONTyped(json: any, ignoreDiscriminator: boolea
     return {
         
         'did': !exists(json, 'did') ? undefined : json['did'],
-        'project': !exists(json, 'project') ? undefined : ProjectFromJSON(json['project']),
-        'user': !exists(json, 'user') ? undefined : UserDetailFromJSON(json['user']),
         'status': !exists(json, 'status') ? undefined : json['status'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
+        'projectZip': !exists(json, 'project_zip') ? undefined : json['project_zip'],
     };
 }
 
@@ -100,8 +82,6 @@ export function DeployCreateToJSON(value?: DeployCreate | null): any {
     }
     return {
         
-        'project': ProjectToJSON(value.project),
-        'user': UserDetailToJSON(value.user),
         'status': value.status,
     };
 }

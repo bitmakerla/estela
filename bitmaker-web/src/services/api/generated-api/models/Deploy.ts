@@ -47,7 +47,7 @@ export interface Deploy {
      * @type {UserDetail}
      * @memberof Deploy
      */
-    user?: UserDetail;
+    user: UserDetail;
     /**
      * 
      * @type {string}
@@ -91,7 +91,7 @@ export function DeployFromJSONTyped(json: any, ignoreDiscriminator: boolean): De
         
         'did': !exists(json, 'did') ? undefined : json['did'],
         'project': json['project'],
-        'user': !exists(json, 'user') ? undefined : UserDetailFromJSON(json['user']),
+        'user': UserDetailFromJSON(json['user']),
         'status': !exists(json, 'status') ? undefined : json['status'],
         'spiders': !exists(json, 'spiders') ? undefined : ((json['spiders'] as Array<any>).map(SpiderFromJSON)),
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
