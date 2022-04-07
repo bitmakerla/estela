@@ -4,7 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
-from api.serializers.project import ProjectSerializer
+from api.serializers.project import ProjectSerializer, ProjectUpdateSerializer
 from core.models import Project, User, Permission
 
 
@@ -25,32 +25,22 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Update Project information",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "name": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="Project Name",
-                ),
-                "email": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="User's email"
-                ),
-                "action": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Action to perform"
-                ),
-                "permission": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Type of permission"
-                ),
-            },
-            required=["name"],
-        ),
+        request_body=ProjectUpdateSerializer,
+        responses={status.HTTP_200_OK: ProjectUpdateSerializer()},
     )
     def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        user_email = self.request.data.get("email", "")
-        action = self.request.data.get("action", "")
-        permission = self.request.data.get("permission", "")
-        name = self.request.data.get("name", "")
+        serializer = ProjectUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+
+        name = serializer.validated_data.get("name", "")
+        user_email = serializer.validated_data.pop("email", "")
+        action = serializer.validated_data.pop("action", "")
+        permission = serializer.validated_data.pop("permission", "")
+
         if name:
             instance.name = name
         if user_email:
@@ -76,6 +66,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                 return Response(
                     {"email": "User does not exist."}, status=status.HTTP_204_NO_CONTENT
                 )
-        instance.save()
-        serializer = ProjectSerializer(instance)
-        return Response(serializer.data)
+        serializer.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)

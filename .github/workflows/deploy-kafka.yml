@@ -71,8 +71,11 @@ jobs:
           kubectl apply -f terraform-deployment/config-files/kafka/prod/bitmaker-kafka-consumers.yaml --namespace=default
           kubectl set image deployment/kafka-items-consumer consumer=${{ secrets.DOCKER_REGISTRY }}/bitmaker-consumer:${GITHUB_SHA::7} --namespace=default
           kubectl set image deployment/kafka-requests-consumer consumer=${{ secrets.DOCKER_REGISTRY }}/bitmaker-consumer:${GITHUB_SHA::7} --namespace=default
+          kubectl set image deployment/kafka-logs-consumer consumer=${{ secrets.DOCKER_REGISTRY }}/bitmaker-consumer:${GITHUB_SHA::7} --namespace=default
           kubectl rollout status deployment/kafka-items-consumer --namespace=default
           kubectl rollout status deployment/kafka-requests-consumer --namespace=default
+          kubectl rollout status deployment/kafka-logs-consumer --namespace=default
           kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/kafka-items-consumer
           kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/kafka-requests-consumer
+          kubectl wait --for=condition=available --timeout=300s --namespace=default deployment/kafka-logs-consumer
           kubectl get pods -l app=kafka-consumer --namespace=default
