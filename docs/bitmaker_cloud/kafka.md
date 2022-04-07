@@ -20,6 +20,8 @@ Locally, Kafka is run as a Docker service.
 If it is the first time you build the app, you need to [set up the API locally]({% link bitmaker_cloud/api/local.md %}).
 Then, take the following steps inside [`bitmaker-kafka/`](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-kafka):
 
+- Create a `Makefile` using the `Makefile.example` file in `bitmaker-kafka/`.
+
 - Create a new file `kubernetes/bitmaker-kafka-secrets.yaml` based on `kubernetes/bitmaker-kafka-secrets.yaml.example`.
   Then, modify the file with the appropriate values:
   - **\<MONGO_CONNECTION_BASE_64\>**: An active connection to a MongoDB cluster formatted in _base64_.

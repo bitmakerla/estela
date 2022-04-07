@@ -55,8 +55,7 @@ If this is the first time you build the app, take the following steps:
   $ minikube tunnel
   ```
 
-- In `config/kubernetes/`, create a new file `bitmaker-api-configmaps.yaml` based on `bitmaker-api-configmaps.yaml.example`,
-  and a `bitmaker-api-secrets.yaml` file based on `bitmaker-api-secrets.yaml.example`.
+- In `config/kubernetes/`, create a new file `bitmaker-api-configmaps.yaml` based on `bitmaker-api-configmaps.yaml.example`.
   Then, modify both files with the appropriate values:
   - **\<DB_HOST\>** and **\<DB_PORT\>**: _Note_ Write the port number between quotation marks.
   - **\<DB_NAME\>**: The database name for the API, use the database `bitmaker` created during the Terraform deployment.
@@ -70,10 +69,8 @@ If this is the first time you build the app, take the following steps:
   - **\<CREDENTIALS\>**: The type of credentials you'll use for the registry. It is `local` by default, but `aws` is also supported
             in case you use AWS ECR as your registry host. If you wish use another container registry service, you can add a new
             [credentials configuration](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api/credentials).
-  - **\<MONGO_CONNECTION\>**: The connection to Mongo DB encoded in base64 where all the data collected from the spiders is stored.
-  - **\<ELASTICSEARCH_HOST\>** and <ELASTICSEARCH_PORT\>: The host and port of the Elasticsearch service.
-  - **\<AWS_ACCESS_KEY_ID_BASE_64\>** and **<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials encoded in base64.
-            You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
+  - **\<ELASTICSEARCH_HOST\>** and **\<ELASTICSEARCH_PORT\>**: The host and port of the Elasticsearch service. These values are not needed
+            for Bitmaker Cloud to work, but the spider logs will not be stored in case they are not present.
   - **\<AWS_DEFAULT_REGION\>**: The AWS default region of the container registry, e.g., `us-east-2`. This value will not be relevant if you do not use AWS ECR.
   - **\<AWS_STORAGE_BUCKET_NAME\>** : The name of AWS S3 Storage where the static django files will be stored (the bucket must already exist), e.g., `bitmaker-django-api`.
   - **\<REGISTRY_ID\>** and **\<REGISTRY_HOST\>**: ID and host of the registry service, check these values in the
@@ -81,20 +78,22 @@ If this is the first time you build the app, take the following steps:
             `<REGISTRY_ID>.dkr.ecr.<REGION>.amazonaws.com`. If you have already configured your aws client, you can use the
             following command to get information about your repositories. _Note_: Write the ID number between quotation marks.
             The `<REGISTRY_ID>` will not be relevant if you do not use AWS ECR.
-  - **\<ELASTICSEARCH_USERNAME_BASE_64\>** and **<ELASTICSEARCH_PASSWORD_BASE_64\>**: Enter your Elasticsearch credentials encoded in base64. These values are not needed
-            in order for Bitmaker Cloud to work, but the spider logs will not be stored in case they are not present.
   - **\<REPOSITORY_NAME\>**: The name of the repository destined to store the Scrapy projects uploaded to the API, e.g., `bitmaker-api-projects`.
-  - **\<ELASTICSEARCH_HOST\>**: The endpoint of the Elasticsearch service running in AWS.
   - **\<BUCKET_NAME_PROJECTS\>**: The name of the S3 bucket where the uploaded project zips will be stored before being used
             to build their Docker image and deploy them.
 
-- Create a new file `bitmaker-api-secrets.yaml` based on `bitmaker-api-secrets.yaml.example`. Then, modify the file with the appropriate values. Do not forget to encode all the values in _base64_,
-  use an [online tool](https://www.base64encode.org/) or the terminal `printf "<TEXT>" | base64`.
+- In `config/kubernetes`, create a new file `bitmaker-api-secrets.yaml` based on
+  `bitmaker-api-secrets.yaml.example`. Then, modify the file with the appropriate
+  values. Do not forget to encode all the values in _base64_,
+  use an [online tool](https://www.base64encode.org/) or the terminal
+  `printf "<TEXT>" | base64`.
   - **\<DB_USER_BASE_64\>**: The DB user of the API.
   - **\<DB_PASSWORD_BASE_64\>**: The DB password for the selected DB user.
-  - **\<AWS_ACCES_KEY_ID_BASE_64\>** and **\<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials. Needed to upload the project zips to the AWS S3 bucket.
-  - **\<SECRET_KEY\>**: Your Django app secret key.
-  - **\<ELASTICSEARCH_USERNAME_BASE_64\>** and **\<ELASTICSEARCH_PASSWORD_BASE_64\>**: Enter your Elasticsearch credentials.
+  - **\<AWS_ACCESS_KEY_ID_BASE_64\>** and **\<AWS_SECRET_ACCESS_KEY_BASE_64\>**: Enter your AWS credentials. Needed to upload the project zips to the AWS S3 bucket.
+  - **\<MONGO_CONNECTION_BASE_64\>**: The connection to MongoDB where all the data collected from the spiders is stored.
+  - **\<DJANGO_SECRET_KEY_BASE_64\>**: Your Django app secret key.
+  - **\<ELASTICSEARCH_USERNAME_BASE_64\>** and **<ELASTICSEARCH_PASSWORD_BASE_64\>**: Enter your Elasticsearch credentials. These values are not needed
+            for Bitmaker Cloud to work, but the spider logs will not be stored in case they are not present.
 
 - Apply the setup command, which build and upload the images, and apply all the Kubernetes `yaml` files:
   ```bash
