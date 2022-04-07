@@ -14,8 +14,8 @@ spiders (e.g., Scrapy spiders), similar to [Zyte](https://www.zyte.com/)'s
 [Scrapy Cloud](https://www.zyte.com/scrapy-cloud/). Bitmaker Cloud aims to be versatile, to the point that you can
 deploy it in-home.
 
-The [Bitmaker CLI](https://github.com/bitmakerla/bitmaker-cli/) is in charge of Scrapy based projects deployment (
-currently only supports Scrapy projects) and uses a REST API client to upload projects. These projects are then built
+The [Bitmaker CLI](https://github.com/bitmakerla/bitmaker-cli/) is in charge of Scrapy based projects deployment
+(currently only supports Scrapy projects) and uses a REST API client to upload projects. These projects are then built
 into docker images and added to a Docker Registry.
 
 The [Bitmaker API]({% link bitmaker_cloud/api/api.md %}) endpoint creates a [Kubernetes](https://kubernetes.io/) job
