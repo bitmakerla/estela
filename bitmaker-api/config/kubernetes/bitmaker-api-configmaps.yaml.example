@@ -15,7 +15,7 @@ data:
   REPOSITORY_NAME: bitmaker-projects
   CORS_ORIGIN_WHITELIST: http://localhost:3000
   ENGINE: kubernetes
-  CREDENTIALS: local
+  CREDENTIALS: aws
   KAFKA_HOSTS: kafka
   KAFKA_PORT: "9092"
   STAGE: DEVELOPMENT
