@@ -23,7 +23,7 @@ spec:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
-          value: "True"
+          value: "False"
         - name: MONGO_CONNECTION
           valueFrom:
             secretKeyRef:
@@ -57,7 +57,7 @@ spec:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
-          value: "True"
+          value: "False"
         - name: MONGO_CONNECTION
           valueFrom:
             secretKeyRef:
@@ -91,7 +91,7 @@ spec:
         - name: KAFKA_ADVERTISED_LISTENERS
           value: kafka
         - name: PRODUCTION
-          value: "True  "
+          value: "False"
         - name: MONGO_CONNECTION
           valueFrom:
             secretKeyRef:
