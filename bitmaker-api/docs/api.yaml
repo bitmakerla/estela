@@ -487,6 +487,31 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}/run_once:
+    get:
+      operationId: api_projects_spiders_cronjobs_run_once
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderCronJob'
+      tags:
+        - api
+    parameters:
+      - name: cjid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/spiders/{sid}/jobs:
     get:
       operationId: api_projects_spiders_jobs_list

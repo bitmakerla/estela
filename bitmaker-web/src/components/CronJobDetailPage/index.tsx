@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Typography, Row, Space, Tag, Pagination, Table, Switch } from "antd";
+import { Layout, Typography, Row, Space, Tag, Pagination, Table, Switch, Button } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -8,6 +8,7 @@ import {
     ApiProjectsSpidersCronjobsUpdateRequest,
     ApiProjectsSpidersCronjobsReadRequest,
     ApiProjectsSpidersJobsListRequest,
+    ApiProjectsSpidersCronjobsRunOnceRequest,
     SpiderCronJob,
     SpiderJob,
     SpiderCronJobUpdateStatusEnum,
@@ -232,6 +233,25 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         });
     };
 
+    runOnce = (): void => {
+        const requestParams: ApiProjectsSpidersCronjobsRunOnceRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            cjid: this.cronjobId,
+        };
+        this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
+            async (response: SpiderCronJob) => {
+                console.log(response);
+                const data = await this.getJobs(1);
+                const jobs: SpiderJobData[] = data.data;
+                this.setState({ jobs: [...jobs] });
+            },
+            (error: unknown) => {
+                console.log(error);
+            },
+        );
+    };
+
     updateStatus = (active: boolean): void => {
         console.log(active);
         this.setState({ loading_status: true });
@@ -339,6 +359,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                     ))}
                                                 </Space>
                                             </Space>
+                                            <Button type="primary" className="go-to-spiders" onClick={this.runOnce}>
+                                                Run once
+                                            </Button>
                                         </Space>
                                     </Row>
                                     <Row justify="center" className="cronjob-data">

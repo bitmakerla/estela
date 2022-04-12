@@ -3,6 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import mixins, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
@@ -13,7 +14,7 @@ from api.serializers.cronjob import (
     SpiderCronJobUpdateSerializer,
 )
 from core.models import Spider, SpiderCronJob
-from core.cronjob import create_cronjob
+from core.cronjob import create_cronjob, run_once
 
 
 class SpiderCronJobViewSet(
@@ -91,3 +92,17 @@ class SpiderCronJobViewSet(
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data)
+
+    @swagger_auto_schema(
+        methods=["GET"], responses={status.HTTP_200_OK: SpiderCronJobSerializer()}
+    )
+    @action(methods=["GET"], detail=True)
+    def run_once(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        cronjob = SpiderCronJobSerializer(instance)
+        print(cronjob)
+        print(cronjob.data)
+        run_once(cronjob.data)
+        return Response(cronjob.data, status=status.HTTP_200_OK)
