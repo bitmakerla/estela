@@ -1,0 +1,33 @@
+name: Build and deploy Jekyll docs for Bitmaker Cloud
+
+on:
+  push:
+    paths:
+      - docs
+      - .github/workflows/*.yml
+    branches:
+      - BITMAKER-1616
+
+env:
+  DOCS_DIRECTORY: docs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: build-main-docs
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          working-directory: './docs/'
+
+      - name: Build and deploy docs
+        run: |
+          cd $DOCS_DIRECTORY
+          bundle exec jekyll build
+          ls _site/
