@@ -26,7 +26,7 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
 
 ## Architecture
 
-![Bitmaker Cloud Architecture](./assets/images/architecture.png)
+![Bitmaker Cloud Architecture](./assets/images/architecture.svg)
 
 ## Structure
 - [Bitmaker Cloud](https://github.com/bitmakerla/bitmaker-cloud/): It is composed of modules that work independently of the rest, and
