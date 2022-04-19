@@ -3,18 +3,18 @@ name: Build and deploy Jekyll docs for Bitmaker Cloud
 on:
   push:
     paths:
-      - docs
+      - docs/**/*
       - .github/workflows/*.yml
     branches:
-      - BITMAKER-1616
+      - main
 
 env:
   DOCS_DIRECTORY: docs
 
 jobs:
-  build:
+  build-main-docs:
     runs-on: ubuntu-latest
-    name: build-main-docs
+    name: Build
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -23,11 +23,44 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 2.7
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          bundler-cache: true # Runs 'bundle install' and caches installed gems automatically
           working-directory: './docs/'
 
-      - name: Build and deploy docs
+      - name: Build docs
         run: |
           cd $DOCS_DIRECTORY
           bundle exec jekyll build
-          ls _site/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-docs
+          path: docs/_site/
+          retention-days: 1
+
+  deploy-to-s3-main-docs:
+    needs: build-main-docs
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Download build Docs
+        uses: actions/download-artifact@v3
+        with:
+          name: build-docs
+          path: docs/_site/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Deploy docs to s3
+        run: |
+          cd $DOCS_DIRECTORY
+          aws s3 sync --delete ./_site s3://${{ secrets.AWS_DOCS_S3_BUCKET }}/docs/
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_DOCS_CF_DISTRIBUTION }} --paths '/docs/*'
