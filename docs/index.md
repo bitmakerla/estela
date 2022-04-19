@@ -1,7 +1,6 @@
 ---
 layout: home
 title: Overview
-permalink: /
 nav_order: 1
 ---
 
@@ -18,11 +17,11 @@ The [Bitmaker CLI](https://github.com/bitmakerla/bitmaker-cli/) is in charge of 
 (currently only supports Scrapy projects) and uses a REST API client to upload projects. These projects are then built
 into docker images and added to a Docker Registry.
 
-The [Bitmaker API]({% link bitmaker_cloud/api/api.md %}) endpoint creates a [Kubernetes](https://kubernetes.io/) job
+The [Bitmaker API]({% link bitmaker-cloud/api/api.md %}) endpoint creates a [Kubernetes](https://kubernetes.io/) job
 to complete every spider job (it could also be a spider cronjob). Currently, Bitmaker Cloud only works with Kubernetes.
 However, you can [add your engine](https://www.zyte.com/scrapy-cloud/) to make it work with Docker or other engines.
 Jobs send spider jobs data to [Kafka](https://kafka.apache.org/) brokers through extensions and middlewares
-implemented in the [entry point]({% link bitmaker_entrypoint/index.md %}). Kafka consumers read the information and send
+implemented in the [entry point]({% link bitmaker-entrypoint/index.md %}). Kafka consumers read the information and send
 data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
 
 ## Architecture
@@ -45,5 +44,5 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
 ## Get Started
 From here, we recommend reading through the following docs:
 
-- Set up the [Bitmaker Cloud API]({% link bitmaker_cloud/api/api.md %}).
-- [Install the Bitmaker CLI]({% link bitmaker_cli/install.md %}).
+- Set up the [Bitmaker Cloud API]({% link bitmaker-cloud/api/api.md %}).
+- [Install the Bitmaker CLI]({% link bitmaker-cli/install.md %}).
