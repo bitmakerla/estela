@@ -9,4 +9,4 @@ COPY requirements requirements
 RUN pip install -r requirements/consumer.txt
 
 COPY consumer.py .
-# COPY config config
+COPY config config
