@@ -14,7 +14,7 @@ from api.serializers.cronjob import (
     SpiderCronJobUpdateSerializer,
 )
 from core.models import Spider, SpiderCronJob
-from core.cronjob import create_cronjob, run_once
+from core.cronjob import create_cronjob, run_cronjob_once
 
 
 class SpiderCronJobViewSet(
@@ -102,7 +102,6 @@ class SpiderCronJobViewSet(
         instance = self.get_object()
 
         cronjob = SpiderCronJobSerializer(instance)
-        print(cronjob)
-        print(cronjob.data)
-        run_once(cronjob.data)
+
+        run_cronjob_once(cronjob.data)
         return Response(cronjob.data, status=status.HTTP_200_OK)

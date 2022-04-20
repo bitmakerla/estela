@@ -23,7 +23,7 @@ def create_cronjob(name, key, args, env_vars, tags, schedule):
     return response
 
 
-def run_once(data):
+def run_cronjob_once(data):
     _data = {
         "cronjob": data.get("cjid"),
         "args": data.get("cargs"),
