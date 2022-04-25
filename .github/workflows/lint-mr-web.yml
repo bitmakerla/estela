@@ -60,6 +60,7 @@ jobs:
           name: build-web
           path: bitmaker-web/build/
           retention-days: 1
+
   deploy-to-s3-main-web:
     if: ${{ github.ref == 'refs/heads/main' }}
     needs: build-main-web

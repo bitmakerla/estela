@@ -3,8 +3,8 @@ color_scheme: "bitmaker_cloud"
 
 title: Bitmaker Cloud Documentation
 description: Documentation for Bitmaker Cloud
+url: "https://bitmaker.la"
 baseurl: "/docs"
-# url: "https://cloud.bitmaker.dev"
 
 
 search_enabled: true
@@ -70,6 +70,3 @@ gh_edit_view_mode: "tree" # "tree" or "edit" if you want the user to jump into t
 # Google Analytics Tracking
 #ga_tracking: UA-5555555-55
 #ga_tracking_anonymize_ip: true # Use GDPR compliant Google Analytics settings (true by default)
-
-# Server Config options
-livereload: true     # You no longer need to include --livereload
