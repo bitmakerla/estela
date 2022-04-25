@@ -1,4 +1,4 @@
-REGISTRY_HOST = 192.168.49.1:5000# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+REGISTRY_HOST = <IPV4_ADDRESS:5000>
 REGION = us-east-2
 APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
