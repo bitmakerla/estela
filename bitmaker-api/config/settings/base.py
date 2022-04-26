@@ -42,8 +42,8 @@ env = environ.Env(
     MONGO_CONNECTION=(str, "dummy"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
-    ENGINE=(str,"dummy"),
-    CREDENTIALS=(str,"dummy"),
+    ENGINE=(str, "dummy"),
+    CREDENTIALS=(str, "dummy"),
 )
 
 environ.Env.read_env(env_file=".env")

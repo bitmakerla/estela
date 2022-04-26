@@ -170,6 +170,12 @@ export interface ApiProjectsSpidersCronjobsReadRequest {
     sid: string;
 }
 
+export interface ApiProjectsSpidersCronjobsRunOnceRequest {
+    cjid: string;
+    pid: string;
+    sid: string;
+}
+
 export interface ApiProjectsSpidersCronjobsUpdateRequest {
     cjid: string;
     pid: string;
@@ -883,6 +889,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersCronjobsRead(requestParameters: ApiProjectsSpidersCronjobsReadRequest): Promise<SpiderCronJob> {
         const response = await this.apiProjectsSpidersCronjobsReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsRunOnceRaw(requestParameters: ApiProjectsSpidersCronjobsRunOnceRequest): Promise<runtime.ApiResponse<SpiderCronJob>> {
+        if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
+            throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsRunOnce.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsRunOnce.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsRunOnce.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}/run_once`.replace(`{${"cjid"}}`, encodeURIComponent(String(requestParameters.cjid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderCronJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsRunOnce(requestParameters: ApiProjectsSpidersCronjobsRunOnceRequest): Promise<SpiderCronJob> {
+        const response = await this.apiProjectsSpidersCronjobsRunOnceRaw(requestParameters);
         return await response.value();
     }
 
