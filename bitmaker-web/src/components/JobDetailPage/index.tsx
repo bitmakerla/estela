@@ -1,16 +1,18 @@
 import React, { Component } from "react";
-import { Layout, Typography, Collapse, Row, Space, Tag, Button } from "antd";
+import { Layout, Typography, Pagination, Collapse, Row, Space, Tag, Button, List } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import {
     ApiProjectsSpidersJobsReadRequest,
+    ApiProjectsSpidersJobsLogsRequest,
     SpiderJobUpdateStatusEnum,
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
     SpiderJob,
     SpiderJobUpdate,
+    GetLogs,
 } from "../../services/api";
 import {
     authNotification,
@@ -54,6 +56,9 @@ interface JobDetailPageState {
     status: string | undefined;
     cronjob: number | undefined | null;
     stats: Dictionary;
+    logs: string[];
+    count: number;
+    current: number;
 }
 
 interface RouteParams {
@@ -63,6 +68,7 @@ interface RouteParams {
 }
 
 export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, JobDetailPageState> {
+    PAGE_SIZE = 10;
     state: JobDetailPageState = {
         loaded: false,
         name: "",
@@ -73,6 +79,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         status: "",
         cronjob: null,
         stats: {},
+        logs: [],
+        count: 0,
+        current: 0,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -119,6 +128,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     resourceNotAllowedNotification();
                 },
             );
+            this.getLogs(1);
         }
     }
 
@@ -141,6 +151,24 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 incorrectDataNotification();
             },
         );
+    };
+
+    getLogs = (page: number): void => {
+        const requestParams: ApiProjectsSpidersJobsLogsRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.jobId,
+            page: page,
+            pageSize: this.PAGE_SIZE,
+        };
+        this.apiService.apiProjectsSpidersJobsLogs(requestParams).then((response: GetLogs) => {
+            const data: string[] = response.logs;
+            this.setState({ logs: [...data], count: response.count, current: page });
+        });
+    };
+
+    onPageChange = async (page: number): Promise<void> => {
+        await this.getLogs(page);
     };
 
     getStats = (key: string | string[]): void => {
@@ -171,7 +199,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     render(): JSX.Element {
-        const { loaded, args, envVars, tags, date, status, cronjob, stats } = this.state;
+        const { loaded, args, envVars, tags, date, status, cronjob, stats, logs, count, current } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -260,6 +288,24 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     </Text>
                                                 </Panel>
                                             </Collapse>
+                                            <List
+                                                size="large"
+                                                header={<div>Logs</div>}
+                                                bordered
+                                                dataSource={logs}
+                                                renderItem={(item) => (
+                                                    <List.Item style={{ whiteSpace: "pre-line" }}>{item}</List.Item>
+                                                )}
+                                            />
+                                            <Pagination
+                                                className="pagination"
+                                                defaultCurrent={1}
+                                                total={count}
+                                                current={current}
+                                                pageSize={this.PAGE_SIZE}
+                                                onChange={this.onPageChange}
+                                                showSizeChanger={false}
+                                            />
                                         </Space>
                                     </Row>
                                 </Content>

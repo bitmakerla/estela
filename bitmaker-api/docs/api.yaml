@@ -711,6 +711,42 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/logs:
+    get:
+      operationId: api_projects_spiders_jobs_logs
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: DataPaginated.
+          required: false
+          type: number
+        - name: page_size
+          in: query
+          description: DataPaginated.
+          required: false
+          type: number
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/GetLogs'
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        description: A unique integer value identifying this spider job.
+        required: true
+        type: integer
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
 definitions:
   AuthToken:
     required:
@@ -1185,3 +1221,18 @@ definitions:
           - CANCELLED
           - COMPLETED
           - ERROR
+  GetLogs:
+    required:
+      - logs
+      - count
+    type: object
+    properties:
+      logs:
+        type: array
+        items:
+          type: string
+          maxLength: 1000
+          minLength: 1
+      count:
+        title: Count
+        type: integer
