@@ -6,6 +6,7 @@ models/AuthToken.ts
 models/Deploy.ts
 models/DeployCreate.ts
 models/DeployUpdate.ts
+models/GetLogs.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
 models/InlineResponse2002.ts

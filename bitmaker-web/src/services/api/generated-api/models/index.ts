@@ -2,6 +2,7 @@ export * from './AuthToken';
 export * from './Deploy';
 export * from './DeployCreate';
 export * from './DeployUpdate';
+export * from './GetLogs';
 export * from './InlineResponse200';
 export * from './InlineResponse2001';
 export * from './InlineResponse2002';
