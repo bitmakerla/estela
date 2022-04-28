@@ -1,5 +1,6 @@
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 import json
+from core.tasks import launch_job
 
 
 def create_cronjob(name, key, args, env_vars, tags, schedule):
@@ -20,6 +21,16 @@ def create_cronjob(name, key, args, env_vars, tags, schedule):
         args=json.dumps([sid, data]),
     )
     return response
+
+
+def run_cronjob_once(data):
+    _data = {
+        "cronjob": data.get("cjid"),
+        "args": data.get("cargs"),
+        "env_vars": data.get("cenv_vars"),
+        "tags": data.get("ctags"),
+    }
+    launch_job(data.get("spider"), _data)
 
 
 def disable_cronjob(key):

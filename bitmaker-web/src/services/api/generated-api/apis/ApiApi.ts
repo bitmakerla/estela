@@ -27,6 +27,9 @@ import {
     DeployUpdate,
     DeployUpdateFromJSON,
     DeployUpdateToJSON,
+    GetLogs,
+    GetLogsFromJSON,
+    GetLogsToJSON,
     InlineResponse200,
     InlineResponse200FromJSON,
     InlineResponse200ToJSON,
@@ -170,6 +173,12 @@ export interface ApiProjectsSpidersCronjobsReadRequest {
     sid: string;
 }
 
+export interface ApiProjectsSpidersCronjobsRunOnceRequest {
+    cjid: string;
+    pid: string;
+    sid: string;
+}
+
 export interface ApiProjectsSpidersCronjobsUpdateRequest {
     cjid: string;
     pid: string;
@@ -199,6 +208,14 @@ export interface ApiProjectsSpidersJobsListRequest {
     cronjob?: number;
     status?: string;
     tag?: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProjectsSpidersJobsLogsRequest {
+    jid: number;
+    pid: string;
+    sid: string;
     page?: number;
     pageSize?: number;
 }
@@ -888,6 +905,45 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiProjectsSpidersCronjobsRunOnceRaw(requestParameters: ApiProjectsSpidersCronjobsRunOnceRequest): Promise<runtime.ApiResponse<SpiderCronJob>> {
+        if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
+            throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsRunOnce.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsRunOnce.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsRunOnce.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}/run_once`.replace(`{${"cjid"}}`, encodeURIComponent(String(requestParameters.cjid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderCronJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsRunOnce(requestParameters: ApiProjectsSpidersCronjobsRunOnceRequest): Promise<SpiderCronJob> {
+        const response = await this.apiProjectsSpidersCronjobsRunOnceRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiProjectsSpidersCronjobsUpdateRaw(requestParameters: ApiProjectsSpidersCronjobsUpdateRequest): Promise<runtime.ApiResponse<SpiderCronJobUpdate>> {
         if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
             throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsUpdate.');
@@ -1081,6 +1137,53 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2004> {
         const response = await this.apiProjectsSpidersJobsListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsLogsRaw(requestParameters: ApiProjectsSpidersJobsLogsRequest): Promise<runtime.ApiResponse<GetLogs>> {
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsLogs.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsLogs.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsLogs.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/logs`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetLogsFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsLogs(requestParameters: ApiProjectsSpidersJobsLogsRequest): Promise<GetLogs> {
+        const response = await this.apiProjectsSpidersJobsLogsRaw(requestParameters);
         return await response.value();
     }
 

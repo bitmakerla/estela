@@ -5,16 +5,20 @@ from drf_yasg import openapi
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.utils.urls import replace_query_param
 
+from api import errors
 from api.filters import SpiderJobFilter
 from api.mixins import BaseViewSet
 from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobCreateSerializer,
     SpiderJobUpdateSerializer,
+    GetLogsSerializer,
 )
 from config.job_manager import job_manager
 from core.models import Spider, SpiderJob
+from core.registry import get_logs
 
 
 class SpiderJobViewSet(
@@ -30,6 +34,17 @@ class SpiderJobViewSet(
     lookup_field = "jid"
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpiderJobFilter
+
+    MAX_PAGINATION_SIZE = 100
+    MIN_PAGINATION_SIZE = 1
+    DEFAULT_PAGINATION_SIZE = 10
+
+    def get_parameters(self, request):
+        page = int(request.query_params.get("page", 1))
+        page_size = int(
+            request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
+        )
+        return page, page_size
 
     def get_queryset(self):
         if self.request is None:
@@ -131,3 +146,39 @@ class SpiderJobViewSet(
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="DataPaginated.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="DataPaginated.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+        ],
+        responses={status.HTTP_200_OK: GetLogsSerializer()},
+    )
+    @action(methods=["GET"], detail=True)
+    def logs(self, request, *args, **kwargs):
+        instance = self.get_object()
+        page, page_size = self.get_parameters(request)
+        if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
+            return Response(
+                {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if page_size < 1:
+            return Response(
+                {"error": errors.INVALID_PAGE_NUMBER},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        count, logs = get_logs(instance.name, page_size * (page - 1), page_size)
+        return Response({"logs": logs, "count": count}, status=status.HTTP_200_OK)

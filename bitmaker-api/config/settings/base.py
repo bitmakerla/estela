@@ -42,8 +42,13 @@ env = environ.Env(
     MONGO_CONNECTION=(str, "dummy"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
-    ENGINE=(str,"dummy"),
-    CREDENTIALS=(str,"dummy"),
+    ENGINE=(str, "dummy"),
+    CREDENTIALS=(str, "dummy"),
+    ELASTICSEARCH_HOST=(str, "dummy"),
+    ELASTICSEARCH_USER=(str, "dummy"),
+    ELASTICSEARCH_PASS=(str, "dummy"),
+    ELASTICSEARCH_PORT=(str, "dummy"),
+    LOGS_INDEX=(str, "dummy"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -250,3 +255,10 @@ TEST_DOCKER_IMAGE = "{}/bitmaker-project-demo:test".format(
 # Engine
 ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
+
+# ElasticSearch
+ELASTICSEARCH_HOST = env("ELASTICSEARCH_HOST")
+ELASTICSEARCH_USER = env("ELASTICSEARCH_USER")
+ELASTICSEARCH_PASS = env("ELASTICSEARCH_PASS")
+ELASTICSEARCH_PORT = env("ELASTICSEARCH_PORT")
+LOGS_INDEX = env("LOGS_INDEX")
