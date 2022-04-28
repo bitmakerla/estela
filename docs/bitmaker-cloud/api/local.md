@@ -27,8 +27,8 @@ To run the Bitmaker Cloud API in a local environment, we use Minikube as a clust
 
 If this is the first time you build the app, take the following steps:
 
-- Create a `Makefile` using the `Makefile.example` file in `bitmaker-api/`.
-
+- Create a `Makefile` using the `Makefile.example` file in `bitmaker-api/`. Then, modify the file with the appropriate values.
+  - **\<IPV4_ADDRESS:5000\>**: Set your IPv4_Address, keeping the port 5000 as it is specified for the local registry service (e.g., 192.168.1.14:5000).
 - Start the Minikube cluster and the database container.
   ```bash
   $ make start
@@ -39,10 +39,6 @@ If this is the first time you build the app, take the following steps:
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
   # 192.168.49.1 -> This IP could change
   ```
-  Make sure that the **REGISTRY_HOST** IP in your `Makefile` is the same as this value, keeping the port `5000`
-  as it is specified for the local registry service (e.g., `192.168.49.1:5000`). In case it is different, please use
-  `make down` and then use `make start` again with the updated IP. This is needed in order to avoid conflicts in the
-  local registry.
 
   Then, apply the `bitmaker-api-services.yaml` file:
   ```bash
