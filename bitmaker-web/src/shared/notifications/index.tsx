@@ -55,3 +55,10 @@ export const nonExistentUserNotification = (): void => {
         description: `User does not exist.`,
     });
 };
+
+export const emailConfirmationNotification = (): void => {
+    notification.open({
+        message: "Confirmation email sent",
+        description: `The confirmation email was sent to the email you provided.`,
+    });
+};

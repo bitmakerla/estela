@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthRegisterRequest, Token } from "../../services/api";
-import { Header, badPasswordNotification, invalidDataNotification } from "../../shared";
+import { Header, badPasswordNotification, invalidDataNotification, emailConfirmationNotification } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -64,11 +64,11 @@ export class RegisterPage extends Component<unknown> {
         const request: ApiAuthRegisterRequest = { data };
         this.apiService.apiAuthRegister(request).then(
             (response: Token) => {
-                AuthService.setAuthToken(response.key);
                 if (response.user !== undefined) {
                     AuthService.setUserUsername(response.user);
                 }
-                history.push("/projects");
+                emailConfirmationNotification();
+                history.push("/login");
             },
             (error: unknown) => {
                 console.error(error);

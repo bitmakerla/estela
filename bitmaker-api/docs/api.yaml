@@ -17,6 +17,21 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
+  /api/auth/activate:
+    get:
+      operationId: api_auth_activate
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AuthToken'
+      tags:
+        - api
+    parameters: []
   /api/auth/login:
     post:
       operationId: api_auth_login
