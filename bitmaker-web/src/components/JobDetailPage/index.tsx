@@ -281,7 +281,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                         {Object.keys(stats).map((key, idx) => {
                                                             return (
                                                                 <div key={idx}>
-                                                                    <b>{key}</b>: {stats[key]}
+                                                                    <b>{key.replace(/\\u002e/g, ".")}</b>: {stats[key]}
                                                                 </div>
                                                             );
                                                         })}
