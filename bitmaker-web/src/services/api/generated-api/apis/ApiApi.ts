@@ -263,6 +263,33 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiAuthActivateRaw(): Promise<runtime.ApiResponse<Array<AuthToken>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/activate`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AuthTokenFromJSON));
+    }
+
+    /**
+     */
+    async apiAuthActivate(): Promise<Array<AuthToken>> {
+        const response = await this.apiAuthActivateRaw();
+        return await response.value();
+    }
+
+    /**
+     */
     async apiAuthLoginRaw(requestParameters: ApiAuthLoginRequest): Promise<runtime.ApiResponse<Token>> {
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthLogin.');

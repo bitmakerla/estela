@@ -49,6 +49,13 @@ env = environ.Env(
     ELASTICSEARCH_PASS=(str, "dummy"),
     ELASTICSEARCH_PORT=(str, "dummy"),
     LOGS_INDEX=(str, "dummy"),
+    EMAIL_HOST_USER=(str, "dummy"),
+    EMAIL_HOST_PASSWORD=(str, "dummy"),
+    EMAILS_TO_ALERT=(str, "dummy"),
+    REGISTER=(str, "dummy"),
+    EMAIL_HOST=(str, "dummy"),
+    EMAIL_PORT=(str, "dummy"),
+    VERIFICATION_EMAIL=(str, "dummy"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -167,6 +174,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+PASSWORD_RESET_TIMEOUT = 60  # In seconds
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -262,3 +271,17 @@ ELASTICSEARCH_USER = env("ELASTICSEARCH_USER")
 ELASTICSEARCH_PASS = env("ELASTICSEARCH_PASS")
 ELASTICSEARCH_PORT = env("ELASTICSEARCH_PORT")
 LOGS_INDEX = env("LOGS_INDEX")
+
+# Email confirmation
+EMAIL_USE_TLS = True
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAILS_TO_ALERT = env("EMAILS_TO_ALERT")
+
+# Accept new Users
+REGISTER = env("REGISTER")
+
+# Verification Email
+VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
