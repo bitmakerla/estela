@@ -71,7 +71,15 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         user.is_active = False
         user.save()
         update_last_login(None, user)
-        send_verification_email(user, request)
+        try:
+            send_verification_email(user, request)
+        except Exception as ex:
+            return Response(
+                {
+                    "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
