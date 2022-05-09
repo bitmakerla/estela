@@ -35,7 +35,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                     <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
                     <Route path="/projects/:projectId/spiders/:spiderId/jobs/create" component={JobCreatePage} exact />
                     <Route
-                        path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data"
+                        path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType"
                         component={JobDataListPage}
                         exact
                     />

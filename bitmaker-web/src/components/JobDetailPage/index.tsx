@@ -69,6 +69,8 @@ interface RouteParams {
 
 export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, JobDetailPageState> {
     PAGE_SIZE = 10;
+    dataRequests = "requests";
+    dataItems = "items";
     state: JobDetailPageState = {
         loaded: false,
         name: "",
@@ -266,10 +268,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 </Space>
                                             </Space>
                                             <Link
-                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data`}
+                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataItems}`}
                                             >
                                                 <Button type="primary" className="create-new-job">
-                                                    Go to spider job data
+                                                    Go to spider job items data
+                                                </Button>
+                                            </Link>
+                                            <Link
+                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataRequests}`}
+                                            >
+                                                <Button type="primary" className="create-new-job">
+                                                    Go to spider job request data
                                                 </Button>
                                             </Link>
                                             <Button danger className="stop-job" onClick={this.stopJob}>
