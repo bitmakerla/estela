@@ -21,6 +21,7 @@ interface RouteParams {
     projectId: string;
     spiderId: string;
     jobId: string;
+    dataType: string;
 }
 
 export class JobDataListPage extends Component<RouteComponentProps<RouteParams>, JobDataListPageState> {
@@ -35,6 +36,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
     jobId: string = this.props.match.params.jobId;
+    type: string = this.props.match.params.dataType;
 
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
@@ -51,6 +53,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
             jid: this.jobId,
             page,
             pageSize: this.PAGE_SIZE,
+            type: this.type,
         };
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
@@ -86,7 +89,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                                     <List
                                         header={
                                             <Fragment>
-                                                <Title level={3}>Spider Job {this.jobId}</Title>
+                                                <Title level={3}>Spider Job {this.jobId + " " + this.type}</Title>
                                                 <span>
                                                     <b>Total data items:</b> {count}
                                                 </span>
