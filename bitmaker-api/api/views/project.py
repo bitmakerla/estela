@@ -1,18 +1,20 @@
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
 from api.serializers.project import ProjectSerializer, ProjectUpdateSerializer
-from core.models import Project, User, Permission
+from api.serializers.job import SpiderJobSerializer
+from core.models import Project, User, Permission, Spider, SpiderJob
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Project
     serializer_class = ProjectSerializer
     lookup_field = "pid"
-
+    
     def get_queryset(self):
         return self.request.user.project_set.all()
 
@@ -70,3 +72,16 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    @action(methods=["GET"], detail=True)
+    def jobs(self, request, *args, **kwargs):
+        spider_set = Spider.objects.filter(project=kwargs['pid'])
+        sid_set = spider_set.values_list('pk', flat=True)
+        jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
+        page = self.paginate_queryset(jobs_set)
+
+        if page is not None:
+            serializer = SpiderJobSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        return Response(SpiderJobSerializer(jobs_set, many=True).data)
