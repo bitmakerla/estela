@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
 from api.serializers.project import ProjectSerializer, ProjectUpdateSerializer
-from api.serializers.job import SpiderJobSerializer
+from api.serializers.job import SpiderJobSerializer, ProjectJobSerializer
 from core.models import Project, User, Permission, Spider, SpiderJob
 
 
@@ -73,15 +73,35 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="DataPaginated.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="DataPaginated.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+        ],
+        responses={status.HTTP_200_OK: ProjectJobSerializer()},
+    )
     @action(methods=["GET"], detail=True)
     def jobs(self, request, *args, **kwargs):
-        spider_set = Spider.objects.filter(project=kwargs['pid'])
-        sid_set = spider_set.values_list('pk', flat=True)
+        spider_set = Spider.objects.filter(project=kwargs["pid"])
+        sid_set = spider_set.values_list("pk", flat=True)
         jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
         page = self.paginate_queryset(jobs_set)
-
+        
         if page is not None:
-            serializer = SpiderJobSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        return Response(SpiderJobSerializer(jobs_set, many=True).data)
+            result = SpiderJobSerializer(page, many=True)
+        else:
+            result = SpiderJobSerializer(jobs_set, many=True)
+        return Response({"result": result.data, "count": len(jobs_set)}, status=status.HTTP_200_OK)

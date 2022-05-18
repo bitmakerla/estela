@@ -110,3 +110,8 @@ class GetLogsSerializer(serializers.Serializer):
         child=serializers.CharField(max_length=1000), required=True
     )
     count = serializers.IntegerField(required=True)
+
+
+class ProjectJobSerializer(serializers.Serializer):
+    result = SpiderJobSerializer(many=True,required=True)
+    count = serializers.IntegerField(required=True)
