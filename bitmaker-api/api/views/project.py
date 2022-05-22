@@ -101,7 +101,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         page = self.paginate_queryset(jobs_set)
         
         if page is not None:
-            result = SpiderJobSerializer(page, many=True)
+            results = SpiderJobSerializer(page, many=True)
         else:
-            result = SpiderJobSerializer(jobs_set, many=True)
-        return Response({"result": result.data, "count": len(jobs_set)}, status=status.HTTP_200_OK)
+            results = SpiderJobSerializer(jobs_set, many=True)
+        return Response({"results": results.data, "count": jobs_set.count()}, status=status.HTTP_200_OK)

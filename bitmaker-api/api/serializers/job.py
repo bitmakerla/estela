@@ -113,5 +113,5 @@ class GetLogsSerializer(serializers.Serializer):
 
 
 class ProjectJobSerializer(serializers.Serializer):
-    result = SpiderJobSerializer(many=True,required=True)
+    results = SpiderJobSerializer(many=True, required=True)
     count = serializers.IntegerField(required=True)

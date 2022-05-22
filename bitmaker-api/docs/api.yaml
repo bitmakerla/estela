@@ -1119,11 +1119,11 @@ definitions:
         x-nullable: true
   ProjectJob:
     required:
-      - result
+      - results
       - count
     type: object
     properties:
-      result:
+      results:
         type: array
         items:
           $ref: '#/definitions/SpiderJob'
