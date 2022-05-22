@@ -14,7 +14,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Project
     serializer_class = ProjectSerializer
     lookup_field = "pid"
-    
+
     def get_queryset(self):
         return self.request.user.project_set.all()
 
@@ -99,9 +99,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         sid_set = spider_set.values_list("pk", flat=True)
         jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
         page = self.paginate_queryset(jobs_set)
-        
+
         if page is not None:
             results = SpiderJobSerializer(page, many=True)
         else:
             results = SpiderJobSerializer(jobs_set, many=True)
-        return Response({"results": results.data, "count": jobs_set.count()}, status=status.HTTP_200_OK)
+        return Response(
+            {"results": results.data, "count": jobs_set.count()},
+            status=status.HTTP_200_OK,
+        )
