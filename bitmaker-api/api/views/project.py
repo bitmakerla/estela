@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.project import ProjectSerializer, ProjectUpdateSerializer
 from api.serializers.job import SpiderJobSerializer, ProjectJobSerializer
