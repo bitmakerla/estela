@@ -195,4 +195,4 @@ class JobDataViewSet(
             )
         job_collection = client[kwargs["pid"]][job_collection_name]
         res = job_collection.delete_many({})
-        return Response({"count": res.deleted_count}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
