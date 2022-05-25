@@ -9,6 +9,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
@@ -81,6 +82,7 @@ class JobDataViewSet(
             ),
         ],
     )
+
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
@@ -154,3 +156,43 @@ class JobDataViewSet(
                 "results": result,
             }
         )
+    
+    @swagger_auto_schema(
+        methods=["POST"],
+        manual_parameters=[
+            openapi.Parameter(
+                "type",
+                openapi.IN_QUERY,
+                description="Spider job data type.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+        ],
+        responses={status: status.HTTP_200_OK},
+    )
+
+    @action(methods=["POST"], detail=True)
+    def delete(self, request, *args, **kwargs):
+        data_type = request.query_params.get("type", "items")
+        job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+        client = get_client(settings.MONGO_CONNECTION)
+        if not client:
+            return Response(
+                {"error": errors.UNABLE_CONNECT_DB},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if (
+            job.cronjob is not None
+            and job.cronjob.unique_collection
+            and data_type == "items"
+        ):
+            job_collection_name = "{}-scj{}-job_{}".format(
+                kwargs["sid"], job.cronjob.cjid, data_type
+            )
+        else:
+            job_collection_name = "{}-{}-job_{}".format(
+                kwargs["sid"], kwargs["jid"], data_type
+            )
+        job_collection = client[kwargs["pid"]][job_collection_name]
+        res = job_collection.delete_many({})
+        return Response({"count": res.deleted_count}, status=status.HTTP_200_OK)
