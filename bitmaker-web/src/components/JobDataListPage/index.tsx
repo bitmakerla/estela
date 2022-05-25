@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Layout, List, Pagination, Typography } from "antd";
+import { Layout, List, Pagination, Typography, Button } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -116,6 +116,9 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                                         )}
                                         className="data-list"
                                     />
+                                    <Button danger className="stop-job">
+                                        <div>Stop Job</div>
+                                    </Button>
                                     <Pagination
                                         className="pagination"
                                         defaultCurrent={1}
