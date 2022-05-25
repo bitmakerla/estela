@@ -270,14 +270,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             <Link
                                                 to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataItems}`}
                                             >
-                                                <Button type="primary" className="create-new-job">
+                                                <Button type="primary" className="go-to-job-data">
                                                     Go to spider job items data
                                                 </Button>
                                             </Link>
                                             <Link
                                                 to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataRequests}`}
                                             >
-                                                <Button type="primary" className="create-new-job">
+                                                <Button type="primary" className="go-to-job-data">
                                                     Go to spider job request data
                                                 </Button>
                                             </Link>
