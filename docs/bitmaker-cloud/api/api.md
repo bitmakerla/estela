@@ -22,4 +22,4 @@ and run in Docker containers.
 - Minikube v1.22.0
 - Docker v20.10.7 (include docker-compose)
 - aws-cli v2.2.18
-- Python v3.6
+- Python v3.6.x

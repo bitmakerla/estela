@@ -14,7 +14,8 @@ All these components have a corresponding docker config file to build their imag
 - Minikube v1.22.0
 - Docker v20.10.7 *include docker-compose*
 - aws-cli v2.2.18
-- Install python dependencies:
+- Python v3.6.x
+- Install the Python dependencies:
   ```bash
   $ pip install -r requirements/dev.txt
   ```
@@ -211,6 +212,7 @@ $ make upload-all-images
 ```sh
 $ make test
 ```
+
 <h2> Docs </h2>
 
 It is important to run the `docs` command every time views, serializers and/or models are modified to obtain the api.yaml that will be used in bitmaker-web module.
