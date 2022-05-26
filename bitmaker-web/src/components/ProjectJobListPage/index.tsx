@@ -23,7 +23,7 @@ interface SpiderJobData {
     status: string | undefined;
 }
 
-interface ProjectJobsPageState {
+interface ProjectJobListPageState {
     name: string;
     jobs: SpiderJobData[];
     loaded: boolean;
@@ -35,9 +35,9 @@ interface RouteParams {
     projectId: string;
 }
 
-export class ProjectJobsPage extends Component<RouteComponentProps<RouteParams>, ProjectJobsPageState> {
+export class ProjectJobListPage extends Component<RouteComponentProps<RouteParams>, ProjectJobListPageState> {
     PAGE_SIZE = 10;
-    state: ProjectJobsPageState = {
+    state: ProjectJobListPageState = {
         name: "",
         jobs: [],
         loaded: false,
@@ -109,7 +109,7 @@ export class ProjectJobsPage extends Component<RouteComponentProps<RouteParams>,
             pageSize: this.PAGE_SIZE,
         };
         await this.apiService.apiProjectsJobs(requestParams).then((response: ProjectJob) => {
-            const data = response.result.map((job: SpiderJob, iterator: number) => ({
+            const data = response.results.map((job: SpiderJob, iterator: number) => ({
                 key: iterator,
                 id: { jid: job.jid, sid: job.spider, cid: job.cronjob },
                 args: job.args,

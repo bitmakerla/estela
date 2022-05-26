@@ -31,7 +31,7 @@ export interface ProjectJob {
      * @type {Array<SpiderJob>}
      * @memberof ProjectJob
      */
-    result: Array<SpiderJob>;
+    results: Array<SpiderJob>;
     /**
      * 
      * @type {number}
@@ -50,7 +50,7 @@ export function ProjectJobFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        'result': ((json['result'] as Array<any>).map(SpiderJobFromJSON)),
+        'results': ((json['results'] as Array<any>).map(SpiderJobFromJSON)),
         'count': json['count'],
     };
 }
@@ -64,7 +64,7 @@ export function ProjectJobToJSON(value?: ProjectJob | null): any {
     }
     return {
         
-        'result': ((value.result as Array<any>).map(SpiderJobToJSON)),
+        'results': ((value.results as Array<any>).map(SpiderJobToJSON)),
         'count': value.count,
     };
 }

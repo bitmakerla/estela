@@ -24,7 +24,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                         <Link to={`/projects/${this.projectId}/spiders`}>Spiders</Link>
                     </Menu.Item>
                     <Menu.Item key="3">
-                        <Link to="/projects">All Projects</Link>
+                        <Link to="/projects">Projects</Link>
                     </Menu.Item>
                 </Menu>
             </Sider>

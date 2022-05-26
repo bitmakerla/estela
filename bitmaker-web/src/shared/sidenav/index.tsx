@@ -12,10 +12,7 @@ export class Sidenav extends Component<unknown> {
             <Sider width={250}>
                 <Menu mode="inline" className="sider-menu" theme="dark">
                     <Menu.Item key="1">
-                        <Link to="/projects">All Projects</Link>
-                    </Menu.Item>
-                    <Menu.Item key="2">
-                        <Link to="/projects/create">Create New Project</Link>
+                        <Link to="/projects">Projects</Link>
                     </Menu.Item>
                 </Menu>
             </Sider>
