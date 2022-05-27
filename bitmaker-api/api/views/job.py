@@ -175,7 +175,7 @@ class SpiderJobViewSet(
             return Response(
                 {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
             )
-        if page_size < 1:
+        if page < 1:
             return Response(
                 {"error": errors.INVALID_PAGE_NUMBER},
                 status=status.HTTP_400_BAD_REQUEST,
