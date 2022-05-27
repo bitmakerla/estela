@@ -14,6 +14,7 @@ from rest_framework.utils.urls import replace_query_param
 
 from api import errors
 from api.mixins import BaseViewSet
+from api.serializers.job import DeleteJobDataSerializer
 from core.mongo import get_client
 from core.models import SpiderJob
 
@@ -158,22 +159,12 @@ class JobDataViewSet(
         )
     
     @swagger_auto_schema(
-        methods=["POST"],
-        manual_parameters=[
-            openapi.Parameter(
-                "type",
-                openapi.IN_QUERY,
-                description="Spider job data type.",
-                type=openapi.TYPE_STRING,
-                required=False,
-            ),
-        ],
-        responses={status: status.HTTP_200_OK},
+        methods=["POST"], responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
     )
 
     @action(methods=["POST"], detail=True)
     def delete(self, request, *args, **kwargs):
-        data_type = request.query_params.get("type", "items")
+        data_type = "items"
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         client = get_client(settings.MONGO_CONNECTION)
         if not client:
@@ -195,4 +186,4 @@ class JobDataViewSet(
             )
         job_collection = client[kwargs["pid"]][job_collection_name]
         res = job_collection.delete_many({})
-        return Response(status=status.HTTP_200_OK)
+        return Response({"count": res}, status=status.HTTP_200_OK)

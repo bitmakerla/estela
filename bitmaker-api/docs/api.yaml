@@ -726,6 +726,35 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}/delete:
+    post:
+      operationId: api_projects_spiders_jobs_data_delete
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DeleteJobData'
+      tags:
+        - api
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/spiders/{sid}/jobs/{jid}/logs:
     get:
       operationId: api_projects_spiders_jobs_logs
@@ -1236,6 +1265,14 @@ definitions:
           - CANCELLED
           - COMPLETED
           - ERROR
+  DeleteJobData:
+    required:
+      - count
+    type: object
+    properties:
+      count:
+        title: Count
+        type: integer
   GetLogs:
     required:
       - logs
