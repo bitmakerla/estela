@@ -4,7 +4,7 @@ import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsSpidersJobsDataListRequest } from "../../services/api";
+import { ApiProjectsSpidersJobsDataListRequest, ApiProjectsSpidersJobsDataDeleteRequest } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
@@ -44,6 +44,24 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
         } else {
             await this.getSpiderJobData(1);
         }
+    }
+
+    async deleteSpiderJobData(): Promise<void> {
+        const requestParams: ApiProjectsSpidersJobsDataDeleteRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.jobId,
+            id: this.jobId
+        };
+        this.apiService.apiProjectsSpidersJobsDataDelete(requestParams).then(
+            (response) => {
+                this.setState({ data: [], count: response.count, current: 0, loaded: true });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        )
     }
 
     async getSpiderJobData(page: number): Promise<void> {
@@ -117,7 +135,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                                         className="data-list"
                                     />
                                     <Button danger className="stop-job">
-                                        <div>Stop Job</div>
+                                        <div>Delete Job Data</div>
                                     </Button>
                                     <Pagination
                                         className="pagination"

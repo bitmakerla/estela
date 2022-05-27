@@ -18,6 +18,9 @@ import {
     AuthToken,
     AuthTokenFromJSON,
     AuthTokenToJSON,
+    DeleteJobData,
+    DeleteJobDataFromJSON,
+    DeleteJobDataToJSON,
     Deploy,
     DeployFromJSON,
     DeployToJSON,
@@ -191,6 +194,13 @@ export interface ApiProjectsSpidersJobsCreateRequest {
     sid: string;
     data: SpiderJobCreate;
     async?: boolean;
+}
+
+export interface ApiProjectsSpidersJobsDataDeleteRequest {
+    id: string;
+    jid: string;
+    pid: string;
+    sid: string;
 }
 
 export interface ApiProjectsSpidersJobsDataListRequest {
@@ -1058,6 +1068,49 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersJobsCreate(requestParameters: ApiProjectsSpidersJobsCreateRequest): Promise<SpiderJobCreate> {
         const response = await this.apiProjectsSpidersJobsCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataDeleteRaw(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<runtime.ApiResponse<DeleteJobData>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiProjectsSpidersJobsDataDelete.');
+        }
+
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataDelete.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsDataDelete.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsDataDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}/delete`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DeleteJobDataFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataDelete(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<DeleteJobData> {
+        const response = await this.apiProjectsSpidersJobsDataDeleteRaw(requestParameters);
         return await response.value();
     }
 
