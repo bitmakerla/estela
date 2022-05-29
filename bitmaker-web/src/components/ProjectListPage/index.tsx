@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
-import { Layout, List, Pagination, Typography } from "antd";
+import { Button, Layout, List, Pagination, Typography } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -88,6 +88,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                     onChange={this.onPageChange}
                                     showSizeChanger={false}
                                 />
+                                <Link to="/projects/create">
+                                    <Button className="create-new-project">Create New Project</Button>
+                                </Link>
                             </Content>
                         </Fragment>
                     ) : (

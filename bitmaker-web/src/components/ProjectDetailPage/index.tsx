@@ -160,6 +160,11 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                                         <b>Project ID:</b>&nbsp; {this.projectId}
                                     </Text>
                                 </Row>
+                                <Link to={`/projects/${this.projectId}/jobs`}>
+                                    <Button type="primary" className="go-to-spiders">
+                                        Go to jobs
+                                    </Button>
+                                </Link>
                                 <Link to={`/projects/${this.projectId}/spiders`}>
                                     <Button type="primary" className="go-to-spiders">
                                         Go to spiders

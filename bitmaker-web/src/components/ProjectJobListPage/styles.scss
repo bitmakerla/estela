@@ -1,5 +1,9 @@
-.project-list {
-    max-width: 500px;
+.deploy-list {
+    max-width: 700px;
+    margin: 40px auto;
+}
+
+.table {
     margin: 40px auto;
 }
 
@@ -7,7 +11,7 @@
     min-height: 100vh;
 }
 
-.create-new-project {
+.create-new-job {
     margin: 30px auto;
     display: flex;
     align-self: auto;
