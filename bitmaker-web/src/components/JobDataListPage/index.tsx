@@ -4,7 +4,11 @@ import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsSpidersJobsDataListRequest, ApiProjectsSpidersJobsDataDeleteRequest } from "../../services/api";
+import {
+    ApiProjectsSpidersJobsDataListRequest,
+    ApiProjectsSpidersJobsDataDeleteRequest,
+    DeleteJobData,
+} from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
@@ -46,23 +50,23 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
         }
     }
 
-    async deleteSpiderJobData(): Promise<void> {
-        const requestParams: ApiProjectsSpidersJobsDataDeleteRequest = {
+    deleteSpiderJobData = (): void => {
+        const request: ApiProjectsSpidersJobsDataDeleteRequest = {
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.jobId,
-            id: this.jobId
+            id: this.projectId,
         };
-        this.apiService.apiProjectsSpidersJobsDataDelete(requestParams).then(
-            (response) => {
+        this.apiService.apiProjectsSpidersJobsDataDelete(request).then(
+            (response: DeleteJobData) => {
                 this.setState({ data: [], count: response.count, current: 0, loaded: true });
             },
             (error: unknown) => {
                 console.error(error);
                 resourceNotAllowedNotification();
             },
-        )
-    }
+        );
+    };
 
     async getSpiderJobData(page: number): Promise<void> {
         const requestParams: ApiProjectsSpidersJobsDataListRequest = {
@@ -134,7 +138,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                                         )}
                                         className="data-list"
                                     />
-                                    <Button danger className="stop-job">
+                                    <Button danger className="stop-job" onClick={this.deleteSpiderJobData}>
                                         <div>Delete Job Data</div>
                                     </Button>
                                     <Pagination
