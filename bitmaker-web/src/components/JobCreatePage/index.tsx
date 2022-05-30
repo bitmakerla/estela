@@ -1,6 +1,8 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Layout, Typography, Space, Tag } from "antd";
+import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, DatePicker } from "antd";
+import type { RangePickerProps } from "antd/es/date-picker";
 import { RouteComponentProps } from "react-router-dom";
+import moment from "moment";
 
 import "./styles.scss";
 import history from "../../history";
@@ -49,6 +51,9 @@ interface JobCreatePageState {
     newEnvVarValue: string;
     newTagName: string;
     spiderName: string;
+    logs: boolean;
+    items: boolean;
+    requests: boolean;
 }
 
 interface RouteParams {
@@ -68,6 +73,9 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newEnvVarValue: "",
         newTagName: "",
         spiderName: "",
+        logs: true,
+        items: true,
+        requests: true,
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -181,9 +189,37 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
+    onChangeItems = (): void => {
+        this.setState({ items: !this.state.items });
+    };
+
+    onChangeLogs = (): void => {
+        this.setState({ logs: !this.state.logs });
+    };
+
+    onChangeRequests = (): void => {
+        this.setState({ requests: !this.state.requests });
+    };
+
+    disabledDate: RangePickerProps["disabledDate"] = (current) => {
+        return current && current < moment().endOf("day");
+    };
+
     render(): JSX.Element {
-        const { args, envVars, tags, newArgName, newArgValue, newEnvVarName, newEnvVarValue, newTagName, spiderName } =
-            this.state;
+        const {
+            args,
+            envVars,
+            tags,
+            newArgName,
+            newArgValue,
+            newEnvVarName,
+            newEnvVarValue,
+            newTagName,
+            spiderName,
+            logs,
+            items,
+            requests,
+        } = this.state;
 
         return (
             <Layout className="general-container">
@@ -267,6 +303,46 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                 <Button className="job-create-button" onClick={this.addTag}>
                                     Save Tag
                                 </Button>
+                                <div className="setting-label">Save Data:</div>
+                                <Space direction="vertical" size="large">
+                                    <Space direction="horizontal">
+                                        Items <Switch size="small" checked={items} onChange={this.onChangeItems} />
+                                        {items && (
+                                            <DatePicker
+                                                size="small"
+                                                format={"YYYY-MM-DD HH:mm"}
+                                                disabledDate={this.disabledDate}
+                                                defaultValue={moment().add(1, "month")}
+                                                showTime={{ defaultValue: moment("00:00:00", "00:00") }}
+                                            />
+                                        )}
+                                    </Space>
+                                    <Space direction="horizontal">
+                                        Requests
+                                        <Switch size="small" checked={requests} onChange={this.onChangeRequests} />
+                                        {requests && (
+                                            <DatePicker
+                                                size="small"
+                                                format={"YYYY-MM-DD HH:mm"}
+                                                disabledDate={this.disabledDate}
+                                                defaultValue={moment().add(1, "month")}
+                                                showTime={{ defaultValue: moment("00:00:00", "00:00") }}
+                                            />
+                                        )}
+                                    </Space>
+                                    <Space direction="horizontal">
+                                        Logs <Switch size="small" checked={logs} onChange={this.onChangeLogs} />
+                                        {logs && (
+                                            <DatePicker
+                                                size="small"
+                                                format={"YYYY-MM-DD HH:mm"}
+                                                disabledDate={this.disabledDate}
+                                                defaultValue={moment().add(1, "month")}
+                                                showTime={{ defaultValue: moment("00:00:00", "00:00") }}
+                                            />
+                                        )}
+                                    </Space>
+                                </Space>
                                 <Button type="primary" htmlType="submit" className="job-create-button">
                                     Run Spider Job
                                 </Button>
