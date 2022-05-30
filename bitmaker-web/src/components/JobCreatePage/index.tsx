@@ -343,9 +343,11 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                         )}
                                     </Space>
                                 </Space>
-                                <Button type="primary" htmlType="submit" className="job-create-button">
-                                    Run Spider Job
-                                </Button>
+                                <div className="submitButton">
+                                    <Button type="primary" htmlType="submit" className="job-create-button">
+                                        Run Spider Job
+                                    </Button>
+                                </div>
                             </Form>
                         </Content>
                     </Fragment>
