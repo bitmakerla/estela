@@ -33,6 +33,7 @@ certifi==2020.12.5
     # via
     #   elasticsearch
     #   kubernetes
+    #   minio
     #   requests
 chardet==4.0.0
     # via requests
@@ -114,6 +115,8 @@ kubernetes==12.0.1
     # via -r requirements/base.in
 markupsafe==2.0.1
     # via jinja2
+minio==7.1.7
+    # via -r requirements/base.in
 mypy-extensions==0.4.3
     # via black
 mysqlclient==2.0.1
@@ -196,6 +199,7 @@ urllib3==1.25.11
     #   botocore
     #   elasticsearch
     #   kubernetes
+    #   minio
     #   requests
 vine==5.0.0
     # via

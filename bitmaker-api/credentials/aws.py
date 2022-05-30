@@ -1,5 +1,6 @@
 from django.conf import settings
 import boto3
+from botocore.exceptions import ClientError
 from credentials import Credentials
 
 
@@ -20,6 +21,18 @@ class AWSCredentials(Credentials):
         if token:
             return token[0]
         return None
+    
+    def download_project(self, bucket_name, project_name):
+        s3 = boto3.client("s3")
+        s3.download_file(bucket_name, project_name, project_name)
+
+    def upload_project(self, project_name, project_obj):
+        s3_client = boto3.client("s3")
+        try:
+            s3_client.upload_fileobj(project_obj, settings.PROJECT_BUCKET, project_name)
+        except ClientError as e:
+            return e
+        return False
 
     def get_credentials(self):
         self.credentials["REGISTRY_TOKEN"] = self.get_registry_token()

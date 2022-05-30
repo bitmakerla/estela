@@ -1,6 +1,6 @@
 FROM python:3.6
 
-WORKDIR /home/bitmaker
+WORKDIR c
 
 COPY ./requirements ./requirements
 
@@ -27,4 +27,4 @@ RUN apt-get install docker-ce docker-ce-cli containerd.io -y
 
 RUN pip install -r requirements/deploy.txt
 
-COPY build_project .
+COPY . bitmaker-api/

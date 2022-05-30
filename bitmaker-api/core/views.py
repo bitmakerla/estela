@@ -20,6 +20,8 @@ def launch_deploy_job(pid, did, container_image):
         "TOKEN": deploy_user_token.key,
         "BUCKET_NAME": settings.PROJECT_BUCKET,
         "CONTAINER_IMAGE": container_image,
+        "CREDENTIALS": settings.CREDENTIALS,
+        "ENGINE": settings.ENGINE,
     }
     volume = {"name": "docker-sock", "path": "/var/run"}
     job_manager.create_job(
@@ -28,7 +30,7 @@ def launch_deploy_job(pid, did, container_image):
         job_env_vars=ENV_VARS,
         container_image=settings.BUILD_PROJECT_IMAGE,
         volume=volume,
-        command=["python", "build.py"],
+        command=["python", "bitmaker-api/build_project/build.py"],
         isbuild=True,
     )
 
