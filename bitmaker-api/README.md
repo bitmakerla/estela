@@ -14,7 +14,8 @@ All these components have a corresponding docker config file to build their imag
 - Minikube v1.22.0
 - Docker v20.10.7 *include docker-compose*
 - aws-cli v2.2.18
-- Install python dependencies:
+- Python v3.6.x
+- Install the Python dependencies:
   ```bash
   $ pip install -r requirements/dev.txt
   ```
@@ -26,6 +27,9 @@ To run bitmaker API in a local environment, we use minikube as a cluster for kub
 - In local we use a local registry setting as a Docker service. *in deployment we use aws registry*
 
 If it is the first time you build the app, do the following steps:
+
+- Create a `.env` file from `.env.example`. This is needed to generate the swagger docs locally and
+  will not have much impact since we will use minikube for everything else.
 
 - Configure the aws client with your credentials. Check [the official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for more information.
 
@@ -211,6 +215,7 @@ $ make upload-all-images
 ```sh
 $ make test
 ```
+
 <h2> Docs </h2>
 
 It is important to run the `docs` command every time views, serializers and/or models are modified to obtain the api.yaml that will be used in bitmaker-web module.
