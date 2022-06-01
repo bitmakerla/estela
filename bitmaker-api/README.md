@@ -28,6 +28,9 @@ To run bitmaker API in a local environment, we use minikube as a cluster for kub
 
 If it is the first time you build the app, do the following steps:
 
+- Create a `.env` file from `.env.example`. This is needed to generate the swagger docs locally and
+  will not have much impact since we will use minikube for everything else.
+
 - Configure the aws client with your credentials. Check [the official guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) for more information.
 
 - Start the minikube cluster and the database container.
