@@ -105,7 +105,14 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                             status: error.status,
                         }))
                         .then((res) => {
-                            invalidDataNotification(res.data["error"]);
+                            Object.keys(res.data).forEach((key) => {
+                                const errors: unknown = res.data[key];
+                                if (typeof errors === "string") {
+                                    invalidDataNotification(errors);
+                                } else if (errors instanceof Array) {
+                                    errors.forEach((error) => invalidDataNotification(error));
+                                }
+                            });
                         });
                 } else {
                     console.error("Unexpected error", error);
@@ -141,7 +148,14 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                             status: error.status,
                         }))
                         .then((res) => {
-                            invalidDataNotification(res.data["error"]);
+                            Object.keys(res.data).forEach((key) => {
+                                const errors: unknown = res.data[key];
+                                if (typeof errors === "string") {
+                                    invalidDataNotification(errors);
+                                } else if (errors instanceof Array) {
+                                    errors.forEach((error) => invalidDataNotification(error));
+                                }
+                            });
                         });
                 } else {
                     console.error("Unexpected error", error);

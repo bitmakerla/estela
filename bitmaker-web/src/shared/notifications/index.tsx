@@ -19,13 +19,6 @@ export const resourceNotAllowedNotification = (): void => {
     history.push("/");
 };
 
-export const incorrectCredentialsNotification = (): void => {
-    notification.error({
-        message: "Incorrect Credentials",
-        description: "Credentials do not match.",
-    });
-};
-
 export const incorrectDataNotification = (): void => {
     notification.error({
         message: "Incorrect Data or Insufficient permissions.",

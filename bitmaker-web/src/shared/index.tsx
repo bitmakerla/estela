@@ -5,7 +5,6 @@ export { CustomSpin as Spin } from "./spin";
 export {
     authNotification,
     resourceNotAllowedNotification,
-    incorrectCredentialsNotification,
     incorrectDataNotification,
     insecurePasswordNotification,
     invalidDataNotification,
