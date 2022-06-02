@@ -21,7 +21,7 @@ export const resourceNotAllowedNotification = (): void => {
 
 export const incorrectDataNotification = (): void => {
     notification.error({
-        message: "Incorrect Data or Insufficient permissions.",
+        message: "Incorrect Data or Insufficient Permissions.",
         description: "Check form fields, data and permissions.",
     });
 };
@@ -48,7 +48,7 @@ export const nonExistentUserNotification = (): void => {
 };
 
 export const emailConfirmationNotification = (): void => {
-    notification.open({
+    notification.success({
         message: "Confirmation email sent",
         description: `The confirmation email was sent to the email you provided.`,
     });
