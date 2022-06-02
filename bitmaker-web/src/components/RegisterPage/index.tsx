@@ -5,7 +5,12 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthRegisterRequest, Token } from "../../services/api";
-import { Header, badPasswordNotification, invalidDataNotification, emailConfirmationNotification } from "../../shared";
+import {
+    Header,
+    insecurePasswordNotification,
+    emailConfirmationNotification,
+    invalidDataNotification,
+} from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -25,13 +30,13 @@ export class RegisterPage extends Component<unknown> {
         if (alpha.test(word) && numeric.test(word)) {
             return true;
         }
-        badPasswordNotification("Your password must contain letters and numbers.");
+        insecurePasswordNotification("Your password must contain letters and numbers.");
         return false;
     }
 
     lowercaseAndUppercase(word: string): boolean {
         if (word == word.toUpperCase() || word == word.toLowerCase()) {
-            badPasswordNotification("You password must contain upper case and lower case letters.");
+            insecurePasswordNotification("You password must contain upper case and lower case letters.");
             return false;
         }
         return true;
@@ -39,7 +44,7 @@ export class RegisterPage extends Component<unknown> {
 
     hasMinLength(word: string, length: number): boolean {
         if (word.length < length) {
-            badPasswordNotification("You password must contain at least 8 characters.");
+            insecurePasswordNotification("You password must contain at least 8 characters.");
             return false;
         }
         return true;
@@ -54,10 +59,6 @@ export class RegisterPage extends Component<unknown> {
 
     handleSubmit = (data: { email: string; username: string; password: string }): void => {
         if (!this.validatePassword(data.password)) {
-            badPasswordNotification(`The password you have entered is not secure enough. Please
-                      choose a password that complies with our security
-                      policies. Avoid common passwords and passwords that are too
-                      similar to your username or email.`);
             return;
         }
 
@@ -71,8 +72,22 @@ export class RegisterPage extends Component<unknown> {
                 history.push("/login");
             },
             (error: unknown) => {
-                console.error(error);
-                invalidDataNotification();
+                if (error instanceof Response) {
+                    error
+                        .json()
+                        .then((data) => ({
+                            data: data,
+                            status: error.status,
+                        }))
+                        .then((res) => {
+                            Object.keys(res.data).forEach((key) => {
+                                const message: string = res.data[key];
+                                invalidDataNotification(message);
+                            });
+                        });
+                } else {
+                    console.error("Unexpected error", error);
+                }
             },
         );
     };

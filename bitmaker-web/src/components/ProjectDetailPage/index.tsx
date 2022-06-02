@@ -18,7 +18,7 @@ import {
     Header,
     ProjectSidenav,
     Spin,
-    incorrectDataNotification,
+    invalidDataNotification,
     nonExistentUserNotification,
 } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
@@ -97,8 +97,19 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 this.updateInfo();
             },
             (error: unknown) => {
-                console.error(error);
-                incorrectDataNotification();
+                if (error instanceof Response) {
+                    error
+                        .json()
+                        .then((data) => ({
+                            data: data,
+                            status: error.status,
+                        }))
+                        .then((res) => {
+                            invalidDataNotification(res.data["error"]);
+                        });
+                } else {
+                    console.error("Unexpected error", error);
+                }
             },
         );
     };
@@ -122,8 +133,19 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 this.updateInfo();
             },
             (error: unknown) => {
-                console.error(error);
-                incorrectDataNotification();
+                if (error instanceof Response) {
+                    error
+                        .json()
+                        .then((data) => ({
+                            data: data,
+                            status: error.status,
+                        }))
+                        .then((res) => {
+                            invalidDataNotification(res.data["error"]);
+                        });
+                } else {
+                    console.error("Unexpected error", error);
+                }
             },
         );
     };

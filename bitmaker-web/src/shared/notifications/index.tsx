@@ -4,7 +4,7 @@ import "./styles.scss";
 import history from "../../history";
 
 export const authNotification = (): void => {
-    notification.open({
+    notification.warn({
         message: "Authenticated Resource",
         description: "You need to be logged to enter to this resource.",
     });
@@ -12,45 +12,43 @@ export const authNotification = (): void => {
 };
 
 export const resourceNotAllowedNotification = (): void => {
-    notification.open({
+    notification.error({
         message: "Resource Not Allowed",
         description: "You do not have permissions to enter to this resource.",
     });
     history.push("/");
 };
 
-export const credentialsIncorrectNotification = (): void => {
-    notification.open({
-        message: "Credentials are incorrect",
-        description: "Credentials are incorrect.",
+export const incorrectCredentialsNotification = (): void => {
+    notification.error({
+        message: "Incorrect Credentials",
+        description: "Credentials do not match.",
     });
 };
 
 export const incorrectDataNotification = (): void => {
-    notification.open({
+    notification.error({
         message: "Incorrect Data or Insufficient permissions.",
         description: "Check form fields, data and permissions.",
     });
 };
 
-export const badPasswordNotification = (message: string): void => {
+export const insecurePasswordNotification = (message: string): void => {
     notification.warn({
-        message: "Insecure password",
+        message: "Insecure Password",
         description: message,
     });
 };
 
-export const invalidDataNotification = (): void => {
-    notification.open({
+export const invalidDataNotification = (message: string): void => {
+    notification.error({
         message: "Invalid Data",
-        description: `Invalid email or username. You might be using an email or 
-                      username that is already taken or your password is not 
-                      strong enough.`,
+        description: message,
     });
 };
 
 export const nonExistentUserNotification = (): void => {
-    notification.open({
+    notification.warn({
         message: "Invalid Data",
         description: `User does not exist.`,
     });
