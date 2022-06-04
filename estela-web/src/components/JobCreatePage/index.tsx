@@ -52,9 +52,7 @@ interface JobCreatePageState {
     newEnvVarValue: string;
     newTagName: string;
     spiderName: string;
-    logs: boolean;
-    items: boolean;
-    requests: boolean;
+    isDataPermanent: boolean;
 }
 
 interface RouteParams {
@@ -74,9 +72,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newEnvVarValue: "",
         newTagName: "",
         spiderName: "",
-        logs: true,
-        items: true,
-        requests: true,
+        isDataPermanent: true,
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -190,16 +186,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
-    onChangeItems = (): void => {
-        this.setState({ items: !this.state.items });
-    };
-
-    onChangeLogs = (): void => {
-        this.setState({ logs: !this.state.logs });
-    };
-
-    onChangeRequests = (): void => {
-        this.setState({ requests: !this.state.requests });
+    onChangeData = (): void => {
+        this.setState({ isDataPermanent: !this.state.isDataPermanent });
     };
 
     disabledDate: RangePickerProps["disabledDate"] = (current) => {
@@ -217,9 +205,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             newEnvVarValue,
             newTagName,
             spiderName,
-            logs,
-            items,
-            requests,
+            isDataPermanent,
         } = this.state;
 
         return (
@@ -304,45 +290,21 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                 <Button className="job-create-button" onClick={this.addTag}>
                                     Save Tag
                                 </Button>
-                                <div className="setting-label">Save Data:</div>
                                 <Space direction="vertical" size="large">
                                     <Space direction="horizontal">
-                                        Items <Switch size="small" checked={items} onChange={this.onChangeItems} />
-                                        {items && (
+                                        Save Data Permanently
+                                        <Switch size="small" checked={isDataPermanent} onChange={this.onChangeData} />
+                                    </Space>
+                                    {!isDataPermanent && (
+                                        <Space direction="horizontal">
+                                            Expiration Date
                                             <DatePicker
                                                 size="small"
-                                                format={"YYYY-MM-DD HH:mm"}
                                                 disabledDate={this.disabledDate}
                                                 defaultValue={moment().add(1, "month")}
-                                                showTime={{ defaultValue: moment("00:00:00", "00:00") }}
                                             />
-                                        )}
-                                    </Space>
-                                    <Space direction="horizontal">
-                                        Requests
-                                        <Switch size="small" checked={requests} onChange={this.onChangeRequests} />
-                                        {requests && (
-                                            <DatePicker
-                                                size="small"
-                                                format={"YYYY-MM-DD HH:mm"}
-                                                disabledDate={this.disabledDate}
-                                                defaultValue={moment().add(1, "month")}
-                                                showTime={{ defaultValue: moment("00:00:00", "00:00") }}
-                                            />
-                                        )}
-                                    </Space>
-                                    <Space direction="horizontal">
-                                        Logs <Switch size="small" checked={logs} onChange={this.onChangeLogs} />
-                                        {logs && (
-                                            <DatePicker
-                                                size="small"
-                                                format={"YYYY-MM-DD HH:mm"}
-                                                disabledDate={this.disabledDate}
-                                                defaultValue={moment().add(1, "month")}
-                                                showTime={{ defaultValue: moment("00:00:00", "00:00") }}
-                                            />
-                                        )}
-                                    </Space>
+                                        </Space>
+                                    )}
                                 </Space>
                                 <div className="submitButton">
                                     <Button type="primary" htmlType="submit" className="job-create-button">
