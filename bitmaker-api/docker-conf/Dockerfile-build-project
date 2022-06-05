@@ -1,6 +1,6 @@
 FROM python:3.6
 
-WORKDIR c
+WORKDIR /home/bitmaker
 
 COPY ./requirements ./requirements
 

@@ -11,7 +11,7 @@ from zipfile import ZipFile
 
 
 import sys, os
-sys.path.append('/c/bitmaker-api')
+sys.path.append('/home/bitmaker/bitmaker-api')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings.test'
 
 from config.job_manager import credentials
@@ -140,5 +140,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Tan gozu?")
     sys.exit(main())
