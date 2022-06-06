@@ -18,10 +18,10 @@ import {
     Header,
     ProjectSidenav,
     Spin,
-    incorrectDataNotification,
     nonExistentUserNotification,
 } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
+import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
 const { Text, Title } = Typography;
@@ -97,8 +97,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 this.updateInfo();
             },
             (error: unknown) => {
-                console.error(error);
-                incorrectDataNotification();
+                handleInvalidDataError(error);
             },
         );
     };
@@ -122,8 +121,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 this.updateInfo();
             },
             (error: unknown) => {
-                console.error(error);
-                incorrectDataNotification();
+                handleInvalidDataError(error);
             },
         );
     };

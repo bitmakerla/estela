@@ -5,7 +5,8 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
-import { Header, credentialsIncorrectNotification } from "../../shared";
+import { Header } from "../../shared";
+import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -30,8 +31,7 @@ export class LoginPage extends Component<unknown> {
                 history.push("/projects");
             },
             (error: unknown) => {
-                console.error(error);
-                credentialsIncorrectNotification();
+                handleInvalidDataError(error);
             },
         );
     };
