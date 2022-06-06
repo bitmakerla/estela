@@ -21,7 +21,7 @@ class AWSCredentials(Credentials):
         if token:
             return token[0]
         return None
-    
+
     def download_project(self, bucket_name, project_name):
         s3 = boto3.client("s3")
         s3.download_file(bucket_name, project_name, project_name)

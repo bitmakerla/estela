@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-from time import sleep
 import docker
 import base64
 import requests
@@ -11,8 +10,9 @@ from zipfile import ZipFile
 
 
 import sys, os
-sys.path.append('/home/bitmaker/bitmaker-api')
-os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings.test'
+
+sys.path.append("/home/bitmaker/bitmaker-api")
+os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.base"
 
 from config.job_manager import credentials
 

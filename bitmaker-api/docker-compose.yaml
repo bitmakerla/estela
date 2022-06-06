@@ -41,4 +41,3 @@ volumes:
   bitmaker_dbdata:
   registry_data:
   datastore:
-    external: true

@@ -58,7 +58,9 @@ class DeployViewSet(
             )
 
         # Upload project to S3
-        error = credentials.upload_project("{}.zip".format(self.kwargs["pid"]), project_zip)
+        error = credentials.upload_project(
+            "{}.zip".format(self.kwargs["pid"]), project_zip
+        )
 
         if error:
             return Response(
