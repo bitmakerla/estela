@@ -135,6 +135,8 @@ google-auth==1.28.0
     # via
     #   -r requirements/base.txt
     #   kubernetes
+gunicorn==20.1.0
+    # via -r requirements/base.txt
 idna==2.10
     # via
     #   -r requirements/base.txt

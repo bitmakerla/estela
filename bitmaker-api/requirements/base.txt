@@ -94,6 +94,8 @@ elasticsearch==7.13.4
     # via -r requirements/base.in
 google-auth==1.28.0
     # via kubernetes
+gunicorn==20.1.0
+    # via -r requirements/base.in
 idna==2.10
     # via requests
 inflection==0.5.1
