@@ -18,10 +18,10 @@ import {
     Header,
     ProjectSidenav,
     Spin,
-    invalidDataNotification,
     nonExistentUserNotification,
 } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
+import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
 const { Text, Title } = Typography;
@@ -97,26 +97,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 this.updateInfo();
             },
             (error: unknown) => {
-                if (error instanceof Response) {
-                    error
-                        .json()
-                        .then((data) => ({
-                            data: data,
-                            status: error.status,
-                        }))
-                        .then((res) => {
-                            Object.keys(res.data).forEach((key) => {
-                                const errors: unknown = res.data[key];
-                                if (typeof errors === "string") {
-                                    invalidDataNotification(errors);
-                                } else if (errors instanceof Array) {
-                                    errors.forEach((error) => invalidDataNotification(error));
-                                }
-                            });
-                        });
-                } else {
-                    console.error("Unexpected error", error);
-                }
+                handleInvalidDataError(error);
             },
         );
     };
@@ -140,26 +121,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 this.updateInfo();
             },
             (error: unknown) => {
-                if (error instanceof Response) {
-                    error
-                        .json()
-                        .then((data) => ({
-                            data: data,
-                            status: error.status,
-                        }))
-                        .then((res) => {
-                            Object.keys(res.data).forEach((key) => {
-                                const errors: unknown = res.data[key];
-                                if (typeof errors === "string") {
-                                    invalidDataNotification(errors);
-                                } else if (errors instanceof Array) {
-                                    errors.forEach((error) => invalidDataNotification(error));
-                                }
-                            });
-                        });
-                } else {
-                    console.error("Unexpected error", error);
-                }
+                handleInvalidDataError(error);
             },
         );
     };

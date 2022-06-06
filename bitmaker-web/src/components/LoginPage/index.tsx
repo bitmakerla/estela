@@ -5,7 +5,8 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
-import { Header, invalidDataNotification } from "../../shared";
+import { Header } from "../../shared";
+import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -30,22 +31,7 @@ export class LoginPage extends Component<unknown> {
                 history.push("/projects");
             },
             (error: unknown) => {
-                if (error instanceof Response) {
-                    error
-                        .json()
-                        .then((data) => ({
-                            data: data,
-                            status: error.status,
-                        }))
-                        .then((res) => {
-                            Object.keys(res.data).forEach((key) => {
-                                const message: string = res.data[key];
-                                invalidDataNotification(message);
-                            });
-                        });
-                } else {
-                    console.error("Unexpected error", error);
-                }
+                handleInvalidDataError(error);
             },
         );
     };
