@@ -37,6 +37,26 @@ subsets:
 apiVersion: v1
 kind: Service
 metadata:
+  name: storage
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: storage
+subsets:
+  - addresses:
+    - ip: 192.168.49.1 # minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+    ports:
+    - port: 9000
+---
+apiVersion: v1
+kind: Service
+metadata:
   namespace: default
   name: bitmaker-celery-beat-service
   labels:
