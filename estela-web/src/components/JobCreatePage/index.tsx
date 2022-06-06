@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, DatePicker } from "antd";
+import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, DatePicker, DatePickerProps } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { RouteComponentProps } from "react-router-dom";
 import moment from "moment";
@@ -53,6 +53,7 @@ interface JobCreatePageState {
     newTagName: string;
     spiderName: string;
     isDataPermanent: boolean;
+    expirationDate: string;
 }
 
 interface RouteParams {
@@ -73,6 +74,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newTagName: "",
         spiderName: "",
         isDataPermanent: true,
+        expirationDate: moment().add(1, "month").format("YYYY-MM-DD"),
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -190,6 +192,10 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ isDataPermanent: !this.state.isDataPermanent });
     };
 
+    onChange: DatePickerProps["onChange"] = (_, dateString) => {
+        this.setState({ expirationDate: dateString });
+    };
+
     disabledDate: RangePickerProps["disabledDate"] = (current) => {
         return current && current < moment().endOf("day");
     };
@@ -206,6 +212,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             newTagName,
             spiderName,
             isDataPermanent,
+            expirationDate,
         } = this.state;
 
         return (
@@ -301,7 +308,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                             <DatePicker
                                                 size="small"
                                                 disabledDate={this.disabledDate}
-                                                defaultValue={moment().add(1, "month")}
+                                                defaultValue={moment(expirationDate)}
+                                                onChange={this.onChange}
                                             />
                                         </Space>
                                     )}

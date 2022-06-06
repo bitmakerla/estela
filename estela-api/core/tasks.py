@@ -1,6 +1,7 @@
 from django.conf import settings
 from config.celery import app as celery_app
 from core.models import SpiderJob, Spider
+from core.mongo import get_client
 from config.job_manager import job_manager
 from rest_framework.authtoken.models import Token
 
@@ -82,3 +83,22 @@ def check_and_update_job_status_errors():
         ):
             job.status = SpiderJob.ERROR_STATUS
             job.save()
+
+@celery_app.task(name="core.tasks.delete_job_data")
+def delete_job_data(kwargs, client):
+    data_type = "items"
+    job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+    if (
+        job.cronjob is not None
+        and job.cronjob.unique_collection
+        and data_type == "items"
+    ):
+        job_collection_name = "{}-scj{}-job_{}".format(
+            kwargs["sid"], job.cronjob.cjid, data_type
+        )
+    else:
+        job_collection_name = "{}-{}-job_{}".format(
+            kwargs["sid"], kwargs["jid"], data_type
+        )
+    job_collection = client[kwargs["pid"]][job_collection_name]
+    res = job_collection.delete_many({})
