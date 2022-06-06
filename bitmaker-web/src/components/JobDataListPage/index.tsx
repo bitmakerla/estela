@@ -9,7 +9,7 @@ import {
     ApiProjectsSpidersJobsDataDeleteRequest,
     DeleteJobData,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, dataDeletedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -59,7 +59,8 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
         };
         this.apiService.apiProjectsSpidersJobsDataDelete(request).then(
             (response: DeleteJobData) => {
-                this.setState({ data: [], count: response.count, current: 0, loaded: true });
+                this.setState({ data: [], count:0, current: 0, loaded: true });
+                dataDeletedNotification(response.count);
             },
             (error: unknown) => {
                 console.error(error);
