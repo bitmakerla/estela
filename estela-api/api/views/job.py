@@ -132,11 +132,11 @@ class SpiderJobViewSet(
             print(permanent)
             print(type(permanent))
             if permanent != "true":
-                schedule = request.query_params.get("expiration_date")
-                print(schedule)
-                print(job.key)
-                # response = delete_job_data(schedule, job.key, job.key)
-                # print(response)
+                _, m, d = request.query_params.get("expiration_date").split("-")
+                schedule = "30 3 {} {} *".format(d, m)
+                # print(job.key)
+                response = delete_job_data(schedule, job.key, job.key)
+                print(response)
         else:
             serializer.save(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
         headers = self.get_success_headers(serializer.data)
