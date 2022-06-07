@@ -85,20 +85,20 @@ def check_and_update_job_status_errors():
             job.save()
 
 @celery_app.task(name="core.tasks.delete_job_data")
-def delete_job_data(kwargs, client):
+def delete_job_data(pid, sid, jid):
+    client = get_client(settings.MONGO_CONNECTION)
     data_type = "items"
-    job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+    job = SpiderJob.objects.filter(jid=jid).get()
     if (
         job.cronjob is not None
         and job.cronjob.unique_collection
-        and data_type == "items"
     ):
         job_collection_name = "{}-scj{}-job_{}".format(
-            kwargs["sid"], job.cronjob.cjid, data_type
+            sid, job.cronjob.cjid, data_type
         )
     else:
         job_collection_name = "{}-{}-job_{}".format(
-            kwargs["sid"], kwargs["jid"], data_type
+            sid, jid, data_type
         )
-    job_collection = client[kwargs["pid"]][job_collection_name]
+    job_collection = client[pid][job_collection_name]
     res = job_collection.delete_many({})

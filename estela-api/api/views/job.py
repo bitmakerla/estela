@@ -18,6 +18,7 @@ from api.serializers.job import (
 )
 from config.job_manager import job_manager
 from core.models import Spider, SpiderJob
+from core.cronjob import delete_job_data
 from core.registry import get_logs
 
 
@@ -91,6 +92,12 @@ class SpiderJobViewSet(
         manual_parameters=[
             openapi.Parameter(
                 name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
+            ),
+            openapi.Parameter(
+                name="permanent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
+            ),
+            openapi.Parameter(
+                name="expiration_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
             )
         ],
         request_body=SpiderJobCreateSerializer,
@@ -99,6 +106,7 @@ class SpiderJobViewSet(
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         async_param = request.query_params.get("async", False)
+        permanent = request.query_params.get("permanent")
         serializer = SpiderJobCreateSerializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
@@ -109,7 +117,6 @@ class SpiderJobViewSet(
             job_env_vars = {
                 env_var.name: env_var.value for env_var in job.env_vars.all()
             }
-
             token = request.auth.key if request.auth else None
             job_manager.create_job(
                 job.name,
@@ -121,6 +128,15 @@ class SpiderJobViewSet(
                 job.spider.project.container_image,
                 auth_token=token,
             )
+            print(job.key)
+            print(permanent)
+            print(type(permanent))
+            if permanent != "true":
+                schedule = request.query_params.get("expiration_date")
+                print(schedule)
+                print(job.key)
+                # response = delete_job_data(schedule, job.key, job.key)
+                # print(response)
         else:
             serializer.save(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
         headers = self.get_success_headers(serializer.data)

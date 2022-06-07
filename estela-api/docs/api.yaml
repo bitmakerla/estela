@@ -621,6 +621,12 @@ paths:
         - name: async
           in: query
           type: boolean
+        - name: permanent
+          in: query
+          type: boolean
+        - name: expiration_date
+          in: query
+          type: string
       responses:
         '201':
           description: ''

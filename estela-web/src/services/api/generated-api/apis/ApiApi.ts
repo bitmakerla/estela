@@ -203,6 +203,8 @@ export interface ApiProjectsSpidersJobsCreateRequest {
     sid: string;
     data: SpiderJobCreate;
     async?: boolean;
+    permanent?: boolean;
+    expirationDate?: string;
 }
 
 export interface ApiProjectsSpidersJobsDataDeleteRequest {
@@ -1092,6 +1094,14 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.async !== undefined) {
             queryParameters['async'] = requestParameters.async;
+        }
+
+        if (requestParameters.permanent !== undefined) {
+            queryParameters['permanent'] = requestParameters.permanent;
+        }
+
+        if (requestParameters.expirationDate !== undefined) {
+            queryParameters['expiration_date'] = requestParameters.expirationDate;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
