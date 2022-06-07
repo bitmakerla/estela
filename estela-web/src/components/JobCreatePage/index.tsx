@@ -106,6 +106,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
+            permanent: this.state.isDataPermanent,
+            expirationDate: this.state.expirationDate,
         };
         this.apiService.apiProjectsSpidersJobsCreate(request).then(
             (response: SpiderJobCreate) => {
