@@ -1,12 +1,12 @@
 import uuid
 from datetime import timedelta
+from urllib.parse import urlparse
+
+from config.job_manager import job_manager
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from urllib.parse import urlparse
-
-from config.job_manager import job_manager
 
 
 class Project(models.Model):
@@ -135,6 +135,8 @@ class SpiderJob(models.Model):
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
     created = models.DateTimeField(auto_now_add=True, editable=False)
+    lifespan = models.DurationField(default=timedelta(seconds=0))
+    total_response_bytes = models.PositiveBigIntegerField(default=0)
 
     class Meta:
         ordering = ["-created"]
