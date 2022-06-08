@@ -1,13 +1,14 @@
-from rest_framework import serializers
-from api import errors
+from datetime import timedelta
 
+from api import errors
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 from config.job_manager import job_manager
+from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
+from rest_framework import serializers
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -22,6 +23,8 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "spider",
             "created",
             "name",
+            "lifespan",
+            "total_response_bytes",
             "args",
             "env_vars",
             "tags",
@@ -80,6 +83,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         fields = (
             "jid",
             "status",
+            "lifespan",
+            "total_response_bytes",
         )
 
     def update(self, instance, validated_data):
@@ -101,7 +106,18 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                 else:
                     job_manager.delete_job(instance.name)
             instance.status = status
-            instance.save()
+
+        if instance.lifespan.seconds == 0:
+            lifespan = validated_data.get("lifespan", instance.lifespan)
+            instance.lifespan = lifespan
+
+        if instance.total_response_bytes == 0:
+            total_response_bytes = validated_data.get(
+                "total_response_bytes", instance.total_response_bytes
+            )
+            instance.total_response_bytes = total_response_bytes
+
+        instance.save()
         return instance
 
 
