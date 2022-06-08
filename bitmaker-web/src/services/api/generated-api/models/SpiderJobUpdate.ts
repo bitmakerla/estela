@@ -31,6 +31,18 @@ export interface SpiderJobUpdate {
      * @memberof SpiderJobUpdate
      */
     status?: SpiderJobUpdateStatusEnum;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    lifespan?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    totalResponseBytes?: number;
 }
 
 /**
@@ -60,6 +72,8 @@ export function SpiderJobUpdateFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'status': !exists(json, 'status') ? undefined : json['status'],
+        'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
+        'totalResponseBytes': !exists(json, 'total_response_bytes') ? undefined : json['total_response_bytes'],
     };
 }
 
@@ -73,6 +87,8 @@ export function SpiderJobUpdateToJSON(value?: SpiderJobUpdate | null): any {
     return {
         
         'status': value.status,
+        'lifespan': value.lifespan,
+        'total_response_bytes': value.totalResponseBytes,
     };
 }
 
