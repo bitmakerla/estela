@@ -184,6 +184,23 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/billing:
+    get:
+      operationId: api_projects_billing
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectBilling'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/deploys:
     get:
       operationId: api_projects_deploys_list
@@ -936,6 +953,29 @@ definitions:
         enum:
           - EDITOR
           - VIEWER
+  ProjectBilling:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      network_usage:
+        title: Network usage
+        type: string
+        readOnly: true
+      processing_time:
+        title: Processing time
+        type: string
+        readOnly: true
   Spider:
     required:
       - name

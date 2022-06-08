@@ -1,15 +1,18 @@
-from django.core.paginator import Paginator
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
-
 from api import errors
 from api.mixins import BaseViewSet
-from api.serializers.project import ProjectSerializer, ProjectUpdateSerializer
-from api.serializers.job import SpiderJobSerializer, ProjectJobSerializer
-from core.models import Project, User, Permission, Spider, SpiderJob
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
+from api.serializers.project import (
+    ProjectBillingSerializer,
+    ProjectSerializer,
+    ProjectUpdateSerializer,
+)
+from core.models import Permission, Project, Spider, SpiderJob, User
+from django.core.paginator import Paginator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -79,7 +82,8 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                         )
             else:
                 return Response(
-                    {"email": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST
+                    {"email": "User does not exist."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         serializer.save()
 
@@ -127,5 +131,19 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         results = SpiderJobSerializer(page_result, many=True)
         return Response(
             {"results": results.data, "count": jobs_set.count()},
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        responses={status.HTTP_200_OK: ProjectBillingSerializer()},
+    )
+    @action(methods=["GET"], detail=True)
+    def billing(self, request, *args, **kwargs):
+        instance = self.get_object()
+        project = Project.objects.get(pid=kwargs["pid"])
+        serializer = ProjectBillingSerializer(project)
+        return Response(
+            serializer.data,
             status=status.HTTP_200_OK,
         )
