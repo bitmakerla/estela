@@ -175,7 +175,6 @@ class JobDataViewSet(
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
-            and data_type == "items"
         ):
             job_collection_name = "{}-scj{}-job_{}".format(
                 kwargs["sid"], job.cronjob.cjid, data_type
