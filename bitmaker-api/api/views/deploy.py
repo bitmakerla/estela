@@ -13,8 +13,8 @@ from api.serializers.deploy import (
 
 from api import errors
 from core.models import Deploy, Project
-from core.registry import upload_project_to_s3
 from core.views import launch_deploy_job
+from config.job_manager import credentials
 
 
 class DeployViewSet(
@@ -58,7 +58,9 @@ class DeployViewSet(
             )
 
         # Upload project to S3
-        error = upload_project_to_s3("{}.zip".format(self.kwargs["pid"]), project_zip)
+        error = credentials.upload_project(
+            "{}.zip".format(self.kwargs["pid"]), project_zip
+        )
 
         if error:
             return Response(

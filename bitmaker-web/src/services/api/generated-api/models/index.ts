@@ -12,6 +12,7 @@ export * from './InlineResponse2004';
 export * from './InlineResponse2005';
 export * from './Permission';
 export * from './Project';
+export * from './ProjectJob';
 export * from './ProjectUpdate';
 export * from './Spider';
 export * from './SpiderCronJob';

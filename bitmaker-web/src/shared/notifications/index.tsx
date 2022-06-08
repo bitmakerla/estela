@@ -4,7 +4,7 @@ import "./styles.scss";
 import history from "../../history";
 
 export const authNotification = (): void => {
-    notification.open({
+    notification.warn({
         message: "Authenticated Resource",
         description: "You need to be logged to enter to this resource.",
     });
@@ -12,7 +12,7 @@ export const authNotification = (): void => {
 };
 
 export const resourceNotAllowedNotification = (): void => {
-    notification.open({
+    notification.error({
         message: "Resource Not Allowed",
         description: "You do not have permissions to enter to this resource.",
     });
@@ -34,37 +34,35 @@ export const credentialsIncorrectNotification = (): void => {
 };
 
 export const incorrectDataNotification = (): void => {
-    notification.open({
-        message: "Incorrect Data or Insufficient permissions.",
+    notification.error({
+        message: "Incorrect Data or Insufficient Permissions.",
         description: "Check form fields, data and permissions.",
     });
 };
 
-export const badPasswordNotification = (message: string): void => {
+export const insecurePasswordNotification = (message: string): void => {
     notification.warn({
-        message: "Insecure password",
+        message: "Insecure Password",
         description: message,
     });
 };
 
-export const invalidDataNotification = (): void => {
-    notification.open({
+export const invalidDataNotification = (message: string): void => {
+    notification.error({
         message: "Invalid Data",
-        description: `Invalid email or username. You might be using an email or 
-                      username that is already taken or your password is not 
-                      strong enough.`,
+        description: message,
     });
 };
 
 export const nonExistentUserNotification = (): void => {
-    notification.open({
+    notification.warn({
         message: "Invalid Data",
         description: `User does not exist.`,
     });
 };
 
 export const emailConfirmationNotification = (): void => {
-    notification.open({
+    notification.success({
         message: "Confirmation email sent",
         description: `The confirmation email was sent to the email you provided.`,
     });

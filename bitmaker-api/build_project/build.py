@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import boto3
 import docker
 import base64
 import requests
@@ -9,6 +8,13 @@ import logging
 
 from zipfile import ZipFile
 
+
+import sys, os
+
+sys.path.append("/home/bitmaker/bitmaker-api")
+os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.base"
+
+from config.job_manager import credentials
 
 bucket_name = os.getenv("BUCKET_NAME")
 PID, DID = os.getenv("KEY").split(".")
@@ -24,8 +30,7 @@ DOCKERFILE_NAME = "Dockerfile-bitmaker"
 
 
 def download_zip():
-    s3 = boto3.client("s3")
-    s3.download_file(bucket_name, project_zip_name, project_zip_name)
+    credentials.download_project(bucket_name, project_zip_name)
 
 
 def unzip_project():

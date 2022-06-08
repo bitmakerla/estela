@@ -14,6 +14,7 @@ import {
 import {
     authNotification,
     incorrectDataNotification,
+    invalidDataNotification,
     resourceNotAllowedNotification,
     Header,
     Sidenav,
@@ -161,7 +162,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             args.push({ name: newArgName, value: newArgValue, key: this.countKey++ });
             this.setState({ args: [...args], newArgName: "", newArgValue: "" });
         } else {
-            incorrectDataNotification();
+            invalidDataNotification("Invalid argument name/value pair.");
         }
     };
 
@@ -173,7 +174,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
             this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
         } else {
-            incorrectDataNotification();
+            invalidDataNotification("Invalid environment variable name/value pair.");
         }
     };
 
@@ -184,7 +185,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             tags.push({ name: newTagName, key: this.countKey++ });
             this.setState({ tags: [...tags], newTagName: "" });
         } else {
-            incorrectDataNotification();
+            invalidDataNotification("Invalid tag name.");
         }
     };
 

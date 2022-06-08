@@ -54,6 +54,9 @@ import {
     Project,
     ProjectFromJSON,
     ProjectToJSON,
+    ProjectJob,
+    ProjectJobFromJSON,
+    ProjectJobToJSON,
     ProjectUpdate,
     ProjectUpdateFromJSON,
     ProjectUpdateToJSON,
@@ -133,6 +136,12 @@ export interface ApiProjectsDeploysUpdateRequest {
     did: number;
     pid: string;
     data: DeployUpdate;
+}
+
+export interface ApiProjectsJobsRequest {
+    pid: string;
+    page?: number;
+    pageSize?: number;
 }
 
 export interface ApiProjectsListRequest {
@@ -659,6 +668,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsDeploysUpdate(requestParameters: ApiProjectsDeploysUpdateRequest): Promise<DeployUpdate> {
         const response = await this.apiProjectsDeploysUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsJobsRaw(requestParameters: ApiProjectsJobsRequest): Promise<runtime.ApiResponse<ProjectJob>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsJobs.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/jobs`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsJobs(requestParameters: ApiProjectsJobsRequest): Promise<ProjectJob> {
+        const response = await this.apiProjectsJobsRaw(requestParameters);
         return await response.value();
     }
 

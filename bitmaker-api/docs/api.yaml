@@ -309,6 +309,33 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/jobs:
+    get:
+      operationId: api_projects_jobs
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: DataPaginated.
+          required: false
+          type: number
+        - name: page_size
+          in: query
+          description: DataPaginated.
+          required: false
+          type: number
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectJob'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/spiders:
     get:
       operationId: api_projects_spiders_list
@@ -1078,6 +1105,60 @@ definitions:
         type: string
         maxLength: 50
         minLength: 1
+  SpiderJob:
+    required:
+      - spider
+    type: object
+    properties:
+      jid:
+        title: Jid
+        type: integer
+        readOnly: true
+      spider:
+        title: Spider
+        type: integer
+      created:
+        title: Created
+        type: string
+        format: date-time
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        readOnly: true
+      args:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobArg'
+      env_vars:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
+      job_status:
+        title: Job status
+        type: string
+        readOnly: true
+      cronjob:
+        title: Cronjob
+        type: integer
+        x-nullable: true
+  ProjectJob:
+    required:
+      - results
+      - count
+    type: object
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJob'
+      count:
+        title: Count
+        type: integer
   SpiderCronJob:
     required:
       - spider
@@ -1174,47 +1255,6 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
-  SpiderJob:
-    required:
-      - spider
-    type: object
-    properties:
-      jid:
-        title: Jid
-        type: integer
-        readOnly: true
-      spider:
-        title: Spider
-        type: integer
-      created:
-        title: Created
-        type: string
-        format: date-time
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        readOnly: true
-      args:
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobArg'
-      env_vars:
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobEnvVar'
-      tags:
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobTag'
-      job_status:
-        title: Job status
-        type: string
-        readOnly: true
-      cronjob:
-        title: Cronjob
-        type: integer
-        x-nullable: true
   SpiderJobCreate:
     type: object
     properties:
