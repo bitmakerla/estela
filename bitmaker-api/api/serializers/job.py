@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from api import errors
 
@@ -109,6 +110,10 @@ class GetLogsSerializer(serializers.Serializer):
     logs = serializers.ListField(
         child=serializers.CharField(max_length=1000), required=True
     )
+    count = serializers.IntegerField(required=True)
+
+
+class DeleteJobDataSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=True)
 
 

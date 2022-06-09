@@ -19,6 +19,20 @@ export const resourceNotAllowedNotification = (): void => {
     history.push("/");
 };
 
+export const dataDeletedNotification = (n: number): void => {
+    notification.open({
+        message: "Data Successfully Deleted",
+        description: `${n} Item have been deleted`,
+    });
+};
+
+export const credentialsIncorrectNotification = (): void => {
+    notification.open({
+        message: "Credentials are incorrect",
+        description: "Credentials are incorrect.",
+    });
+};
+
 export const incorrectDataNotification = (): void => {
     notification.error({
         message: "Incorrect Data or Insufficient Permissions.",
