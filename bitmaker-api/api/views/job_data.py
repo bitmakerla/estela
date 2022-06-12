@@ -102,7 +102,6 @@ class JobDataViewSet(
             )
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         client = get_database_interface()
-
         if not client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
@@ -163,8 +162,8 @@ class JobDataViewSet(
     def delete(self, request, *args, **kwargs):
         data_type = "items"
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        client = get_client(settings.MONGO_CONNECTION)
-        if not client:
+        client = get_database_interface()
+        if not client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
@@ -180,6 +179,4 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
-        job_collection = client[kwargs["pid"]][job_collection_name]
-        res = job_collection.delete_many({})
-        return Response({"count": res.deleted_count}, status=status.HTTP_200_OK)
+        return Response({"count": client.delete_collection_data(kwargs["pid"], job_collection_name)}, status=status.HTTP_200_OK)

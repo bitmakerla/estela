@@ -21,6 +21,9 @@ class DatabaseInterface(metaclass=ABCMeta):
     @abstractmethod
     def get_estimated_document_count(self): pass
 
+    @abstractmethod
+    def delete_collection_data(self): pass
+
 
 class MongoAdapter(DatabaseInterface):
     def __init__(self, mongo_connection, mongo_production, mongo_certificate_path):
@@ -44,6 +47,10 @@ class MongoAdapter(DatabaseInterface):
             return False
         self.client = client
         return True
+
+    def delete_collection_data(self, database_name, collection_name):
+        collection = self.client[database_name][collection_name]
+        return collection.delete_many({}).deleted_count
 
     def get_all_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
