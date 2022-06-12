@@ -1,6 +1,5 @@
 import json
 import pymongo
-import ssl
 
 from abc import ABCMeta, abstractmethod
 from bson.json_util import loads
@@ -13,6 +12,9 @@ class DatabaseInterface(metaclass=ABCMeta):
     def get_connection(self): pass
     
     @abstractmethod
+    def delete_collection_data(self): pass
+
+    @abstractmethod
     def get_all_collection_data(self): pass
 
     @abstractmethod
@@ -20,9 +22,6 @@ class DatabaseInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def get_estimated_document_count(self): pass
-
-    @abstractmethod
-    def delete_collection_data(self): pass
 
 
 class MongoAdapter(DatabaseInterface):
@@ -41,7 +40,7 @@ class MongoAdapter(DatabaseInterface):
                 )
                 client.admin.command("ismaster")
             else:
-                client = pymongo.MongoClient(self.mongo_connection, ssl_cert_reqs=ssl.CERT_NONE)
+                client = pymongo.MongoClient(self.mongo_connection)
         except ConnectionFailure:
             client = None
             return False
