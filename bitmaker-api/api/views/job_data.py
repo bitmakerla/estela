@@ -83,7 +83,6 @@ class JobDataViewSet(
             ),
         ],
     )
-
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
@@ -121,11 +120,11 @@ class JobDataViewSet(
             )
 
         if mode == "json":
-            result = client.get_all_collection_data(kwargs["pid"],job_collection_name)
+            result = client.get_all_collection_data(kwargs["pid"], job_collection_name)
             response = JsonResponse(result, safe=False)
             return response
         if mode == "csv":
-            result = client.get_all_collection_data(kwargs["pid"],job_collection_name)
+            result = client.get_all_collection_data(kwargs["pid"], job_collection_name)
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = "attachment; {}.csv".format(
                 job_collection_name
@@ -140,9 +139,11 @@ class JobDataViewSet(
 
             return response
 
-        result = client.get_paginated_collection_data(kwargs["pid"],job_collection_name,page,page_size)
+        result = client.get_paginated_collection_data(
+            kwargs["pid"], job_collection_name, page, page_size
+        )
         count = client.get_estimated_document_count()
-        
+
         return Response(
             {
                 "count": count,
@@ -153,11 +154,11 @@ class JobDataViewSet(
                 "results": result,
             }
         )
-    
-    @swagger_auto_schema(
-        methods=["POST"], responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
-    )
 
+    @swagger_auto_schema(
+        methods=["POST"],
+        responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
+    )
     @action(methods=["POST"], detail=True)
     def delete(self, request, *args, **kwargs):
         data_type = "items"
@@ -168,10 +169,7 @@ class JobDataViewSet(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-        ):
+        if job.cronjob is not None and job.cronjob.unique_collection:
             job_collection_name = "{}-scj{}-job_{}".format(
                 kwargs["sid"], job.cronjob.cjid, data_type
             )
@@ -179,4 +177,11 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
-        return Response({"count": client.delete_collection_data(kwargs["pid"], job_collection_name)}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "count": client.delete_collection_data(
+                    kwargs["pid"], job_collection_name
+                )
+            },
+            status=status.HTTP_200_OK,
+        )

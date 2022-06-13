@@ -67,9 +67,13 @@ def read_from_queue(client):
         item = mongo_jsonify(item_queue.get())
         try:
             if item["unique"] == "True":
-                client.insert_unique_collection_data(item["database_name"], item["collection_name"], item["payload"])
+                client.insert_unique_collection_data(
+                    item["database_name"], item["collection_name"], item["payload"]
+                )
             else:
-                client.insert_collection_data(item["database_name"], item["collection_name"], item["payload"])
+                client.insert_collection_data(
+                    item["database_name"], item["collection_name"], item["payload"]
+                )
             logging.debug("Document inserted {}.".format(item["collection_name"]))
         except:
             logging.warning(

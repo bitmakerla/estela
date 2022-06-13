@@ -1,9 +1,9 @@
 import json
+import os
 import pymongo
 
 from abc import ABCMeta, abstractmethod
 from bson.json_util import loads
-from django.conf import settings
 from pymongo.errors import ConnectionFailure
 
 
@@ -93,5 +93,7 @@ class MongoAdapter(DatabaseInterface):
 def get_database_interface():
     mongo_certificate_path = "config/mongo_certificate/ca-certificate.crt"
     return MongoAdapter(
-        settings.MONGO_CONNECTION, settings.MONGO_PRODUCTION, mongo_certificate_path
+        os.getenv("MONGO_CONNECTION"),
+        os.getenv("PRODUCTION") == "True",
+        mongo_certificate_path,
     )
