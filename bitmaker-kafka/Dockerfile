@@ -9,4 +9,5 @@ COPY requirements requirements
 RUN pip install -r requirements/consumer.txt
 
 COPY consumer.py .
+COPY database_adapters.py .
 COPY config config

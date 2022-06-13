@@ -6,11 +6,12 @@ import logging
 import threading
 import boto3
 import botocore
+import ssl
 
 from queue import Queue
 from kafka import KafkaConsumer
 from pymongo.errors import ConnectionFailure
-
+from database_adapters import get_database_interface
 
 DEFAULT_WORKER_POOL = 15
 item_queue = Queue()
@@ -66,13 +67,9 @@ def read_from_queue(client):
         item = mongo_jsonify(item_queue.get())
         try:
             if item["unique"] == "True":
-                client[item["database_name"]][item["collection_name"]].update_one(
-                    item["payload"], {"$set": item["payload"]}, upsert=True
-                )
+                client.insert_unique_collection_data(item["database_name"], item["collection_name"], item["payload"])
             else:
-                client[item["database_name"]][item["collection_name"]].insert_one(
-                    item["payload"]
-                )
+                client.insert_collection_data(item["database_name"], item["collection_name"], item["payload"])
             logging.debug("Document inserted {}.".format(item["collection_name"]))
         except:
             logging.warning(
@@ -83,27 +80,9 @@ def read_from_queue(client):
         item_queue.task_done()
 
 
-def get_client(db_connection):
-    try:
-        if os.getenv("PRODUCTION") == "True":
-            logging.info("--PRODUCTION--")
-            client = pymongo.MongoClient(
-                db_connection,
-                tls=True,
-                tlsCAFile="config/mongo_certificate/ca-certificate.crt",
-            )
-            client.admin.command("ismaster")
-        else:
-            logging.info("--LOCAL--")
-            client = pymongo.MongoClient(db_connection)
-    except ConnectionFailure:
-        return None
-    return client
-
-
 def consume_from_kafka(topic_name, worker_pool):
-    client = get_client(os.getenv("MONGO_CONNECTION"))
-    if client:
+    client = get_database_interface()
+    if client.get_connection():
         logging.debug("DB connection established")
     else:
         logging.error("Could not connect to the DB")

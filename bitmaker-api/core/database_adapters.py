@@ -23,6 +23,12 @@ class DatabaseInterface(metaclass=ABCMeta):
     @abstractmethod
     def get_estimated_document_count(self): pass
 
+    @abstractmethod
+    def insert_unique_collection_data(self): pass
+
+    @abstractmethod
+    def insert_collection_data(self): pass
+
 
 class MongoAdapter(DatabaseInterface):
     def __init__(self, mongo_connection, mongo_production, mongo_certificate_path):
@@ -65,6 +71,14 @@ class MongoAdapter(DatabaseInterface):
 
     def get_estimated_document_count(self):
         return self.collection.estimated_document_count()
+
+    def insert_unique_collection_data(self,database_name, collection_name, data):
+        self.client[database_name][collection_name].update_one(data, {"$set": data}, upsert=True)
+    
+    def insert_collection_data(self,database_name, collection_name, data):
+        self.client[database_name][collection_name].insert_one(data)
+
+
 
 def get_database_interface():
     mongo_certificate_path = "config/mongo_certificate/ca-certificate.crt"
