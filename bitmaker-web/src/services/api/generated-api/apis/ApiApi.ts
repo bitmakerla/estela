@@ -57,6 +57,9 @@ import {
     ProjectUpdate,
     ProjectUpdateFromJSON,
     ProjectUpdateToJSON,
+    ProjectUsage,
+    ProjectUsageFromJSON,
+    ProjectUsageToJSON,
     Spider,
     SpiderFromJSON,
     SpiderToJSON,
@@ -263,6 +266,10 @@ export interface ApiProjectsSpidersReadRequest {
 export interface ApiProjectsUpdateRequest {
     pid: string;
     data: ProjectUpdate;
+}
+
+export interface ApiProjectsUsageRequest {
+    pid: string;
 }
 
 /**
@@ -1504,6 +1511,37 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsUpdate(requestParameters: ApiProjectsUpdateRequest): Promise<ProjectUpdate> {
         const response = await this.apiProjectsUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsUsageRaw(requestParameters: ApiProjectsUsageRequest): Promise<runtime.ApiResponse<ProjectUsage>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsUsage.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/usage`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectUsageFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsUsage(requestParameters: ApiProjectsUsageRequest): Promise<ProjectUsage> {
+        const response = await this.apiProjectsUsageRaw(requestParameters);
         return await response.value();
     }
 

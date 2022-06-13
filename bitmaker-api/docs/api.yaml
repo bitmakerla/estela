@@ -184,23 +184,6 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/billing:
-    get:
-      operationId: api_projects_billing
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/ProjectBilling'
-      tags:
-        - api
-    parameters:
-      - name: pid
-        in: path
-        required: true
-        type: string
   /api/projects/{pid}/deploys:
     get:
       operationId: api_projects_deploys_list
@@ -806,6 +789,23 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/usage:
+    get:
+      operationId: api_projects_usage
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectUsage'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
 definitions:
   AuthToken:
     required:
@@ -953,29 +953,6 @@ definitions:
         enum:
           - EDITOR
           - VIEWER
-  ProjectBilling:
-    required:
-      - name
-    type: object
-    properties:
-      pid:
-        title: Pid
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        maxLength: 1000
-        minLength: 1
-      network_usage:
-        title: Network usage
-        type: string
-        readOnly: true
-      processing_time:
-        title: Processing time
-        type: string
-        readOnly: true
   Spider:
     required:
       - name
@@ -1347,3 +1324,38 @@ definitions:
       count:
         title: Count
         type: integer
+  ProjectUsage:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      network_usage:
+        title: Network usage
+        type: string
+        readOnly: true
+      processing_time:
+        title: Processing time
+        type: string
+        readOnly: true
+      items_storage_size:
+        title: Items storage size
+        type: string
+        readOnly: true
+      requests_storage_size:
+        title: Requests storage size
+        type: string
+        readOnly: true
+      logs_storage_size:
+        title: Logs storage size
+        type: string
+        readOnly: true

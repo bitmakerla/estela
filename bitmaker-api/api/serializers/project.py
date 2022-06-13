@@ -1,4 +1,5 @@
 from core.models import Permission, Project, SpiderJob
+from core.mongo import get_database_size
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from rest_framework import serializers
@@ -28,13 +29,24 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ("pid", "name", "container_image", "users")
 
 
-class ProjectBillingSerializer(serializers.ModelSerializer):
+class ProjectUsageSerializer(serializers.ModelSerializer):
     network_usage = serializers.SerializerMethodField()
     processing_time = serializers.SerializerMethodField()
+    items_storage_size = serializers.SerializerMethodField()
+    requests_storage_size = serializers.SerializerMethodField()
+    logs_storage_size = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
-        fields = ("pid", "name", "network_usage", "processing_time")
+        fields = (
+            "pid",
+            "name",
+            "network_usage",
+            "processing_time",
+            "items_storage_size",
+            "requests_storage_size",
+            "logs_storage_size",
+        )
 
     def get_network_usage(self, project):
         project_jobs = SpiderJob.objects.filter(spider__project=project)
@@ -45,6 +57,15 @@ class ProjectBillingSerializer(serializers.ModelSerializer):
         project_jobs = SpiderJob.objects.filter(spider__project=project)
         total_processing_time = project_jobs.aggregate(Sum("lifespan"))
         return total_processing_time["lifespan__sum"]
+
+    def get_items_storage_size(self, project):
+        return get_database_size(project, "items")
+
+    def get_requests_storage_size(self, project):
+        return get_database_size(project, "requests")
+
+    def get_logs_storage_size(self, project):
+        return 0
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):

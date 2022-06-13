@@ -17,6 +17,7 @@ models/Permission.ts
 models/Project.ts
 models/ProjectJob.ts
 models/ProjectUpdate.ts
+models/ProjectUsage.ts
 models/Spider.ts
 models/SpiderCronJob.ts
 models/SpiderCronJobCreate.ts

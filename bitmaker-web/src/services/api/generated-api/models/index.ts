@@ -13,6 +13,7 @@ export * from './Permission';
 export * from './Project';
 export * from './ProjectJob';
 export * from './ProjectUpdate';
+export * from './ProjectUsage';
 export * from './Spider';
 export * from './SpiderCronJob';
 export * from './SpiderCronJobCreate';

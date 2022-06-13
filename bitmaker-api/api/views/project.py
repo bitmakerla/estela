@@ -2,7 +2,7 @@ from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
-    ProjectBillingSerializer,
+    ProjectUsageSerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
 )
@@ -136,13 +136,13 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         methods=["GET"],
-        responses={status.HTTP_200_OK: ProjectBillingSerializer()},
+        responses={status.HTTP_200_OK: ProjectUsageSerializer()},
     )
     @action(methods=["GET"], detail=True)
-    def billing(self, request, *args, **kwargs):
+    def usage(self, request, *args, **kwargs):
         instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
-        serializer = ProjectBillingSerializer(project)
+        serializer = ProjectUsageSerializer(project)
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,

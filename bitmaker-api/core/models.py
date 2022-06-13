@@ -196,3 +196,14 @@ class SpiderJobTag(models.Model):
     name = models.CharField(max_length=50)
     jobs = models.ManyToManyField(SpiderJob, related_name="tags", blank=True)
     cronjobs = models.ManyToManyField(SpiderCronJob, related_name="ctags", blank=True)
+
+
+class UsageRecord(models.Model):
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="usage_records"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    processing_time = models.DurationField()
+    network_usage = models.PositiveBigIntegerField()
+    items_data_size = models.PositiveBigIntegerField()
+    requests_data_size = models.PositiveBigIntegerField()
