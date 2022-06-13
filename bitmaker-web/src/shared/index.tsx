@@ -10,4 +10,5 @@ export {
     invalidDataNotification,
     nonExistentUserNotification,
     emailConfirmationNotification,
+    dataDeletedNotification,
 } from "./notifications";

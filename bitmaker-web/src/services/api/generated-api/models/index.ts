@@ -1,4 +1,5 @@
 export * from './AuthToken';
+export * from './DeleteJobData';
 export * from './Deploy';
 export * from './DeployCreate';
 export * from './DeployUpdate';

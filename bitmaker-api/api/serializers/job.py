@@ -128,6 +128,10 @@ class GetLogsSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=True)
 
 
+class DeleteJobDataSerializer(serializers.Serializer):
+    count = serializers.IntegerField(required=True)
+
+
 class ProjectJobSerializer(serializers.Serializer):
     results = SpiderJobSerializer(many=True, required=True)
     count = serializers.IntegerField(required=True)
