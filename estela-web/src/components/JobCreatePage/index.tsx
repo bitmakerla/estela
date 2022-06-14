@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, DatePicker, DatePickerProps } from "antd";
+import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, InputNumber } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { RouteComponentProps } from "react-router-dom";
 import moment from "moment";
@@ -53,7 +53,8 @@ interface JobCreatePageState {
     newTagName: string;
     spiderName: string;
     isDataPermanent: boolean;
-    expirationDate: string;
+    months: number;
+    days: number;
 }
 
 interface RouteParams {
@@ -74,7 +75,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newTagName: "",
         spiderName: "",
         isDataPermanent: true,
-        expirationDate: moment().add(1, "month").format("YYYY-MM-DD"),
+        months: 1,
+        days: 1,
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -107,7 +109,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             pid: this.projectId,
             sid: this.spiderId,
             permanent: this.state.isDataPermanent,
-            expirationDate: this.state.expirationDate,
+            expirationDate: `${this.state.months}/${this.state.days}`,
         };
         this.apiService.apiProjectsSpidersJobsCreate(request).then(
             (response: SpiderJobCreate) => {
@@ -194,8 +196,12 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ isDataPermanent: !this.state.isDataPermanent });
     };
 
-    onChange: DatePickerProps["onChange"] = (_, dateString) => {
-        this.setState({ expirationDate: dateString });
+    onChangeMonth = (value: number): void => {
+        this.setState({ months: value });
+    };
+
+    onChangeDay = (value: number): void => {
+        this.setState({ days: value });
     };
 
     disabledDate: RangePickerProps["disabledDate"] = (current) => {
@@ -214,7 +220,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             newTagName,
             spiderName,
             isDataPermanent,
-            expirationDate,
+            months,
+            days,
         } = this.state;
 
         return (
@@ -306,12 +313,21 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                     </Space>
                                     {!isDataPermanent && (
                                         <Space direction="horizontal">
-                                            Expiration Date
-                                            <DatePicker
+                                            Months
+                                            <InputNumber
                                                 size="small"
-                                                disabledDate={this.disabledDate}
-                                                defaultValue={moment(expirationDate)}
-                                                onChange={this.onChange}
+                                                min={0}
+                                                max={12}
+                                                defaultValue={months}
+                                                onChange={this.onChangeMonth}
+                                            />
+                                            Days
+                                            <InputNumber
+                                                size="small"
+                                                min={1}
+                                                max={31}
+                                                defaultValue={days}
+                                                onChange={this.onChangeDay}
                                             />
                                         </Space>
                                     )}

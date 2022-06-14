@@ -161,7 +161,9 @@ export interface ApiProjectsReadRequest {
 export interface ApiProjectsSpidersCronjobsCreateRequest {
     pid: string;
     sid: string;
+    permanent: boolean;
     data: SpiderCronJobCreate;
+    expirationDate?: string;
 }
 
 export interface ApiProjectsSpidersCronjobsListRequest {
@@ -201,9 +203,9 @@ export interface ApiProjectsSpidersCronjobsUpdateRequest {
 export interface ApiProjectsSpidersJobsCreateRequest {
     pid: string;
     sid: string;
+    permanent: boolean;
     data: SpiderJobCreate;
     async?: boolean;
-    permanent?: boolean;
     expirationDate?: string;
 }
 
@@ -827,11 +829,23 @@ export class ApiApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
         }
 
+        if (requestParameters.permanent === null || requestParameters.permanent === undefined) {
+            throw new runtime.RequiredError('permanent','Required parameter requestParameters.permanent was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
+        }
+
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.permanent !== undefined) {
+            queryParameters['permanent'] = requestParameters.permanent;
+        }
+
+        if (requestParameters.expirationDate !== undefined) {
+            queryParameters['expiration_date'] = requestParameters.expirationDate;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1084,6 +1098,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.sid === null || requestParameters.sid === undefined) {
             throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsCreate.');
+        }
+
+        if (requestParameters.permanent === null || requestParameters.permanent === undefined) {
+            throw new runtime.RequiredError('permanent','Required parameter requestParameters.permanent was null or undefined when calling apiProjectsSpidersJobsCreate.');
         }
 
         if (requestParameters.data === null || requestParameters.data === undefined) {
