@@ -1,4 +1,4 @@
-from core.models import Permission, Project, SpiderJob
+from core.models import Permission, Project, SpiderJob, UsageRecord
 from core.mongo import get_database_size
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -29,12 +29,24 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ("pid", "name", "container_image", "users")
 
 
+class UsageRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsageRecord
+        fields = (
+            "created_at",
+            "processing_time",
+            "network_usage",
+            "items_data_size",
+            "requests_data_size",
+        )
+
+
 class ProjectUsageSerializer(serializers.ModelSerializer):
     network_usage = serializers.SerializerMethodField()
     processing_time = serializers.SerializerMethodField()
-    items_storage_size = serializers.SerializerMethodField()
-    requests_storage_size = serializers.SerializerMethodField()
-    logs_storage_size = serializers.SerializerMethodField()
+    items_data_size = serializers.SerializerMethodField()
+    requests_data_size = serializers.SerializerMethodField()
+    logs_data_size = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -43,9 +55,9 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
             "name",
             "network_usage",
             "processing_time",
-            "items_storage_size",
-            "requests_storage_size",
-            "logs_storage_size",
+            "items_data_size",
+            "requests_data_size",
+            "logs_data_size",
         )
 
     def get_network_usage(self, project):
@@ -58,13 +70,13 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
         total_processing_time = project_jobs.aggregate(Sum("lifespan"))
         return total_processing_time["lifespan__sum"]
 
-    def get_items_storage_size(self, project):
+    def get_items_data_size(self, project):
         return get_database_size(project, "items")
 
-    def get_requests_storage_size(self, project):
+    def get_requests_data_size(self, project):
         return get_database_size(project, "requests")
 
-    def get_logs_storage_size(self, project):
+    def get_logs_data_size(self, project):
         return 0
 
 

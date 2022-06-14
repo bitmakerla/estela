@@ -1,12 +1,15 @@
+from datetime import datetime
+
 from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
-    ProjectUsageSerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
+    ProjectUsageSerializer,
+    UsageRecordSerializer,
 )
-from core.models import Permission, Project, Spider, SpiderJob, User
+from core.models import Permission, Project, Spider, SpiderJob, UsageRecord, User
 from django.core.paginator import Paginator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -139,10 +142,47 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         responses={status.HTTP_200_OK: ProjectUsageSerializer()},
     )
     @action(methods=["GET"], detail=True)
-    def usage(self, request, *args, **kwargs):
+    def current_usage(self, request, *args, **kwargs):
         instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
         serializer = ProjectUsageSerializer(project)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "start_date",
+                openapi.IN_QUERY,
+                description="Start of date range.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="End of date range.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+        ],
+        responses={status.HTTP_200_OK: UsageRecordSerializer(many=True)},
+    )
+    @action(methods=["GET"], detail=True)
+    def usage(self, request, *args, **kwargs):
+        instance = self.get_object()
+        project = Project.objects.get(pid=kwargs["pid"])
+        start_date = kwargs.get("start_date", datetime.today().replace(day=1))
+        end_date = kwargs.get("end_date", datetime.utcnow())
+        serializer = UsageRecordSerializer(
+            UsageRecord.objects.filter(
+                project=project, created_at__range=[start_date, end_date]
+            ),
+            many=True,
+        )
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
