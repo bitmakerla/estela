@@ -28,6 +28,8 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "tags",
             "job_status",
             "cronjob",
+            "expiration_date",
+            "status_data",
         )
 
 
@@ -46,6 +48,8 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "tags",
             "job_status",
             "cronjob",
+            "expiration_date",
+            "status_data",
         )
 
     def create(self, validated_data):

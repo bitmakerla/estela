@@ -54,14 +54,29 @@ class SpiderCronJobViewSet(
         return super(SpiderCronJobViewSet, self).list(*args, **kwargs)
 
     @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                name="permanent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
+            ),
+            openapi.Parameter(
+                name="expiration_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+            )
+        ],
         request_body=SpiderCronJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderCronJobCreateSerializer()},
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         serializer = SpiderCronJobCreateSerializer(data=request.data)
+        permanent = request.query_params.get("permanent")
         serializer.is_valid(raise_exception=True)
         cronjob = serializer.save(spider=spider)
+
+        if permanent != "true":
+            expiration_date = request.query_params.get("expiration_date")
+        else:
+            expiration_date = None
+
         create_cronjob(
             cronjob.name,
             cronjob.key,
@@ -69,6 +84,7 @@ class SpiderCronJobViewSet(
             request.data.get("cenv_vars", []),
             request.data.get("ctags", []),
             cronjob.schedule,
+            expiration_date=expiration_date
         )
         headers = self.get_success_headers(serializer.data)
         return Response(

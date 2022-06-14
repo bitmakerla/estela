@@ -124,6 +124,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         cronjob: response.cronjob,
                         loaded: true,
                     });
+                    console.log(response);
                 },
                 (error: unknown) => {
                     console.error(error);

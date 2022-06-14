@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Checkbox, Layout, Typography, Space, Tag } from "antd";
+import { Button, Form, Input, Checkbox, Layout, Typography, Space, Tag, Switch, InputNumber } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -52,6 +52,9 @@ interface CronJobCreatePageState {
     newTagName: string;
     spiderName: string;
     uniqueCollection: boolean;
+    isDataPermanent: boolean;
+    months: number;
+    days: number;
 }
 
 interface RouteParams {
@@ -73,6 +76,9 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         newTagName: "",
         spiderName: "",
         uniqueCollection: false,
+        isDataPermanent: true,
+        months: 1,
+        days: 1,
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -107,6 +113,8 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
+            permanent: this.state.isDataPermanent,
+            expirationDate: `${this.state.months}/${this.state.days}`,
         };
         this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {
@@ -189,9 +197,33 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         }
     };
 
+    onChangeData = (): void => {
+        this.setState({ isDataPermanent: !this.state.isDataPermanent });
+    };
+
+    onChangeMonth = (value: number): void => {
+        this.setState({ months: value });
+    };
+
+    onChangeDay = (value: number): void => {
+        this.setState({ days: value });
+    };
+
     render(): JSX.Element {
-        const { args, envVars, tags, newArgName, newArgValue, newEnvVarName, newEnvVarValue, newTagName, spiderName } =
-            this.state;
+        const {
+            args,
+            envVars,
+            tags,
+            newArgName,
+            newArgValue,
+            newEnvVarName,
+            newEnvVarValue,
+            newTagName,
+            spiderName,
+            isDataPermanent,
+            months,
+            days,
+        } = this.state;
 
         return (
             <Layout className="general-container">
@@ -292,6 +324,32 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                 <Button className="job-create-button" onClick={this.addTag}>
                                     Save Tag
                                 </Button>
+                                <Space direction="vertical" size="large">
+                                    <Space direction="horizontal">
+                                        Save Data Permanently
+                                        <Switch size="small" checked={isDataPermanent} onChange={this.onChangeData} />
+                                    </Space>
+                                    {!isDataPermanent && (
+                                        <Space direction="horizontal">
+                                            Months
+                                            <InputNumber
+                                                size="small"
+                                                min={0}
+                                                max={12}
+                                                defaultValue={months}
+                                                onChange={this.onChangeMonth}
+                                            />
+                                            Days
+                                            <InputNumber
+                                                size="small"
+                                                min={1}
+                                                max={31}
+                                                defaultValue={days}
+                                                onChange={this.onChangeDay}
+                                            />
+                                        </Space>
+                                    )}
+                                </Space>
                                 <Button type="primary" htmlType="submit" className="job-create-button">
                                     Create CronJob
                                 </Button>

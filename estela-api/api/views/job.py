@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -18,7 +19,6 @@ from api.serializers.job import (
 )
 from config.job_manager import job_manager
 from core.models import Spider, SpiderJob
-from core.cronjob import delete_job_data
 from core.registry import get_logs
 
 
@@ -94,7 +94,7 @@ class SpiderJobViewSet(
                 name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
             ),
             openapi.Parameter(
-                name="permanent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
+                name="permanent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
             ),
             openapi.Parameter(
                 name="expiration_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
@@ -108,11 +108,21 @@ class SpiderJobViewSet(
         async_param = request.query_params.get("async", False)
         permanent = request.query_params.get("permanent")
         serializer = SpiderJobCreateSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
 
+        if permanent != "true":
+            status_data = SpiderJob.NON_DELETED_STATUS
+            expiration_date = request.query_params.get("expiration_date")
+        else:
+            status_data = SpiderJob.PERMANENT_STATUS
+            expiration_date = ""
+
         if not async_param:
-            job = serializer.save(spider=spider)
+            job = serializer.save(
+                spider=spider,
+                status_data=status_data,
+                expiration_date=expiration_date,
+            )
             job_args = {arg.name: arg.value for arg in job.args.all()}
             job_env_vars = {
                 env_var.name: env_var.value for env_var in job.env_vars.all()
@@ -128,17 +138,14 @@ class SpiderJobViewSet(
                 job.spider.project.container_image,
                 auth_token=token,
             )
-            print(job.key)
-            print(permanent)
-            print(type(permanent))
-            if permanent != "true":
-                _, m, d = request.query_params.get("expiration_date").split("-")
-                schedule = "30 3 {} {} *".format(d, m)
-                # print(job.key)
-                response = delete_job_data(schedule, job.key, job.key)
-                print(response)
         else:
-            serializer.save(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
+            serializer.save(
+                spider=spider,
+                status=SpiderJob.IN_QUEUE_STATUS,
+                status_data=status_data,
+                expiration_date=expiration_date,
+            )
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

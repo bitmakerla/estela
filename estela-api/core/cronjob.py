@@ -4,7 +4,7 @@ import json
 from core.tasks import launch_job
 
 
-def create_cronjob(name, key, args, env_vars, tags, schedule):
+def create_cronjob(name, key, args, env_vars, tags, schedule, expiration_date=None):
     m, h, d_w, d_m, m_y = schedule.split(" ")
     cjid, sid, pid = key.split(".")
     data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
@@ -19,26 +19,7 @@ def create_cronjob(name, key, args, env_vars, tags, schedule):
         crontab=schedule,
         name=name,
         task="core.tasks.launch_job",
-        args=json.dumps([sid, data]),
-    )
-    return response
-
-
-def delete_job_data(schedule, key, name):
-    m, h, d_w, d_m, m_y = schedule.split(" ")
-    jid, sid, pid = key.split(".")
-    schedule, _ = CrontabSchedule.objects.get_or_create(
-        minute=m,
-        hour=h,
-        day_of_week=d_w,
-        day_of_month=d_m,
-        month_of_year=m_y,
-    )
-    response = PeriodicTask.objects.create(
-        crontab=schedule,
-        name=name,
-        task="core.tasks.delete_job_data",
-        args=json.dumps([sid, jid, pid]),
+        args=json.dumps([sid, data, expiration_date]),
     )
     return response
 

@@ -126,6 +126,16 @@ class SpiderJob(models.Model):
         (ERROR_STATUS, "Error"),
     ]
 
+    PERMANENT_STATUS = "PERMANENT"
+    DELETED_STATUS = "DELETED"
+    NON_DELETED_STATUS = "NON_DELETED"
+
+    STATUS_DATA_OPTIONS = [
+        (PERMANENT_STATUS, "Permanent"),
+        (DELETED_STATUS, "Deleted"),
+        (NON_DELETED_STATUS, "No Deleted"),
+    ]
+
     jid = models.AutoField(primary_key=True)
     spider = models.ForeignKey(Spider, on_delete=models.CASCADE, related_name="jobs")
     cronjob = models.ForeignKey(
@@ -134,6 +144,10 @@ class SpiderJob(models.Model):
     status = models.CharField(
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
+    status_data = models.CharField(
+        max_length=20, choices=STATUS_DATA_OPTIONS, default=PERMANENT_STATUS
+    )
+    expiration_date = models.CharField(max_length=8, blank=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:
