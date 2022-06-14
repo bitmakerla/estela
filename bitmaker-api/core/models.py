@@ -135,7 +135,7 @@ class SpiderJob(models.Model):
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
     created = models.DateTimeField(auto_now_add=True, editable=False)
-    lifespan = models.DurationField(default=timedelta(seconds=0))
+    lifespan = models.DurationField(default=timedelta(0))
     total_response_bytes = models.PositiveBigIntegerField(default=0)
 
     class Meta:

@@ -30,7 +30,9 @@ def get_database_size(project, data_type):
     total_size_bytes = 0
     for collection in collections:
         if data_type in collection:
-            collection_size = database.command("dataSize", collection)
-            total_size_bytes += collection_size
+            collection_size = database.command(
+                "dataSize", f"{str(project.pid)}.{collection}"
+            )
+            total_size_bytes += collection_size["size"]
 
     return total_size_bytes
