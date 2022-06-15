@@ -79,7 +79,8 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                         )
             else:
                 return Response(
-                    {"email": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST
+                    {"email": "User does not exist."},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         serializer.save()
 
