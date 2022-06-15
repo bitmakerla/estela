@@ -47,7 +47,19 @@ export interface SpiderJobCreate {
      */
     readonly name?: string;
     /**
-     * Job arguments.
+     * 
+     * @type {number}
+     * @memberof SpiderJob
+     */
+    lifespan?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJob
+     */
+    totalResponseBytes?: number;
+    /**
+     * 
      * @type {Array<SpiderJobArg>}
      * @memberof SpiderJobCreate
      */
@@ -102,6 +114,8 @@ export function SpiderJobCreateFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'name': !exists(json, 'name') ? undefined : json['name'],
+        'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
+        'totalResponseBytes': !exists(json, 'total_response_bytes') ? undefined : json['total_response_bytes'],
         'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'tags': !exists(json, 'tags') ? undefined : ((json['tags'] as Array<any>).map(SpiderJobTagFromJSON)),
@@ -121,6 +135,9 @@ export function SpiderJobCreateToJSON(value?: SpiderJobCreate | null): any {
     }
     return {
         
+        'spider': value.spider,
+        'lifespan': value.lifespan,
+        'total_response_bytes': value.totalResponseBytes,
         'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'tags': value.tags === undefined ? undefined : ((value.tags as Array<any>).map(SpiderJobTagToJSON)),

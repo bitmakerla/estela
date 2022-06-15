@@ -1662,5 +1662,38 @@ definitions:
         title: Logs data size
         description: Amount in bytes occupied by logs in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
+  ProjectUsage:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      network_usage:
+        title: Network usage
+        type: string
+        readOnly: true
+      processing_time:
+        title: Processing time
+        type: string
+        readOnly: true
+      items_storage_size:
+        title: Items storage size
+        type: string
+        readOnly: true
+      requests_storage_size:
+        title: Requests storage size
+        type: string
+        readOnly: true
+      logs_storage_size:
+        title: Logs storage size
+        type: string
+        readOnly: true
