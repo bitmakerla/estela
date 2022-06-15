@@ -161,15 +161,6 @@ class JobDataViewSet(
     @swagger_auto_schema(
         methods=["POST"],
         responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
-        manual_parameters=[
-            openapi.Parameter(
-                "type",
-                openapi.IN_QUERY,
-                description="Spider job data type.",
-                type=openapi.TYPE_STRING,
-                required=True,
-            ),
-        ],
     )
     @action(methods=["POST"], detail=False)
     def delete(self, request, *args, **kwargs):

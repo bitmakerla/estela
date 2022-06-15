@@ -842,7 +842,10 @@ paths:
         description: A UUID identifying this project.
         required: true
         type: string
-        format: uuid
+      - name: sid
+        in: path
+        required: true
+        type: string
 definitions:
   AuthToken:
     required:
