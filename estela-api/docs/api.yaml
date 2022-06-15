@@ -753,11 +753,16 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}/delete:
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/delete:
     post:
       operationId: api_projects_spiders_jobs_data_delete
       description: ''
-      parameters: []
+      parameters:
+        - name: type
+          in: query
+          description: Spider job data type.
+          required: true
+          type: string
       responses:
         '200':
           description: ''
@@ -766,10 +771,6 @@ paths:
       tags:
         - api
     parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
       - name: jid
         in: path
         required: true
