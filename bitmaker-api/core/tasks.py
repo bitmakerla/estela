@@ -1,10 +1,13 @@
-from django.conf import settings
-from config.celery import app as celery_app
-from core.models import SpiderJob, Spider
-from config.job_manager import job_manager
-from rest_framework.authtoken.models import Token
+from datetime import timedelta
 
 from api.serializers.job import SpiderJobCreateSerializer
+from config.celery import app as celery_app
+from config.job_manager import job_manager
+from core.models import Project, Spider, SpiderJob, UsageRecord
+from core.mongo import get_database_size
+from django.conf import settings
+from django.db.models import Sum
+from rest_framework.authtoken.models import Token
 
 
 def get_default_token(job):
@@ -82,3 +85,31 @@ def check_and_update_job_status_errors():
         ):
             job.status = SpiderJob.ERROR_STATUS
             job.save()
+
+
+@celery_app.task(name="core.tasks.record_projects_usage")
+def record_projects_usage():
+    projects = Project.objects.all()
+
+    for project in projects:
+        project_jobs = SpiderJob.objects.filter(spider__project=project)
+
+        total_processing_time = project_jobs.aggregate(Sum("lifespan"))[
+            "lifespan__sum"
+        ] or timedelta(0)
+        total_network_usage = (
+            project_jobs.aggregate(Sum("total_response_bytes"))[
+                "total_response_bytes__sum"
+            ]
+            or 0
+        )
+        items_data_size = get_database_size(project, "items")
+        requests_data_size = get_database_size(project, "requests")
+
+        usage_record = UsageRecord.objects.create(
+            project=project,
+            processing_time=total_processing_time,
+            network_usage=total_network_usage,
+            items_data_size=items_data_size,
+            requests_data_size=requests_data_size,
+        )

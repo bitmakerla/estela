@@ -1,12 +1,12 @@
 import uuid
 from datetime import timedelta
+from urllib.parse import urlparse
+
+from config.job_manager import job_manager
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from urllib.parse import urlparse
-
-from config.job_manager import job_manager
 
 
 class Project(models.Model):
@@ -135,6 +135,8 @@ class SpiderJob(models.Model):
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
     created = models.DateTimeField(auto_now_add=True, editable=False)
+    lifespan = models.DurationField(default=timedelta(0))
+    total_response_bytes = models.PositiveBigIntegerField(default=0)
 
     class Meta:
         ordering = ["-created"]
@@ -194,3 +196,14 @@ class SpiderJobTag(models.Model):
     name = models.CharField(max_length=50)
     jobs = models.ManyToManyField(SpiderJob, related_name="tags", blank=True)
     cronjobs = models.ManyToManyField(SpiderCronJob, related_name="ctags", blank=True)
+
+
+class UsageRecord(models.Model):
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="usage_records"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    processing_time = models.DurationField()
+    network_usage = models.PositiveBigIntegerField()
+    items_data_size = models.PositiveBigIntegerField()
+    requests_data_size = models.PositiveBigIntegerField()

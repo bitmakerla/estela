@@ -818,6 +818,23 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/usage:
+    get:
+      operationId: api_projects_usage
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectUsage'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
 definitions:
   AuthToken:
     required:
@@ -1126,6 +1143,14 @@ definitions:
         title: Name
         type: string
         readOnly: true
+      lifespan:
+        title: Lifespan
+        type: number
+      total_response_bytes:
+        title: Total response bytes
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       args:
         type: array
         items:
@@ -1305,6 +1330,14 @@ definitions:
           - CANCELLED
           - COMPLETED
           - ERROR
+      lifespan:
+        title: Lifespan
+        type: number
+      total_response_bytes:
+        title: Total response bytes
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
   DeleteJobData:
     required:
       - count
@@ -1328,3 +1361,38 @@ definitions:
       count:
         title: Count
         type: integer
+  ProjectUsage:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      network_usage:
+        title: Network usage
+        type: string
+        readOnly: true
+      processing_time:
+        title: Processing time
+        type: string
+        readOnly: true
+      items_storage_size:
+        title: Items storage size
+        type: string
+        readOnly: true
+      requests_storage_size:
+        title: Requests storage size
+        type: string
+        readOnly: true
+      logs_storage_size:
+        title: Logs storage size
+        type: string
+        readOnly: true

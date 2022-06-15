@@ -1,7 +1,8 @@
-from rest_framework import serializers
-
-from core.models import Project, Permission
+from core.models import Permission, Project, SpiderJob, UsageRecord
+from core.mongo import get_database_size
 from django.contrib.auth.models import User
+from django.db.models import Sum
+from rest_framework import serializers
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -26,6 +27,57 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("pid", "name", "container_image", "users")
+
+
+class UsageRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsageRecord
+        fields = (
+            "created_at",
+            "processing_time",
+            "network_usage",
+            "items_data_size",
+            "requests_data_size",
+        )
+
+
+class ProjectUsageSerializer(serializers.ModelSerializer):
+    network_usage = serializers.SerializerMethodField()
+    processing_time = serializers.SerializerMethodField()
+    items_data_size = serializers.SerializerMethodField()
+    requests_data_size = serializers.SerializerMethodField()
+    logs_data_size = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = (
+            "pid",
+            "name",
+            "network_usage",
+            "processing_time",
+            "items_data_size",
+            "requests_data_size",
+            "logs_data_size",
+        )
+
+    def get_network_usage(self, project):
+        project_jobs = SpiderJob.objects.filter(spider__project=project)
+        total_network_usage = project_jobs.aggregate(Sum("total_response_bytes"))
+        return total_network_usage["total_response_bytes__sum"]
+
+    def get_processing_time(self, project):
+        project_jobs = SpiderJob.objects.filter(spider__project=project)
+        total_processing_time = project_jobs.aggregate(Sum("lifespan"))
+        return total_processing_time["lifespan__sum"]
+
+    def get_items_data_size(self, project):
+        return get_database_size(project, "items")
+
+    def get_requests_data_size(self, project):
+        return get_database_size(project, "requests")
+
+    def get_logs_data_size(self, project):
+        return 0
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):

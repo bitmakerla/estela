@@ -49,6 +49,8 @@ interface TagsData {
 interface JobDetailPageState {
     loaded: boolean;
     name: string | undefined;
+    lifespan: number | undefined;
+    totalResponseBytes: number | undefined;
     args: ArgsData[];
     envVars: EnvVarsData[];
     tags: TagsData[];
@@ -74,6 +76,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     state: JobDetailPageState = {
         loaded: false,
         name: "",
+        lifespan: 0,
+        totalResponseBytes: 0,
         args: [],
         envVars: [],
         tags: [],
@@ -116,6 +120,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     }
                     this.setState({
                         name: response.name,
+                        lifespan: response.lifespan,
+                        totalResponseBytes: response.totalResponseBytes,
                         args: [...args],
                         envVars: [...envVars],
                         tags: [...tags],
@@ -201,7 +207,21 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     render(): JSX.Element {
-        const { loaded, args, envVars, tags, date, status, cronjob, stats, logs, count, current } = this.state;
+        const {
+            loaded,
+            args,
+            envVars,
+            tags,
+            date,
+            status,
+            lifespan,
+            totalResponseBytes,
+            cronjob,
+            stats,
+            logs,
+            count,
+            current,
+        } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -242,6 +262,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             </Text>
                                             <Text>
                                                 <b>Status:</b>&nbsp; {status}
+                                            </Text>
+                                            <Text>
+                                                <b>Lifespan:</b>&nbsp; {lifespan}
+                                            </Text>
+                                            <Text>
+                                                <b>Total response bytes:</b>&nbsp; {totalResponseBytes}
                                             </Text>
                                             <Space direction="vertical">
                                                 <b>Arguments</b>

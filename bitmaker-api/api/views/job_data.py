@@ -83,7 +83,6 @@ class JobDataViewSet(
             ),
         ],
     )
-
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
@@ -157,11 +156,11 @@ class JobDataViewSet(
                 "results": result,
             }
         )
-    
-    @swagger_auto_schema(
-        methods=["POST"], responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
-    )
 
+    @swagger_auto_schema(
+        methods=["POST"],
+        responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
+    )
     @action(methods=["POST"], detail=True)
     def delete(self, request, *args, **kwargs):
         data_type = "items"
@@ -172,10 +171,7 @@ class JobDataViewSet(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-        ):
+        if job.cronjob is not None and job.cronjob.unique_collection:
             job_collection_name = "{}-scj{}-job_{}".format(
                 kwargs["sid"], job.cronjob.cjid, data_type
             )

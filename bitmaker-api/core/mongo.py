@@ -18,3 +18,21 @@ def get_client(db_connection):
     except ConnectionFailure:
         return None
     return client
+
+
+def get_database_size(project, data_type):
+    client = get_client(settings.MONGO_CONNECTION)
+    if not client:
+        return -1
+
+    database = client[str(project.pid)]
+    collections = database.list_collection_names()
+    total_size_bytes = 0
+    for collection in collections:
+        if data_type in collection:
+            collection_size = database.command(
+                "dataSize", f"{str(project.pid)}.{collection}"
+            )
+            total_size_bytes += collection_size["size"]
+
+    return total_size_bytes
