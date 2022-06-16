@@ -69,9 +69,8 @@ def delete_job_data():
 
     for job in jobs:
         jid, sid, pid = job.key.split(".")
-        m, d = job.expiration_date.split("/")
+        m, d = [int(i) for i in job.expiration_date.split("/")]
         if timezone.now() - timedelta(days=(m * 30 + d)) > job.created:
-        # if timezone.now() - timedelta(seconds=120) > job.created:
             delete_data(pid, sid, jid)
             job.status_data = SpiderJob.DELETED_STATUS
             job.save()
