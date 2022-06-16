@@ -59,6 +59,8 @@ interface JobDetailPageState {
     logs: string[];
     count: number;
     current: number;
+    statusData: string | undefined;
+    expirationDate: string | undefined;
 }
 
 interface RouteParams {
@@ -84,6 +86,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         logs: [],
         count: 0,
         current: 0,
+        statusData: "",
+        expirationDate: "",
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -123,6 +127,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         status: response.jobStatus,
                         cronjob: response.cronjob,
                         loaded: true,
+                        statusData: response.statusData,
+                        expirationDate: response.expirationDate,
                     });
                 },
                 (error: unknown) => {
@@ -201,7 +207,21 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     render(): JSX.Element {
-        const { loaded, args, envVars, tags, date, status, cronjob, stats, logs, count, current } = this.state;
+        const {
+            loaded,
+            args,
+            envVars,
+            tags,
+            date,
+            status,
+            cronjob,
+            stats,
+            logs,
+            count,
+            current,
+            statusData,
+            expirationDate,
+        } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -242,6 +262,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             </Text>
                                             <Text>
                                                 <b>Status:</b>&nbsp; {status}
+                                            </Text>
+                                            <Text>
+                                                <b>Status Data:</b>&nbsp; {statusData}
+                                            </Text>
+                                            <Text>
+                                                <b>Expiration Date:</b>&nbsp; {expirationDate}
                                             </Text>
                                             <Space direction="vertical">
                                                 <b>Arguments</b>
