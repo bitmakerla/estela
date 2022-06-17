@@ -1,4 +1,5 @@
 import re
+from datetime import date
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -46,6 +47,11 @@ class SpiderJobViewSet(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
         return page, page_size
+
+    def convert_date_to_days(self, date_str):
+        Y, M, D = [int(i) for i in date_str.split('-')]
+        days = date(Y, M, D) - date.today()
+        return "0/{}".format(days.days)
 
     def get_queryset(self):
         if self.request is None:
@@ -111,16 +117,17 @@ class SpiderJobViewSet(
         serializer.is_valid(raise_exception=True)
 
         if persistent != "true":
-            status_data = SpiderJob.NON_DELETED_STATUS
-            data_expiry_date = request.query_params.get("data_expiry_date")
+            data_status = SpiderJob.NON_DELETED_STATUS
+            date_str = request.query_params.get("data_expiry_date")
+            data_expiry_date = self.convert_date_to_days(date_str)
         else:
-            status_data = SpiderJob.PERSISTENT_STATUS
-            data_expiry_date = ""
+            data_status = SpiderJob.PERSISTENT_STATUS
+            data_expiry_date = None
 
         if not async_param:
             job = serializer.save(
                 spider=spider,
-                status_data=status_data,
+                data_status=data_status,
                 data_expiry_date=data_expiry_date,
             )
             job_args = {arg.name: arg.value for arg in job.args.all()}
@@ -142,7 +149,7 @@ class SpiderJobViewSet(
             serializer.save(
                 spider=spider,
                 status=SpiderJob.IN_QUEUE_STATUS,
-                status_data=status_data,
+                data_status=data_status,
                 data_expiry_date=data_expiry_date,
             )
 

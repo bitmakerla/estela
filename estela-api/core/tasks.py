@@ -63,7 +63,7 @@ def run_spider_jobs():
 
 @celery_app.task(name="core.tasks.delete_job_data")
 def delete_job_data():
-    jobs = SpiderJob.objects.filter(status_data=SpiderJob.NON_DELETED_STATUS)[
+    jobs = SpiderJob.objects.filter(data_status=SpiderJob.NON_DELETED_STATUS)[
         : settings.RUN_TASKS_PER_LOT
     ]
 
@@ -73,7 +73,7 @@ def delete_job_data():
         if timezone.now() - timedelta(days=(months * 30 + days)) > job.created:
             delete_data(pid, sid, jid, "items")
             delete_data(pid, sid, jid, "requests")
-            job.status_data = SpiderJob.DELETED_STATUS
+            job.data_status = SpiderJob.DELETED_STATUS
             job.save()
 
 
@@ -84,7 +84,6 @@ def launch_job(sid_, data_, data_expiry_date=None,token=None):
 
     if data_expiry_date is None:
         data_status = SpiderJob.PERSISTENT_STATUS
-        data_expiry_date = ""
     else:
         data_status = SpiderJob.NON_DELETED_STATUS
 
