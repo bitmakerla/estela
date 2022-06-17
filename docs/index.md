@@ -7,11 +7,11 @@ nav_order: 1
 # Bitmaker Cloud Documentation
 
 ## Overview
-[Bitmaker Cloud](https://github.com/bitmakerla/bitmaker-cloud) is an open-source application created by
+[Bitmaker Cloud](https://github.com/bitmakerla/bitmaker-cloud) is an open-source elastic web scraping cluster created by
 [Bitmaker](https://www.bitmaker.la/). Clients and users interested in web scraping can orchestrate and run their
-spiders (e.g., Scrapy spiders), similar to [Zyte](https://www.zyte.com/)'s
-[Scrapy Cloud](https://www.zyte.com/scrapy-cloud/). Bitmaker Cloud aims to be versatile, to the point that you can
-deploy it in-home.
+spiders (e.g., Scrapy spiders) in an infrastructure that lets them monitor and manage their projects more effortlessly,
+similar to [Scrapy Cloud](https://bitmaker.la/docs/bitmaker-cloud/api/engines.html). Bitmaker Cloud aims to be versatile,
+to the point that you can deploy it in-home.
 
 The [Bitmaker CLI](https://github.com/bitmakerla/bitmaker-cli/) is in charge of Scrapy based projects deployment
 (currently only supports Scrapy projects) and uses a REST API client to upload projects. These projects are then built
@@ -29,15 +29,20 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
 ![Bitmaker Cloud Architecture](./assets/images/architecture.svg)
 
 ## Structure
-- [Bitmaker Cloud](https://github.com/bitmakerla/bitmaker-cloud/): It is composed of modules that work independently of the rest, and
-  can be changed. E.g., use RabbitMQ instead of Kafka.
-  - [Bitmaker API](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api): It contains everything related to
-    the API of the product. It manages the spiders.
-  - [Bitmaker Kafka](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-kafka): It contains everything related
-    to the Kafka cluster used to collect and transport the information of the spiders.
-  - [Bitmaker Web](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-web): It contains everything related to the
-    front end of the product. You can manage the spiders with a user-friendly interface from here.
-- [Bitmaker Cloud CLI](https://github.com/bitmakerla/bitmaker-cli/): This is the command line client to interact with Bitmaker Cloud API.
+- [Bitmaker Cloud](https://github.com/bitmakerla/bitmaker-cloud/): It is composed of three modules that work
+  independently, and can be changed. E.g., use RabbitMQ instead of Kafka as its queueing system.
+  - [API](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api): Implements a REST API built
+    with the Django REST framework toolkit, which exposes several endpoints to manage projects, spiders, and jobs. It
+    uses Celery for task processing and takes care of deploying your Scrapy projects, among other things.
+  - [Kafka Queueing](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-kafka): A high-throughput,
+    low-latency platform that controls real-time data feeds in a producer-consumer architecture. In this module, you
+    will find a Kafka consumer and the configuration to set up the Kafka cluster used to collect and transport the
+    information from the spiders into a database.
+  - [Web](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-web): A front-end project implemented
+    with React Framework (with Ant Design) and Typescript. This module implements a user-friendly environment that
+    communicates with the API and lets you manage your spiders and scraping projects.
+- [Bitmaker Cloud CLI](https://github.com/bitmakerla/bitmaker-cli/): This is the command line client to interact with
+    Bitmaker Cloud API. It allows you to create projects and deploy them to Estelar, as well as create jobs, cronjobs, etc.
 - [Bitmaker Entrypoint](https://github.com/bitmakerla/bitmaker-entrypoint): This is a package that implements a wrapper layer to extract job
     data from the environment, prepare the job properly, and execute it using Scrapy.
 

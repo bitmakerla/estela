@@ -22,6 +22,20 @@ These ViewSets can be found in their corresponding files in [`bitmaker-api/api/v
 {::options parse_block_html="true" /}
 
 <details>
+<summary markdown="span">**GET** `/api/auth/activate`</summary>
+
+#### **Description**
+Activate a newly registered account.
+
+##### Responses
+
+| Code | Schema |
+| ---- | ------ |
+| 200 | [AuthToken](#authtoken) |
+
+</details>
+
+<details>
 <summary markdown="span">**POST** `/api/auth/login`</summary>
 
 #### **Description**
@@ -530,9 +544,58 @@ Partial update spider cronjob.
 
 </details>
 
+<details>
+<summary markdown="span">**GET** `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}/run_once`</summary>
+
+#### **Description**
+Run a single job using the configuration of an existing cronjob.
+
+#### **Method:** PATCH
+
+##### **Parameters**
+
+| Name | Located in | Required | Schema |
+| ---- | ---------- | -------- | ---- |
+| cjid | path | Yes | string |
+| pid | path | Yes | string |
+| sid | path | Yes | string |
+
+##### **Responses**
+
+| Code | Schema |
+| ---- | ------ |
+| 200 | [SpiderCronJob](#spidercronjob) |
+
+</details>
+
 ---
 
 ### Spider Jobs
+
+<details>
+<summary markdown="span">**GET** `/api/projects/{pid}/jobs`</summary>
+
+#### **Description**
+List the jobs of a specific project. This will list the jobs by creation date,
+independently of what spider they belong to.
+
+#### **Method:** GET
+
+##### **Parameters**
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| pid | path |  | Yes | string |
+| page | query | DataPaginated. | No | number |
+| page_size | query | DataPaginated. | No | number |
+
+##### **Responses**
+
+| Code | Schema |
+| ---- | ------ |
+| 200 | [ProjectJob](#projectjob) |
+
+</details>
 
 <details>
 <summary markdown="span">**GET** `/api/projects/{pid}/spiders/{sid}/jobs`</summary>
@@ -685,6 +748,31 @@ Get job data.
 | Code | Schema |
 | ---- | ------ |
 | 200 | [PaginatedResults](#paginatedresults)[] |
+
+</details>
+
+<details>
+<summary markdown="span">**POST** `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}/delete`</summary>
+
+#### **Description**
+Delete job data.
+
+#### **Method:** GET
+
+##### **Parameters**
+
+| Name | Located in | Required | Schema |
+| ---- | ---------- | -------- | ---- |
+| id | path | Yes | string |
+| jid | path | Yes | string |
+| pid | path | Yes | string |
+| sid | path | Yes | string |
+
+##### **Responses**
+
+| Code | Schema |
+| ---- | ------ |
+| 200 | [DeleteJobData](#deletejobdata) |
 
 </details>
 
@@ -894,6 +982,16 @@ in [`bitmaker-api/api/serializers/`](https://github.com/bitmakerla/bitmaker-clou
 </details>
 
 <details>
+<summary markdown="span" id="projectjob">**ProjectJob**</summary>
+
+| Name | Type | Required |
+| ---- | ---- | -------- |
+| results | [SpiderJob](#spiderjob) | Yes |
+| count | integer | Yes |
+
+</details>
+
+<details>
 <summary markdown="span" id="spiderjob">**SpiderJob**</summary>
 
 | Name | Type | Required |
@@ -944,6 +1042,25 @@ in [`bitmaker-api/api/serializers/`](https://github.com/bitmakerla/bitmaker-clou
 | next | string($uri) |  | No |
 | previous | string($uri) |  | No |
 | results | [object] | The type of this attribute will vary throughout the documentation. This is an array of objects, depending on what object is being queried. | yes |
+
+</details>
+
+<details>
+<summary markdown="span" id="deletejobdata">**DeleteJobData**</summary>
+
+| Name | Type | Required |
+| ---- | ---- | -------- |
+| count | integer | Yes |
+
+</details>
+
+<details>
+<summary markdown="span" id="getlogs">**GetLogs**</summary>
+
+| Name | Type | Required |
+| ---- | ---- | -------- |
+| logs | [ string ] | Yes |
+| count | integer | Yes |
 
 </details>
 

@@ -1,4 +1,4 @@
-# Bitmaker Cloud Documentation
+# Estelar Documentation
 
 ### Build and run locally
 

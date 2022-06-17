@@ -6,8 +6,9 @@ parent: Bitmaker Cloud
 
 # Bitmaker Cloud Web
 
-This project is made using the [React Framework](https://reactjs.org/)
-(along with [Ant Design](https://ant.design/)) and Typescript.
+This project is created using [React Framework](https://reactjs.org/) (along with [Ant Design](https://ant.design/)) and
+Typescript. This module implements a user-friendly environment that communicates with the Esterlar API and lets you
+manage your spiders and scraping projects.
 
 ## Local Setup
 

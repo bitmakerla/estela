@@ -6,11 +6,12 @@ parent: Bitmaker Cloud
 
 # Bitmaker Cloud Kafka
 
-Bitmaker Kafka contains all the configurations for the Kafka cluster on Kubernetes.
-Currently, it allows upscaling and downscaling in both brokers and zookeepers.
+The project uses a Kafka cluster as its scheduler to transport scraped items into the database. This module contains
+all the configurations for the Kafka cluster on Kubernetes. It currently allows upscaling and downscaling in brokers
+and zookeepers.
 
 The script [`consumer.py`](https://github.com/bitmakerla/bitmaker-cloud/blob/main/bitmaker-kafka/consumer.py)
-was created to transfer items from Kafka to the database.
+was created to perform the task of transporting items from Kafka to the database.
 
 ## Local Setup
 
