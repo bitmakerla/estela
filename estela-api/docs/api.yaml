@@ -456,11 +456,11 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/SpiderCronJobCreate'
-        - name: permanent
+        - name: persistent
           in: query
           required: true
           type: boolean
-        - name: expiration_date
+        - name: data_expiry_date
           in: query
           type: string
       responses:
@@ -628,11 +628,11 @@ paths:
         - name: async
           in: query
           type: boolean
-        - name: permanent
+        - name: persistent
           in: query
           required: true
           type: boolean
-        - name: expiration_date
+        - name: data_expiry_date
           in: query
           type: string
       responses:
@@ -1160,15 +1160,16 @@ definitions:
         title: Cronjob
         type: integer
         x-nullable: true
-      expiration_date:
-        title: Expiration date
+      data_expiry_date:
+        title: Data expiry date
         type: string
         maxLength: 8
-      status_data:
-        title: Status data
+        x-nullable: true
+      data_status:
+        title: Data status
         type: string
         enum:
-          - PERMANENT
+          - PERSISTENT
           - DELETED
           - NON_DELETED
   ProjectJob:
@@ -1311,15 +1312,16 @@ definitions:
         title: Cronjob
         type: integer
         x-nullable: true
-      expiration_date:
-        title: Expiration date
+      data_expiry_date:
+        title: Data expiry date
         type: string
         maxLength: 8
-      status_data:
-        title: Status data
+        x-nullable: true
+      data_status:
+        title: Data status
         type: string
         enum:
-          - PERMANENT
+          - PERSISTENT
           - DELETED
           - NON_DELETED
   SpiderJobUpdate:
