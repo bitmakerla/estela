@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, InputNumber } from "antd";
+import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, DatePicker, DatePickerProps } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { RouteComponentProps } from "react-router-dom";
 import moment from "moment";
@@ -52,9 +52,8 @@ interface JobCreatePageState {
     newEnvVarValue: string;
     newTagName: string;
     spiderName: string;
-    isDataPermanent: boolean;
-    months: number;
-    days: number;
+    isDataPersistent: boolean;
+    dataExpiryDate: string;
 }
 
 interface RouteParams {
@@ -74,9 +73,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newEnvVarValue: "",
         newTagName: "",
         spiderName: "",
-        isDataPermanent: true,
-        months: 1,
-        days: 1,
+        isDataPersistent: true,
+        dataExpiryDate: moment().add(1, "months").format("YYYY-MM-DD"),
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -108,8 +106,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
-            permanent: this.state.isDataPermanent,
-            expirationDate: `${this.state.months}/${this.state.days}`,
+            persistent: this.state.isDataPersistent,
+            dataExpiryDate: this.state.dataExpiryDate,
         };
         this.apiService.apiProjectsSpidersJobsCreate(request).then(
             (response: SpiderJobCreate) => {
@@ -193,19 +191,15 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     onChangeData = (): void => {
-        this.setState({ isDataPermanent: !this.state.isDataPermanent });
-    };
-
-    onChangeMonth = (value: number): void => {
-        this.setState({ months: value });
-    };
-
-    onChangeDay = (value: number): void => {
-        this.setState({ days: value });
+        this.setState({ isDataPersistent: !this.state.isDataPersistent });
     };
 
     disabledDate: RangePickerProps["disabledDate"] = (current) => {
         return current && current < moment().endOf("day");
+    };
+
+    onChangeDate: DatePickerProps["onChange"] = (_, dateString) => {
+        this.setState({ dataExpiryDate: dateString });
     };
 
     render(): JSX.Element {
@@ -219,9 +213,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             newEnvVarValue,
             newTagName,
             spiderName,
-            isDataPermanent,
-            months,
-            days,
+            isDataPersistent,
+            dataExpiryDate,
         } = this.state;
 
         return (
@@ -309,25 +302,16 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                 <Space direction="vertical" size="large">
                                     <Space direction="horizontal">
                                         Save Data Permanently
-                                        <Switch size="small" checked={isDataPermanent} onChange={this.onChangeData} />
+                                        <Switch size="small" checked={isDataPersistent} onChange={this.onChangeData} />
                                     </Space>
-                                    {!isDataPermanent && (
+                                    {!isDataPersistent && (
                                         <Space direction="horizontal">
-                                            Months
-                                            <InputNumber
-                                                size="small"
-                                                min={0}
-                                                max={12}
-                                                defaultValue={months}
-                                                onChange={this.onChangeMonth}
-                                            />
-                                            Days
-                                            <InputNumber
-                                                size="small"
-                                                min={1}
-                                                max={31}
-                                                defaultValue={days}
-                                                onChange={this.onChangeDay}
+                                            Date
+                                            <DatePicker
+                                                format="YYYY-MM-DD"
+                                                onChange={this.onChangeDate}
+                                                disabledDate={this.disabledDate}
+                                                defaultValue={moment(dataExpiryDate)}
                                             />
                                         </Space>
                                     )}

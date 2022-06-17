@@ -94,10 +94,10 @@ class SpiderJobViewSet(
                 name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
             ),
             openapi.Parameter(
-                name="permanent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
+                name="persistent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
             ),
             openapi.Parameter(
-                name="expiration_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+                name="data_expiry_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
             )
         ],
         request_body=SpiderJobCreateSerializer,
@@ -106,22 +106,22 @@ class SpiderJobViewSet(
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         async_param = request.query_params.get("async", False)
-        permanent = request.query_params.get("permanent")
+        persistent = request.query_params.get("persistent")
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        if permanent != "true":
+        if persistent != "true":
             status_data = SpiderJob.NON_DELETED_STATUS
-            expiration_date = request.query_params.get("expiration_date")
+            data_expiry_date = request.query_params.get("data_expiry_date")
         else:
-            status_data = SpiderJob.PERMANENT_STATUS
-            expiration_date = ""
+            status_data = SpiderJob.PERSISTENT_STATUS
+            data_expiry_date = ""
 
         if not async_param:
             job = serializer.save(
                 spider=spider,
                 status_data=status_data,
-                expiration_date=expiration_date,
+                data_expiry_date=data_expiry_date,
             )
             job_args = {arg.name: arg.value for arg in job.args.all()}
             job_env_vars = {
@@ -143,7 +143,7 @@ class SpiderJobViewSet(
                 spider=spider,
                 status=SpiderJob.IN_QUEUE_STATUS,
                 status_data=status_data,
-                expiration_date=expiration_date,
+                data_expiry_date=data_expiry_date,
             )
 
         headers = self.get_success_headers(serializer.data)

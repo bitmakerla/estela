@@ -93,21 +93,21 @@ export interface SpiderJob {
      * @type {string}
      * @memberof SpiderJob
      */
-    expirationDate?: string;
+    dataExpiryDate?: string | null;
     /**
      * 
      * @type {string}
      * @memberof SpiderJob
      */
-    statusData?: SpiderJobStatusDataEnum;
+    dataStatus?: SpiderJobDataStatusEnum;
 }
 
 /**
 * @export
 * @enum {string}
 */
-export enum SpiderJobStatusDataEnum {
-    Permanent = 'PERMANENT',
+export enum SpiderJobDataStatusEnum {
+    Persistent = 'PERSISTENT',
     Deleted = 'DELETED',
     NonDeleted = 'NON_DELETED'
 }
@@ -131,8 +131,8 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'tags': !exists(json, 'tags') ? undefined : ((json['tags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
-        'expirationDate': !exists(json, 'expiration_date') ? undefined : json['expiration_date'],
-        'statusData': !exists(json, 'status_data') ? undefined : json['status_data'],
+        'dataExpiryDate': !exists(json, 'data_expiry_date') ? undefined : json['data_expiry_date'],
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
     };
 }
 
@@ -150,8 +150,8 @@ export function SpiderJobToJSON(value?: SpiderJob | null): any {
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'tags': value.tags === undefined ? undefined : ((value.tags as Array<any>).map(SpiderJobTagToJSON)),
         'cronjob': value.cronjob,
-        'expiration_date': value.expirationDate,
-        'status_data': value.statusData,
+        'data_expiry_date': value.dataExpiryDate,
+        'data_status': value.dataStatus,
     };
 }
 

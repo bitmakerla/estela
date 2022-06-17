@@ -4,7 +4,7 @@ import json
 from core.tasks import launch_job
 
 
-def create_cronjob(name, key, args, env_vars, tags, schedule, expiration_date=None):
+def create_cronjob(name, key, args, env_vars, tags, schedule, data_expiry_date=None):
     m, h, d_w, d_m, m_y = schedule.split(" ")
     cjid, sid, pid = key.split(".")
     data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
@@ -19,7 +19,7 @@ def create_cronjob(name, key, args, env_vars, tags, schedule, expiration_date=No
         crontab=schedule,
         name=name,
         task="core.tasks.launch_job",
-        args=json.dumps([sid, data, expiration_date]),
+        args=json.dumps([sid, data, data_expiry_date]),
     )
     return response
 

@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
-from time import time
+from datetime import timedelta
 from django.conf import settings
 from config.celery import app as celery_app
 from django.utils import timezone
 from core.models import SpiderJob, Spider
-from core.mongo import get_client
+from core.database_adapters import get_database_interface
 from config.job_manager import job_manager
 from rest_framework.authtoken.models import Token
 
@@ -19,13 +18,14 @@ def get_default_token(job):
     return token.key
 
 
-def delete_data(pid, sid, jid):
-    client = get_client(settings.MONGO_CONNECTION)
-    data_type = "items"
-    job = SpiderJob.objects.filter(jid=jid).get()
+def delete_data(pid, sid, jid, data_type):
+    client = get_database_interface()
+    client.get_connection()
+    job = SpiderJob.objects.filter.get(jid=jid)
     if (
         job.cronjob is not None
         and job.cronjob.unique_collection
+        and data_type == "items"
     ):
         job_collection_name = "{}-scj{}-job_{}".format(
             sid, job.cronjob.cjid, data_type
@@ -34,8 +34,8 @@ def delete_data(pid, sid, jid):
         job_collection_name = "{}-{}-job_{}".format(
             sid, jid, data_type
         )
-    job_collection = client[pid][job_collection_name]
-    res = job_collection.delete_many({})
+    client.delete_collection_data(pid, job_collection_name)
+
 
 
 @celery_app.task
@@ -64,34 +64,35 @@ def run_spider_jobs():
 @celery_app.task(name="core.tasks.delete_job_data")
 def delete_job_data():
     jobs = SpiderJob.objects.filter(status_data=SpiderJob.NON_DELETED_STATUS)[
-        : settings.RUN_JOBS_PER_LOT
+        : settings.RUN_TASKS_PER_LOT
     ]
 
     for job in jobs:
         jid, sid, pid = job.key.split(".")
-        m, d = [int(i) for i in job.expiration_date.split("/")]
-        if timezone.now() - timedelta(days=(m * 30 + d)) > job.created:
-            delete_data(pid, sid, jid)
+        months, days = [int(i) for i in job.data_expiry_date.split("/")]
+        if timezone.now() - timedelta(days=(months * 30 + days)) > job.created:
+            delete_data(pid, sid, jid, "items")
+            delete_data(pid, sid, jid, "requests")
             job.status_data = SpiderJob.DELETED_STATUS
             job.save()
 
 
 @celery_app.task(name="core.tasks.launch_job")
-def launch_job(sid_, data_, expiration_date=None,token=None):
+def launch_job(sid_, data_, data_expiry_date=None,token=None):
     spider = Spider.objects.get(sid=sid_)
     serializer = SpiderJobCreateSerializer(data=data_)
 
-    if expiration_date is None:
-        status_data = SpiderJob.PERMANENT_STATUS
-        expiration_date = ""
+    if data_expiry_date is None:
+        data_status = SpiderJob.PERSISTENT_STATUS
+        data_expiry_date = ""
     else:
-        status_data = SpiderJob.NON_DELETED_STATUS
+        data_status = SpiderJob.NON_DELETED_STATUS
 
     serializer.is_valid(raise_exception=True)
     job = serializer.save(
         spider=spider,
-        status_data=status_data,
-        expiration_date=expiration_date
+        data_status=data_status,
+        data_expiry_date=data_expiry_date
     )
 
     collection = job.key

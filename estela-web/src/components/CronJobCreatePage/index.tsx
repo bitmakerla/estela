@@ -52,7 +52,7 @@ interface CronJobCreatePageState {
     newTagName: string;
     spiderName: string;
     uniqueCollection: boolean;
-    isDataPermanent: boolean;
+    isDataPersistent: boolean;
     months: number;
     days: number;
 }
@@ -76,7 +76,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         newTagName: "",
         spiderName: "",
         uniqueCollection: false,
-        isDataPermanent: true,
+        isDataPersistent: true,
         months: 1,
         days: 1,
     };
@@ -113,8 +113,8 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
-            permanent: this.state.isDataPermanent,
-            expirationDate: `${this.state.months}/${this.state.days}`,
+            persistent: this.state.isDataPersistent,
+            dataExpiryDate: `${this.state.months}/${this.state.days}`,
         };
         this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {
@@ -198,7 +198,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
     };
 
     onChangeData = (): void => {
-        this.setState({ isDataPermanent: !this.state.isDataPermanent });
+        this.setState({ isDataPersistent: !this.state.isDataPersistent });
     };
 
     onChangeMonth = (value: number): void => {
@@ -220,7 +220,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             newEnvVarValue,
             newTagName,
             spiderName,
-            isDataPermanent,
+            isDataPersistent,
             months,
             days,
         } = this.state;
@@ -327,9 +327,9 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                 <Space direction="vertical" size="large">
                                     <Space direction="horizontal">
                                         Save Data Permanently
-                                        <Switch size="small" checked={isDataPermanent} onChange={this.onChangeData} />
+                                        <Switch size="small" checked={isDataPersistent} onChange={this.onChangeData} />
                                     </Space>
-                                    {!isDataPermanent && (
+                                    {!isDataPersistent && (
                                         <Space direction="horizontal">
                                             Months
                                             <InputNumber
