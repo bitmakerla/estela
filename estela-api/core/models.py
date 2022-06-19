@@ -1,3 +1,4 @@
+from re import T
 import uuid
 from datetime import timedelta
 from django.conf import settings
@@ -128,12 +129,12 @@ class SpiderJob(models.Model):
 
     PERSISTENT_STATUS = "PERSISTENT"
     DELETED_STATUS = "DELETED"
-    NON_DELETED_STATUS = "NON_DELETED"
+    PENDING_STATUS = "PENDING"
 
     STATUS_DATA_OPTIONS = [
         (PERSISTENT_STATUS, "Persistent"),
         (DELETED_STATUS, "Deleted"),
-        (NON_DELETED_STATUS, "No Deleted"),
+        (PENDING_STATUS, "Pending"),
     ]
 
     jid = models.AutoField(primary_key=True)
@@ -147,7 +148,7 @@ class SpiderJob(models.Model):
     data_status = models.CharField(
         max_length=20, choices=STATUS_DATA_OPTIONS, default=PERSISTENT_STATUS
     )
-    data_expiry_date = models.CharField(max_length=8, blank=True, null=True)
+    data_expiry_days = models.PositiveSmallIntegerField(null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:

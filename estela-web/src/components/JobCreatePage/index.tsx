@@ -53,7 +53,7 @@ interface JobCreatePageState {
     newTagName: string;
     spiderName: string;
     isDataPersistent: boolean;
-    dataExpiryDate: string;
+    dataExpiryDays: string;
 }
 
 interface RouteParams {
@@ -74,7 +74,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newTagName: "",
         spiderName: "",
         isDataPersistent: true,
-        dataExpiryDate: moment().add(1, "months").format("YYYY-MM-DD"),
+        dataExpiryDays: moment().add(1, "months").format("YYYY-MM-DD"),
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -107,7 +107,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             pid: this.projectId,
             sid: this.spiderId,
             persistent: this.state.isDataPersistent,
-            dataExpiryDate: this.state.dataExpiryDate,
+            dataExpiryDays: this.state.dataExpiryDays,
         };
         this.apiService.apiProjectsSpidersJobsCreate(request).then(
             (response: SpiderJobCreate) => {
@@ -199,7 +199,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     onChangeDate: DatePickerProps["onChange"] = (_, dateString) => {
-        this.setState({ dataExpiryDate: dateString });
+        this.setState({ dataExpiryDays: dateString });
     };
 
     render(): JSX.Element {
@@ -214,7 +214,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             newTagName,
             spiderName,
             isDataPersistent,
-            dataExpiryDate,
+            dataExpiryDays,
         } = this.state;
 
         return (
@@ -311,7 +311,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                                 format="YYYY-MM-DD"
                                                 onChange={this.onChangeDate}
                                                 disabledDate={this.disabledDate}
-                                                defaultValue={moment(dataExpiryDate)}
+                                                defaultValue={moment(dataExpiryDays)}
                                             />
                                         </Space>
                                     )}

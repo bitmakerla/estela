@@ -163,7 +163,7 @@ export interface ApiProjectsSpidersCronjobsCreateRequest {
     sid: string;
     persistent: boolean;
     data: SpiderCronJobCreate;
-    dataExpiryDate?: string;
+    dataExpiryDays?: string;
 }
 
 export interface ApiProjectsSpidersCronjobsListRequest {
@@ -206,7 +206,7 @@ export interface ApiProjectsSpidersJobsCreateRequest {
     persistent: boolean;
     data: SpiderJobCreate;
     async?: boolean;
-    dataExpiryDate?: string;
+    dataExpiryDays?: string;
 }
 
 export interface ApiProjectsSpidersJobsDataDeleteRequest {
@@ -843,8 +843,8 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['persistent'] = requestParameters.persistent;
         }
 
-        if (requestParameters.dataExpiryDate !== undefined) {
-            queryParameters['data_expiry_date'] = requestParameters.dataExpiryDate;
+        if (requestParameters.dataExpiryDays !== undefined) {
+            queryParameters['data_expiry_days'] = requestParameters.dataExpiryDays;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -1118,8 +1118,8 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['persistent'] = requestParameters.persistent;
         }
 
-        if (requestParameters.dataExpiryDate !== undefined) {
-            queryParameters['data_expiry_date'] = requestParameters.dataExpiryDate;
+        if (requestParameters.dataExpiryDays !== undefined) {
+            queryParameters['data_expiry_days'] = requestParameters.dataExpiryDays;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

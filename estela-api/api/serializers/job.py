@@ -28,7 +28,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "tags",
             "job_status",
             "cronjob",
-            "data_expiry_date",
+            "data_expiry_days",
             "data_status",
         )
 
@@ -48,7 +48,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "tags",
             "job_status",
             "cronjob",
-            "data_expiry_date",
+            "data_expiry_days",
             "data_status",
         )
 

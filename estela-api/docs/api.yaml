@@ -460,7 +460,7 @@ paths:
           in: query
           required: true
           type: boolean
-        - name: data_expiry_date
+        - name: data_expiry_days
           in: query
           type: string
       responses:
@@ -632,7 +632,7 @@ paths:
           in: query
           required: true
           type: boolean
-        - name: data_expiry_date
+        - name: data_expiry_days
           in: query
           type: string
       responses:
@@ -1160,10 +1160,11 @@ definitions:
         title: Cronjob
         type: integer
         x-nullable: true
-      data_expiry_date:
-        title: Data expiry date
-        type: string
-        maxLength: 8
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
         x-nullable: true
       data_status:
         title: Data status
@@ -1171,7 +1172,7 @@ definitions:
         enum:
           - PERSISTENT
           - DELETED
-          - NON_DELETED
+          - PENDING
   ProjectJob:
     required:
       - results
@@ -1312,10 +1313,11 @@ definitions:
         title: Cronjob
         type: integer
         x-nullable: true
-      data_expiry_date:
-        title: Data expiry date
-        type: string
-        maxLength: 8
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
         x-nullable: true
       data_status:
         title: Data status
@@ -1323,7 +1325,7 @@ definitions:
         enum:
           - PERSISTENT
           - DELETED
-          - NON_DELETED
+          - PENDING
   SpiderJobUpdate:
     type: object
     properties:

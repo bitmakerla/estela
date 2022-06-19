@@ -1,3 +1,4 @@
+from datetime import date
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -30,6 +31,10 @@ class SpiderCronJobViewSet(
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpiderCronJobFilter
 
+    def get_days(self, date_str):
+        M, D = [int(i) for i in date_str.split('/')]
+        return (M * 30 + D)
+
     def get_queryset(self):
         if self.request is None:
             return SpiderCronJob.objects.none()
@@ -59,7 +64,7 @@ class SpiderCronJobViewSet(
                 name="persistent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
             ),
             openapi.Parameter(
-                name="data_expiry_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+                name="data_expiry_days", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
             )
         ],
         request_body=SpiderCronJobCreateSerializer,
@@ -73,9 +78,10 @@ class SpiderCronJobViewSet(
         cronjob = serializer.save(spider=spider)
 
         if persistent != "true":
-            data_expiry_date = request.query_params.get("data_expiry_date")
+            date_str = request.query_params.get("data_expiry_days")
+            data_expiry_days = self.get_days(date_str)
         else:
-            data_expiry_date = None
+            data_expiry_days = None
 
         create_cronjob(
             cronjob.name,
@@ -84,7 +90,7 @@ class SpiderCronJobViewSet(
             request.data.get("cenv_vars", []),
             request.data.get("ctags", []),
             cronjob.schedule,
-            data_expiry_date=data_expiry_date
+            data_expiry_days=data_expiry_days
         )
         headers = self.get_success_headers(serializer.data)
         return Response(

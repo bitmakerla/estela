@@ -1,4 +1,3 @@
-import re
 from datetime import date
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -7,7 +6,6 @@ from drf_yasg import openapi
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.utils.urls import replace_query_param
 
 from api import errors
 from api.filters import SpiderJobFilter
@@ -48,10 +46,10 @@ class SpiderJobViewSet(
         )
         return page, page_size
 
-    def convert_date_to_days(self, date_str):
+    def date_to_days(self, date_str):
         Y, M, D = [int(i) for i in date_str.split('-')]
-        days = date(Y, M, D) - date.today()
-        return "0/{}".format(days.days)
+        interval = date(Y, M, D) - date.today()
+        return interval.days
 
     def get_queryset(self):
         if self.request is None:
@@ -103,7 +101,7 @@ class SpiderJobViewSet(
                 name="persistent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
             ),
             openapi.Parameter(
-                name="data_expiry_date", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
+                name="data_expiry_days", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
             )
         ],
         request_body=SpiderJobCreateSerializer,
@@ -117,18 +115,18 @@ class SpiderJobViewSet(
         serializer.is_valid(raise_exception=True)
 
         if persistent != "true":
-            data_status = SpiderJob.NON_DELETED_STATUS
-            date_str = request.query_params.get("data_expiry_date")
-            data_expiry_date = self.convert_date_to_days(date_str)
+            data_status = SpiderJob.PENDING_STATUS
+            date_str = request.query_params.get("data_expiry_days")
+            data_expiry_days = self.date_to_days(date_str)
         else:
             data_status = SpiderJob.PERSISTENT_STATUS
-            data_expiry_date = None
+            data_expiry_days = None
 
         if not async_param:
             job = serializer.save(
                 spider=spider,
                 data_status=data_status,
-                data_expiry_date=data_expiry_date,
+                data_expiry_days=data_expiry_days,
             )
             job_args = {arg.name: arg.value for arg in job.args.all()}
             job_env_vars = {
@@ -150,7 +148,7 @@ class SpiderJobViewSet(
                 spider=spider,
                 status=SpiderJob.IN_QUEUE_STATUS,
                 data_status=data_status,
-                data_expiry_date=data_expiry_date,
+                data_expiry_days=data_expiry_days,
             )
 
         headers = self.get_success_headers(serializer.data)
