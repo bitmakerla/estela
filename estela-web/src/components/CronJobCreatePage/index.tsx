@@ -114,7 +114,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             pid: this.projectId,
             sid: this.spiderId,
             persistent: this.state.isDataPersistent,
-            dataExpiryDate: `${this.state.months}/${this.state.days}`,
+            dataExpiryDays: `${this.state.months}/${this.state.days}`,
         };
         this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {

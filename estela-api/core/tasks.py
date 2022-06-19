@@ -20,7 +20,8 @@ def get_default_token(job):
 
 def delete_data(pid, sid, jid, data_type):
     client = get_database_interface()
-    client.get_connection()
+    if not client.get_connection():
+        return False
     job = SpiderJob.objects.filter.get(jid=jid)
     if (
         job.cronjob is not None
@@ -34,6 +35,7 @@ def delete_data(pid, sid, jid, data_type):
         job_collection_name = "{}-{}-job_{}".format(
             sid, jid, data_type
         )
+
     client.delete_collection_data(pid, job_collection_name)
 
 
@@ -61,37 +63,39 @@ def run_spider_jobs():
         )
 
 
+@celery_app.task()
+def delete_task(job):
+    jid, sid, pid = job.key.split(".")
+    if timezone.now() - timedelta(days=job.data_expiry_days) > job.created:
+        delete_data(pid, sid, jid, "items")
+        delete_data(pid, sid, jid, "requests")
+        job.data_status = SpiderJob.DELETED_STATUS
+        job.save()
+
+
 @celery_app.task(name="core.tasks.delete_job_data")
 def delete_job_data():
-    jobs = SpiderJob.objects.filter(data_status=SpiderJob.NON_DELETED_STATUS)[
-        : settings.RUN_TASKS_PER_LOT
-    ]
+    jobs = SpiderJob.objects.filter(data_status=SpiderJob.PENDING_STATUS)
 
     for job in jobs:
-        jid, sid, pid = job.key.split(".")
-        months, days = [int(i) for i in job.data_expiry_date.split("/")]
-        if timezone.now() - timedelta(days=(months * 30 + days)) > job.created:
-            delete_data(pid, sid, jid, "items")
-            delete_data(pid, sid, jid, "requests")
-            job.data_status = SpiderJob.DELETED_STATUS
-            job.save()
+        delete_task.s(job).delay()
 
 
 @celery_app.task(name="core.tasks.launch_job")
-def launch_job(sid_, data_, data_expiry_date=None,token=None):
+def launch_job(sid_, data_, data_expiry_days=None,token=None):
     spider = Spider.objects.get(sid=sid_)
     serializer = SpiderJobCreateSerializer(data=data_)
 
-    if data_expiry_date is None:
+    if data_expiry_days is None:
         data_status = SpiderJob.PERSISTENT_STATUS
     else:
-        data_status = SpiderJob.NON_DELETED_STATUS
+        data_status = SpiderJob.PENDING_STATUS
 
     serializer.is_valid(raise_exception=True)
     job = serializer.save(
         spider=spider,
         data_status=data_status,
-        data_expiry_date=data_expiry_date
+        data_expiry_days=data_expiry_days
     )
 
     collection = job.key
