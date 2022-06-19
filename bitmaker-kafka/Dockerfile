@@ -5,9 +5,9 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /home/bitmaker
 
-COPY requirements requirements
+COPY bitmaker-kafka/requirements requirements
 RUN pip install -r requirements/consumer.txt
 
-COPY consumer.py .
-COPY database_adapters.py .
-COPY config config
+COPY bitmaker-kafka/consumer.py .
+COPY database/database_adapters.py .
+COPY bitmaker-kafka/config config
