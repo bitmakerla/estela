@@ -15,7 +15,7 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
-from core.mongo import get_client
+from core.database_adapters import get_database_interface
 from core.models import SpiderJob
 
 
@@ -100,8 +100,8 @@ class JobDataViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        client = get_client(settings.MONGO_CONNECTION)
-        if not client:
+        client = get_database_interface()
+        if not client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
@@ -118,16 +118,13 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
-        job_collection = client[kwargs["pid"]][job_collection_name]
 
         if mode == "json":
-            result = job_collection.find()
-            result = loads(json.dumps(list(result), default=str))
+            result = client.get_all_collection_data(kwargs["pid"], job_collection_name)
             response = JsonResponse(result, safe=False)
             return response
         if mode == "csv":
-            result = job_collection.find()
-            result = loads(json.dumps(list(result), default=str))
+            result = client.get_all_collection_data(kwargs["pid"], job_collection_name)
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = "attachment; {}.csv".format(
                 job_collection_name
@@ -142,9 +139,10 @@ class JobDataViewSet(
 
             return response
 
-        result = job_collection.find().skip(page_size * (page - 1)).limit(page_size)
-        result = loads(json.dumps(list(result), default=str))
-        count = job_collection.estimated_document_count()
+        result = client.get_paginated_collection_data(
+            kwargs["pid"], job_collection_name, page, page_size
+        )
+        count = client.get_estimated_document_count()
 
         return Response(
             {
@@ -165,8 +163,8 @@ class JobDataViewSet(
     def delete(self, request, *args, **kwargs):
         data_type = "items"
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        client = get_client(settings.MONGO_CONNECTION)
-        if not client:
+        client = get_database_interface()
+        if not client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
@@ -179,6 +177,11 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
-        job_collection = client[kwargs["pid"]][job_collection_name]
-        res = job_collection.delete_many({})
-        return Response({"count": res.deleted_count}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "count": client.delete_collection_data(
+                    kwargs["pid"], job_collection_name
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
