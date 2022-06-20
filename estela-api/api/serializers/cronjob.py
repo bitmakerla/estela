@@ -1,7 +1,7 @@
 from croniter import croniter
 from rest_framework import serializers
 
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
+from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
 
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
@@ -36,6 +36,8 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
     cargs = SpiderJobArgSerializer(many=True, required=False)
     cenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
     ctags = SpiderJobTagSerializer(many=True, required=False)
+    data_status = serializers.CharField(required=True)
+    data_expiry_days = serializers.CharField(required=False)
 
     def validate(self, attrs):
         attrs = super(SpiderCronJobCreateSerializer, self).validate(attrs)
@@ -55,6 +57,8 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
             "ctags",
             "schedule",
             "unique_collection",
+            "data_expiry_days",
+            "data_status",
         )
 
     def create(self, validated_data):

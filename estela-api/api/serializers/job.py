@@ -1,4 +1,5 @@
 import re
+from pkg_resources import require
 from rest_framework import serializers
 from api import errors
 
@@ -37,6 +38,8 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
     args = SpiderJobArgSerializer(many=True, required=False)
     env_vars = SpiderJobEnvVarSerializer(many=True, required=False)
     tags = SpiderJobTagSerializer(many=True, required=False)
+    data_status = serializers.CharField(required=True)
+    data_expiry_days = serializers.CharField(required=False)
 
     class Meta:
         model = SpiderJob

@@ -14,7 +14,7 @@ from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobUpdateSerializer,
 )
-from core.models import Spider, SpiderCronJob
+from core.models import Spider, SpiderCronJob, SpiderJob
 from core.cronjob import create_cronjob, run_cronjob_once
 
 
@@ -59,29 +59,30 @@ class SpiderCronJobViewSet(
         return super(SpiderCronJobViewSet, self).list(*args, **kwargs)
 
     @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                name="persistent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
-            ),
-            openapi.Parameter(
-                name="data_expiry_days", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
-            )
-        ],
         request_body=SpiderCronJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderCronJobCreateSerializer()},
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         serializer = SpiderCronJobCreateSerializer(data=request.data)
-        persistent = request.query_params.get("persistent")
         serializer.is_valid(raise_exception=True)
-        cronjob = serializer.save(spider=spider)
+        data_status = request.data.pop("data_status", "PERSISTENT")
 
-        if persistent != "true":
-            date_str = request.query_params.get("data_expiry_days")
+        if data_status == SpiderJob.PENDING_STATUS:
+            date_str = request.data.pop("data_expiry_days", "0/1")
             data_expiry_days = self.get_days(date_str)
+            if data_expiry_days < 1:
+                return Response(
+                    serializer.data, status=status.HTTP_409_CONFLICT
+                )
         else:
             data_expiry_days = None
+
+        cronjob = serializer.save(
+            spider=spider,
+            data_status=data_status,
+            data_expiry_days=data_expiry_days,
+        )
 
         create_cronjob(
             cronjob.name,

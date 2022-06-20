@@ -161,9 +161,7 @@ export interface ApiProjectsReadRequest {
 export interface ApiProjectsSpidersCronjobsCreateRequest {
     pid: string;
     sid: string;
-    persistent: boolean;
     data: SpiderCronJobCreate;
-    dataExpiryDays?: string;
 }
 
 export interface ApiProjectsSpidersCronjobsListRequest {
@@ -203,10 +201,8 @@ export interface ApiProjectsSpidersCronjobsUpdateRequest {
 export interface ApiProjectsSpidersJobsCreateRequest {
     pid: string;
     sid: string;
-    persistent: boolean;
     data: SpiderJobCreate;
     async?: boolean;
-    dataExpiryDays?: string;
 }
 
 export interface ApiProjectsSpidersJobsDataDeleteRequest {
@@ -829,23 +825,11 @@ export class ApiApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
         }
 
-        if (requestParameters.persistent === null || requestParameters.persistent === undefined) {
-            throw new runtime.RequiredError('persistent','Required parameter requestParameters.persistent was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
-        }
-
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.persistent !== undefined) {
-            queryParameters['persistent'] = requestParameters.persistent;
-        }
-
-        if (requestParameters.dataExpiryDays !== undefined) {
-            queryParameters['data_expiry_days'] = requestParameters.dataExpiryDays;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1100,10 +1084,6 @@ export class ApiApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsCreate.');
         }
 
-        if (requestParameters.persistent === null || requestParameters.persistent === undefined) {
-            throw new runtime.RequiredError('persistent','Required parameter requestParameters.persistent was null or undefined when calling apiProjectsSpidersJobsCreate.');
-        }
-
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersJobsCreate.');
         }
@@ -1112,14 +1092,6 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.async !== undefined) {
             queryParameters['async'] = requestParameters.async;
-        }
-
-        if (requestParameters.persistent !== undefined) {
-            queryParameters['persistent'] = requestParameters.persistent;
-        }
-
-        if (requestParameters.dataExpiryDays !== undefined) {
-            queryParameters['data_expiry_days'] = requestParameters.dataExpiryDays;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

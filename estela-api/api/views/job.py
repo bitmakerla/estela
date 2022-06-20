@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -97,12 +97,6 @@ class SpiderJobViewSet(
             openapi.Parameter(
                 name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
             ),
-            openapi.Parameter(
-                name="persistent", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN, required=True
-            ),
-            openapi.Parameter(
-                name="data_expiry_days", in_=openapi.IN_QUERY, type=openapi.TYPE_STRING
-            )
         ],
         request_body=SpiderJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderJobCreateSerializer()},
@@ -110,16 +104,17 @@ class SpiderJobViewSet(
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         async_param = request.query_params.get("async", False)
-        persistent = request.query_params.get("persistent")
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        if persistent != "true":
-            data_status = SpiderJob.PENDING_STATUS
-            date_str = request.query_params.get("data_expiry_days")
+        data_status = request.data.pop("data_status", "PERSISTENT")
+        if data_status == SpiderJob.PENDING_STATUS:
+            date_str = request.data.pop("data_expiry_days", date.today() + timedelta(1))
             data_expiry_days = self.date_to_days(date_str)
+            if data_expiry_days < 1:
+                return Response(
+                    serializer.data, status=status.HTTP_409_CONFLICT
+                )
         else:
-            data_status = SpiderJob.PERSISTENT_STATUS
             data_expiry_days = None
 
         if not async_param:

@@ -78,26 +78,16 @@ export interface SpiderJobCreate {
     cronjob?: number | null;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof SpiderJobCreate
      */
-    dataExpiryDays?: number | null;
+    dataExpiryDays?: string;
     /**
      * 
      * @type {string}
      * @memberof SpiderJobCreate
      */
-    dataStatus?: SpiderJobCreateDataStatusEnum;
-}
-
-/**
-* @export
-* @enum {string}
-*/
-export enum SpiderJobCreateDataStatusEnum {
-    Persistent = 'PERSISTENT',
-    Deleted = 'DELETED',
-    Pending = 'PENDING'
+    dataStatus: string;
 }
 
 export function SpiderJobCreateFromJSON(json: any): SpiderJobCreate {
@@ -118,7 +108,7 @@ export function SpiderJobCreateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
-        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataStatus': json['data_status'],
     };
 }
 
