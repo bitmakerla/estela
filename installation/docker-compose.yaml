@@ -1,0 +1,79 @@
+version: '3'
+
+services:
+  db:
+    container_name: bitmaker_db
+    image: mysql:8
+    volumes:
+      - bitmaker_dbdata:/var/lib/mysql
+      - ./local/db/mysql:/docker-entrypoint-initdb.d
+    restart: always
+    command: --default_authentication_plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
+    ports:
+      - "3306:3306"
+
+  registry:
+    container_name: bitmaker_registry
+    restart: always
+    image: registry:2
+    ports:
+      - 5000:5000
+    volumes:
+      - registry_data:/var/lib/registry
+  
+  minio:
+    container_name: bitmaker_storage
+    restart: always
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - datastore:/data
+    command: server /data --console-address ":9001"
+
+  zookeeper:
+    container_name: zookeeper
+    image: wurstmeister/zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+    - 2181:2181
+
+  kafka:
+    container_name: kafka
+    image: wurstmeister/kafka:latest
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: >- 
+        LISTENER_DOCKER_INTERNAL://kafka:19092,
+        LISTENER_DOCKER_EXTERNAL://${HOST_IP}:9092
+      KAFKA_LISTENERS: >-
+        LISTENER_DOCKER_INTERNAL://:19092,
+        LISTENER_DOCKER_EXTERNAL://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >- 
+        LISTENER_DOCKER_INTERNAL:PLAINTEXT,
+        LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_LOGGERS: >- 
+        kafka.controller=INFO,
+        kafka.producer.async.DefaultEventHandler=INFO,
+        state.change.logger=INFO
+    ports:
+    - 9092:9092
+    depends_on:
+    - zookeeper
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  bitmaker_dbdata:
+  registry_data:
+  datastore:

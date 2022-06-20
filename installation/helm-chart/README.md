@@ -1,6 +1,6 @@
 <h1> Bitmaker API Helm Chart </h1>
 
-<h3> Understand values </h3>
+<h3> Understanding values </h3>
 
 In values:
 

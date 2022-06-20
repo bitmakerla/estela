@@ -25,7 +25,7 @@ The project consists of three main modules:
 - API: Implements a REST API built with the Django REST framework toolkit, which exposes several endpoints to manage
     projects, spiders, and jobs. It uses Celery for task processing and takes care of deploying your Scrapy projects,
     among other things.
-- Kafka Queueing: A high-throughput, low-latency platform that controls real-time data feeds in a producer-consumer
+- Queuing: A high-throughput, low-latency platform that controls real-time data feeds in a producer-consumer
     architecture. In this module, you will find a Kafka consumer and the configuration to set up the Kafka cluster used
     to collect and transport the information from the spiders into a database.
 - Web: A front-end project implemented with React Framework (with Ant Design) and Typescript. This module implements a
