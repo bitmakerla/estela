@@ -4,7 +4,6 @@ import ssl
 
 from abc import ABCMeta, abstractmethod
 from bson.json_util import loads
-from django.conf import settings
 from pymongo.errors import ConnectionFailure
 
 
@@ -54,7 +53,9 @@ class MongoAdapter(DatabaseInterface):
                 )
                 client.admin.command("ismaster")
             else:
-                client = pymongo.MongoClient(self.mongo_connection, ssl_cert_reqs=ssl.CERT_NONE)
+                client = pymongo.MongoClient(
+                    self.mongo_connection, ssl_cert_reqs=ssl.CERT_NONE
+                )
         except ConnectionFailure:
             client = None
             return False

@@ -118,11 +118,15 @@ class JobDataViewSet(
                 kwargs["sid"], kwargs["jid"], data_type
             )
         if mode == "json":
-            result = sp_db_client.get_all_collection_data(kwargs["pid"], job_collection_name)
+            result = sp_db_client.get_all_collection_data(
+                kwargs["pid"], job_collection_name
+            )
             response = JsonResponse(result, safe=False)
             return response
         if mode == "csv":
-            result = sp_db_client.get_all_collection_data(kwargs["pid"], job_collection_name)
+            result = sp_db_client.get_all_collection_data(
+                kwargs["pid"], job_collection_name
+            )
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = "attachment; {}.csv".format(
                 job_collection_name

@@ -9,5 +9,5 @@ COPY bitmaker-kafka/requirements requirements
 RUN pip install -r requirements/consumer.txt
 
 COPY bitmaker-kafka/consumer.py .
-COPY database/database_adapters.py .
+COPY database_adapters/ ./database_adapters/
 COPY bitmaker-kafka/config config

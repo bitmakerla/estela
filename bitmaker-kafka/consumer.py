@@ -11,7 +11,7 @@ import ssl
 from queue import Queue
 from kafka import KafkaConsumer
 from pymongo.errors import ConnectionFailure
-from database_adapters import get_database_interface
+from config.database_manager import db_client
 
 DEFAULT_WORKER_POOL = 15
 item_queue = Queue()
@@ -85,8 +85,7 @@ def read_from_queue(client):
 
 
 def consume_from_kafka(topic_name, worker_pool):
-    client = get_database_interface()
-    if client.get_connection():
+    if db_client.get_connection():
         logging.debug("DB connection established")
     else:
         logging.error("Could not connect to the DB")
@@ -96,7 +95,9 @@ def consume_from_kafka(topic_name, worker_pool):
     partitions = consumer.partitions_for_topic(topic_name)
     workers = []
     for i in range(worker_pool):
-        worker = threading.Thread(target=read_from_queue, args=(client,), daemon=True)
+        worker = threading.Thread(
+            target=read_from_queue, args=(db_client,), daemon=True
+        )
         worker.start()
         workers.append(worker)
 
