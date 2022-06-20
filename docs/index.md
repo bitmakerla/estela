@@ -42,7 +42,7 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
     with React Framework (with Ant Design) and Typescript. This module implements a user-friendly environment that
     communicates with the API and lets you manage your spiders and scraping projects.
 - [Bitmaker Cloud CLI](https://github.com/bitmakerla/bitmaker-cli/): This is the command line client to interact with
-    Bitmaker Cloud API. It allows you to create projects and deploy them to Estelar, as well as create jobs, cronjobs, etc.
+    Bitmaker Cloud API. It allows you to create projects and deploy them to Estela, as well as create jobs, cronjobs, etc.
 - [Bitmaker Entrypoint](https://github.com/bitmakerla/bitmaker-entrypoint): This is a package that implements a wrapper layer to extract job
     data from the environment, prepare the job properly, and execute it using Scrapy.
 

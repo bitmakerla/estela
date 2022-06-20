@@ -1,4 +1,4 @@
-<h1 align="center">Estelar API</h1>
+<h1 align="center">Estela API</h1>
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -35,7 +35,7 @@ $ pytest -svx
 <h2>Docs</h2>
 
 It is important to run the `docs` command every time views, serializers and/or models are modified to obtain the
-`api.yaml` that will be used in Estelar Web module.
+`api.yaml` that will be used in Estela Web module.
 
 ```sh
 $ python manage.py generate_swagger -f yaml docs/api.yaml

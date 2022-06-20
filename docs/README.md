@@ -1,4 +1,4 @@
-# Estelar Documentation
+# Estela Documentation
 
 ### Build and run locally
 

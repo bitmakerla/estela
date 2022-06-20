@@ -1,9 +1,9 @@
-<h1 align="center">Estelar</h1>
+<h1 align="center">Estela</h1>
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 <h4 align="center">
-Estelar is an elastic web scraping cluster created by <a href="https://bitmaker.la/">Bitmaker</a>. It allows users
+Estela is an elastic web scraping cluster created by <a href="https://bitmaker.la/">Bitmaker</a>. It allows users
 interested in web scraping to run their spiders (e.g., Scrapy spiders) in an infrastructure that lets them monitor and
 manage their projects more effortlessly, similar to <a href="https://www.zyte.com/scrapy-cloud/">Scrapy Cloud</a>. It
 contains some unique features and functionalities to the point that you can deploy it in-home.
