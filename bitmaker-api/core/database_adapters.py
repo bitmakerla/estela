@@ -1,7 +1,7 @@
 import json
-import pymongo
-
 from abc import ABCMeta, abstractmethod
+
+import pymongo
 from bson.json_util import loads
 from django.conf import settings
 from pymongo.errors import ConnectionFailure
@@ -34,6 +34,14 @@ class DatabaseInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def insert_collection_data(self):
+        pass
+
+    @abstractmethod
+    def get_database_size(self):
+        pass
+
+    @abstractmethod
+    def get_collection_size(self):
         pass
 
 
@@ -88,6 +96,23 @@ class MongoAdapter(DatabaseInterface):
 
     def insert_collection_data(self, database_name, collection_name, data):
         self.client[database_name][collection_name].insert_one(data)
+
+    def get_database_size(self, database_name, data_type):
+        database = self.client[database_name]
+        collections = database.list_collection_names()
+        total_size_bytes = 0
+        for collection in collections:
+            if data_type in collection:
+                total_size_bytes += self.get_collection_size(database_name, collection)
+
+        return total_size_bytes
+
+    def get_collection_size(self, database_name, collection):
+        database = self.client[database_name]
+        collection_size = database.command("dataSize", f"{database_name}.{collection}")[
+            "size"
+        ]
+        return collection_size
 
 
 def get_database_interface():

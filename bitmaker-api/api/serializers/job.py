@@ -25,6 +25,8 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "name",
             "lifespan",
             "total_response_bytes",
+            "item_count",
+            "request_count",
             "args",
             "env_vars",
             "tags",
@@ -85,6 +87,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             "status",
             "lifespan",
             "total_response_bytes",
+            "item_count",
+            "request_count",
         )
 
     def update(self, instance, validated_data):
@@ -107,15 +111,15 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                     job_manager.delete_job(instance.name)
             instance.status = status
 
-        if instance.lifespan.seconds == 0:
-            lifespan = validated_data.get("lifespan", instance.lifespan)
-            instance.lifespan = lifespan
-
-        if instance.total_response_bytes == 0:
-            total_response_bytes = validated_data.get(
-                "total_response_bytes", instance.total_response_bytes
-            )
-            instance.total_response_bytes = total_response_bytes
+        for field in [
+            "lifespan",
+            "total_response_bytes",
+            "item_count",
+            "request_count",
+        ]:
+            if not getattr(instance, field):
+                new_value = validated_data.get(field, getattr(instance, field))
+                setattr(instance, field, new_value)
 
         instance.save()
         return instance

@@ -30,6 +30,7 @@ models/SpiderJobEnvVar.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
 models/Token.ts
+models/UsageRecord.ts
 models/User.ts
 models/UserDetail.ts
 models/index.ts

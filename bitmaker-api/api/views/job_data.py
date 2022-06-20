@@ -1,9 +1,6 @@
-import json
 import csv
 import codecs
 
-from bson.json_util import loads
-from django.conf import settings
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -17,6 +14,7 @@ from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
 from core.database_adapters import get_database_interface
 from core.models import SpiderJob
+from core.tasks import record_project_usage_after_data_delete
 
 
 class JobDataViewSet(
@@ -177,6 +175,11 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
+
+        record_project_usage_after_data_delete.s(
+            job.spider.project.pid, job.jid
+        ).apply_async(countdown=10)
+
         return Response(
             {
                 "count": client.delete_collection_data(

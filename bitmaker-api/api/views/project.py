@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from api import errors
 from api.mixins import BaseViewSet
@@ -35,13 +35,22 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         return page, page_size
 
     def get_queryset(self):
-        return self.request.user.project_set.all()
+        return self.request.user.project_set.filter(deleted=False)
 
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.users.add(
             self.request.user,
             through_defaults={"permission": Permission.OWNER_PERMISSION},
+        )
+        UsageRecord.objects.create(
+            project=instance,
+            processing_time=timedelta(0),
+            network_usage=0,
+            item_count=0,
+            request_count=0,
+            items_data_size=0,
+            requests_data_size=0,
         )
 
     @swagger_auto_schema(
@@ -92,6 +101,18 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_204_NO_CONTENT: "Project deleted"},
+    )
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.deleted = True
+        instance.save()
 
     @swagger_auto_schema(
         methods=["GET"],
@@ -162,7 +183,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                 required=False,
             ),
             openapi.Parameter(
-                "page_size",
+                "end_date",
                 openapi.IN_QUERY,
                 description="End of date range.",
                 type=openapi.TYPE_STRING,

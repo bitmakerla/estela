@@ -1,12 +1,10 @@
-from datetime import timedelta
-
 from api.serializers.job import SpiderJobCreateSerializer
+from celery.exceptions import TaskError
 from config.celery import app as celery_app
 from config.job_manager import job_manager
+from core.database_adapters import get_database_interface
 from core.models import Project, Spider, SpiderJob, UsageRecord
-from core.mongo import get_database_size
 from django.conf import settings
-from django.db.models import Sum
 from rest_framework.authtoken.models import Token
 
 
@@ -87,29 +85,80 @@ def check_and_update_job_status_errors():
             job.save()
 
 
-@celery_app.task(name="core.tasks.record_projects_usage")
-def record_projects_usage():
-    projects = Project.objects.all()
+@celery_app.task(
+    max_retries=None,
+    autoretry_for=(TaskError,),
+    retry_kwargs={"max_retries": None, "countdown": 5},
+)
+def record_project_usage_after_data_delete(project_id, job_id):
+    client = get_database_interface()
+    if not client.get_connection():
+        raise TaskError("Could not get a connection to the database.")
 
-    for project in projects:
-        project_jobs = SpiderJob.objects.filter(spider__project=project)
+    project = Project.objects.get(pid=project_id)
+    items_data_size = client.get_database_size(str(project.pid), "items")
+    requests_data_size = client.get_database_size(str(project.pid), "requests")
 
-        total_processing_time = project_jobs.aggregate(Sum("lifespan"))[
-            "lifespan__sum"
-        ] or timedelta(0)
-        total_network_usage = (
-            project_jobs.aggregate(Sum("total_response_bytes"))[
-                "total_response_bytes__sum"
-            ]
-            or 0
+    new_usage_record = UsageRecord.objects.filter(project=project).first()
+    new_usage_record.pk = None
+    new_usage_record._state.adding = True
+
+    job = SpiderJob.objects.get(jid=job_id)
+    new_usage_record.item_count -= job.item_count
+    new_usage_record.request_count -= job.request_count
+    new_usage_record.items_data_size = items_data_size
+    new_usage_record.requests_data_size = requests_data_size
+    new_usage_record.save()
+
+
+@celery_app.task(
+    max_retries=None,
+    autoretry_for=(TaskError,),
+    retry_kwargs={"max_retries": None, "countdown": 5},
+)
+def record_project_usage_after_job_event(job_id):
+    client = get_database_interface()
+    if not client.get_connection():
+        raise TaskError("Could not get a connection to the database.")
+
+    job = SpiderJob.objects.get(jid=job_id)
+    project = job.spider.project
+    if job.cronjob is not None and job.cronjob.unique_collection:
+        items_collection_name = "{}-scj{}-job_items".format(
+            job.spider.sid, job.cronjob.cjid
         )
-        items_data_size = get_database_size(project, "items")
-        requests_data_size = get_database_size(project, "requests")
-
-        usage_record = UsageRecord.objects.create(
-            project=project,
-            processing_time=total_processing_time,
-            network_usage=total_network_usage,
-            items_data_size=items_data_size,
-            requests_data_size=requests_data_size,
+        items_data_size = client.get_database_size(str(project.pid), "items")
+        unique_collection = True
+    else:
+        items_collection_name = "{}-{}-job_items".format(job.spider.sid, job.jid)
+        items_data_size = client.get_collection_size(
+            str(project.pid), items_collection_name
         )
+        unique_collection = False
+    requests_collection_name = "{}-{}-job_requests".format(job.spider.sid, job.jid)
+    requests_data_size = client.get_collection_size(
+        str(project.pid), requests_collection_name
+    )
+
+    updated_values = {
+        "processing_time": job.lifespan,
+        "network_usage": job.total_response_bytes,
+        "item_count": job.item_count,
+        "request_count": job.request_count,
+        "requests_data_size": requests_data_size,
+    }
+    last_usage_record = UsageRecord.objects.filter(project=project).first()
+    if last_usage_record:
+        for field in updated_values.keys():
+            updated_values[field] += getattr(last_usage_record, field)
+
+    new_items_data_size = (
+        items_data_size
+        if unique_collection
+        else last_usage_record.items_data_size + items_data_size
+    )
+    usage_record = UsageRecord.objects.create(
+        project=project,
+        items_data_size=new_items_data_size,
+        **updated_values,
+    )
