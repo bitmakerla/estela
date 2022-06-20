@@ -101,20 +101,19 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
     }
 
     handleSubmit = (data: { schedule: string; unique_collection: boolean }): void => {
-        console.log(data);
         const requestData = {
             cargs: [...this.state.args],
             cenvVars: [...this.state.envVars],
             ctags: [...this.state.tags],
             schedule: data.schedule,
             uniqueCollection: data.unique_collection,
+            dataStatus: this.state.isDataPersistent ? `PERSISTENT` : `PENDING`,
+            dataExpiryDays: `${this.state.months}/${this.state.days}`,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
-            persistent: this.state.isDataPersistent,
-            dataExpiryDays: `${this.state.months}/${this.state.days}`,
         };
         this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {

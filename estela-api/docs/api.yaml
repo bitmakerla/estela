@@ -456,13 +456,6 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/SpiderCronJobCreate'
-        - name: persistent
-          in: query
-          required: true
-          type: boolean
-        - name: data_expiry_days
-          in: query
-          type: string
       responses:
         '201':
           description: ''
@@ -628,13 +621,6 @@ paths:
         - name: async
           in: query
           type: boolean
-        - name: persistent
-          in: query
-          required: true
-          type: boolean
-        - name: data_expiry_days
-          in: query
-          type: string
       responses:
         '201':
           description: ''
@@ -1233,6 +1219,8 @@ definitions:
         title: Unique collection
         type: boolean
   SpiderCronJobCreate:
+    required:
+      - data_status
     type: object
     properties:
       cjid:
@@ -1262,6 +1250,14 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
+      data_expiry_days:
+        title: Data expiry days
+        type: string
+        minLength: 1
+      data_status:
+        title: Data status
+        type: string
+        minLength: 1
   SpiderCronJobUpdate:
     type: object
     properties:
@@ -1283,6 +1279,8 @@ definitions:
         title: Unique collection
         type: boolean
   SpiderJobCreate:
+    required:
+      - data_status
     type: object
     properties:
       jid:
@@ -1315,17 +1313,12 @@ definitions:
         x-nullable: true
       data_expiry_days:
         title: Data expiry days
-        type: integer
-        maximum: 65535
-        minimum: 0
-        x-nullable: true
+        type: string
+        minLength: 1
       data_status:
         title: Data status
         type: string
-        enum:
-          - PERSISTENT
-          - DELETED
-          - PENDING
+        minLength: 1
   SpiderJobUpdate:
     type: object
     properties:

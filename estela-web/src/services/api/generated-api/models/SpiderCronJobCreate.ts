@@ -76,6 +76,18 @@ export interface SpiderCronJobCreate {
      * @memberof SpiderCronJobCreate
      */
     uniqueCollection?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderCronJobCreate
+     */
+    dataExpiryDays?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderCronJobCreate
+     */
+    dataStatus: string;
 }
 
 export function SpiderCronJobCreateFromJSON(json: any): SpiderCronJobCreate {
@@ -95,6 +107,8 @@ export function SpiderCronJobCreateFromJSONTyped(json: any, ignoreDiscriminator:
         'ctags': !exists(json, 'ctags') ? undefined : ((json['ctags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'dataStatus': json['data_status'],
     };
 }
 
@@ -112,6 +126,8 @@ export function SpiderCronJobCreateToJSON(value?: SpiderCronJobCreate | null): a
         'ctags': value.ctags === undefined ? undefined : ((value.ctags as Array<any>).map(SpiderJobTagToJSON)),
         'schedule': value.schedule,
         'unique_collection': value.uniqueCollection,
+        'data_expiry_days': value.dataExpiryDays,
+        'data_status': value.dataStatus,
     };
 }
 

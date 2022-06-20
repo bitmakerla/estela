@@ -101,13 +101,13 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             args: [...this.state.args],
             envVars: [...this.state.envVars],
             tags: [...this.state.tags],
+            dataStatus: this.state.isDataPersistent ? `PERSISTENT` : `PENDING`,
+            dataExpiryDays: this.state.dataExpiryDays,
         };
         const request: ApiProjectsSpidersJobsCreateRequest = {
             data: requestData,
             pid: this.projectId,
             sid: this.spiderId,
-            persistent: this.state.isDataPersistent,
-            dataExpiryDays: this.state.dataExpiryDays,
         };
         this.apiService.apiProjectsSpidersJobsCreate(request).then(
             (response: SpiderJobCreate) => {
