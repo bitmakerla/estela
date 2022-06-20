@@ -88,7 +88,7 @@ def check_and_update_job_status_errors():
 @celery_app.task(
     max_retries=None,
     autoretry_for=(TaskError,),
-    retry_kwargs={"max_retries": None, "countdown": 5},
+    retry_kwargs={"max_retries": None, "countdown": 600},
 )
 def record_project_usage_after_data_delete(project_id, job_id):
     client = get_database_interface()
@@ -114,7 +114,7 @@ def record_project_usage_after_data_delete(project_id, job_id):
 @celery_app.task(
     max_retries=None,
     autoretry_for=(TaskError,),
-    retry_kwargs={"max_retries": None, "countdown": 5},
+    retry_kwargs={"max_retries": None, "countdown": 600},
 )
 def record_project_usage_after_job_event(job_id):
     client = get_database_interface()

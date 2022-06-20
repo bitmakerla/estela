@@ -178,7 +178,7 @@ class JobDataViewSet(
 
         record_project_usage_after_data_delete.s(
             job.spider.project.pid, job.jid
-        ).apply_async(countdown=10)
+        ).apply_async(countdown=600)
 
         return Response(
             {
