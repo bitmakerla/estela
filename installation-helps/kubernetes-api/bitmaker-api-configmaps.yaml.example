@@ -15,6 +15,7 @@ data:
   REPOSITORY_NAME: bitmaker-projects
   CORS_ORIGIN_WHITELIST: http://localhost:3000
   ENGINE: kubernetes
+  SPIDERDATA_DB_ENGINE: mongodb
   CREDENTIALS: aws
   KAFKA_HOSTS: kafka
   KAFKA_PORT: "9092"
