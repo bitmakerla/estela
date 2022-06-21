@@ -23,9 +23,9 @@ The project consists of three main modules:
 - API: Implements a REST API built with the Django REST framework toolkit, which exposes several endpoints to manage
     projects, spiders, and jobs. It uses Celery for task processing and takes care of deploying your Scrapy projects,
     among other things.
-- Queueing: A high-throughput, low-latency platform that controls real-time data feeds in a producer-consumer
-    architecture. In this module, you will find a Kafka consumer  used to collect and transport the information from
-    the spiders into a database.
+- Queueing: Estela needs a high-throughput, low-latency platform that controls real-time data feeds in a
+    producer-consumer architecture. In this module, you will find a Kafka consumer used to collect and transport the
+    information from the spiders into a database.
 - Web: A front-end project implemented with React Framework (with Ant Design) and Typescript. This module implements a
     user-friendly environment that communicates with the API and lets you manage your spiders and scraping projects.
 
