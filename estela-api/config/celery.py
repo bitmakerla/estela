@@ -19,13 +19,8 @@ app.conf.beat_schedule = {
         "task": "core.tasks.check_and_update_job_status_errors",
         "schedule": 60,
     },
-<<<<<<< HEAD:estela-api/config/celery.py
     "delete-expired-jobs-data": {
         "task": "core.tasks.delete_expired_jobs_data",
-=======
-    "record-projects-usage": {
-        "task": "core.tasks.record_projects_usage",
->>>>>>> BITMAKER-1732: Processing and Storage Cost Associated to a Project (#30):bitmaker-api/config/celery.py
         "schedule": 3600,
     },
 }

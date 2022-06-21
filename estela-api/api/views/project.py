@@ -55,6 +55,15 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             requests_data_size=0,
             logs_data_size=0,
         )
+        UsageRecord.objects.create(
+            project=instance,
+            processing_time=timedelta(0),
+            network_usage=0,
+            item_count=0,
+            request_count=0,
+            items_data_size=0,
+            requests_data_size=0,
+        )
 
     @swagger_auto_schema(
         request_body=ProjectUpdateSerializer,
