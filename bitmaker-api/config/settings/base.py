@@ -39,10 +39,12 @@ env = environ.Env(
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_DEFAULT_REGION=(str, "us-east-2"),
     AWS_STORAGE_BUCKET_NAME=(str, "bitmaker-django-api"),
-    MONGO_CONNECTION=(str, "dummy"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
+    SPIDERDATA_DB_ENGINE=(str, "dummy"),
+    SPIDERDATA_DB_CONNECTION=(str, "dummy"),
+    SPIDERDATA_DB_CERTIFICATE_PATH=(str, "dummy"),
     CREDENTIALS=(str, "dummy"),
     ELASTICSEARCH_HOST=(str, "dummy"),
     ELASTICSEARCH_USER=(str, "dummy"),
@@ -215,7 +217,6 @@ CLUSTER_NAME = env("CLUSTER_NAME")
 REGISTRY_HOST = env("REGISTRY_HOST")
 REPOSITORY_NAME = env("REPOSITORY_NAME")
 
-
 # Celery settings
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
@@ -239,10 +240,6 @@ SWAGGER_SETTINGS = {
     "DEFAULT_API_URL": "http://127.0.0.1:8000",
 }
 
-# Mongo settings
-MONGO_CONNECTION = env("MONGO_CONNECTION")
-MONGO_PRODUCTION = True
-
 # AWS configurations
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
@@ -264,6 +261,12 @@ TEST_DOCKER_IMAGE = "{}/bitmaker-project-demo:test".format(
 # Engine
 ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
+SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
+
+# Spiderdata Database settings
+SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")
+SPIDERDATA_DB_PRODUCTION = True
+SPIDERDATA_DB_CERTIFICATE_PATH = env("SPIDERDATA_DB_CERTIFICATE_PATH")
 
 # ElasticSearch
 ELASTICSEARCH_HOST = env("ELASTICSEARCH_HOST")

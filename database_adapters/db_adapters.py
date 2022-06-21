@@ -1,5 +1,4 @@
 import json
-import os
 import pymongo
 
 from abc import ABCMeta, abstractmethod
@@ -53,7 +52,9 @@ class MongoAdapter(DatabaseInterface):
                 )
                 client.admin.command("ismaster")
             else:
-                client = pymongo.MongoClient(self.mongo_connection)
+                client = pymongo.MongoClient(
+                    self.mongo_connection
+                )
         except ConnectionFailure:
             client = None
             return False
@@ -90,10 +91,8 @@ class MongoAdapter(DatabaseInterface):
         self.client[database_name][collection_name].insert_one(data)
 
 
-def get_database_interface():
-    mongo_certificate_path = "config/mongo_certificate/ca-certificate.crt"
-    return MongoAdapter(
-        os.getenv("MONGO_CONNECTION"),
-        os.getenv("PRODUCTION") == "True",
-        mongo_certificate_path,
-    )
+def get_database_interface(engine, connection, production, certificate_path):
+    database_interfaces = {
+        "mongodb": MongoAdapter(connection, production, certificate_path),
+    }
+    return database_interfaces[engine]
