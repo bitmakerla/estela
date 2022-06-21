@@ -13,6 +13,7 @@ class Project(models.Model):
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
     users = models.ManyToManyField(User, through="Permission")
+    deleted = models.BooleanField(default=False)
 
     @property
     def container_image(self):
@@ -137,6 +138,8 @@ class SpiderJob(models.Model):
     created = models.DateTimeField(auto_now_add=True, editable=False)
     lifespan = models.DurationField(default=timedelta(0))
     total_response_bytes = models.PositiveBigIntegerField(default=0)
+    item_count = models.PositiveBigIntegerField(default=0)
+    request_count = models.PositiveBigIntegerField(default=0)
 
     class Meta:
         ordering = ["-created"]
@@ -199,11 +202,14 @@ class SpiderJobTag(models.Model):
 
 
 class UsageRecord(models.Model):
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="usage_records"
-    )
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     processing_time = models.DurationField()
     network_usage = models.PositiveBigIntegerField()
+    item_count = models.PositiveBigIntegerField()
+    request_count = models.PositiveBigIntegerField()
     items_data_size = models.PositiveBigIntegerField()
     requests_data_size = models.PositiveBigIntegerField()
+
+    class Meta:
+        ordering = ["-created_at"]

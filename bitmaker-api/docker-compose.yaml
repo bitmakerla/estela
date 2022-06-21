@@ -2,10 +2,10 @@ version: '3'
 
 services:
   db:
-    container_name: bitmaker_db
+    container_name: estela_db
     image: mysql:8
     volumes:
-      - bitmaker_dbdata:/var/lib/mysql
+      - estela_dbdata:/var/lib/mysql
       - ./docker-conf/db/mysql:/docker-entrypoint-initdb.d
     restart: always
     command: --default_authentication_plugin=mysql_native_password
@@ -15,7 +15,7 @@ services:
       - "3306:3306"
       
   registry:
-    container_name: bitmaker_registry
+    container_name: estela_registry
     restart: always
     image: registry:2
     ports:
@@ -24,7 +24,7 @@ services:
       - registry_data:/var/lib/registry
   
   minio:
-    container_name: bitmaker_storage
+    container_name: estela_storage
     restart: always
     image: minio/minio
     ports:
@@ -38,7 +38,7 @@ services:
     command: server /data --console-address ":9001"
 
   mongo:
-    container_name: bitmaker_mongo
+    container_name: estela_mongo
     restart: always
     image: mongo:4.4.14
     environment:
@@ -47,7 +47,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - bitmaker_mongodata:/data
+      - estela_mongodata:/data
     command: mongod --bind_ip_all
 
   mongo-express:
@@ -61,7 +61,7 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://mongoadmin:mongoadmin@mongo:27017/
 
 volumes:
-  bitmaker_dbdata:
+  estela_dbdata:
   registry_data:
   datastore:
-  bitmaker_mongodata:
+  estela_mongodata:

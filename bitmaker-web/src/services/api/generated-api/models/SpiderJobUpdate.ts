@@ -43,6 +43,18 @@ export interface SpiderJobUpdate {
      * @memberof SpiderJobUpdate
      */
     totalResponseBytes?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    itemCount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    requestCount?: number;
 }
 
 /**
@@ -74,6 +86,8 @@ export function SpiderJobUpdateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'status': !exists(json, 'status') ? undefined : json['status'],
         'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
         'totalResponseBytes': !exists(json, 'total_response_bytes') ? undefined : json['total_response_bytes'],
+        'itemCount': !exists(json, 'item_count') ? undefined : json['item_count'],
+        'requestCount': !exists(json, 'request_count') ? undefined : json['request_count'],
     };
 }
 
@@ -89,6 +103,8 @@ export function SpiderJobUpdateToJSON(value?: SpiderJobUpdate | null): any {
         'status': value.status,
         'lifespan': value.lifespan,
         'total_response_bytes': value.totalResponseBytes,
+        'item_count': value.itemCount,
+        'request_count': value.requestCount,
     };
 }
 

@@ -87,6 +87,9 @@ import {
     Token,
     TokenFromJSON,
     TokenToJSON,
+    UsageRecord,
+    UsageRecordFromJSON,
+    UsageRecordToJSON,
     User,
     UserFromJSON,
     UserToJSON,
@@ -102,6 +105,10 @@ export interface ApiAuthRegisterRequest {
 
 export interface ApiProjectsCreateRequest {
     data: Project;
+}
+
+export interface ApiProjectsCurrentUsageRequest {
+    pid: string;
 }
 
 export interface ApiProjectsDeleteRequest {
@@ -280,6 +287,8 @@ export interface ApiProjectsUpdateRequest {
 
 export interface ApiProjectsUsageRequest {
     pid: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 /**
@@ -413,6 +422,37 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsCreate(requestParameters: ApiProjectsCreateRequest): Promise<Project> {
         const response = await this.apiProjectsCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsCurrentUsageRaw(requestParameters: ApiProjectsCurrentUsageRequest): Promise<runtime.ApiResponse<ProjectUsage>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsCurrentUsage.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/current_usage`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectUsageFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsCurrentUsage(requestParameters: ApiProjectsCurrentUsageRequest): Promise<ProjectUsage> {
+        const response = await this.apiProjectsCurrentUsageRaw(requestParameters);
         return await response.value();
     }
 
@@ -1569,12 +1609,20 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsUsageRaw(requestParameters: ApiProjectsUsageRequest): Promise<runtime.ApiResponse<ProjectUsage>> {
+    async apiProjectsUsageRaw(requestParameters: ApiProjectsUsageRequest): Promise<runtime.ApiResponse<Array<UsageRecord>>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsUsage.');
         }
 
         const queryParameters: any = {};
+
+        if (requestParameters.startDate !== undefined) {
+            queryParameters['start_date'] = requestParameters.startDate;
+        }
+
+        if (requestParameters.endDate !== undefined) {
+            queryParameters['end_date'] = requestParameters.endDate;
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -1588,12 +1636,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectUsageFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(UsageRecordFromJSON));
     }
 
     /**
      */
-    async apiProjectsUsage(requestParameters: ApiProjectsUsageRequest): Promise<ProjectUsage> {
+    async apiProjectsUsage(requestParameters: ApiProjectsUsageRequest): Promise<Array<UsageRecord>> {
         const response = await this.apiProjectsUsageRaw(requestParameters);
         return await response.value();
     }

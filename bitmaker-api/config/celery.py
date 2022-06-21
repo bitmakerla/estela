@@ -19,8 +19,4 @@ app.conf.beat_schedule = {
         "task": "core.tasks.check_and_update_job_status_errors",
         "schedule": 60,
     },
-    "record-projects-usage": {
-        "task": "core.tasks.record_projects_usage",
-        "schedule": 3600,
-    },
 }

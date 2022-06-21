@@ -48,19 +48,31 @@ export interface ProjectUsage {
      * @type {string}
      * @memberof ProjectUsage
      */
-    readonly itemsStorageSize?: string;
+    readonly itemCount?: string;
     /**
      * 
      * @type {string}
      * @memberof ProjectUsage
      */
-    readonly requestsStorageSize?: string;
+    readonly requestCount?: string;
     /**
      * 
      * @type {string}
      * @memberof ProjectUsage
      */
-    readonly logsStorageSize?: string;
+    readonly itemsDataSize?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectUsage
+     */
+    readonly requestsDataSize?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectUsage
+     */
+    readonly logsDataSize?: string;
 }
 
 export function ProjectUsageFromJSON(json: any): ProjectUsage {
@@ -77,9 +89,11 @@ export function ProjectUsageFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'name': json['name'],
         'networkUsage': !exists(json, 'network_usage') ? undefined : json['network_usage'],
         'processingTime': !exists(json, 'processing_time') ? undefined : json['processing_time'],
-        'itemsStorageSize': !exists(json, 'items_storage_size') ? undefined : json['items_storage_size'],
-        'requestsStorageSize': !exists(json, 'requests_storage_size') ? undefined : json['requests_storage_size'],
-        'logsStorageSize': !exists(json, 'logs_storage_size') ? undefined : json['logs_storage_size'],
+        'itemCount': !exists(json, 'item_count') ? undefined : json['item_count'],
+        'requestCount': !exists(json, 'request_count') ? undefined : json['request_count'],
+        'itemsDataSize': !exists(json, 'items_data_size') ? undefined : json['items_data_size'],
+        'requestsDataSize': !exists(json, 'requests_data_size') ? undefined : json['requests_data_size'],
+        'logsDataSize': !exists(json, 'logs_data_size') ? undefined : json['logs_data_size'],
     };
 }
 

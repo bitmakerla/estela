@@ -176,7 +176,24 @@ paths:
       parameters: []
       responses:
         '204':
+          description: Project deleted
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/current_usage:
+    get:
+      operationId: api_projects_current_usage
+      description: ''
+      parameters: []
+      responses:
+        '200':
           description: ''
+          schema:
+            $ref: '#/definitions/ProjectUsage'
       tags:
         - api
     parameters:
@@ -822,12 +839,24 @@ paths:
     get:
       operationId: api_projects_usage
       description: ''
-      parameters: []
+      parameters:
+        - name: start_date
+          in: query
+          description: Start of date range.
+          required: false
+          type: string
+        - name: end_date
+          in: query
+          description: End of date range.
+          required: false
+          type: string
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/ProjectUsage'
+            type: array
+            items:
+              $ref: '#/definitions/UsageRecord'
       tags:
         - api
     parameters:
@@ -982,6 +1011,49 @@ definitions:
         enum:
           - EDITOR
           - VIEWER
+  ProjectUsage:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 1000
+        minLength: 1
+      network_usage:
+        title: Network usage
+        type: string
+        readOnly: true
+      processing_time:
+        title: Processing time
+        type: string
+        readOnly: true
+      item_count:
+        title: Item count
+        type: string
+        readOnly: true
+      request_count:
+        title: Request count
+        type: string
+        readOnly: true
+      items_data_size:
+        title: Items data size
+        type: string
+        readOnly: true
+      requests_data_size:
+        title: Requests data size
+        type: string
+        readOnly: true
+      logs_data_size:
+        title: Logs data size
+        type: string
+        readOnly: true
   Spider:
     required:
       - name
@@ -1148,6 +1220,16 @@ definitions:
         type: number
       total_response_bytes:
         title: Total response bytes
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
         type: integer
         maximum: 18446744073709551615
         minimum: 0
@@ -1338,6 +1420,16 @@ definitions:
         type: integer
         maximum: 18446744073709551615
         minimum: 0
+      item_count:
+        title: Item count
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
   DeleteJobData:
     required:
       - count
@@ -1361,38 +1453,46 @@ definitions:
       count:
         title: Count
         type: integer
-  ProjectUsage:
+  UsageRecord:
     required:
-      - name
+      - processing_time
+      - network_usage
+      - item_count
+      - request_count
+      - items_data_size
+      - requests_data_size
     type: object
     properties:
-      pid:
-        title: Pid
+      created_at:
+        title: Created at
         type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        type: string
-        maxLength: 1000
-        minLength: 1
-      network_usage:
-        title: Network usage
-        type: string
+        format: date-time
         readOnly: true
       processing_time:
         title: Processing time
-        type: string
-        readOnly: true
-      items_storage_size:
-        title: Items storage size
-        type: string
-        readOnly: true
-      requests_storage_size:
-        title: Requests storage size
-        type: string
-        readOnly: true
-      logs_storage_size:
-        title: Logs storage size
-        type: string
-        readOnly: true
+        type: number
+      network_usage:
+        title: Network usage
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      items_data_size:
+        title: Items data size
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      requests_data_size:
+        title: Requests data size
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
