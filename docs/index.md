@@ -34,7 +34,7 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
   - [API](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api): Implements a REST API built
     with the Django REST framework toolkit, which exposes several endpoints to manage projects, spiders, and jobs. It
     uses Celery for task processing and takes care of deploying your Scrapy projects, among other things.
-  - [Kafka Queueing](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-kafka): A high-throughput,
+  - [Queueing](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-kafka): Estela needs a high-throughput,
     low-latency platform that controls real-time data feeds in a producer-consumer architecture. In this module, you
     will find a Kafka consumer and the configuration to set up the Kafka cluster used to collect and transport the
     information from the spiders into a database.

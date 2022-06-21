@@ -2,4 +2,5 @@
 
 This project is created using React Framework (along with Ant Design) and Typescript. This module implements a
 user-friendly environment that communicates with the Estela API and lets you manage your spiders and scraping
-projects.
+projects. For more information on this module and how to set it up, please refer to our
+[official documentation](https://bitmaker.la/docs/bitmaker-cloud/web.html).

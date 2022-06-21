@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Kafka
+title: Queueing
 parent: Bitmaker Cloud
 ---
 
@@ -20,7 +20,7 @@ In the following image, we can see the critical part played by Kafka. In the ent
 using a  Scrapy Extension to send their extracted items and requests to Kafka. Kafka takes care of queueing these items
 to avoid possible database overload, politely inserting these items.
 
-![Bitmaker Cloud Architecture](../assets/images/kafka_flow.svg)
+![Estela Kafka Flow](../assets/images/kafka_flow.svg)
 
 Estela currently works tightly with Kafka thanks to its great functionality, but may be extended to work with other
 queueing systems.

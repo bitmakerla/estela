@@ -31,12 +31,12 @@ The project was thought to work in Kubernetes but can run in any other orchestra
 everything with Celery and models. Suppose you want to run jobs in another orchestrator. In that case, you need to
 define a new engine as a class following a specific structure, such as containing Job and Status inner classes
 according to your needs but respecting base methods. For more details on implementing your Engine, refer to the
-(Engines)[https://bitmaker.la/docs/bitmaker-cloud/api/engines.html] section in our official documentation.
+[Engines](https://bitmaker.la/docs/bitmaker-cloud/api/engines.html) section in our official documentation.
 
 <h1>Credentials</h1>
 
 The project needs a Docker image registry and a place to save uploaded projects in order to work. The credentials
 module will take care of calling the appropriate methods to access both the registry and the place where the projects
 are saved, fetching any required credentials (such as your `AWS_ACCESS_KEY_ID` for AWS). For more information on the
-currently supported credentials, refer to the (Credentials)[https://bitmaker.la/docs/bitmaker-cloud/api/credentials.html]
+currently supported credentials, refer to the [Credentials](https://bitmaker.la/docs/bitmaker-cloud/api/credentials.html)
 section in our official documentation.
