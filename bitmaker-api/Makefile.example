@@ -102,8 +102,8 @@ login-ecr:
 .PHONY: build-all-images
 build-all-images:
 	-docker build .. --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api:$(DEVTAG)
-	-docker build . --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker:$(DEVTAG)
-	-docker build . --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat:$(DEVTAG)
 	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis:$(DEVTAG)
 	-docker build . --file docker-conf/Dockerfile-build-project --tag bitmaker-build-project:$(DEVTAG)
 
