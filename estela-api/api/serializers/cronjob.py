@@ -1,7 +1,7 @@
 from croniter import croniter
 from rest_framework import serializers
 
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
+from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
 
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,

@@ -19,8 +19,8 @@ app.conf.beat_schedule = {
         "task": "core.tasks.check_and_update_job_status_errors",
         "schedule": 60,
     },
-    "delete-job-data": {
-        "task": "core.tasks.delete_job_data",
+    "delete-expired-jobs-data": {
+        "task": "core.tasks.delete_expired_jobs_data",
         "schedule": 3600,
     },
 }

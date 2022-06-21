@@ -47,7 +47,7 @@ class SpiderJobViewSet(
         return page, page_size
 
     def date_to_days(self, date_str):
-        Y, M, D = [int(i) for i in date_str.split('-')]
+        Y, M, D = [int(i) for i in date_str.split("-")]
         interval = date(Y, M, D) - date.today()
         return interval.days
 
@@ -106,14 +106,12 @@ class SpiderJobViewSet(
         async_param = request.query_params.get("async", False)
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data_status = request.data.pop("data_status", "PERSISTENT")
+        data_status = request.data.pop("data_status", SpiderJob.PERSISTENT_STATUS)
         if data_status == SpiderJob.PENDING_STATUS:
             date_str = request.data.pop("data_expiry_days", date.today() + timedelta(1))
             data_expiry_days = self.date_to_days(date_str)
             if data_expiry_days < 1:
-                return Response(
-                    serializer.data, status=status.HTTP_409_CONFLICT
-                )
+                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         else:
             data_expiry_days = None
 
