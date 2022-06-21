@@ -179,7 +179,7 @@ class JobDataViewSet(
         count = client.delete_collection_data(kwargs["pid"], job_collection_name)
         record_project_usage_after_data_delete.s(
             job.spider.project.pid, job.jid
-        ).apply_async(countdown=600)
+        ).apply_async()
 
         return Response(
             {
