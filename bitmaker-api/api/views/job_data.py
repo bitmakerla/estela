@@ -2,8 +2,6 @@ import json
 import csv
 import codecs
 
-from bson.json_util import loads
-from django.conf import settings
 from django.http.response import JsonResponse, HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -15,7 +13,7 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
-from config.job_manager import sp_db_client
+from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 
 
@@ -100,7 +98,7 @@ class JobDataViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        if not sp_db_client.get_connection():
+        if not spiderdata_db_client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
@@ -118,13 +116,13 @@ class JobDataViewSet(
                 kwargs["sid"], kwargs["jid"], data_type
             )
         if mode == "json":
-            result = sp_db_client.get_all_collection_data(
+            result = spiderdata_db_client.get_all_collection_data(
                 kwargs["pid"], job_collection_name
             )
             response = JsonResponse(result, safe=False)
             return response
         if mode == "csv":
-            result = sp_db_client.get_all_collection_data(
+            result = spiderdata_db_client.get_all_collection_data(
                 kwargs["pid"], job_collection_name
             )
             response = HttpResponse(content_type="text/csv; charset=utf-8")
@@ -141,10 +139,10 @@ class JobDataViewSet(
 
             return response
 
-        result = sp_db_client.get_paginated_collection_data(
+        result = spiderdata_db_client.get_paginated_collection_data(
             kwargs["pid"], job_collection_name, page, page_size
         )
-        count = sp_db_client.get_estimated_document_count()
+        count = spiderdata_db_client.get_estimated_document_count()
 
         return Response(
             {
@@ -165,7 +163,7 @@ class JobDataViewSet(
     def delete(self, request, *args, **kwargs):
         data_type = "items"
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        if not sp_db_client.get_connection():
+        if not spiderdata_db_client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
@@ -180,7 +178,7 @@ class JobDataViewSet(
             )
         return Response(
             {
-                "count": sp_db_client.delete_collection_data(
+                "count": spiderdata_db_client.delete_collection_data(
                     kwargs["pid"], job_collection_name
                 )
             },
