@@ -1,6 +1,5 @@
 import json
 import pymongo
-import ssl
 
 from abc import ABCMeta, abstractmethod
 from bson.json_util import loads
@@ -54,7 +53,7 @@ class MongoAdapter(DatabaseInterface):
                 client.admin.command("ismaster")
             else:
                 client = pymongo.MongoClient(
-                    self.mongo_connection, ssl_cert_reqs=ssl.CERT_NONE
+                    self.mongo_connection
                 )
         except ConnectionFailure:
             client = None
