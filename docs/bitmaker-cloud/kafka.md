@@ -22,7 +22,5 @@ to avoid possible database overload, politely inserting these items.
 
 ![Bitmaker Cloud Architecture](../assets/images/kafka_flow.svg)
 
-Estela currently works tightly with Kafka thanks to its great functionality but may be extended to work with other
-queueing systems. Implementing such behavior would require making adding the producer/consumer logic of the new system,
-performing changes in the entry point to match the interface of the new queuing system, and configuring some variables in
-the API.
+Estela currently works tightly with Kafka thanks to its great functionality, but may be extended to work with other
+queueing systems.

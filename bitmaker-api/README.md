@@ -8,23 +8,7 @@ The API consists of three main components:
 - Celery worker and beat: Responsible for executing the tasks and periodic tasks ordered by the API.
 - Redis: Keeps a record of the tasks and periodic tasks to be executed.  It is needed by Celery.
 
-These components have a corresponding docker configuration file to build their images and run in Docker containers.
-
-<h2>Requirements</h2>
-
-- Minikube v1.22.0
-- Docker v20.10.7 *include docker-compose*
-- aws-cli v2.2.18
-- Python v3.6.x
-- Install the Python dependencies:
-  ```bash
-  $ pip install -r requirements/dev.txt
-  ```
-
-<h2>Setup</h2>
-
-For a detailed description of how to set up your Kafka cluster, please check out our
-[official documentation](https://github.com/bitmakerla/bitmaker-cloud/tree/main/bitmaker-api).
+These components have a corresponding Docker configuration file to build their images and run in Docker containers.
 
 <h2>Testing</h2>
 

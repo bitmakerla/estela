@@ -21,10 +21,12 @@ def JobManager(engine):
     return engines[engine]()
 ```
 
-To use it, just define it in `config/job_manager.py`:
+The use of specific credentials is defined in the project settings as an environment variable at
+`config/settings/base.py`:
 ```py
-job_manager = JobManager(engine="your_engine")
+ENGINE = env("ENGINE")
 ```
+Set this value according to your needs.
 
 ## Status
 
