@@ -44,6 +44,7 @@ env = environ.Env(
     ENGINE=(str, "dummy"),
     SPIDERDATA_DB_ENGINE=(str, "dummy"),
     SPIDERDATA_DB_CONNECTION=(str, "dummy"),
+    SPIDERDATA_DB_CERTIFICATE_PATH=(str, "dummy"),
     CREDENTIALS=(str, "dummy"),
     ELASTICSEARCH_HOST=(str, "dummy"),
     ELASTICSEARCH_USER=(str, "dummy"),
@@ -265,7 +266,7 @@ SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
 # Spiderdata Database settings
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")
 SPIDERDATA_DB_PRODUCTION = True
-SPIDERDATA_DB_CERTIFICATE_PATH = "config/mongo_certificate/ca-certificate.crt"
+SPIDERDATA_DB_CERTIFICATE_PATH = env("SPIDERDATA_DB_CERTIFICATE_PATH")
 
 # ElasticSearch
 ELASTICSEARCH_HOST = env("ELASTICSEARCH_HOST")
