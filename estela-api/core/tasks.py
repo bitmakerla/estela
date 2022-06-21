@@ -1,13 +1,14 @@
 from datetime import timedelta
+
 from django.conf import settings
-from config.celery import app as celery_app
 from django.utils import timezone
-from core.models import SpiderJob, Spider
-from core.database_adapters import get_database_interface
-from config.job_manager import job_manager
 from rest_framework.authtoken.models import Token
 
 from api.serializers.job import SpiderJobCreateSerializer
+from config.celery import app as celery_app
+from config.job_manager import job_manager
+from core.database_adapters import get_database_interface
+from core.models import Spider, SpiderJob
 
 
 def get_default_token(job):
@@ -16,28 +17,6 @@ def get_default_token(job):
         return None
     token, _ = Token.objects.get_or_create(user=user)
     return token.key
-
-
-def delete_data(pid, sid, jid, data_type):
-    client = get_database_interface()
-    if not client.get_connection():
-        return False
-    job = SpiderJob.objects.filter.get(jid=jid)
-    if (
-        job.cronjob is not None
-        and job.cronjob.unique_collection
-        and data_type == "items"
-    ):
-        job_collection_name = "{}-scj{}-job_{}".format(
-            sid, job.cronjob.cjid, data_type
-        )
-    else:
-        job_collection_name = "{}-{}-job_{}".format(
-            sid, jid, data_type
-        )
-
-    client.delete_collection_data(pid, job_collection_name)
-
 
 
 @celery_app.task
@@ -63,40 +42,55 @@ def run_spider_jobs():
         )
 
 
+def delete_data(pid, sid, jid, data_type):
+    client = get_database_interface()
+    if not client.get_connection():
+        return False
+    job = SpiderJob.objects.get(jid=jid)
+    if (
+        job.cronjob is not None
+        and job.cronjob.unique_collection
+        and data_type == "items"
+    ):
+        job_collection_name = "{}-scj{}-job_{}".format(sid, job.cronjob.cjid, data_type)
+    else:
+        job_collection_name = "{}-{}-job_{}".format(sid, jid, data_type)
+
+    client.delete_collection_data(pid, job_collection_name)
+
+
 @celery_app.task()
-def delete_task(job):
-    jid, sid, pid = job.key.split(".")
-    if timezone.now() - timedelta(days=job.data_expiry_days) > job.created:
-        delete_data(pid, sid, jid, "items")
-        delete_data(pid, sid, jid, "requests")
-        job.data_status = SpiderJob.DELETED_STATUS
-        job.save()
+def delete_job_data(job_key):
+    jid, sid, pid = job_key.split(".")
+    delete_data(pid, sid, jid, "items")
+    delete_data(pid, sid, jid, "requests")
+    SpiderJob.objects.filter(jid=jid).update(data_status=SpiderJob.DELETED_STATUS)
 
 
-@celery_app.task(name="core.tasks.delete_job_data")
-def delete_job_data():
-    jobs = SpiderJob.objects.filter(data_status=SpiderJob.PENDING_STATUS)
+@celery_app.task(name="core.tasks.delete_expired_jobs_data")
+def delete_expired_jobs_data():
+    pending_data_delete_jobs = SpiderJob.objects.filter(
+        data_status=SpiderJob.PENDING_STATUS,
+        status__in=[SpiderJob.COMPLETED_STATUS, SpiderJob.STOPPED_STATUS],
+    )
 
-    for job in jobs:
-        delete_task.s(job).delay()
+    for job in pending_data_delete_jobs:
+        if job.created < timezone.now() - timedelta(days=job.data_expiry_days):
+            delete_job_data.s(job.key).delay()
 
 
 @celery_app.task(name="core.tasks.launch_job")
-def launch_job(sid_, data_, data_expiry_days=None,token=None):
+def launch_job(sid_, data_, data_expiry_days=None, token=None):
     spider = Spider.objects.get(sid=sid_)
-    serializer = SpiderJobCreateSerializer(data=data_)
 
     if data_expiry_days is None:
-        data_status = SpiderJob.PERSISTENT_STATUS
+        data_["data_status"] = SpiderJob.PERSISTENT_STATUS
     else:
-        data_status = SpiderJob.PENDING_STATUS
+        data_["data_status"] = SpiderJob.PENDING_STATUS
 
+    serializer = SpiderJobCreateSerializer(data=data_)
     serializer.is_valid(raise_exception=True)
-    job = serializer.save(
-        spider=spider,
-        data_status=data_status,
-        data_expiry_days=data_expiry_days
-    )
+    job = serializer.save(spider=spider, data_expiry_days=data_expiry_days)
 
     collection = job.key
 

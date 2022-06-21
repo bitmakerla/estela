@@ -1,15 +1,13 @@
-import re
-from pkg_resources import require
 from rest_framework import serializers
-from api import errors
 
+from api import errors
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 from config.job_manager import job_manager
+from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
