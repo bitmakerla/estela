@@ -62,11 +62,7 @@ rebuild: build-consumer-image upload-consumer-image
 
 .PHONY: build-consumer-image
 build-consumer-image:
-<<<<<<< HEAD:installation-helps/kubernetes-kafka/Makefile.example
-	-docker build .. --file bitmaker-kafka/Dockerfile --tag bitmaker-consumer:$(DEVTAG)
-=======
-	-docker build . --tag estela-consumer:$(DEVTAG)
->>>>>>> BITMAKER-1804: Rename Bitmaker Cloud to Estela:estela-kafka/Makefile.example
+	-docker build .. --file estela-kafka/Dockerfile --tag estela-consumer:$(DEVTAG)
 
 
 .PHONY: upload-consumer-image

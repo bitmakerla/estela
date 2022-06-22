@@ -5,9 +5,9 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /home/estela
 
-COPY bitmaker-kafka/requirements requirements
+COPY estela-kafka/requirements requirements
 RUN pip install -r requirements/consumer.txt
 
-COPY bitmaker-kafka/consumer.py .
-COPY bitmaker-kafka/config config
+COPY estela-kafka/consumer.py .
+COPY estela-kafka/config config
 COPY database_adapters/ ./database_adapters

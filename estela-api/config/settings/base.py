@@ -38,12 +38,8 @@ env = environ.Env(
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_DEFAULT_REGION=(str, "us-east-2"),
-<<<<<<< HEAD:bitmaker-api/config/settings/base.py
-    AWS_STORAGE_BUCKET_NAME=(str, "bitmaker-django-api"),
-=======
     AWS_STORAGE_BUCKET_NAME=(str, "estela-django-api"),
     MONGO_CONNECTION=(str, "dummy"),
->>>>>>> BITMAKER-1804: Rename Bitmaker Cloud to Estela:estela-api/config/settings/base.py
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
