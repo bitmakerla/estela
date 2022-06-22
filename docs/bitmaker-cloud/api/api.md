@@ -9,11 +9,11 @@ has_toc: false
 
 # Bitmaker Cloud API
 
-The Bitmaker Cloud API consists of three main components:
-
-- `bitmaker-django-api`: The django app from which requests are handled.
-- `bitmaker-celery-worker` and `bitmaker-celery-beat`: Responsible for executing the tasks and periodic tasks ordered by the API.
-- `bitmaker-redis`: Keeps a record of the tasks and periodic tasks to be executed.
+The API consists of three main components:
+- Django API: Implements a REST API built with the Django REST framework toolkit, exposing several endpoints to manage
+    projects, spiders, and jobs.
+- Celery worker and beat: Responsible for executing the tasks and periodic tasks ordered by the API.
+- Redis: Keeps a record of the tasks and periodic tasks to be executed.  It is needed by Celery.
 
 These components have a corresponding Docker config file to build their images
 and run in Docker containers.

@@ -6,12 +6,11 @@ grand_parent: Bitmaker Cloud
 ---
 
 # Engines
+The project was thought to work in Kubernetes but can run in any other orchestrator (e.g., Docker). The API handles
+everything with Celery and models. Suppose you want to run jobs in another orchestrator. In that case, you need to
+define a new engine as a class following a specific structure, such as containing Job and Status inner classes
+according to your needs but respecting base methods. Add your engine in `engines/config.py` with a name:
 
-The project is designed to work in Kubernetes, but it can run in any other
-orchestrator. The API handles everything with celery and models. You need to
-define an engine as a class that contains Job and Status inner classes
-according to your needs but respecting base methods. Add your engine in
-engines/config.py with a name:
 ```py
 def JobManager(engine):
     engines = {
@@ -22,10 +21,12 @@ def JobManager(engine):
     return engines[engine]()
 ```
 
-To use it, just define it in config/job_manager.py:
+The use of specific credentials is defined in the project settings as an environment variable at
+`config/settings/base.py`:
 ```py
-job_manager = JobManager(engine="your_engine")
+ENGINE = env("ENGINE")
 ```
+Set this value according to your needs.
 
 ## Status
 
