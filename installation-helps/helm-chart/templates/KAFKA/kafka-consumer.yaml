@@ -18,7 +18,7 @@ spec:
       {{- end }}
       containers:
       - name: consumer
-        image: {{ .Values.registryHost }}/bitmaker-consumer
+        image: {{ .Values.registryHost }}/estela-consumer
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_items']
         env:
@@ -54,7 +54,7 @@ spec:
       {{- end }}
       containers:
       - name: consumer
-        image: {{ .Values.registryHost }}/bitmaker-consumer
+        image: {{ .Values.registryHost }}/estela-consumer
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_requests']
         env:
@@ -90,7 +90,7 @@ spec:
       {{- end }}
       containers:
       - name: consumer
-        image: {{ .Values.registryHost }}/bitmaker-consumer
+        image: {{ .Values.registryHost }}/estela-consumer
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_logs']
         env:

@@ -1,0 +1,84 @@
+REGISTRY_HOST = 192.168.49.1:5000# minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+REGION = us-east-2
+DEVTAG = latest#dev-$$USER
+
+ifeq ($(OS),Windows_NT)
+	DOCKER_COMPOSE = docker compose
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		DOCKER_COMPOSE = docker-compose
+	else # OSX
+		DOCKER_COMPOSE = docker compose
+	endif
+endif
+
+.PHONY: login-ecr
+login-ecr:
+	-aws ecr get-login-password --region $(REGION) | docker login \
+	   --username AWS --password-stdin  $(REGISTRY_HOST)
+
+
+.PHONY: start
+start:
+	-$(DOCKER_COMPOSE) up -d
+
+
+.PHONY: stop
+stop:
+	-$(DOCKER_COMPOSE) stop
+
+
+.PHONY: setup
+setup: build-consumer-image upload-consumer-image
+	-$(DOCKER_COMPOSE) up -d
+	-kubectl apply -f kubernetes/estela-kafka-secrets.yaml
+	-kubectl apply -f kubernetes/estela-kafka-services.yaml
+	-kubectl apply -f kubernetes/estela-kafka-consumers.yaml
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-items-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-requests-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+
+
+.PHONY: down
+down:
+	-kubectl delete -f kubernetes/estela-kafka-secrets.yaml
+	-kubectl delete -f kubernetes/estela-kafka-services.yaml
+	-kubectl delete -f kubernetes/estela-kafka-consumers.yaml
+	-$(DOCKER_COMPOSE) down
+
+
+.PHONY: rebuild
+rebuild: build-consumer-image upload-consumer-image
+	-kubectl apply -f kubernetes/estela-kafka-secrets.yaml
+	-kubectl apply -f kubernetes/estela-kafka-consumers.yaml
+	-kubectl rollout restart deployment kafka-logs-consumer
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-kubectl rollout restart deployment kafka-items-consumer
+	-kubectl set image deployment/kafka-items-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-kubectl rollout restart deployment kafka-requests-consumer
+	-kubectl set image deployment/kafka-requests-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+
+
+.PHONY: build-consumer-image
+build-consumer-image:
+<<<<<<< HEAD:installation-helps/kubernetes-kafka/Makefile.example
+	-docker build .. --file bitmaker-kafka/Dockerfile --tag bitmaker-consumer:$(DEVTAG)
+=======
+	-docker build . --tag estela-consumer:$(DEVTAG)
+>>>>>>> BITMAKER-1804: Rename Bitmaker Cloud to Estela:estela-kafka/Makefile.example
+
+
+.PHONY: upload-consumer-image
+upload-consumer-image: login-ecr
+	-docker tag estela-consumer:$(DEVTAG) $(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+
+
+.PHONY: set-up-image
+set-up-images: build-consumer-image upload-consumer-images
+
+
+.PHONY: lint
+lint:
+	-black .

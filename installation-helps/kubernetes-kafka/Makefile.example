@@ -32,43 +32,43 @@ stop:
 .PHONY: setup
 setup: build-consumer-image upload-consumer-image
 	-$(DOCKER_COMPOSE) up -d
-	-kubectl apply -f kubernetes/bitmaker-kafka-secrets.yaml
-	-kubectl apply -f kubernetes/bitmaker-kafka-services.yaml
-	-kubectl apply -f kubernetes/bitmaker-kafka-consumers.yaml
-	-kubectl set image deployment/kafka-logs-consumer consumer=$(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
-	-kubectl set image deployment/kafka-items-consumer consumer=$(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
-	-kubectl set image deployment/kafka-requests-consumer consumer=$(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-kubectl apply -f kubernetes/estela-kafka-secrets.yaml
+	-kubectl apply -f kubernetes/estela-kafka-services.yaml
+	-kubectl apply -f kubernetes/estela-kafka-consumers.yaml
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-items-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-requests-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
 
 
 .PHONY: down
 down:
-	-kubectl delete -f kubernetes/bitmaker-kafka-secrets.yaml
-	-kubectl delete -f kubernetes/bitmaker-kafka-services.yaml
-	-kubectl delete -f kubernetes/bitmaker-kafka-consumers.yaml
+	-kubectl delete -f kubernetes/estela-kafka-secrets.yaml
+	-kubectl delete -f kubernetes/estela-kafka-services.yaml
+	-kubectl delete -f kubernetes/estela-kafka-consumers.yaml
 	-$(DOCKER_COMPOSE) down
 
 
 .PHONY: rebuild
 rebuild: build-consumer-image upload-consumer-image
-	-kubectl apply -f kubernetes/bitmaker-kafka-secrets.yaml
-	-kubectl apply -f kubernetes/bitmaker-kafka-consumers.yaml
+	-kubectl apply -f kubernetes/estela-kafka-secrets.yaml
+	-kubectl apply -f kubernetes/estela-kafka-consumers.yaml
 	-kubectl rollout restart deployment kafka-logs-consumer
-	-kubectl set image deployment/kafka-logs-consumer consumer=$(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-logs-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
 	-kubectl rollout restart deployment kafka-items-consumer
-	-kubectl set image deployment/kafka-items-consumer consumer=$(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-items-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
 	-kubectl rollout restart deployment kafka-requests-consumer
-	-kubectl set image deployment/kafka-requests-consumer consumer=$(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-kubectl set image deployment/kafka-requests-consumer consumer=$(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
 
 
 .PHONY: build-consumer-image
 build-consumer-image:
-	-docker build .. --file bitmaker-kafka/Dockerfile --tag bitmaker-consumer:$(DEVTAG)
+	-docker build .. --file estela-kafka/Dockerfile --tag estela-consumer:$(DEVTAG)
 
 
 .PHONY: upload-consumer-image
 upload-consumer-image: login-ecr
-	-docker tag bitmaker-consumer:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-consumer:$(DEVTAG)
+	-docker tag estela-consumer:$(DEVTAG) $(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-consumer:$(DEVTAG)
 
 
 .PHONY: set-up-image

@@ -3,13 +3,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-registry
+  name: estela-registry
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-registry-role
+  name: estela-registry-role
 rules:
 - apiGroups: [""]
   resources: ["secrets"]
@@ -19,14 +19,14 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-registry-bind
+  name: estela-registry-bind
 subjects:
 - kind: ServiceAccount
-  name: bitmaker-registry
+  name: estela-registry
   namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: bitmaker-registry-role
+  name: estela-registry-role
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: batch/v1
@@ -41,7 +41,7 @@ spec:
   template:
     spec:
       restartPolicy: Never
-      serviceAccountName: bitmaker-registry
+      serviceAccountName: estela-registry
       containers:
       - name: pod-ecr-kube-helper
         image: anaganisk/ecr-kube-helper:1.0.0
@@ -74,7 +74,7 @@ spec:
         - name: TARGET_NAMESPACE
           value: {{ .Release.Namespace }}
         - name: TARGET_EMAIL
-          value: bitmaker@bitmaker.dev
+          value: estela@estela.dev
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -92,7 +92,7 @@ spec:
       template:
         spec:
           restartPolicy: Never
-          serviceAccountName: bitmaker-registry
+          serviceAccountName: estela-registry
           containers:
           - name: pod-ecr-kube-helper
             image: anaganisk/ecr-kube-helper:1.0.0
@@ -125,5 +125,5 @@ spec:
             - name: TARGET_NAMESPACE
               value: {{ .Release.Namespace }}
             - name: TARGET_EMAIL
-              value: bitmaker@bitmaker.dev
+              value: estela@estela.dev
 {{- end}}

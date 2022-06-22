@@ -1,0 +1,7 @@
+venv/
+.venv/
+.idea/
+
+kubernetes/estela-kafka-secrets.yaml
+config/mongo_certificate/ca-certificate.crt
+Makefile
