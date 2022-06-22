@@ -1218,6 +1218,19 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
   SpiderCronJobCreate:
     required:
       - data_status
@@ -1278,6 +1291,19 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
   SpiderJobCreate:
     required:
       - data_status
@@ -1338,6 +1364,19 @@ definitions:
           - CANCELLED
           - COMPLETED
           - ERROR
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
   DeleteJobData:
     required:
       - count

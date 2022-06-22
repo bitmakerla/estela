@@ -101,6 +101,8 @@ class SpiderCronJobViewSet(
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
+        print(partial)
+        print(request.data)
         instance = self.get_object()
         serializer = SpiderCronJobUpdateSerializer(
             instance, data=request.data, partial=partial

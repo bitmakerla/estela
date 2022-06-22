@@ -1,3 +1,4 @@
+from tkinter import N
 from croniter import croniter
 from rest_framework import serializers
 
@@ -29,6 +30,8 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
             "schedule",
             "status",
             "unique_collection",
+            "data_status",
+            "data_expiry_days",
         )
 
 
@@ -93,12 +96,21 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SpiderCronJob
-        fields = ("cjid", "status", "schedule", "unique_collection")
+        fields = (
+            "cjid",
+            "status",
+            "schedule",
+            "unique_collection",
+            "data_status",
+            "data_expiry_days",
+        )
 
     def update(self, instance, validated_data):
         status = validated_data.get("status", "")
         schedule = validated_data.get("schedule", "")
         unique_collection = validated_data.get("unique_collection", False)
+        data_status = validated_data.get("data_status", "")
+        data_expiry_days = validated_data.get("data_expiry_days", None)
         name = instance.name
         if "schedule" in validated_data:
             instance.schedule = schedule
@@ -111,5 +123,12 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
                 disable_cronjob(name)
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
+        if "data_status" in validated_data:
+            if data_status == SpiderCronJob.PERSISTENT_STATUS:
+                instance.data_status = SpiderCronJob.PERSISTENT_STATUS
+            else:
+                instance.data_status = SpiderCronJob.PENDING_STATUS
+                instance.data_expiry_days = int(data_expiry_days)
+        
         instance.save()
         return instance
