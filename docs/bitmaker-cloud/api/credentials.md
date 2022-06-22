@@ -29,9 +29,10 @@ def Credentials(plataform):
     return credentials[plataform]()
 ```
 
-To use it, just define it in `config/job_manager.py`:
+The use of specific credentials is defined in the project settings as an environment variable at
+`config/settings/base.py`:
 ```py
-credentials = Credentials(plataform="your_credentials")
+CREDENTIALS = env("CREDENTIALS")
 ```
 
 ### Credentials interface:

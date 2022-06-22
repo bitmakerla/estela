@@ -24,11 +24,15 @@ spec:
           value: kafka
         - name: PRODUCTION
           value: "False"
-        - name: MONGO_CONNECTION
+        - name: DB_ENGINE
+          value: mongodb
+        - name: DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: kafka-secrets
-              key: MONGO_CONNECTION
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: "config/ca-certificate.crt"
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -58,11 +62,15 @@ spec:
           value: kafka
         - name: PRODUCTION
           value: "False"
-        - name: MONGO_CONNECTION
+        - name: DB_ENGINE
+          value: mongodb
+        - name: DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: kafka-secrets
-              key: MONGO_CONNECTION
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: "config/ca-certificate.crt"
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -92,8 +100,12 @@ spec:
           value: kafka
         - name: PRODUCTION
           value: "False"
-        - name: MONGO_CONNECTION
+        - name: DB_ENGINE
+          value: mongodb
+        - name: DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: kafka-secrets
-              key: MONGO_CONNECTION
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: "config/ca-certificate.crt"
