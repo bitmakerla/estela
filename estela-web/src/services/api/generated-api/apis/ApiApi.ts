@@ -161,9 +161,9 @@ export interface ApiProjectsReadRequest {
 export interface ApiProjectsSpidersCronjobsCreateRequest {
     pid: string;
     sid: string;
-    permanent: boolean;
+    persistent: boolean;
     data: SpiderCronJobCreate;
-    expirationDate?: string;
+    dataExpiryDate?: string;
 }
 
 export interface ApiProjectsSpidersCronjobsListRequest {
@@ -203,10 +203,10 @@ export interface ApiProjectsSpidersCronjobsUpdateRequest {
 export interface ApiProjectsSpidersJobsCreateRequest {
     pid: string;
     sid: string;
-    permanent: boolean;
+    persistent: boolean;
     data: SpiderJobCreate;
     async?: boolean;
-    expirationDate?: string;
+    dataExpiryDate?: string;
 }
 
 export interface ApiProjectsSpidersJobsDataDeleteRequest {
@@ -829,8 +829,8 @@ export class ApiApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
         }
 
-        if (requestParameters.permanent === null || requestParameters.permanent === undefined) {
-            throw new runtime.RequiredError('permanent','Required parameter requestParameters.permanent was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
+        if (requestParameters.persistent === null || requestParameters.persistent === undefined) {
+            throw new runtime.RequiredError('persistent','Required parameter requestParameters.persistent was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
         }
 
         if (requestParameters.data === null || requestParameters.data === undefined) {
@@ -839,12 +839,12 @@ export class ApiApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        if (requestParameters.permanent !== undefined) {
-            queryParameters['permanent'] = requestParameters.permanent;
+        if (requestParameters.persistent !== undefined) {
+            queryParameters['persistent'] = requestParameters.persistent;
         }
 
-        if (requestParameters.expirationDate !== undefined) {
-            queryParameters['expiration_date'] = requestParameters.expirationDate;
+        if (requestParameters.dataExpiryDate !== undefined) {
+            queryParameters['data_expiry_date'] = requestParameters.dataExpiryDate;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -1100,8 +1100,8 @@ export class ApiApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsCreate.');
         }
 
-        if (requestParameters.permanent === null || requestParameters.permanent === undefined) {
-            throw new runtime.RequiredError('permanent','Required parameter requestParameters.permanent was null or undefined when calling apiProjectsSpidersJobsCreate.');
+        if (requestParameters.persistent === null || requestParameters.persistent === undefined) {
+            throw new runtime.RequiredError('persistent','Required parameter requestParameters.persistent was null or undefined when calling apiProjectsSpidersJobsCreate.');
         }
 
         if (requestParameters.data === null || requestParameters.data === undefined) {
@@ -1114,12 +1114,12 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['async'] = requestParameters.async;
         }
 
-        if (requestParameters.permanent !== undefined) {
-            queryParameters['permanent'] = requestParameters.permanent;
+        if (requestParameters.persistent !== undefined) {
+            queryParameters['persistent'] = requestParameters.persistent;
         }
 
-        if (requestParameters.expirationDate !== undefined) {
-            queryParameters['expiration_date'] = requestParameters.expirationDate;
+        if (requestParameters.dataExpiryDate !== undefined) {
+            queryParameters['data_expiry_date'] = requestParameters.dataExpiryDate;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

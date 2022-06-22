@@ -126,12 +126,12 @@ class SpiderJob(models.Model):
         (ERROR_STATUS, "Error"),
     ]
 
-    PERMANENT_STATUS = "PERMANENT"
+    PERSISTENT_STATUS = "PERSISTENT"
     DELETED_STATUS = "DELETED"
     NON_DELETED_STATUS = "NON_DELETED"
 
     STATUS_DATA_OPTIONS = [
-        (PERMANENT_STATUS, "Permanent"),
+        (PERSISTENT_STATUS, "Persistent"),
         (DELETED_STATUS, "Deleted"),
         (NON_DELETED_STATUS, "No Deleted"),
     ]
@@ -144,10 +144,10 @@ class SpiderJob(models.Model):
     status = models.CharField(
         max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
     )
-    status_data = models.CharField(
-        max_length=20, choices=STATUS_DATA_OPTIONS, default=PERMANENT_STATUS
+    data_status = models.CharField(
+        max_length=20, choices=STATUS_DATA_OPTIONS, default=PERSISTENT_STATUS
     )
-    expiration_date = models.CharField(max_length=8, blank=True)
+    data_expiry_date = models.CharField(max_length=8, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:

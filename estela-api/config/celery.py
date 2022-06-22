@@ -21,6 +21,6 @@ app.conf.beat_schedule = {
     },
     "delete-job-data": {
         "task": "core.tasks.delete_job_data",
-        "schedule": 120,
+        "schedule": 3600,
     },
 }
