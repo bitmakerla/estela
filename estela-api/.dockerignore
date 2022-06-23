@@ -1,9 +1,0 @@
-**/venv/
-**/.venv/
-**/*.pyc
-**/__pycache__
-**/.pytest_cache
-.git/
-.idea/
-bitmaker-web/
-docs/

@@ -2,14 +2,14 @@
 layout: page
 title: estela login
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela create job
 
 ## Description
 
-Authenticate to Estela. After running this command, the CLI prompts you for
+Authenticate to estela. After running this command, the CLI prompts you for
 the host API endpoint to send the requests, your username, and your password. Once
 logged in, the CLI saves your authentication token and host address in `~/.estela.yaml`.
 

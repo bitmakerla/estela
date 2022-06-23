@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Estela CLI
+title: estela CLI
 nav_order: 3
 has_children: true
 ---
 
-# Estela CLI
+# estela CLI

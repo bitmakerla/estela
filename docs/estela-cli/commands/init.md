@@ -2,7 +2,7 @@
 layout: page
 title: estela init
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela init
@@ -10,7 +10,7 @@ grand_parent: Estela CLI
 ## Description
 
 Initialize a estela project in the current directory. It is used to link a
-Estela project to a Scrapy project. To run this command, you should
+estela project to a Scrapy project. To run this command, you should
 be located in a Scrapy project with the following structure:
 
 ```

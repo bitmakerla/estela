@@ -1,28 +1,28 @@
 ---
 layout: page
-title: Install the Estela CLI
+title: Install the estela CLI
 nav_order: 1
-parent: Estela CLI
+parent: estela CLI
 ---
 
-# Install the Estela CLI
+# Install the estela CLI
 
 ## Overview
-Estela CLI is the command-line client to interact with Estela API.
+estela CLI is the command-line client to interact with estela API.
 Allows the user to perform the following actions:
 
-- Link a Scrapy project with a project in Estela.
-- Create projects, jobs, and cronjobs in Estela.
+- Link a Scrapy project with a project in estela.
+- Create projects, jobs, and cronjobs in estela.
 - Get the data of a job.
 
-This guide provides instructions on how to install the Estela CLI.
+This guide provides instructions on how to install the estela CLI.
 
 ## Prerequisites
-To install and use the Estela CLI on Linux, Mac, or Windows, you must have:
+To install and use the estela CLI on Linux, Mac, or Windows, you must have:
 - Python (v3.6 or higher)
 
-## Install the Estela CLI
-1. Clone the Estela CLI repository:
+## Install the estela CLI
+1. Clone the estela CLI repository:
 ```bash
 $ git clone https://github.com/bitmakerla/estela-cli
 ```
@@ -43,5 +43,5 @@ estela, version 0.1
 ```
 
 ## Next Steps
-Now that you've installed the Estela CLI, you're ready to create a Estela
+Now that you've installed the estela CLI, you're ready to create a estela
 project and start developing locally. For instructions, read the [quickstart guide]({% link estela-cli/quickstart.md %}).

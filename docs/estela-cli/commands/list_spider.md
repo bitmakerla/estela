@@ -2,7 +2,7 @@
 layout: page
 title: estela list spider
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela list spider

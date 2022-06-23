@@ -2,14 +2,14 @@
 layout: page
 title: estela create cronjob
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela create cronjob
 
 ## Description
 
-Create a new cronjob for a spider in Estela. All the jobs created
+Create a new cronjob for a spider in estela. All the jobs created
 from a cronjob will have its same arguments, environment variables, and tags.
 
 ## Usage

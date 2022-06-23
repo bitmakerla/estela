@@ -3,7 +3,7 @@ layout: page
 title: Helm Chart
 nav_order: 3
 parent: API
-grand_parent: Estela
+grand_parent: estela
 ---
 
 # Deploying with Helm Chart
@@ -12,7 +12,7 @@ Helm is useful to manage Kubernetes applications and Helm Charts allow us to def
 install, and upgrade complex Kubernetes applications. You can learn more about Helm
 in its [official webpage](https://helm.sh/).
 
-Estela provides a Helm Chart to allow an easy deployment. In order to deploy
+estela provides a Helm Chart to allow an easy deployment. In order to deploy
 using Helm Chart, you need to configure some variables. In the [`estela-api-helm/`](https://github.com/bitmakerla/estela/tree/main/estela-api-helm) directory,
 you will find the `values.yaml.example` file, which you should copy into a file named
 `values.yaml` and set the required values.
@@ -26,13 +26,13 @@ First, it is necesary to set the values in `values.yaml`:
 
 - **config** and **secrets**: The name of configmap and secrets files for the API.
 
-- **registryHost**: The registry host of Estela API images.
+- **registryHost**: The registry host of estela API images.
 
-- **\<DB_HOST\>**: Host of the Estela Django API database.
+- **\<DB_HOST\>**: Host of the estela Django API database.
 
-- **\<DB_PORT\>**: Port of the Estela Django API database.
+- **\<DB_PORT\>**: Port of the estela Django API database.
 
-- **\<DB_NAME\>**: Database name for Estela Django API.
+- **\<DB_NAME\>**: Database name for estela Django API.
 
 - **\<AWS_DEFAULT_REGION\>**: Region of AWS that you use.
 
@@ -60,7 +60,7 @@ First, it is necesary to set the values in `values.yaml`:
 The next values need to be encoded in base64 because they are inside secrets files.
 You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
 
-- **\<DB_USER\>**: Username for the Estela Django API database.
+- **\<DB_USER\>**: Username for the estela Django API database.
 
 - **\<DB_PASSWORD\>**: Password of the database user.
 

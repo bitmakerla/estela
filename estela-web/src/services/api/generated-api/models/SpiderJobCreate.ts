@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Estela API v1.0 Documentation
- * Estela API Swagger Specification
+ * estela API v1.0 Documentation
+ * estela API Swagger Specification
  *
  * The version of the OpenAPI document: v1
  * 

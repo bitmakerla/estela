@@ -2,14 +2,14 @@
 layout: page
 title: estela create job
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela create job
 
 ## Description
 
-Create a new job for a spider in Estela.
+Create a new job for a spider in estela.
 
 ## Usage
 

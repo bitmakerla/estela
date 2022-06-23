@@ -62,7 +62,7 @@ rebuild: build-consumer-image upload-consumer-image
 
 .PHONY: build-consumer-image
 build-consumer-image:
-	-docker build .. --file estela-kafka/Dockerfile --tag estela-consumer:$(DEVTAG)
+	-docker build .. --file Dockerfile --tag estela-consumer:$(DEVTAG)
 
 
 .PHONY: upload-consumer-image

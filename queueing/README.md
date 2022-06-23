@@ -1,4 +1,4 @@
-<h1 align="center">Estela Kafka Queueing</h1>
+<h1 align="center">Queueing</h1>
 
 The project uses a Kafka cluster as its scheduler to transport scraped items into the database. The script `consumer.py`
 was created to perform the task of transporting items from Kafka to the database. For more information on this module

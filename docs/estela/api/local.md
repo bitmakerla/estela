@@ -3,25 +3,25 @@ layout: page
 title: Local Setup
 nav_order: 1
 parent: API
-grand_parent: Estela
+grand_parent: estela
 ---
 
 # Local Setup
-The following steps describe how we deploy Estela locally using Kubernetes
+The following steps describe how we deploy estela locally using Kubernetes
 on Minikube. We will show how to deploy it using a local registry.
 Feel free to modify any files to fit your needs and propose your
-changes to expand the compatibility of Estela with other platforms.
+changes to expand the compatibility of estela with other platforms.
 
-Currently, project zips uploaded to Estela for deployment are uploaded
+Currently, project zips uploaded to estela for deployment are uploaded
 to an AWS S3 bucket, from where they are later fetched to build their docker image.
 For this reason, you will need access to an AWS S3 bucket to be able to deploy 
 these projects.
 
-If you want to deploy Estela to a production environment, we recommend
+If you want to deploy estela to a production environment, we recommend
 using the provided [helm chart]({% link estela/api/helm.md %}) for a
 more seamless deployment.
 
-To run the Estela API in a local environment, we use Minikube as a cluster for Kubernetes.
+To run the estela API in a local environment, we use Minikube as a cluster for Kubernetes.
 - The database for Django API is configured as a Docker service.
 - In local we use a local registry setting as a Docker service. (*in production we use AWS ECR*)
 
@@ -65,7 +65,7 @@ If this is the first time you build the app, take the following steps:
             in case you use AWS ECR as your registry host. If you wish use another container registry service, you can add a new
             [credentials configuration](https://github.com/bitmakerla/estela/tree/main/estela-api/credentials).
   - **\<ELASTICSEARCH_HOST\>** and **\<ELASTICSEARCH_PORT\>**: The host and port of the Elasticsearch service. These values are not needed
-            for Estela to work, but the spider logs will not be stored in case they are not present.
+            for estela to work, but the spider logs will not be stored in case they are not present.
   - **\<AWS_DEFAULT_REGION\>**: The AWS default region of the container registry, e.g., `us-east-2`. This value will not be relevant if you do not use AWS ECR.
   - **\<AWS_STORAGE_BUCKET_NAME\>** : The name of AWS S3 Storage where the static django files will be stored (the bucket must already exist), e.g., `estela-django-api`.
   - **\<REGISTRY_ID\>** and **\<REGISTRY_HOST\>**: ID and host of the registry service, check these values in the
@@ -88,7 +88,7 @@ If this is the first time you build the app, take the following steps:
   - **\<MONGO_CONNECTION_BASE_64\>**: The connection to MongoDB where all the data collected from the spiders is stored.
   - **\<DJANGO_SECRET_KEY_BASE_64\>**: Your Django app secret key.
   - **\<ELASTICSEARCH_USERNAME_BASE_64\>** and **<ELASTICSEARCH_PASSWORD_BASE_64\>**: Enter your Elasticsearch credentials. These values are not needed
-            for Estela to work, but the spider logs will not be stored in case they are not present.
+            for estela to work, but the spider logs will not be stored in case they are not present.
 
 - Apply the setup command, which build and upload the images, and apply all the Kubernetes `yaml` files:
   ```bash

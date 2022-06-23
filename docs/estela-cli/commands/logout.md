@@ -2,14 +2,14 @@
 layout: page
 title: estela logout
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela create job
 
 ## Description
 
-Unauthenticate from the Estela CLI.
+Unauthenticate from the estela CLI.
 
 ## Usage
 

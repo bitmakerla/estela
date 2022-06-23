@@ -2,7 +2,7 @@
 layout: page
 title: estela context
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela context

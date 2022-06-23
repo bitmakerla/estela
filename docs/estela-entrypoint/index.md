@@ -1,23 +1,23 @@
 ---
 layout: page
-title: Estela Entrypoint
+title: estela Entrypoint
 nav_order: 4
 ---
 
-# Estela Entrypoint
+# estela Entrypoint
 
-The [Estela Entrypoint](https://github.com/bitmakerla/estela-entrypoint)
+The [estela Entrypoint](https://github.com/bitmakerla/estela-entrypoint)
 is a package that implements a wrapper layer to extract job data from the environment,
 prepare the job properly, and execute it using Scrapy.
 
 It can be seen as the implementation of a [contract](#contract-statements) to run
 spiders, namely, a set of requirements that any image has to comply with to run
-on Estela.
+on estela.
 
-Besides fulfilling the contract, the entry point does:
+Besides fulfilling the contract, the entry point takes care of:
 - Running the job with Scrapy.
-- Transparent integration with Estela Storage
-- Keep synchronization between the job and Estela.
+- Transparent integration with estela Storage
+- Keeping synchronization between the job and estela.
 
 ## Contract statements
 
@@ -51,8 +51,8 @@ Dictionary with all the job information in JSON format. The fields are:
 | - | - | - | - | - |
 | key | string | Job key in format *job_ID/spider_ID/project_ID* | `"1/2/3"` | Yes |
 | spider | string | Spider name | `"spider_name"` | Yes |
-| auth\_token | string | Estela user token authentication | `"token-A23@#21j"` | Yes |
-| api\_host | string | Estela API host | `"https://api.host.com"` | Yes |
+| auth\_token | string | estela user token authentication | `"token-A23@#21j"` | Yes |
+| api\_host | string | estela API host | `"https://api.host.com"` | Yes |
 | collection | string | Collection name where items will be stored | `"collection-name"` | Yes |
 | unique | string | Flag if the data will be stored in a unique collection | `"False"` | Only for cronjobs |
 | args | dict | Job arguments | `{"arg1": "val1", "arg2": "val2"}` | No |
@@ -61,7 +61,7 @@ Dictionary with all the job information in JSON format. The fields are:
 ### `KAFKA_ADVERTISED_LISTENERS` (Required)
 
 List of advertised hosts in a comma-separated style.
-This field is required since Estela uses Kafka to handle the data pipeline.
+This field is required since estela uses Kafka to handle the data pipeline.
 
 ### `KAFKA_ADVERTISED_PORT` (Required)
 

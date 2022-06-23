@@ -1,19 +1,19 @@
 ---
 layout: page
 title: Web
-parent: Estela
+parent: estela
 ---
 
-# Estela Web
+# estela Web
 
 This project is created using [React Framework](https://reactjs.org/) (along with [Ant Design](https://ant.design/)) and
-Typescript. This module implements a user-friendly environment that communicates with the Estela API and lets you
+Typescript. This module implements a user-friendly environment that communicates with the estela API and lets you
 manage your spiders and scraping projects.
 
 ## Local Setup
 
 Set `.env.local` using the `.env.local.example` file where:
-- `REACT_APP_API_BASE_URL`: The base API URL where the Estela API is deployed.
+- `REACT_APP_API_BASE_URL`: The base API URL where the estela API is deployed.
 
 To run the app, use `yarn install`. Then, you can:
 - Run in dev mode, use `yarn dev`.

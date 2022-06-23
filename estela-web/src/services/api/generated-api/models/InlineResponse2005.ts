@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Estela API v1.0 Documentation
- * Estela API Swagger Specification
+ * estela API v1.0 Documentation
+ * estela API Swagger Specification
  *
  * The version of the OpenAPI document: v1
  * 
@@ -30,13 +30,13 @@ export interface InlineResponse2005 {
      * @type {string}
      * @memberof InlineResponse2005
      */
-    next?: string | null;
+    previous?: string | null;
     /**
      * 
      * @type {string}
      * @memberof InlineResponse2005
      */
-    previous?: string | null;
+    next?: string | null;
     /**
      * 
      * @type {Array<object>}
@@ -56,8 +56,8 @@ export function InlineResponse2005FromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'count': json['count'],
-        'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'next': !exists(json, 'next') ? undefined : json['next'],
         'results': !exists(json, 'results') ? undefined : json['results'],
     };
 }
@@ -72,8 +72,8 @@ export function InlineResponse2005ToJSON(value?: InlineResponse2005 | null): any
     return {
         
         'count': value.count,
-        'next': value.next,
         'previous': value.previous,
+        'next': value.next,
         'results': value.results,
     };
 }

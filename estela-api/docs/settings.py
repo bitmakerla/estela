@@ -5,9 +5,9 @@ DEFAULT_BASE_PATH = "/"
 
 
 api_info = openapi.Info(
-    title="Estela API v1.0 Documentation",
+    title="estela API v1.0 Documentation",
     default_version="v1",
-    description="Estela API Swagger Specification",
+    description="estela API Swagger Specification",
 )
 
 

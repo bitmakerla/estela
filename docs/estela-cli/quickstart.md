@@ -2,10 +2,10 @@
 layout: page
 title: Quickstart
 nav_order: 2
-parent: Estela CLI
+parent: estela CLI
 ---
 
-# Estela CLI Quickstart
+# estela CLI Quickstart
 
 ## Getting Help
 To see all available commands, run:
@@ -21,13 +21,13 @@ $ estela create job --help
 ```
 
 ## Basic Usage
-To start using the Estela CLI with Estela, first, you need to log in:
+To start using the estela CLI with estela, first, you need to log in:
 
 ```bash
 $ estela login
 ```
 
-Estela CLI will prompt for your credentials. You should see the following output:
+estela CLI will prompt for your credentials. You should see the following output:
 
 ```bash
 $ estela login
@@ -37,12 +37,12 @@ Password:
 Successful login. API Token stored in ~/.estela.yaml.
 ```
 
-This will save your Estela API key to the file `~/.estela.yaml`, and it is
+This will save your estela API key to the file `~/.estela.yaml`, and it is
 needed to access projects associated with your account.
 
 ### Creating a project
 
-In Estela, a project is an identifier that groups spiders. It is linked to the
+In estela, a project is an identifier that groups spiders. It is linked to the
 Docker image of a Scrapy project. A project's spiders are extracted automatically from the Scrapy
 project.
 
@@ -55,7 +55,7 @@ project/proj_test created.
 Hint: Run 'estela init 23ea584d-f39c-85bd-74c1-9b725ffcab1d7' to activate this project
 ```
 
-With this, we have created a project in Estela. Note the hint in the last
+With this, we have created a project in estela. Note the hint in the last
 line of the output. It shows us the ID of the project we have just created in
 UUID format.
 
@@ -93,10 +93,10 @@ Alternatively, suppose you created the project via the [web interface]({% link e
 In that case, you can directly use the `estela init <project_id>` command with
 the project ID that you can find on the project detail page.
 
-We have successfully linked our Estela project with our Scrapy project.
+We have successfully linked our estela project with our Scrapy project.
 
 ### Deploying a project
-This is a simple and essential step. Once the Estela and Scrapy projects are linked,
+This is a simple and essential step. Once the estela and Scrapy projects are linked,
 we will proceed to build the Docker image and upload it to the AWS registry. This whole process
 will be done automatically and scheduled by the [API]({% link estela/api/api.md %}) with
 the command:
@@ -123,7 +123,7 @@ NAME    SID
 quotes  101
 ```
 
-And you can create jobs and cronjobs using the Estela CLI with `estela create job <SID>`
+And you can create jobs and cronjobs using the estela CLI with `estela create job <SID>`
 and `estela create cronjob <CRONTAB_SCHEDULE> <SID>`.
 
 You can see the list of jobs that have run or are running for a spider with:

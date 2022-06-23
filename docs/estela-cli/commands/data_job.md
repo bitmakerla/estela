@@ -2,14 +2,14 @@
 layout: page
 title: estela data job
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela data job
 
 ## Description
 
-Get data from a job in Estela.
+Get data from a job in estela.
 
 ## Usage
 

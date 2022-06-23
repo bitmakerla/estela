@@ -2,14 +2,14 @@
 layout: page
 title: estela delete project
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela delete project
 
 ## Description
 
-Delete a project in Estela.
+Delete a project in estela.
 
 ## Usage
 

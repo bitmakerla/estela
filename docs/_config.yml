@@ -1,8 +1,8 @@
 theme: "just-the-docs"
 color_scheme: "estela"
 
-title: Estela Documentation
-description: Documentation for Estela
+title: estela Documentation
+description: Documentation for estela
 url: "https://bitmaker.la"
 baseurl: "/docs"
 
@@ -37,7 +37,7 @@ search:
 aux_links:
   "Bitmaker":
     - "//bitmaker.la/"
-  "Estela on GitHub":
+  "estela on GitHub":
     - "//github.com/bitmakerla/estela"
 
 # Makes Aux links open in a new tab. Default is false

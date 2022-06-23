@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Estela
+title: estela
 nav_order: 2
 has_children: true
 ---
 
-# Estela
+# estela

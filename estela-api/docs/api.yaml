@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
-  title: Estela API v1.0 Documentation
-  description: Estela API Swagger Specification
+  title: estela API v1.0 Documentation
+  description: estela API Swagger Specification
   version: v1
 host: 127.0.0.1:8000
 schemes:

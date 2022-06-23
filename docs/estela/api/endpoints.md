@@ -2,13 +2,13 @@
 layout: page
 title: Endpoints & Serializers
 parent: API
-grand_parent: Estela
+grand_parent: estela
 ---
 
-# Estela API v1.0 Documentation
-Estela API Specification. Version v1.
+# estela API v1.0 Documentation
+estela API Specification. Version v1.
 
-Estela uses [Django REST framework (DRF)](https://www.django-rest-framework.org/) for its API.
+estela uses [Django REST framework (DRF)](https://www.django-rest-framework.org/) for its API.
 In [`estela/estela-api/api/`](https://github.com/bitmakerla/estela/tree/main/estela-api/api/),
 you will find the API's relevant code, including urls, serializers, and viewsets.
 

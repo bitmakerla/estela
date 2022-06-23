@@ -5,9 +5,9 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /home/estela
 
-COPY estela-kafka/requirements requirements
+COPY queueing/requirements requirements
 RUN pip install -r requirements/consumer.txt
 
-COPY estela-kafka/consumer.py .
-COPY estela-kafka/config config
+COPY queueing/consumer.py .
+COPY queueing/config config
 COPY database_adapters/ ./database_adapters

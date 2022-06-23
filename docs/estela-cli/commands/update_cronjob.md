@@ -2,7 +2,7 @@
 layout: page
 title: estela update cronjob
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela update cronjob

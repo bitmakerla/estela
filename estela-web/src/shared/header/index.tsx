@@ -27,7 +27,7 @@ export class CustomHeader extends Component<unknown> {
         return (
             <Header className="header">
                 <Link to="/">
-                    <div className="logo-header">Estela</div>
+                    <div className="logo-header">estela</div>
                 </Link>
                 <Row justify="end">
                     {this.isLogged() ? (

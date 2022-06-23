@@ -2,14 +2,14 @@
 layout: page
 title: estela create project
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela create project
 
 ## Description
 
-Create a new project in Estela.
+Create a new project in estela.
 
 ## Usage
 

@@ -2,14 +2,14 @@
 layout: page
 title: estela deploy
 parent: CLI Command Reference
-grand_parent: Estela CLI
+grand_parent: estela CLI
 ---
 
 # estela deploy
 
 ## Description
 
-Deploy the current project directory to Estela. This will create a zip
+Deploy the current project directory to estela. This will create a zip
 file of the project and upload it to the API, which will build
 a Docker image of the project. AFTER A SUCCESSFUL BUILD, the API will update the
 project information (e.g., list of spiders).
