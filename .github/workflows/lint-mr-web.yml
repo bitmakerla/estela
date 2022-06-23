@@ -3,11 +3,11 @@ name: Lint MR
 on:
   pull_request:
     paths:
-      - bitmaker-web/**/*
+      - estela-web/**/*
       - .github/workflows/*.yml
 
 env:
-  WEB_DIRECTORY: bitmaker-web
+  WEB_DIRECTORY: estela-web
 
 jobs:
   lint-web:

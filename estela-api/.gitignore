@@ -1,0 +1,11 @@
+venv/
+.venv/
+.idea/
+*.pyc
+.env
+config/kubernetes/estela-api-secrets.yaml
+config/kubernetes/estela-api-configmaps.yaml
+
+config/**/*.crt
+
+Makefile
