@@ -169,14 +169,13 @@ export class CronJobListPage extends Component<RouteComponentProps<RouteParams>,
                                                 <b>Project ID:</b>
                                                 <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
                                             </Text>
+                                            <Table
+                                                columns={this.columns}
+                                                dataSource={cronjobs}
+                                                pagination={false}
+                                                size="middle"
+                                            />
                                         </Space>
-                                        <Table
-                                            columns={this.columns}
-                                            dataSource={cronjobs}
-                                            pagination={false}
-                                            size="middle"
-                                            className="table"
-                                        />
                                     </Row>
                                     <Pagination
                                         className="pagination"

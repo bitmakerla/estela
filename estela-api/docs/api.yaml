@@ -726,11 +726,11 @@ paths:
             properties:
               count:
                 type: number
-              next:
+              previous:
                 type: string
                 format: uri
                 x-nullable: true
-              previous:
+              next:
                 type: string
                 format: uri
                 x-nullable: true
