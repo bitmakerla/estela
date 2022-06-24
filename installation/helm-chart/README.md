@@ -55,6 +55,8 @@ The next values need to be in base64:
 
 You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
 
+DONT FORGET RELEASE NAME
+
 Once these values are filled in, we proceed to execute the first install:
 ```
 helm install <RELEASE_NAME> --create-namespace --debug --namespace=<NAMESPACE> .

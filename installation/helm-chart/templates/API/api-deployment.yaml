@@ -21,7 +21,7 @@ spec:
       - name: bitmaker-django-api
         image: {{ .Values.registryHost }}/bitmaker-django-api
         imagePullPolicy: Always
-        command: ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
+        command: ['gunicorn', 'config.wsgi', '--bind=0.0.0.0:8000'] # ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
         envFrom:
         - secretRef:
             name: {{ .Values.secret }}

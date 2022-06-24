@@ -1,5 +1,5 @@
 API_DIR = ../bitmaker-api
-QUEUING_DIR = ../bitmaker-queuing
+QUEUING_DIR = ../bitmaker-kafka
 
 
 ifeq ($(OS),Windows_NT)
@@ -18,30 +18,31 @@ endif
 resources:
 	-minikube start --feature-gates="TTLAfterFinished=true"
 	-echo "HOST_IP=$$(minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1')" > .env
+	-echo "ESTELA_REGISTRY_HOST=localhost:5000" >> .env
 	-$(DOCKER_COMPOSE) up -d
 	-. .env && minikube start --insecure-registry $${HOST_IP}
 
 
 .PHONY: build-all-images
 build-all-images:
-	-cd $(API_DIR) && \
-	 docker build . --file docker-conf/Dockerfile-django-api --tag localhost:5000/bitmaker-django-api:latest && \
-	 docker build . --file docker-conf/Dockerfile-celery-worker --tag localhost:5000/bitmaker-celery-worker:latest && \
-	 docker build . --file docker-conf/Dockerfile-celery-beat --tag localhost:5000/bitmaker-celery-beat:latest && \
-	 docker build . --file docker-conf/Dockerfile-redis --tag localhost:5000/bitmaker-redis:latest && \
-	 docker build . --file docker-conf/Dockerfile-build-project --tag localhost:5000/bitmaker-build-project:latest
-	-cd $(QUEUING_DIR) && \
-	 docker build . --tag localhost:5000/bitmaker-consumer:latest
+	-. .env && cd ${API_DIR} && \
+	 docker build .. --file docker-conf/Dockerfile-django-api --tag $${ESTELA_REGISTRY_HOST}/bitmaker-django-api:latest && \
+	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $${ESTELA_REGISTRY_HOST}/bitmaker-celery-worker:latest && \
+	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $${ESTELA_REGISTRY_HOST}/bitmaker-celery-beat:latest && \
+	 docker build . --file docker-conf/Dockerfile-redis --tag $${ESTELA_REGISTRY_HOST}/bitmaker-redis:latest && \
+	 docker build . --file docker-conf/Dockerfile-build-project --tag $${ESTELA_REGISTRY_HOST}/bitmaker-build-project:latest
+	-. .env && cd ${QUEUING_DIR} && \
+	 docker build .. --file Dockerfile --tag $${ESTELA_REGISTRY_HOST}/bitmaker-consumer:latest
 
 
 .PHONY: upload-all-images
 upload-all-images:
-	-docker push localhost:5000/bitmaker-django-api:latest
-	-docker push localhost:5000/bitmaker-celery-beat:latest
-	-docker push localhost:5000/bitmaker-celery-worker:latest
-	-docker push localhost:5000/bitmaker-redis:latest
-	-docker push localhost:5000/bitmaker-build-project:latest
-	-docker push localhost:5000/bitmaker-consumer:latest
+	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-django-api:latest
+	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-celery-beat:latest
+	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-celery-worker:latest
+	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-redis:latest
+	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-build-project:latest
+	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-consumer:latest
 
 
 .PHONY: images

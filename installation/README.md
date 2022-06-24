@@ -10,13 +10,13 @@ Estelar is a Kubernetes application, but it can be directly installed in contain
 
 ## Requirements
 
-- Minikube v1.22.0
-- Docker v20.10.7 *include docker-compose*
+- Docker v20.10.x *include docker-compose*
 - Python v3.6.x
-- Install the Python dependencies:
-  ```bash
-  $ pip install -r requirements/dev.txt
-  ```
+- Helm v3.9.x
+
+Extra requirements needed for local installation:
+
+- Minikube v1.25.x
 
 ## Resources
 
@@ -64,6 +64,8 @@ We must have all the needed resources up and running. Here is the detailed list:
   The default platform is Kafka, but any other platform can be used (soon).
   The queuing service can be deployed within the container orchestrator system,
   or in your local computer.
+  
+# emial service
 
 ### Local Deployment of Resources
 
@@ -74,7 +76,7 @@ by running:
 $ make resources
 ```
 
-The MongoDB database can be deployed on MongoDB Atlas for 
+The MongoDB database can be deployed on MongoDB Atlas for
 [free](https://www.mongodb.com/free-cloud-database).
 
 ## Environment Variables
@@ -84,8 +86,8 @@ appropriate values.
 
 ## Helm Deployment
 
-The images of each of the Estelar modules must be built and uploaded to the registry, 
-make sure to do this step previously, the names of each of the images is as follows:
+The images of each of the Estelar modules must be built and uploaded to the Docker
+Container Registry, make sure to do this step before installing the Helm application
 
 If you are using a local registry, you can build and upload the images by running:
 
