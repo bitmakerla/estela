@@ -2,24 +2,24 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-django-api
+  name: estela-django-api
 spec:
   selector:
     matchLabels:
-      app: bitmaker-django-api
+      app: estela-django-api
   template:
     metadata:
       labels:
-        app: bitmaker-django-api
+        app: estela-django-api
     spec:
-      serviceAccountName: bitmaker-api
+      serviceAccountName: estela-api
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: bitmaker-django-api
-        image: {{ .Values.registryHost }}/bitmaker-django-api
+      - name: estela-django-api
+        image: {{ .Values.registryHost }}/estela-django-api
         imagePullPolicy: Always
         command: ['gunicorn', 'config.wsgi', '--bind=0.0.0.0:8000'] # ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
         envFrom:
@@ -36,24 +36,24 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-celery-beat
+  name: estela-celery-beat
 spec:
   selector:
     matchLabels:
-      app: bitmaker-celery-beat
+      app: estela-celery-beat
   template:
     metadata:
       labels:
-        app: bitmaker-celery-beat
+        app: estela-celery-beat
     spec:
-      serviceAccountName: bitmaker-api
+      serviceAccountName: estela-api
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: bitmaker-celery-beat
-        image: {{ .Values.registryHost }}/bitmaker-celery-beat
+      - name: estela-celery-beat
+        image: {{ .Values.registryHost }}/estela-celery-beat
         command: ['celery', '-A', 'config.celery', 'beat', '--loglevel=info']
         envFrom:
         - secretRef:
@@ -69,24 +69,24 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-celery-worker
+  name: estela-celery-worker
 spec:
   selector:
     matchLabels:
-      app: bitmaker-celery-worker
+      app: estela-celery-worker
   template:
     metadata:
       labels:
-        app: bitmaker-celery-worker
+        app: estela-celery-worker
     spec:
-      serviceAccountName: bitmaker-api
+      serviceAccountName: estela-api
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: bitmaker-celery-worker
-        image: {{ .Values.registryHost }}/bitmaker-celery-worker
+      - name: estela-celery-worker
+        image: {{ .Values.registryHost }}/estela-celery-worker
         command: ['celery', '-A', 'config.celery', 'worker', '--loglevel=info']
         envFrom:
         - secretRef:
@@ -102,23 +102,23 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: bitmaker-redis
+  name: estela-redis
 spec:
   selector:
     matchLabels:
-      app: bitmaker-redis
+      app: estela-redis
   template:
     metadata:
       labels:
-        app: bitmaker-redis
+        app: estela-redis
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: bitmaker-redis
-        image: {{ .Values.registryHost }}/bitmaker-redis
+      - name: estela-redis
+        image: {{ .Values.registryHost }}/estela-redis
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

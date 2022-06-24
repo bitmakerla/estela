@@ -1,6 +1,6 @@
 REGISTRY_HOST = <IPV4_ADDRESS:5000>
 REGION = us-east-2
-APIPOD = $$(kubectl get pod -l app=bitmaker-django-api -o jsonpath="{.items[0].metadata.name}")
+APIPOD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 DEVTAG = latest#dev-$$USER
 
@@ -29,44 +29,44 @@ stop:
 
 .PHONY: setup
 setup: build-api-image upload-api-image
-	-kubectl apply -f config/kubernetes/bitmaker-api-secrets.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-api-services.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-api-configmaps.yaml
+	-kubectl apply -f config/kubernetes/estela-api-secrets.yaml
+	-kubectl apply -f config/kubernetes/estela-api-services.yaml
+	-kubectl apply -f config/kubernetes/estela-api-configmaps.yaml
 	-kubectl apply -f config/kubernetes/aws-registry-cronjob.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-filebeat.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-api-deployments.yaml
-	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
+	-kubectl apply -f config/kubernetes/estela-filebeat.yaml
+	-kubectl apply -f config/kubernetes/estela-api-deployments.yaml
+	-kubectl set image deployment/estela-django-api estela-django-api=$(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
 
 
 .PHONY: rebuild-api
 rebuild-api: build-api-image upload-api-image
-	-kubectl apply -f config/kubernetes/bitmaker-api-secrets.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-api-configmaps.yaml
-	-kubectl rollout restart deployment bitmaker-django-api
-	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
+	-kubectl apply -f config/kubernetes/estela-api-secrets.yaml
+	-kubectl apply -f config/kubernetes/estela-api-configmaps.yaml
+	-kubectl rollout restart deployment estela-django-api
+	-kubectl set image deployment/estela-django-api estela-django-api=$(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
 
 
 .PHONY: rebuild-all
 rebuild-all: build-all-images upload-all-images
-	-kubectl apply -f config/kubernetes/bitmaker-api-secrets.yaml
-	-kubectl apply -f config/kubernetes/bitmaker-api-configmaps.yaml
-	-kubectl rollout restart deployment bitmaker-django-api
-	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=$(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-kubectl rollout restart deployment bitmaker-celery-worker
-	-kubectl set image deployment/bitmaker-celery-worker bitmaker-celery-worker=$(REGISTRY_HOST)/bitmaker-celery-worker:$(DEVTAG)
-	-kubectl rollout restart deployment bitmaker-celery-beat
-	-kubectl set image deployment/bitmaker-celery-beat bitmaker-celery-beat=$(REGISTRY_HOST)/bitmaker-celery-beat:$(DEVTAG)
-	-kubectl rollout restart deployment bitmaker-redis
-	-kubectl set image deployment/bitmaker-redis bitmaker-redis=$(REGISTRY_HOST)/bitmaker-redis:$(DEVTAG)
+	-kubectl apply -f config/kubernetes/estela-api-secrets.yaml
+	-kubectl apply -f config/kubernetes/estela-api-configmaps.yaml
+	-kubectl rollout restart deployment estela-django-api
+	-kubectl set image deployment/estela-django-api estela-django-api=$(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
+	-kubectl rollout restart deployment estela-celery-worker
+	-kubectl set image deployment/estela-celery-worker estela-celery-worker=$(REGISTRY_HOST)/estela-celery-worker:$(DEVTAG)
+	-kubectl rollout restart deployment estela-celery-beat
+	-kubectl set image deployment/estela-celery-beat estela-celery-beat=$(REGISTRY_HOST)/estela-celery-beat:$(DEVTAG)
+	-kubectl rollout restart deployment estela-redis
+	-kubectl set image deployment/estela-redis estela-redis=$(REGISTRY_HOST)/estela-redis:$(DEVTAG)
 
 
 .PHONY: down
 down:
-	-kubectl delete -f config/kubernetes/bitmaker-api-secrets.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-api-configmaps.yaml
+	-kubectl delete -f config/kubernetes/estela-api-secrets.yaml
+	-kubectl delete -f config/kubernetes/estela-api-configmaps.yaml
 	-kubectl delete -f config/kubernetes/aws-registry-cronjob.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-api-services.yaml
-	-kubectl delete -f config/kubernetes/bitmaker-api-deployments.yaml
+	-kubectl delete -f config/kubernetes/estela-api-services.yaml
+	-kubectl delete -f config/kubernetes/estela-api-deployments.yaml
 	-kubectl delete jobs $$(kubectl get jobs -o custom-columns=:.metadata.name)
 	-kubectl delete cronjobs $$(kubectl get cronjobs -o custom-columns=:.metadata.name)
 	-minikube delete
@@ -101,25 +101,25 @@ login-ecr:
 
 .PHONY: build-all-images
 build-all-images:
-	-docker build .. --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api:$(DEVTAG)
-	-docker build .. --file docker-conf/Dockerfile-celery-worker --tag bitmaker-celery-worker:$(DEVTAG)
-	-docker build .. --file docker-conf/Dockerfile-celery-beat --tag bitmaker-celery-beat:$(DEVTAG)
-	-docker build . --file docker-conf/Dockerfile-redis --tag bitmaker-redis:$(DEVTAG)
-	-docker build . --file docker-conf/Dockerfile-build-project --tag bitmaker-build-project:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-django-api --tag estela-django-api:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-celery-worker --tag estela-celery-worker:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-celery-beat --tag estela-celery-beat:$(DEVTAG)
+	-docker build . --file docker-conf/Dockerfile-redis --tag estela-redis:$(DEVTAG)
+	-docker build . --file docker-conf/Dockerfile-build-project --tag estela-build-project:$(DEVTAG)
 
 
 .PHONY: upload-all-images
 upload-all-images: login-ecr
-	-docker tag bitmaker-django-api:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-docker tag bitmaker-celery-beat:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-celery-beat:$(DEVTAG)
-	-docker tag bitmaker-celery-worker:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-celery-worker:$(DEVTAG)
-	-docker tag bitmaker-redis:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-redis:$(DEVTAG)
-	-docker tag bitmaker-build-project:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-build-project:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-celery-beat:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-celery-worker:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-redis:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-build-project:$(DEVTAG)
+	-docker tag estela-django-api:$(DEVTAG) $(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
+	-docker tag estela-celery-beat:$(DEVTAG) $(REGISTRY_HOST)/estela-celery-beat:$(DEVTAG)
+	-docker tag estela-celery-worker:$(DEVTAG) $(REGISTRY_HOST)/estela-celery-worker:$(DEVTAG)
+	-docker tag estela-redis:$(DEVTAG) $(REGISTRY_HOST)/estela-redis:$(DEVTAG)
+	-docker tag estela-build-project:$(DEVTAG) $(REGISTRY_HOST)/estela-build-project:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-celery-beat:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-celery-worker:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-redis:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-build-project:$(DEVTAG)
 
 
 .PHONY: set-up-images
@@ -132,13 +132,13 @@ set-up-images: build-all-images upload-all-images
 
 .PHONY: build-api-image
 build-api-image:
-	-docker build .. --file docker-conf/Dockerfile-django-api --tag bitmaker-django-api:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-django-api --tag estela-django-api:$(DEVTAG)
 
 
 .PHONY: upload-api-image
 upload-api-image: login-ecr
-	-docker tag bitmaker-django-api:$(DEVTAG) $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
-	-docker push $(REGISTRY_HOST)/bitmaker-django-api:$(DEVTAG)
+	-docker tag estela-django-api:$(DEVTAG) $(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
+	-docker push $(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
 
 
 .PHONY: docs

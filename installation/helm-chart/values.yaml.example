@@ -16,15 +16,15 @@ DB_NAME: <DB_NAME>
 AWS_DEFAULT_REGION: <AWS_DEFAULT_REGION>
 REGISTRY_ID: <REGISTRY_ID>
 REGISTRY_HOST: <REGISTRY_HOST>
-REPOSITORY_NAME: bitmaker-projects
+REPOSITORY_NAME: estela-projects
 CORS_ORIGIN_WHITELIST: http://localhost:3000
 KAFKA_HOSTS: <KAFKA_HOSTS>
 KAFKA_PORT: <KAFKA_PORT>
 STAGE: DEVELOPMENT
 DJANGO_SETTINGS_MODULE: config.settings.test
-CELERY_BROKER_URL: redis://bitmaker-redis-service
-CELERY_RESULT_BACKEND: redis://bitmaker-redis-service:6379/0
-BUCKET_NAME_PROJECTS: bitmaker-api-projects
+CELERY_BROKER_URL: redis://estela-redis-service
+CELERY_RESULT_BACKEND: redis://estela-redis-service:6379/0
+BUCKET_NAME_PROJECTS: estela-api-projects
 ELASTICSEARCH_HOST: <ELASTICSEARCH_HOST>
 ELASTICSEARCH_PORT: "443"
 LOGS_INDEX: "filebeat-*"
@@ -55,12 +55,12 @@ registryHost: your.registry.host
 # Image pull secrets if is required or not
 imagePullSecrets: [ name: regcred ]
 
-# API HOST: kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+# API HOST: kubectl get services -n <NAMESPACE> estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
 django_api_host: 10.99.125.226
 
 aws_registry: true
 
 nameOverride: ""
-fullnameOverride: "bitmaker"
+fullnameOverride: "estela"
 
-nodeSelector: {} #{ role: bitmaker-api }
+nodeSelector: {} #{ role: estela-api }

@@ -1,0 +1,13 @@
+FROM python:3.6
+
+WORKDIR /home/estela
+
+COPY estela-api/requirements ./requirements
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN pip install -r requirements/test.txt
+
+COPY estela-api/ .
+COPY database_adapters/ ./database_adapters
