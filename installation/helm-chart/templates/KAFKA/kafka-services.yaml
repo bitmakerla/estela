@@ -11,7 +11,7 @@ spec:
     targetPort: 9092
     nodePort: 0
 ---
-{{- if .Values.Local }}
+{{- if .Values.local }}
 kind: Endpoints
 apiVersion: v1
 metadata:
@@ -19,7 +19,7 @@ metadata:
   name: kafka
 subsets:
 - addresses:
-  - ip: 192.168.49.1 # minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+  - ip: {{ .Values.hostIp }}
   ports:
   - name: broker
     port: 9092

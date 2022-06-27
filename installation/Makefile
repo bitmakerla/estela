@@ -1,5 +1,5 @@
-API_DIR = ../bitmaker-api
-QUEUING_DIR = ../bitmaker-kafka
+API_DIR = ../estela-api
+QUEUING_DIR = ../queuing
 
 
 ifeq ($(OS),Windows_NT)

@@ -7,7 +7,6 @@ services:
     volumes:
       - bitmaker_dbdata:/var/lib/mysql
       - ./local/db/mysql:/docker-entrypoint-initdb.d
-    restart: always
     command: --default_authentication_plugin=mysql_native_password
     environment:
       - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
@@ -16,7 +15,6 @@ services:
 
   registry:
     container_name: bitmaker_registry
-    restart: always
     image: registry:2
     ports:
       - 5000:5000
@@ -25,7 +23,6 @@ services:
   
   minio:
     container_name: bitmaker_storage
-    restart: always
     image: minio/minio
     ports:
       - 9000:9000

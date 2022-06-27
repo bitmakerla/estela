@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS bitmaker;
+CREATE DATABASE IF NOT EXISTS estela;
 
-CREATE USER 'django-api'@'localhost' IDENTIFIED BY 'bitmaker12345';
+CREATE USER 'django-api'@'localhost' IDENTIFIED BY 'estela12345';
 GRANT ALL PRIVILEGES ON *.* TO 'django-api'@'localhost' WITH GRANT OPTION;
-CREATE USER 'django-api'@'%' IDENTIFIED BY 'bitmaker12345';
+CREATE USER 'django-api'@'%' IDENTIFIED BY 'estela12345';
 GRANT ALL PRIVILEGES ON *.* TO 'django-api'@'%' WITH GRANT OPTION;

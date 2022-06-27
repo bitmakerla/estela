@@ -1,93 +1,152 @@
-<h1> Bitmaker API Helm Chart </h1>
+# Estela Helm Chart
 
-<h3> Understanding values </h3>
+## Understanding the variables
 
-In values:
+First, make a copy of `values.yaml.example` and rename it to `values.yaml`.
+Then, complete the following fields:
 
-- Local: If we deploy in local set in true.
-- Endpoint_ip: In case we set Local in true, this is the endpoint to connect with database for django-api.
-- config and secrets: The name of configmap and secrets for api.
-- registryHost: The registry host of bitmaker api images.
+_Note_: The values that should be used if the resources have been deployed locally are
+commented in the `values.yaml.example` file. If you do nott need to define an optional 
+variable, fill its value with the empty string `""`.
 
-<h3> Install API </h3>
+### Chart variables
 
-You need to build the api images, celery worker, celery beat and redis. This can be done using the ´make set-up-images´ command in kafka and api directories.
+* _local_: Set this variable to `true` if estela is being deployed on local resources.
 
-First is necesary complete values in _values.yaml_:
+* _hostIp_: (Optional) Fill this variable only if the variable _local_ has been set to 
+  `true`, this address is a reference to the host machine from minikube. Find it by running:
+  ```bash
+  $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+  ```
 
-- _<DB\_HOST>_: Host of bitmaker django api database.
+* _registryHost_: The registry host where are the images of the estela modules. If a local
+  registry is being used, do not forget to include the port.
+  
+* _awsRegistry_: Set this variable to `true` if the registry is being hosted in AWS.
 
-- _<DB\_PORT>_: Port of bitmaker django api database.
+* _imagePullSecrets_: (Optional) Fill this variable only if the variable _awsRegistry_ 
+  has been set to `true`. Use the value `[ name: regcred ]`.
 
-- _<DB\_NAME>_: Database name for bitmaker django api.
+* _nodeSelector_: (Optional) The name of the node on which estela will be installed in case
+  the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROL_NAME }`.
 
-- _<AWS\_DEFAULT\_REGION>_: Region of aws that you use.
+### estela module variables
 
-- _<REGISTRY\_ID>_: Just if you registry has an ID.
+The variables that already have an assigned value should not be modified.
 
-- _<REGISTRY\_HOST>_: Url of you registry.
+* _<DB\_HOST>_: Host of the API module database.
 
-- _<RESPOSITORY\_NAME>_: Name of image repository for project's images.
+* _<DB\_PORT>_: Port of the API module database.
 
-- _<CORS\_ORIGIN\_WHITELIST>_: List of origins authorized to make requests
+* _<DB\_NAME>_: Database name used by the API module.
 
-- _<KAFKA\_HOSTS>_: Host of kafka service.
+* _<REGISTRY\_HOST>_: Address of the registry used by the API module.
 
-- _<KAFKA\_PORT>_: Port of kafka service.
+* _<RESPOSITORY\_NAME>_: Name of the image repository used by the API module to store
+  the project's images.
 
-- _<STAGE\>_: Could be DEVELOPMENT or PRODUCTION.
+* _<CORS\_ORIGIN\_WHITELIST>_: List of origins authorized to make requests to the API module.
 
-- _<DJANGO\_SETTING\_MODULE>_: Setting that will be used.
+* _<KAFKA\_HOSTS>_: Host of Kafka service.
 
-- _<CELERY\_BROKER\_URL>_: Url of celery broker.
+* _<KAFKA\_PORT>_: Port of Kafka service.
 
-- _<CELERY\_RESULT\_BACKEND>_: Store results from tasks. 
+* _\<STAGE\>_: Stage of the API module, it can be DEVELOPMENT or PRODUCTION.
 
-The next values need to be in base64:
+* _<DJANGO\_SETTING\_MODULE>_: Path of the settings file that will be used by the API module.
 
-- _<DB\_USER>_: User name of bitmaker django api database.
+* _<CELERY\_BROKER\_URL>_: Url of the API module celery broker.
 
-- _<DB\_PASSWORD>_: Password for db user.
+* _<CELERY\_RESULT\_BACKEND>_: Url to store the results from the API module tasks.
 
-- _<MONGO\_CONNECTION>_: The connection to Mongo DB formatted in base64 where all the data collected from the spiders is stored.
+* _<BUCKET\_NAME\_PROJECTS>_: Name of the bucket used to store the project files.
 
-- _<AWS\_ACCESS\_KEY\_ID>_ and _<AWS\_SECRET\_ACCESS\_KEY>_: Enter your AWS credentials. 
+* _\<ENGINE\>_: The [engine]() used by the API module.
 
-You can use an [online tool](https://www.base64encode.org/) or in a terminal with `printf "<TEXT>" | base64`.
+* _\<CREDENTIALS\>_: The [credentials]() used by the API module.
 
-DONT FORGET RELEASE NAME
+* _<EMAIL\_HOST>_: Host of the SMTP email server.
 
-Once these values are filled in, we proceed to execute the first install:
+* _<EMAIL\_PORT>_: Port of the SMTP email server.
+
+* _<EMAILS\_TO\_ALERT>_: Email address that will receive a notification when a new user 
+  is created.
+
+* _<VERIFICATION\_EMAIL>_: Email address that will send the verification emails.
+
+* _\<REGISTER\>_: Set this value to `"True"` if the API module allows user registration.
+
+* _<DJANGO\_API\_HOST>_: The endpoint of the Django API. This value will be filled later,
+  after the first installation, do not change this value yet.
+
+* _<AWS\_DEFAULT\_REGION>_: (Optional) Default region of your aws account.
+
+* _<REGISTRY\_ID>_: (Optional) Fill this values if you registry has an associated ID.
+
+The following values need to be in base64, you can use an
+[online tool](https://www.base64encode.org/) or your terminal with
+`printf "<TEXT>" | base64`:
+
+* _<DB\_USER>_: User name of the API module database.
+
+* _<DB\_PASSWORD>_: Password of the user above.
+
+* _<MONGO\_CONNECTION>_: The connection URL to your MongoDB instance.
+
+* _<EMAIL\_HOST\_USER>_: The user using the SMTP email service.
+
+* _<EMAIL\_HOST\_PASSWORD>_: Password of the user above.
+
+* _<SECRET\_KEY>_: The Django secret key, you can generate one [here](https://djecrety.ir/).
+
+* _<AWS\_ACCESS\_KEY\_ID>_ and _<AWS\_SECRET\_ACCESS\_KEY>_: (Optional) Your aws credentials.
+
+## Installing the application
+
+1. Once all the values are filled in, we proceed to execute the first install:
+
+   ```
+   $ helm install <RELEASE_NAME> --create-namespace --debug --namespace=<NAMESPACE> .
+   ```
+   
+   You can use any value for `<RELEASE_NAME>` and `<NAMESPACE>`, just make sure you remember 
+   the `<RELEASE_NAME>` so you can modify or uninstall the app later.
+
+2. Now you can get the ip of the loadBalancer:
+   ```
+   $ kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+   ```
+   
+   _Note_: If you are using Minikube, you need an external IP for the Django service, please 
+   run first this command in a new terminal.
+   
+   ```
+   $ minikube tunnel
+   ```
+
+3. Now, upgrade the API module with the previous value of the <LOADBALANCER\_IP>:
+
+   ```
+   $ helm upgrade --install <RELEASE_NAME> . --set DJANGO_API_HOST=<LOADBALANCER_IP> -n <NAMESPACE>
+   ```
+
+4. To apply the changes, roll-out the estela API deployment:
+
+   ```
+   $ kubectl rollout restart deploy bitmaker-django-api -n <NAMESPACE>
+   ```
+
+5. Now, you can perform the migrations and create a super user for Django admin:
+
+   ```
+   $ kubectl exec <API_POD> -- python manage.py migrate
+   $ kubectl exec --stdin --tty <API_POD> -- python manage.py createsuperuser
+   ```
+
+## Uninstalling the application
+
+To uninstall estela, just run: 
+
 ```
-helm install <RELEASE_NAME> --create-namespace --debug --namespace=<NAMESPACE> .
-```
-
-<h3> In Minikube </h3>
-
-If you use minikube, you needs run:
-```
-minikube tunnel
-```
-Now you get the ip of loadbalancer:
-```
-kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
-```
-And now we upgrade the api with this value, remember API just allow this Ip:
-```
-helm upgrade --install <RELEASE_NAME> . --set django_api_host=<IP_LOADBALANCER> -n <NAMESPACE>
-```
-To apply the changes in bitmaker-django-api deployment rollout it:
-```
-kubectl rollout restart deploy bitmaker-django-api -n <NAMESPACE>
-```
-To create your super user for django admin:
-```
-kubectl exec --stdin --tty $(APIPOD) -- python manage.py createsuperuser
-```
-
-<h3> Uninstall API </h3>
-To uninstall the API: 
-
-```
-helm uninstall <RELEASE_NAME> -n <NAMESPACE>
+$ helm uninstall <RELEASE_NAME> -n <NAMESPACE>
 ```

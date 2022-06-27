@@ -15,6 +15,7 @@ spec:
     app: estela-django-api
   type: LoadBalancer
 ---
+{{- if .Values.local }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -25,18 +26,17 @@ spec:
     targetPort: 3306
     protocol: TCP
 ---
-{{- if .Values.Local }}
 kind: Endpoints
 apiVersion: v1
 metadata:
   name: database
 subsets:
   - addresses:
-    - ip: {{ .Values.Endpoint_ip }}
+    - ip: {{ .Values.hostIp }}
     ports:
     - port: 3306
 ---
-{{- end  }}
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:

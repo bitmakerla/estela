@@ -13,23 +13,27 @@ spec:
         app: estela-django-api
     spec:
       serviceAccountName: estela-api
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: estela-django-api
-        image: {{ .Values.registryHost }}/estela-django-api
+        image: {{ .Values.registryHost }}/estela-django-api:latest
         imagePullPolicy: Always
-        command: ['gunicorn', 'config.wsgi', '--bind=0.0.0.0:8000'] # ['python', 'manage.py', 'runserver', '0.0.0.0:8000']
+        command: ['gunicorn', 'config.wsgi', '--bind=0.0.0.0:8000']
         envFrom:
         - secretRef:
             name: {{ .Values.secret }}
         - configMapRef:
             name: {{ .Values.config }}
+      {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
 ---
 kind: Deployment
@@ -47,22 +51,26 @@ spec:
         app: estela-celery-beat
     spec:
       serviceAccountName: estela-api
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: estela-celery-beat
-        image: {{ .Values.registryHost }}/estela-celery-beat
+        image: {{ .Values.registryHost }}/estela-celery-beat:latest
         command: ['celery', '-A', 'config.celery', 'beat', '--loglevel=info']
         envFrom:
         - secretRef:
             name: {{ .Values.secret }}
         - configMapRef:
             name: {{ .Values.config }}
+      {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
 ---
 kind: Deployment
@@ -80,22 +88,26 @@ spec:
         app: estela-celery-worker
     spec:
       serviceAccountName: estela-api
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: estela-celery-worker
-        image: {{ .Values.registryHost }}/estela-celery-worker
+        image: {{ .Values.registryHost }}/estela-celery-worker:latest
         command: ['celery', '-A', 'config.celery', 'worker', '--loglevel=info']
         envFrom:
         - secretRef:
             name: {{ .Values.secret }}
         - configMapRef:
             name: {{ .Values.config }}
+      {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
 ---
 kind: Deployment
@@ -112,15 +124,18 @@ spec:
       labels:
         app: estela-redis
     spec:
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: estela-redis
-        image: {{ .Values.registryHost }}/estela-redis
+        image: {{ .Values.registryHost }}/estela-redis:latest
+      {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-
+      {{- end }}

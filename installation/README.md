@@ -1,22 +1,24 @@
-# Estelar Installation Guide
+# estela Installation Guide
 
 The installation can be divided into three parts:
 
-1. Set the needed resources to run Estelar.
-2. Set the environment variables to configure Estelar.
-3. Deploy the Estelar modules with Helm.
+1. Set the needed resources to run estela.
+2. Set the environment variables to configure estela.
+3. Deploy the estela modules with Helm.
 
-Estelar is a Kubernetes application, but it can be directly installed in containers (soon).
+Currently, estela is a kubernetes application, but it can be installed on different 
+architectures (soon).
 
 ## Requirements
 
-- Docker v20.10.x *include docker-compose*
-- Python v3.6.x
-- Helm v3.9.x
+- Docker v20.10.x with *docker-compose*
+- Kubectl >= v1.23.x
+- Helm >= v3.9.x
 
 Extra requirements needed for local installation:
 
-- Minikube v1.25.x
+<!-- - Python v3.6.x -->
+- Minikube >= v1.25.0
 
 ## Resources
 
@@ -26,9 +28,9 @@ We must have all the needed resources up and running. Here is the detailed list:
 
   This system is used to manage the execution of the scrapy jobs, as well as the management
   of the services and deployments of the API module and the Queuing module.
-  Estelar was thought to work with Kubernetes, but any other orchestrator can be used (soon).
+  estela was thought to work with Kubernetes, but any other orchestrator can be used (soon).
   The system cab be managed by a cloud provider, e.g. [EKS](https://aws.amazon.com/eks/),
-  or by your local computer, e.g.[minikube](https://minikube.sigs.k8s.io/).
+  or by your local computer, e.g. [minikube](https://minikube.sigs.k8s.io/).
 
 - **SQL Relational Database**:
 
@@ -54,7 +56,7 @@ We must have all the needed resources up and running. Here is the detailed list:
 - **Object Storage Service**:
 
   This storage is used to store the projects deployed from the
-  [Estelar CLI](https://github.com/bitmakerla/bitmaker-cli).
+  [estela CLI](https://github.com/bitmakerla/bitmaker-cli).
   The storage cab be managed by a cloud provider, e.g. [S3](https://aws.amazon.com/s3/),
   or by your local computer, e.g.[MinIO](https://min.io/).
 
@@ -65,12 +67,17 @@ We must have all the needed resources up and running. Here is the detailed list:
   The queuing service can be deployed within the container orchestrator system,
   or in your local computer.
   
-# emial service
+- **SMTP Email Server**:
+
+  This server is used to send confirmation emails after creating an account through the 
+  web interface. The SMTP server can be dedicated, e.g.
+  [SES](https://aws.amazon.com/ses/); or public, e.g.
+  [Google SMTP server](https://support.google.com/a/answer/176600?hl=en).
 
 ### Local Deployment of Resources
 
-All the named resources (except the _Document Oriented Database_) can be started locally 
-by running:
+All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
+can be started locally by running:
 
 ```bash
 $ make resources
@@ -78,6 +85,9 @@ $ make resources
 
 The MongoDB database can be deployed on MongoDB Atlas for
 [free](https://www.mongodb.com/free-cloud-database).
+To configure the use of a public SMTP server, please read the following
+[guide](https://kinsta.com/blog/gmail-smtp-server/). Nothing needs to be configured,
+just use the Google services and your Gmail account credentials.
 
 ## Environment Variables
 
@@ -86,7 +96,7 @@ appropriate values.
 
 ## Helm Deployment
 
-The images of each of the Estelar modules must be built and uploaded to the Docker
+The images of each of the estela modules must be built and uploaded to the Docker
 Container Registry, make sure to do this step before installing the Helm application
 
 If you are using a local registry, you can build and upload the images by running:
@@ -95,5 +105,5 @@ If you are using a local registry, you can build and upload the images by runnin
 $ make images
 ```
 
-Now, do refer to the Helm installation guide, and deploy Estelar inside kubernetes.
+Now, do refer to the Helm installation guide, and deploy estela inside kubernetes.
 For further help, please read the [official documentation](https://bitmaker.la/docs/).
