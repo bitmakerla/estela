@@ -74,10 +74,10 @@ The variables that already have an assigned value should not be modified.
 
 * _<VERIFICATION\_EMAIL>_: Email address that will send the verification emails.
 
-* _\<REGISTER\>_: Set this value to `"True"` if the API module allows user registration.
+* _\<REGISTER\>_: Set this value to `"False"` to disable the user registration.
 
 * _<DJANGO\_API\_HOST>_: The endpoint of the Django API. This value will be filled later,
-  after the first installation, do not change this value yet.
+  after the application installation, do not change this value yet.
 
 * _<AWS\_DEFAULT\_REGION>_: (Optional) Default region of your aws account.
 

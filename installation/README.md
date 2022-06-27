@@ -97,7 +97,7 @@ appropriate values.
 ## Helm Deployment
 
 The images of each of the estela modules must be built and uploaded to the Docker
-Container Registry, make sure to do this step before installing the Helm application
+Container Registry, make sure to do this step before installing the Helm application.
 
 If you are using a local registry, you can build and upload the images by running:
 
