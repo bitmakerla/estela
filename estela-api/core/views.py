@@ -22,6 +22,7 @@ def launch_deploy_job(pid, did, container_image):
         "CONTAINER_IMAGE": container_image,
         "CREDENTIALS": settings.CREDENTIALS,
         "ENGINE": settings.ENGINE,
+        "SPIDERDATA_DB_ENGINE": settings.SPIDERDATA_DB_ENGINE,
     }
     volume = {"name": "docker-sock", "path": "/var/run"}
     job_manager.create_job(
