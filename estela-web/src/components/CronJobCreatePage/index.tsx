@@ -53,7 +53,6 @@ interface CronJobCreatePageState {
     spiderName: string;
     uniqueCollection: boolean;
     isDataPersistent: boolean;
-    months: number;
     days: number;
 }
 
@@ -77,7 +76,6 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         spiderName: "",
         uniqueCollection: false,
         isDataPersistent: true,
-        months: 1,
         days: 1,
     };
     projectId: string = this.props.match.params.projectId;
@@ -108,7 +106,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             schedule: data.schedule,
             uniqueCollection: data.unique_collection,
             dataStatus: this.state.isDataPersistent ? `PERSISTENT` : `PENDING`,
-            dataExpiryDays: `${this.state.months}/${this.state.days}`,
+            dataExpiryDays: `0/${this.state.days}`,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,
@@ -200,10 +198,6 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         this.setState({ isDataPersistent: !this.state.isDataPersistent });
     };
 
-    onChangeMonth = (value: number): void => {
-        this.setState({ months: value });
-    };
-
     onChangeDay = (value: number): void => {
         this.setState({ days: value });
     };
@@ -220,7 +214,6 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
             newTagName,
             spiderName,
             isDataPersistent,
-            months,
             days,
         } = this.state;
 
@@ -330,14 +323,6 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                     </Space>
                                     {!isDataPersistent && (
                                         <Space direction="horizontal">
-                                            Months
-                                            <InputNumber
-                                                size="small"
-                                                min={0}
-                                                max={12}
-                                                defaultValue={months}
-                                                onChange={this.onChangeMonth}
-                                            />
                                             Days
                                             <InputNumber
                                                 size="small"

@@ -1,5 +1,20 @@
 import React, { Component } from "react";
-import { Layout, Typography, Pagination, Collapse, Row, Space, Tag, Button, List, Switch, InputNumber } from "antd";
+import moment from "moment";
+import {
+    Layout,
+    Typography,
+    Pagination,
+    Collapse,
+    Row,
+    Space,
+    Tag,
+    Button,
+    List,
+    Switch,
+    DatePicker,
+    DatePickerProps,
+} from "antd";
+import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -54,6 +69,7 @@ interface JobDetailPageState {
     envVars: EnvVarsData[];
     tags: TagsData[];
     date: string;
+    created: string | undefined;
     status: string | undefined;
     cronjob: number | undefined | null;
     stats: Dictionary;
@@ -83,6 +99,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         envVars: [],
         tags: [],
         date: "",
+        created: "",
         status: "",
         cronjob: null,
         stats: {},
@@ -129,6 +146,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         envVars: [...envVars],
                         tags: [...tags],
                         date: convertDateToString(response.created),
+                        created: `${response.created}`,
                         status: response.jobStatus,
                         cronjob: response.cronjob,
                         loaded: true,
@@ -189,7 +207,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     modified: false,
                     loading_status: false,
                 });
-                console.log(response);
             },
             (error: unknown) => {
                 console.log(error);
@@ -228,6 +245,15 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ dataExpiryDays: value, modified: true });
     };
 
+    disabledDate: RangePickerProps["disabledDate"] = (current) => {
+        return current && current < moment().endOf("day");
+    };
+
+    onChangeDate: DatePickerProps["onChange"] = (date) => {
+        const days = moment.duration(moment(date, "llll").diff(moment(this.state.created, "llll"))).asDays();
+        this.setState({ dataExpiryDays: days, modified: true });
+    };
+
     getStats = (key: string | string[]): void => {
         if (key.length === 0) {
             return;
@@ -241,7 +267,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
                 let data: Dictionary = {};
-                console.log(response.results?.length);
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data[0] as Dictionary;
@@ -262,6 +287,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             envVars,
             tags,
             date,
+            created,
             status,
             cronjob,
             stats,
@@ -317,33 +343,47 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             <Text>
                                                 <Space direction="vertical">
                                                     <Space direction="horizontal">
-                                                        <b>Data Persistent:</b>
-                                                        <Switch
-                                                            loading={loading_status}
-                                                            defaultChecked={
-                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
+                                                        <Text
+                                                            disabled={
+                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
                                                             }
-                                                            onChange={this.onChangeData}
-                                                        />
+                                                        >
+                                                            <b>Data Persistent:</b>&nbsp;
+                                                            <Switch
+                                                                loading={loading_status}
+                                                                defaultChecked={
+                                                                    dataStatus ==
+                                                                    SpiderJobUpdateDataStatusEnum.Persistent
+                                                                }
+                                                                onChange={this.onChangeData}
+                                                                disabled={
+                                                                    dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
+                                                                }
+                                                            />
+                                                        </Text>
                                                     </Space>
                                                     <Space direction="horizontal">
                                                         <Text
                                                             disabled={
-                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
+                                                                dataStatus ==
+                                                                    SpiderJobUpdateDataStatusEnum.Persistent ||
+                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
                                                             }
                                                         >
-                                                            <b>Days :</b>&nbsp;
-                                                            <InputNumber
-                                                                size="small"
-                                                                min={1}
-                                                                max={720}
-                                                                defaultValue={dataExpiryDays}
-                                                                style={{ width: "62px" }}
+                                                            <b>Date </b>&nbsp;
+                                                            <DatePicker
+                                                                format="YYYY-MM-DD"
+                                                                onChange={this.onChangeDate}
+                                                                disabledDate={this.disabledDate}
+                                                                defaultValue={moment(created, "llll").add(
+                                                                    dataExpiryDays,
+                                                                    "days",
+                                                                )}
                                                                 disabled={
                                                                     dataStatus ==
-                                                                    SpiderJobUpdateDataStatusEnum.Persistent
+                                                                        SpiderJobUpdateDataStatusEnum.Persistent ||
+                                                                    dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
                                                                 }
-                                                                onChange={this.onChangeDay}
                                                             />
                                                         </Text>
                                                     </Space>

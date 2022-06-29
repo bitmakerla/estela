@@ -1,6 +1,7 @@
 from tkinter import N
 from croniter import croniter
 from rest_framework import serializers
+from api import errors
 
 from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
 
@@ -110,7 +111,7 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
         schedule = validated_data.get("schedule", "")
         unique_collection = validated_data.get("unique_collection", False)
         data_status = validated_data.get("data_status", "")
-        data_expiry_days = validated_data.get("data_expiry_days", None)
+        data_expiry_days = int(validated_data.get("data_expiry_days", 1))
         name = instance.name
         if "schedule" in validated_data:
             instance.schedule = schedule
@@ -128,7 +129,14 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
                 instance.data_status = SpiderCronJob.PERSISTENT_STATUS
             else:
                 instance.data_status = SpiderCronJob.PENDING_STATUS
-                instance.data_expiry_days = int(data_expiry_days)
+                if data_expiry_days < 1:
+                    raise serializers.ValidationError(
+                        {
+                            "error": errors.POSITIVE_SMALL_INTEGER_FIELD
+                        }
+                    )
+                else:
+                    instance.data_expiry_days = data_expiry_days
         
         instance.save()
         return instance

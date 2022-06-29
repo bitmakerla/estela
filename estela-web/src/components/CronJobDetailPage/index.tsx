@@ -176,7 +176,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                         loaded: true,
                     });
-                    console.log(response);
                 },
                 (error: unknown) => {
                     console.error(error);
@@ -235,7 +234,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     modified: false,
                     loading_status: false,
                 });
-                console.log(response);
             },
             (error: unknown) => {
                 console.log(error);
