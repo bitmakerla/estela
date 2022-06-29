@@ -1,4 +1,4 @@
-# Estela Helm Chart
+# estela Helm Chart
 
 ## Understanding the variables
 
@@ -6,8 +6,8 @@ First, make a copy of `values.yaml.example` and rename it to `values.yaml`.
 Then, complete the following fields:
 
 _Note_: The values that should be used if the resources have been deployed locally are
-commented in the `values.yaml.example` file. If you do nott need to define an optional 
-variable, fill its value with the empty string `""`.
+commented in the `values.yaml.example` file. If you do not need to define an optional 
+variable, fill its value with an empty string `""`.
 
 ### Chart variables
 
@@ -114,7 +114,7 @@ The following values need to be in base64, you can use an
 
 2. Now you can get the ip of the loadBalancer:
    ```
-   $ kubectl get services -n <NAMESPACE> bitmaker-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+   $ kubectl get services -n <NAMESPACE> estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
    ```
    
    _Note_: If you are using Minikube, you need an external IP for the Django service, please 
@@ -133,7 +133,7 @@ The following values need to be in base64, you can use an
 4. To apply the changes, roll-out the estela API deployment:
 
    ```
-   $ kubectl rollout restart deploy bitmaker-django-api -n <NAMESPACE>
+   $ kubectl rollout restart deploy estela-django-api -n <NAMESPACE>
    ```
 
 5. Now, you can perform the migrations and create a super user for Django admin:

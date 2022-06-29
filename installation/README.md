@@ -11,13 +11,13 @@ architectures (soon).
 
 ## Requirements
 
+- Python v3.6.x
 - Docker v20.10.x with *docker-compose*
 - Kubectl >= v1.23.x
 - Helm >= v3.9.x
 
 Extra requirements needed for local installation:
 
-<!-- - Python v3.6.x -->
 - Minikube >= v1.25.0
 
 ## Resources
@@ -81,6 +81,24 @@ can be started locally by running:
 
 ```bash
 $ make resources
+```
+
+To allow the use of images stored in the local container registry, you need to
+add the following line to the Docker daemon 
+[config file](https://docs.docker.com/config/daemon/#configure-the-docker-daemon).
+And then restart Docker.
+
+```json
+{
+	...
+    "insecure-registries" : [ "<HOST_IP>:5000" ]
+	...
+}
+```
+Where _<HOST\_IP>_ is equal to the result of:
+
+```bash
+$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 ```
 
 The MongoDB database can be deployed on MongoDB Atlas for

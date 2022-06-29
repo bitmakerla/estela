@@ -1,5 +1,5 @@
 API_DIR = ../estela-api
-QUEUING_DIR = ../queuing
+QUEUING_DIR = ../queueing
 
 
 ifeq ($(OS),Windows_NT)
@@ -16,33 +16,36 @@ endif
 
 .PHONY: resources
 resources:
-	-minikube start --feature-gates="TTLAfterFinished=true"
-	-echo "HOST_IP=$$(minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1')" > .env
-	-echo "ESTELA_REGISTRY_HOST=localhost:5000" >> .env
+	-minikube start
+	-echo "$$(minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1')" > tmp
+	-python start-environment.py
 	-$(DOCKER_COMPOSE) up -d
-	-. .env && minikube start --insecure-registry $${HOST_IP}
+	-minikube delete
+	-. .env && minikube start \
+	           --feature-gates="TTLAfterFinished=true" \
+		   --insecure-registry $${HOST_REGISTRY}
 
 
 .PHONY: build-all-images
 build-all-images:
 	-. .env && cd ${API_DIR} && \
-	 docker build .. --file docker-conf/Dockerfile-django-api --tag $${ESTELA_REGISTRY_HOST}/bitmaker-django-api:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $${ESTELA_REGISTRY_HOST}/bitmaker-celery-worker:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $${ESTELA_REGISTRY_HOST}/bitmaker-celery-beat:latest && \
-	 docker build . --file docker-conf/Dockerfile-redis --tag $${ESTELA_REGISTRY_HOST}/bitmaker-redis:latest && \
-	 docker build . --file docker-conf/Dockerfile-build-project --tag $${ESTELA_REGISTRY_HOST}/bitmaker-build-project:latest
+	 docker build .. --file docker-conf/Dockerfile-django-api --tag $${LOCAL_REGISTRY}/estela-django-api:latest && \
+	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $${LOCAL_REGISTRY}/estela-celery-worker:latest && \
+	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $${LOCAL_REGISTRY}/estela-celery-beat:latest && \
+	 docker build . --file docker-conf/Dockerfile-redis --tag $${LOCAL_REGISTRY}/estela-redis:latest && \
+	 docker build . --file docker-conf/Dockerfile-build-project --tag $${LOCAL_REGISTRY}/estela-build-project:latest
 	-. .env && cd ${QUEUING_DIR} && \
-	 docker build .. --file Dockerfile --tag $${ESTELA_REGISTRY_HOST}/bitmaker-consumer:latest
+	 docker build .. --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
 
 
 .PHONY: upload-all-images
 upload-all-images:
-	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-django-api:latest
-	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-celery-beat:latest
-	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-celery-worker:latest
-	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-redis:latest
-	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-build-project:latest
-	-. .env && docker push $${ESTELA_REGISTRY_HOST}/bitmaker-consumer:latest
+	-. .env && docker push $${LOCAL_REGISTRY}/estela-django-api:latest
+	-. .env && docker push $${LOCAL_REGISTRY}/estela-celery-beat:latest
+	-. .env && docker push $${LOCAL_REGISTRY}/estela-celery-worker:latest
+	-. .env && docker push $${LOCAL_REGISTRY}/estela-redis:latest
+	-. .env && docker push $${LOCAL_REGISTRY}/estela-build-project:latest
+	-. .env && docker push $${LOCAL_REGISTRY}/estela-consumer:latest
 
 
 .PHONY: images
