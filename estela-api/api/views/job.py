@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -5,7 +6,6 @@ from drf_yasg import openapi
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.utils.urls import replace_query_param
 
 from api import errors
 from api.filters import SpiderJobFilter
@@ -45,6 +45,11 @@ class SpiderJobViewSet(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
         return page, page_size
+
+    def date_to_days(self, date_str):
+        Y, M, D = [int(i) for i in date_str.split("-")]
+        interval = date(Y, M, D) - date.today()
+        return interval.days
 
     def get_queryset(self):
         if self.request is None:
@@ -91,7 +96,7 @@ class SpiderJobViewSet(
         manual_parameters=[
             openapi.Parameter(
                 name="async", in_=openapi.IN_QUERY, type=openapi.TYPE_BOOLEAN
-            )
+            ),
         ],
         request_body=SpiderJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderJobCreateSerializer()},
@@ -100,16 +105,26 @@ class SpiderJobViewSet(
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         async_param = request.query_params.get("async", False)
         serializer = SpiderJobCreateSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
+        data_status = request.data.pop("data_status", SpiderJob.PERSISTENT_STATUS)
+        if data_status == SpiderJob.PENDING_STATUS:
+            date_str = request.data.pop("data_expiry_days", date.today() + timedelta(1))
+            data_expiry_days = self.date_to_days(date_str)
+            if data_expiry_days < 1:
+                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            data_expiry_days = None
 
         if not async_param:
-            job = serializer.save(spider=spider)
+            job = serializer.save(
+                spider=spider,
+                data_status=data_status,
+                data_expiry_days=data_expiry_days,
+            )
             job_args = {arg.name: arg.value for arg in job.args.all()}
             job_env_vars = {
                 env_var.name: env_var.value for env_var in job.env_vars.all()
             }
-
             token = request.auth.key if request.auth else None
             job_manager.create_job(
                 job.name,
@@ -122,7 +137,13 @@ class SpiderJobViewSet(
                 auth_token=token,
             )
         else:
-            serializer.save(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
+            serializer.save(
+                spider=spider,
+                status=SpiderJob.IN_QUEUE_STATUS,
+                data_status=data_status,
+                data_expiry_days=data_expiry_days,
+            )
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

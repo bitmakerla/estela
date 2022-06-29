@@ -105,7 +105,7 @@ build-all-images:
 	-docker build .. --file docker-conf/Dockerfile-celery-worker --tag estela-celery-worker:$(DEVTAG)
 	-docker build .. --file docker-conf/Dockerfile-celery-beat --tag estela-celery-beat:$(DEVTAG)
 	-docker build . --file docker-conf/Dockerfile-redis --tag estela-redis:$(DEVTAG)
-	-docker build . --file docker-conf/Dockerfile-build-project --tag estela-build-project:$(DEVTAG)
+	-docker build .. --file docker-conf/Dockerfile-build-project --tag estela-build-project:$(DEVTAG)
 
 
 .PHONY: upload-all-images

@@ -753,11 +753,16 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/{id}/delete:
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/delete:
     post:
       operationId: api_projects_spiders_jobs_data_delete
       description: ''
-      parameters: []
+      parameters:
+        - name: type
+          in: query
+          description: Spider job data type.
+          required: true
+          type: string
       responses:
         '200':
           description: ''
@@ -766,10 +771,6 @@ paths:
       tags:
         - api
     parameters:
-      - name: id
-        in: path
-        required: true
-        type: string
       - name: jid
         in: path
         required: true
@@ -1146,6 +1147,19 @@ definitions:
         title: Cronjob
         type: integer
         x-nullable: true
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
   ProjectJob:
     required:
       - results
@@ -1205,7 +1219,22 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
   SpiderCronJobCreate:
+    required:
+      - data_status
     type: object
     properties:
       cjid:
@@ -1235,6 +1264,14 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
+      data_expiry_days:
+        title: Data expiry days
+        type: string
+        minLength: 1
+      data_status:
+        title: Data status
+        type: string
+        minLength: 1
   SpiderCronJobUpdate:
     type: object
     properties:
@@ -1255,7 +1292,22 @@ definitions:
       unique_collection:
         title: Unique collection
         type: boolean
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
   SpiderJobCreate:
+    required:
+      - data_status
     type: object
     properties:
       jid:
@@ -1286,6 +1338,14 @@ definitions:
         title: Cronjob
         type: integer
         x-nullable: true
+      data_expiry_days:
+        title: Data expiry days
+        type: string
+        minLength: 1
+      data_status:
+        title: Data status
+        type: string
+        minLength: 1
   SpiderJobUpdate:
     type: object
     properties:
@@ -1305,6 +1365,19 @@ definitions:
           - CANCELLED
           - COMPLETED
           - ERROR
+      data_status:
+        title: Data status
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
   DeleteJobData:
     required:
       - count

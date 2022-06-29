@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,12 +9,12 @@ from rest_framework.response import Response
 from api.filters import SpiderCronJobFilter
 from api.mixins import BaseViewSet
 from api.serializers.cronjob import (
-    SpiderCronJobSerializer,
     SpiderCronJobCreateSerializer,
+    SpiderCronJobSerializer,
     SpiderCronJobUpdateSerializer,
 )
-from core.models import Spider, SpiderCronJob
 from core.cronjob import create_cronjob, run_cronjob_once
+from core.models import Spider, SpiderCronJob
 
 
 class SpiderCronJobViewSet(
@@ -29,6 +29,10 @@ class SpiderCronJobViewSet(
     lookup_field = "cjid"
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpiderCronJobFilter
+
+    def get_days(self, date_str):
+        M, D = [int(i) for i in date_str.split("/")]
+        return M * 30 + D
 
     def get_queryset(self):
         if self.request is None:
@@ -61,7 +65,22 @@ class SpiderCronJobViewSet(
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         serializer = SpiderCronJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        cronjob = serializer.save(spider=spider)
+        data_status = request.data.pop("data_status", SpiderCronJob.PERSISTENT_STATUS)
+
+        if data_status == SpiderCronJob.PENDING_STATUS:
+            date_str = request.data.pop("data_expiry_days", "0/1")
+            data_expiry_days = self.get_days(date_str)
+            if data_expiry_days < 1:
+                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            data_expiry_days = None
+
+        cronjob = serializer.save(
+            spider=spider,
+            data_status=data_status,
+            data_expiry_days=data_expiry_days,
+        )
+
         create_cronjob(
             cronjob.name,
             cronjob.key,
@@ -69,6 +88,7 @@ class SpiderCronJobViewSet(
             request.data.get("cenv_vars", []),
             request.data.get("ctags", []),
             cronjob.schedule,
+            data_expiry_days=data_expiry_days,
         )
         headers = self.get_success_headers(serializer.data)
         return Response(
@@ -81,6 +101,8 @@ class SpiderCronJobViewSet(
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
+        print(partial)
+        print(request.data)
         instance = self.get_object()
         serializer = SpiderCronJobUpdateSerializer(
             instance, data=request.data, partial=partial

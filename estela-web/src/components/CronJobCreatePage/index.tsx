@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Checkbox, Layout, Typography, Space, Tag } from "antd";
+import { Button, Form, Input, Checkbox, Layout, Typography, Space, Tag, Switch, InputNumber } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -52,6 +52,8 @@ interface CronJobCreatePageState {
     newTagName: string;
     spiderName: string;
     uniqueCollection: boolean;
+    isDataPersistent: boolean;
+    days: number;
 }
 
 interface RouteParams {
@@ -73,6 +75,8 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         newTagName: "",
         spiderName: "",
         uniqueCollection: false,
+        isDataPersistent: true,
+        days: 1,
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -95,13 +99,14 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
     }
 
     handleSubmit = (data: { schedule: string; unique_collection: boolean }): void => {
-        console.log(data);
         const requestData = {
             cargs: [...this.state.args],
             cenvVars: [...this.state.envVars],
             ctags: [...this.state.tags],
             schedule: data.schedule,
             uniqueCollection: data.unique_collection,
+            dataStatus: this.state.isDataPersistent ? `PERSISTENT` : `PENDING`,
+            dataExpiryDays: `0/${this.state.days}`,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,
@@ -189,9 +194,28 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         }
     };
 
+    onChangeData = (): void => {
+        this.setState({ isDataPersistent: !this.state.isDataPersistent });
+    };
+
+    onChangeDay = (value: number): void => {
+        this.setState({ days: value });
+    };
+
     render(): JSX.Element {
-        const { args, envVars, tags, newArgName, newArgValue, newEnvVarName, newEnvVarValue, newTagName, spiderName } =
-            this.state;
+        const {
+            args,
+            envVars,
+            tags,
+            newArgName,
+            newArgValue,
+            newEnvVarName,
+            newEnvVarValue,
+            newTagName,
+            spiderName,
+            isDataPersistent,
+            days,
+        } = this.state;
 
         return (
             <Layout className="general-container">
@@ -292,6 +316,24 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                 <Button className="job-create-button" onClick={this.addTag}>
                                     Save Tag
                                 </Button>
+                                <Space direction="vertical" size="large">
+                                    <Space direction="horizontal">
+                                        Save Data Permanently
+                                        <Switch size="small" checked={isDataPersistent} onChange={this.onChangeData} />
+                                    </Space>
+                                    {!isDataPersistent && (
+                                        <Space direction="horizontal">
+                                            Days
+                                            <InputNumber
+                                                size="small"
+                                                min={1}
+                                                max={31}
+                                                defaultValue={days}
+                                                onChange={this.onChangeDay}
+                                            />
+                                        </Space>
+                                    )}
+                                </Space>
                                 <Button type="primary" htmlType="submit" className="job-create-button">
                                     Create CronJob
                                 </Button>

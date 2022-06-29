@@ -1,6 +1,7 @@
 INVALID_TOKEN = "Invalid token."
 NO_AUTH_CREDENTIALS = "Authentication credentials were not provided."
 JOB_NOT_STOPPED = "Job status should be {}, {} or {}."
+POSITIVE_SMALL_INTEGER_FIELD = "Number must be a positive integer"
 JOB_INSTANCE_NOT_FOUND = "Job running instance not found."
 UNABLE_CONNECT_DB = "Could not connect to the DB."
 UNABLE_GET_CERTIFICATE = "Could not get certificates to DB"

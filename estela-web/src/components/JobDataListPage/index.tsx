@@ -62,7 +62,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.jobId,
-            id: this.projectId,
+            type: this.type,
         };
         this.apiService.apiProjectsSpidersJobsDataDelete(request).then(
             (response: DeleteJobData) => {

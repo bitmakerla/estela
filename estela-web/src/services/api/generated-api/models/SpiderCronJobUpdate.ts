@@ -43,6 +43,18 @@ export interface SpiderCronJobUpdate {
      * @memberof SpiderCronJobUpdate
      */
     uniqueCollection?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderCronJobUpdate
+     */
+    dataStatus?: SpiderCronJobUpdateDataStatusEnum;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderCronJobUpdate
+     */
+    dataExpiryDays?: number | null;
 }
 
 /**
@@ -52,6 +64,14 @@ export interface SpiderCronJobUpdate {
 export enum SpiderCronJobUpdateStatusEnum {
     Active = 'ACTIVE',
     Disabled = 'DISABLED'
+}/**
+* @export
+* @enum {string}
+*/
+export enum SpiderCronJobUpdateDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Deleted = 'DELETED',
+    Pending = 'PENDING'
 }
 
 export function SpiderCronJobUpdateFromJSON(json: any): SpiderCronJobUpdate {
@@ -68,6 +88,8 @@ export function SpiderCronJobUpdateFromJSONTyped(json: any, ignoreDiscriminator:
         'status': !exists(json, 'status') ? undefined : json['status'],
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
@@ -83,6 +105,8 @@ export function SpiderCronJobUpdateToJSON(value?: SpiderCronJobUpdate | null): a
         'status': value.status,
         'schedule': value.schedule,
         'unique_collection': value.uniqueCollection,
+        'data_status': value.dataStatus,
+        'data_expiry_days': value.dataExpiryDays,
     };
 }
 

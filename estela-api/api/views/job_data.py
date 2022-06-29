@@ -158,17 +158,31 @@ class JobDataViewSet(
     @swagger_auto_schema(
         methods=["POST"],
         responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
+        manual_parameters=[
+            openapi.Parameter(
+                "type",
+                openapi.IN_QUERY,
+                description="Spider job data type.",
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+        ],
     )
-    @action(methods=["POST"], detail=True)
+
+    @action(methods=["POST"], detail=False)
     def delete(self, request, *args, **kwargs):
-        data_type = "items"
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+        data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
             return Response(
                 {"error": errors.UNABLE_CONNECT_DB},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        if job.cronjob is not None and job.cronjob.unique_collection:
+        if (
+            job.cronjob is not None
+            and job.cronjob.unique_collection
+            and data_type == "items"
+        ):
             job_collection_name = "{}-scj{}-job_{}".format(
                 kwargs["sid"], job.cronjob.cjid, data_type
             )
