@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Typography, Row, Space, Tag, Pagination, Table, Switch, Button } from "antd";
+import { Layout, Typography, Row, Space, Tag, Pagination, Table, Switch, Button, InputNumber } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -12,7 +12,9 @@ import {
     SpiderCronJob,
     SpiderJob,
     SpiderCronJobUpdateStatusEnum,
+    SpiderCronJobDataStatusEnum,
     SpiderCronJobUpdate,
+    SpiderCronJobUpdateDataStatusEnum,
 } from "../../services/api";
 import {
     authNotification,
@@ -62,7 +64,10 @@ interface CronJobDetailPageState {
     schedule: string | undefined;
     unique_collection: boolean | undefined;
     new_schedule: string | undefined;
+    dataStatus: string | undefined;
+    dataExpiryDays: number | null | undefined;
     loading_status: boolean;
+    modified: boolean;
 }
 
 interface RouteParams {
@@ -87,7 +92,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         new_schedule: "",
         count: 0,
         current: 0,
+        dataStatus: "",
+        dataExpiryDays: 0,
         loading_status: false,
+        modified: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -164,6 +172,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         jobs: [...jobs],
                         count: data.count,
                         current: data.current,
+                        dataStatus: response.dataStatus,
+                        dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                         loaded: true,
                     });
                 },
@@ -193,6 +203,37 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
             (response: SpiderCronJobUpdate) => {
                 this.setState({ schedule: response.schedule });
+            },
+            (error: unknown) => {
+                console.log(error);
+                incorrectDataNotification();
+            },
+        );
+    };
+
+    updateDataExpiry = (): void => {
+        this.setState({ loading_status: true });
+        const requestData: SpiderCronJobUpdate = {
+            dataStatus:
+                this.state.dataStatus == SpiderCronJobUpdateDataStatusEnum.Persistent
+                    ? this.state.dataStatus
+                    : SpiderCronJobUpdateDataStatusEnum.Pending,
+            dataExpiryDays: this.state.dataExpiryDays,
+        };
+        const request: ApiProjectsSpidersCronjobsUpdateRequest = {
+            cjid: this.cronjobId,
+            pid: this.projectId,
+            sid: this.spiderId,
+            data: requestData,
+        };
+        this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
+            (response: SpiderCronJobUpdate) => {
+                this.setState({
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays,
+                    modified: false,
+                    loading_status: false,
+                });
             },
             (error: unknown) => {
                 console.log(error);
@@ -233,6 +274,18 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         });
     };
 
+    onChangeData = (): void => {
+        const _dataStatus =
+            this.state.dataStatus == SpiderCronJobUpdateDataStatusEnum.Persistent
+                ? SpiderCronJobUpdateDataStatusEnum.Pending
+                : SpiderCronJobUpdateDataStatusEnum.Persistent;
+        this.setState({ dataStatus: _dataStatus, modified: true });
+    };
+
+    onChangeDay = (value: number): void => {
+        this.setState({ dataExpiryDays: value, modified: true });
+    };
+
     runOnce = (): void => {
         const requestParams: ApiProjectsSpidersCronjobsRunOnceRequest = {
             pid: this.projectId,
@@ -252,13 +305,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         );
     };
 
-    updateStatus = (active: boolean): void => {
-        console.log(active);
+    updateStatus = (): void => {
         this.setState({ loading_status: true });
-        let _status = SpiderCronJobUpdateStatusEnum.Disabled;
-        if (this.state.status == _status) {
-            _status = SpiderCronJobUpdateStatusEnum.Active;
-        }
+        const _status =
+            this.state.status == SpiderCronJobUpdateStatusEnum.Disabled
+                ? SpiderCronJobUpdateStatusEnum.Active
+                : SpiderCronJobUpdateStatusEnum.Disabled;
         const request: ApiProjectsSpidersCronjobsUpdateRequest = {
             cjid: this.cronjobId,
             sid: this.spiderId,
@@ -268,10 +320,16 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 schedule: this.state.schedule,
             },
         };
-        this.apiService.apiProjectsSpidersCronjobsUpdate(request).then((response) => {
-            this.setState({ status: response.status, loading_status: false });
-            console.log("Everything is gona be okay");
-        });
+        this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
+            (response) => {
+                this.setState({ status: response.status, loading_status: false });
+                console.log("Everything is gona be okay");
+            },
+            (error: unknown) => {
+                console.log(error);
+                incorrectDataNotification();
+            },
+        );
     };
 
     render(): JSX.Element {
@@ -286,7 +344,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             jobs,
             schedule,
             unique_collection,
+            dataStatus,
+            dataExpiryDays,
             loading_status,
+            modified,
         } = this.state;
         return (
             <Layout className="general-container">
@@ -330,6 +391,50 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 }}
                                             >
                                                 <b>Schedule:</b>&nbsp; {schedule}
+                                            </Text>
+                                            <Text>
+                                                <Space direction="vertical">
+                                                    <Space direction="horizontal">
+                                                        <b>Data Persistent:</b>
+                                                        <Switch
+                                                            loading={loading_status}
+                                                            defaultChecked={
+                                                                dataStatus == SpiderCronJobDataStatusEnum.Persistent
+                                                            }
+                                                            onChange={this.onChangeData}
+                                                        />
+                                                    </Space>
+                                                    <Space direction="horizontal">
+                                                        <Text
+                                                            disabled={
+                                                                dataStatus == SpiderCronJobDataStatusEnum.Persistent
+                                                            }
+                                                        >
+                                                            <b>Days :</b>&nbsp;
+                                                            <InputNumber
+                                                                size="small"
+                                                                min={1}
+                                                                max={720}
+                                                                defaultValue={dataExpiryDays}
+                                                                style={{ width: "62px" }}
+                                                                disabled={
+                                                                    dataStatus == SpiderCronJobDataStatusEnum.Persistent
+                                                                }
+                                                                onChange={this.onChangeDay}
+                                                            />
+                                                        </Text>
+                                                    </Space>
+                                                    {modified && (
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={this.updateDataExpiry}
+                                                            size="small"
+                                                            loading={loading_status}
+                                                        >
+                                                            Save
+                                                        </Button>
+                                                    )}
+                                                </Space>
                                             </Text>
                                             <Text>
                                                 <b>Unique Collection:</b>&nbsp;

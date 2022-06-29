@@ -1,5 +1,20 @@
 import React, { Component } from "react";
-import { Layout, Typography, Pagination, Collapse, Row, Space, Tag, Button, List } from "antd";
+import moment from "moment";
+import {
+    Layout,
+    Typography,
+    Pagination,
+    Collapse,
+    Row,
+    Space,
+    Tag,
+    Button,
+    List,
+    Switch,
+    DatePicker,
+    DatePickerProps,
+} from "antd";
+import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -12,6 +27,7 @@ import {
     ApiProjectsSpidersJobsDataListRequest,
     SpiderJob,
     SpiderJobUpdate,
+    SpiderJobUpdateDataStatusEnum,
     GetLogs,
 } from "../../services/api";
 import {
@@ -53,12 +69,17 @@ interface JobDetailPageState {
     envVars: EnvVarsData[];
     tags: TagsData[];
     date: string;
+    created: string | undefined;
     status: string | undefined;
     cronjob: number | undefined | null;
     stats: Dictionary;
     logs: string[];
     count: number;
     current: number;
+    dataStatus: string | undefined;
+    dataExpiryDays: number | undefined;
+    loading_status: boolean;
+    modified: boolean;
 }
 
 interface RouteParams {
@@ -78,12 +99,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         envVars: [],
         tags: [],
         date: "",
+        created: "",
         status: "",
         cronjob: null,
         stats: {},
         logs: [],
         count: 0,
         current: 0,
+        dataStatus: "",
+        dataExpiryDays: 0,
+        loading_status: false,
+        modified: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -120,9 +146,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         envVars: [...envVars],
                         tags: [...tags],
                         date: convertDateToString(response.created),
+                        created: `${response.created}`,
                         status: response.jobStatus,
                         cronjob: response.cronjob,
                         loaded: true,
+                        dataStatus: response.dataStatus,
+                        dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                     });
                 },
                 (error: unknown) => {
@@ -155,6 +184,37 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
+    updateDataExpiry = (): void => {
+        this.setState({ loading_status: true });
+        const requestData: SpiderJobUpdate = {
+            dataStatus:
+                this.state.dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
+                    ? this.state.dataStatus
+                    : SpiderJobUpdateDataStatusEnum.Pending,
+            dataExpiryDays: this.state.dataExpiryDays,
+        };
+        const request: ApiProjectsSpidersJobsUpdateRequest = {
+            jid: this.jobId,
+            pid: this.projectId,
+            sid: this.spiderId,
+            data: requestData,
+        };
+        this.apiService.apiProjectsSpidersJobsUpdate(request).then(
+            (response: SpiderJobUpdate) => {
+                this.setState({
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
+                    modified: false,
+                    loading_status: false,
+                });
+            },
+            (error: unknown) => {
+                console.log(error);
+                incorrectDataNotification();
+            },
+        );
+    };
+
     getLogs = (page: number): void => {
         const requestParams: ApiProjectsSpidersJobsLogsRequest = {
             pid: this.projectId,
@@ -173,6 +233,27 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         await this.getLogs(page);
     };
 
+    onChangeData = (): void => {
+        const _dataStatus =
+            this.state.dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
+                ? SpiderJobUpdateDataStatusEnum.Pending
+                : SpiderJobUpdateDataStatusEnum.Persistent;
+        this.setState({ dataStatus: _dataStatus, modified: true });
+    };
+
+    onChangeDay = (value: number): void => {
+        this.setState({ dataExpiryDays: value, modified: true });
+    };
+
+    disabledDate: RangePickerProps["disabledDate"] = (current) => {
+        return current && current < moment().endOf("day");
+    };
+
+    onChangeDate: DatePickerProps["onChange"] = (date) => {
+        const days = moment.duration(moment(date, "llll").diff(moment(this.state.created, "llll"))).asDays();
+        this.setState({ dataExpiryDays: days, modified: true });
+    };
+
     getStats = (key: string | string[]): void => {
         if (key.length === 0) {
             return;
@@ -186,7 +267,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
                 let data: Dictionary = {};
-                console.log(response.results?.length);
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data[0] as Dictionary;
@@ -201,7 +281,24 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     render(): JSX.Element {
-        const { loaded, args, envVars, tags, date, status, cronjob, stats, logs, count, current } = this.state;
+        const {
+            loaded,
+            args,
+            envVars,
+            tags,
+            date,
+            created,
+            status,
+            cronjob,
+            stats,
+            logs,
+            count,
+            current,
+            dataStatus,
+            dataExpiryDays,
+            loading_status,
+            modified,
+        } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -242,6 +339,65 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             </Text>
                                             <Text>
                                                 <b>Status:</b>&nbsp; {status}
+                                            </Text>
+                                            <Text>
+                                                <Space direction="vertical">
+                                                    <Space direction="horizontal">
+                                                        <Text
+                                                            disabled={
+                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
+                                                            }
+                                                        >
+                                                            <b>Data Persistent:</b>&nbsp;
+                                                            <Switch
+                                                                loading={loading_status}
+                                                                defaultChecked={
+                                                                    dataStatus ==
+                                                                    SpiderJobUpdateDataStatusEnum.Persistent
+                                                                }
+                                                                onChange={this.onChangeData}
+                                                                disabled={
+                                                                    dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
+                                                                }
+                                                            />
+                                                        </Text>
+                                                    </Space>
+                                                    <Space direction="horizontal">
+                                                        <Text
+                                                            disabled={
+                                                                dataStatus ==
+                                                                    SpiderJobUpdateDataStatusEnum.Persistent ||
+                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
+                                                            }
+                                                        >
+                                                            <b>Date </b>&nbsp;
+                                                            <DatePicker
+                                                                format="YYYY-MM-DD"
+                                                                onChange={this.onChangeDate}
+                                                                disabledDate={this.disabledDate}
+                                                                defaultValue={moment(created, "llll").add(
+                                                                    dataExpiryDays,
+                                                                    "days",
+                                                                )}
+                                                                disabled={
+                                                                    dataStatus ==
+                                                                        SpiderJobUpdateDataStatusEnum.Persistent ||
+                                                                    dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
+                                                                }
+                                                            />
+                                                        </Text>
+                                                    </Space>
+                                                    {modified && (
+                                                        <Button
+                                                            type="primary"
+                                                            onClick={this.updateDataExpiry}
+                                                            size="small"
+                                                            loading={loading_status}
+                                                        >
+                                                            Save
+                                                        </Button>
+                                                    )}
+                                                </Space>
                                             </Text>
                                             <Space direction="vertical">
                                                 <b>Arguments</b>

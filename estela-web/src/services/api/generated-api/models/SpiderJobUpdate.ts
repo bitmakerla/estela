@@ -31,6 +31,18 @@ export interface SpiderJobUpdate {
      * @memberof SpiderJobUpdate
      */
     status?: SpiderJobUpdateStatusEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderJobUpdate
+     */
+    dataStatus?: SpiderJobUpdateDataStatusEnum;
+    /**
+     * 
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    dataExpiryDays?: number | null;
 }
 
 /**
@@ -46,6 +58,14 @@ export enum SpiderJobUpdateStatusEnum {
     Cancelled = 'CANCELLED',
     Completed = 'COMPLETED',
     Error = 'ERROR'
+}/**
+* @export
+* @enum {string}
+*/
+export enum SpiderJobUpdateDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Deleted = 'DELETED',
+    Pending = 'PENDING'
 }
 
 export function SpiderJobUpdateFromJSON(json: any): SpiderJobUpdate {
@@ -60,6 +80,8 @@ export function SpiderJobUpdateFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'status': !exists(json, 'status') ? undefined : json['status'],
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
@@ -73,6 +95,8 @@ export function SpiderJobUpdateToJSON(value?: SpiderJobUpdate | null): any {
     return {
         
         'status': value.status,
+        'data_status': value.dataStatus,
+        'data_expiry_days': value.dataExpiryDays,
     };
 }
 

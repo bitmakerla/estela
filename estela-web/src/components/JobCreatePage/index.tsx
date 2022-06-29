@@ -1,6 +1,8 @@
 import React, { Component, Fragment } from "react";
-import { Button, Form, Input, Layout, Typography, Space, Tag } from "antd";
+import { Button, Form, Input, Layout, Typography, Space, Tag, Switch, DatePicker, DatePickerProps } from "antd";
+import type { RangePickerProps } from "antd/es/date-picker";
 import { RouteComponentProps } from "react-router-dom";
+import moment from "moment";
 
 import "./styles.scss";
 import history from "../../history";
@@ -50,6 +52,8 @@ interface JobCreatePageState {
     newEnvVarValue: string;
     newTagName: string;
     spiderName: string;
+    isDataPersistent: boolean;
+    dataExpiryDays: string;
 }
 
 interface RouteParams {
@@ -69,6 +73,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         newEnvVarValue: "",
         newTagName: "",
         spiderName: "",
+        isDataPersistent: true,
+        dataExpiryDays: moment().add(1, "months").format("YYYY-MM-DD"),
     };
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
@@ -95,6 +101,8 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
             args: [...this.state.args],
             envVars: [...this.state.envVars],
             tags: [...this.state.tags],
+            dataStatus: this.state.isDataPersistent ? `PERSISTENT` : `PENDING`,
+            dataExpiryDays: this.state.dataExpiryDays,
         };
         const request: ApiProjectsSpidersJobsCreateRequest = {
             data: requestData,
@@ -182,9 +190,32 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
+    onChangeData = (): void => {
+        this.setState({ isDataPersistent: !this.state.isDataPersistent });
+    };
+
+    disabledDate: RangePickerProps["disabledDate"] = (current) => {
+        return current && current < moment().endOf("day");
+    };
+
+    onChangeDate: DatePickerProps["onChange"] = (_, dateString) => {
+        this.setState({ dataExpiryDays: dateString });
+    };
+
     render(): JSX.Element {
-        const { args, envVars, tags, newArgName, newArgValue, newEnvVarName, newEnvVarValue, newTagName, spiderName } =
-            this.state;
+        const {
+            args,
+            envVars,
+            tags,
+            newArgName,
+            newArgValue,
+            newEnvVarName,
+            newEnvVarValue,
+            newTagName,
+            spiderName,
+            isDataPersistent,
+            dataExpiryDays,
+        } = this.state;
 
         return (
             <Layout className="general-container">
@@ -268,9 +299,28 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                                 <Button className="job-create-button" onClick={this.addTag}>
                                     Save Tag
                                 </Button>
-                                <Button type="primary" htmlType="submit" className="job-create-button">
-                                    Run Spider Job
-                                </Button>
+                                <Space direction="vertical" size="large">
+                                    <Space direction="horizontal">
+                                        Save Data Permanently
+                                        <Switch size="small" checked={isDataPersistent} onChange={this.onChangeData} />
+                                    </Space>
+                                    {!isDataPersistent && (
+                                        <Space direction="horizontal">
+                                            Date
+                                            <DatePicker
+                                                format="YYYY-MM-DD"
+                                                onChange={this.onChangeDate}
+                                                disabledDate={this.disabledDate}
+                                                defaultValue={moment(dataExpiryDays)}
+                                            />
+                                        </Space>
+                                    )}
+                                </Space>
+                                <div className="submitButton">
+                                    <Button type="primary" htmlType="submit" className="job-create-button">
+                                        Run Spider Job
+                                    </Button>
+                                </div>
                             </Form>
                         </Content>
                     </Fragment>
