@@ -27,6 +27,7 @@ resources:
 	-. .env && minikube start \
 	           --feature-gates="TTLAfterFinished=true" \
 		   --insecure-registry $${HOST_REGISTRY}
+	-minikube addons enable metrics-server
 
 
 .PHONY: build-all-images
@@ -103,3 +104,14 @@ build-web:
 .PHONY: run-web
 run-web:
 	-cd $(WEB_DIR) && yarn dev
+
+
+.PHONY: start
+start:
+	-minikube start
+	-$(DOCKER_COMPOSE) up -d
+
+
+.PHONY: stop
+	-minikube stop
+	-$(DOCKER_COMPOSE) down

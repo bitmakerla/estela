@@ -1,3 +1,10 @@
+---
+layout: page
+title: Main Guide
+parent: Installation
+grand_parent: estela
+---
+
 # estela Installation Guide
 
 The installation can be divided into four parts:
@@ -94,7 +101,7 @@ And then restart Docker.
 ```json
 {
 	...
-    "insecure-registries" : [ "<HOST_IP>:5000" ]
+	"insecure-registries" : [ "<HOST_IP>:5000" ]
 	...
 }
 ```
@@ -113,7 +120,7 @@ just use the Google services and your Gmail account credentials.
 ## Environment Variables
 
 Refer to the Helm Chart
-[variables guide](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart),
+[variables guide]({% link estela/installation/helm-variables.md %}),
 and complete the `values.yaml` file with the 
 appropriate values.
 
