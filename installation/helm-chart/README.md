@@ -1,6 +1,4 @@
-# estela Helm Chart
-
-## Understanding the variables
+# estela Helm Chart variables guide
 
 First, make a copy of `values.yaml.example` and rename it to `values.yaml`.
 Then, complete the following fields:
@@ -9,7 +7,7 @@ _Note_: The values that should be used if the resources have been deployed local
 commented in the `values.yaml.example` file. If you do not need to define an optional 
 variable, fill its value with an empty string `""`.
 
-### Chart variables
+## Chart variables
 
 * _local_: Set this variable to `true` if estela is being deployed on local resources.
 
@@ -30,7 +28,7 @@ variable, fill its value with an empty string `""`.
 * _nodeSelector_: (Optional) The name of the node on which estela will be installed in case
   the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROL_NAME }`.
 
-### estela module variables
+## estela module variables
 
 The variables that already have an assigned value should not be modified.
 
@@ -76,8 +74,17 @@ The variables that already have an assigned value should not be modified.
 
 * _\<REGISTER\>_: Set this value to `"False"` to disable the user registration.
 
+* _<SPIDERDATA\_DB\_ENGINE>_: Database engine where the data produced by the spiders
+  is stored.
+
+* _<SPIDERDATA\_DB\_CERTIFICATE\_PATH>_: Path where the above database certificate is 
+  located. This value will be taken into account if your connection requires a certificate.
+
 * _<DJANGO\_API\_HOST>_: The endpoint of the Django API. This value will be filled later,
   after the application installation, do not change this value yet.
+  
+* _<KAFKA\_CONSUMER\_PRODUCTION>_: Set this value to `"False"` if the database used by the
+  consumers in the Queuing module does not require a certificate for the connection.
 
 * _<AWS\_DEFAULT\_REGION>_: (Optional) Default region of your aws account.
 
@@ -91,7 +98,8 @@ The following values need to be in base64, you can use an
 
 * _<DB\_PASSWORD>_: Password of the user above.
 
-* _<MONGO\_CONNECTION>_: The connection URL to your MongoDB instance.
+* _<SPIDERDATA\_DB\_CONNECTION>_: The connection URL to your database instance used to 
+  retrieve the data from the spiders.
 
 * _<EMAIL\_HOST\_USER>_: The user using the SMTP email service.
 
@@ -100,53 +108,3 @@ The following values need to be in base64, you can use an
 * _<SECRET\_KEY>_: The Django secret key, you can generate one [here](https://djecrety.ir/).
 
 * _<AWS\_ACCESS\_KEY\_ID>_ and _<AWS\_SECRET\_ACCESS\_KEY>_: (Optional) Your aws credentials.
-
-## Installing the application
-
-1. Once all the values are filled in, we proceed to execute the first install:
-
-   ```
-   $ helm install <RELEASE_NAME> --create-namespace --debug --namespace=<NAMESPACE> .
-   ```
-   
-   You can use any value for `<RELEASE_NAME>` and `<NAMESPACE>`, just make sure you remember 
-   the `<RELEASE_NAME>` so you can modify or uninstall the app later.
-
-2. Now you can get the ip of the loadBalancer:
-   ```
-   $ kubectl get services -n <NAMESPACE> estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
-   ```
-   
-   _Note_: If you are using Minikube, you need an external IP for the Django service, please 
-   run first this command in a new terminal.
-   
-   ```
-   $ minikube tunnel
-   ```
-
-3. Now, upgrade the API module with the previous value of the <LOADBALANCER\_IP>:
-
-   ```
-   $ helm upgrade --install <RELEASE_NAME> . --set DJANGO_API_HOST=<LOADBALANCER_IP> -n <NAMESPACE>
-   ```
-
-4. To apply the changes, roll-out the estela API deployment:
-
-   ```
-   $ kubectl rollout restart deploy estela-django-api -n <NAMESPACE>
-   ```
-
-5. Now, you can perform the migrations and create a super user for Django admin:
-
-   ```
-   $ kubectl exec <API_POD> -- python manage.py migrate
-   $ kubectl exec --stdin --tty <API_POD> -- python manage.py createsuperuser
-   ```
-
-## Uninstalling the application
-
-To uninstall estela, just run: 
-
-```
-$ helm uninstall <RELEASE_NAME> -n <NAMESPACE>
-```

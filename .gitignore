@@ -1,0 +1,6 @@
+development-helps/kubernetes-api/estela-api-configmaps.yaml
+development-helps/kubernetes-api/estela-api-secrets.yaml
+development-helps/kubernetes-api/Makefile
+
+development-helps/kubernetes-queuing/estela-kafka-secrets.yaml
+development-helps/kubernetes-queuing/Makefile

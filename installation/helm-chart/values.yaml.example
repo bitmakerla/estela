@@ -13,7 +13,6 @@ nodeSelector: ""
 
 #### Config Maps ####
 
-config: api-config
 DB_HOST: "" # database
 DB_PORT: "" # 3306
 DB_NAME: "" # estela
@@ -23,7 +22,7 @@ CORS_ORIGIN_WHITELIST: "" # http://localhost:3000
 KAFKA_HOSTS: kafka
 KAFKA_PORT: 9092
 STAGE: "" # DEVELOPMENT
-DJANGO_SETTINGS_MODULE: "" # config.settings.test
+DJANGO_SETTINGS_MODULE: "" # config.settings.local
 CELERY_BROKER_URL: redis://estela-redis-service
 CELERY_RESULT_BACKEND: redis://estela-redis-service:6379/0
 BUCKET_NAME_PROJECTS: "" # estela-api-projects
@@ -33,8 +32,11 @@ EMAIL_HOST: "" # http://smtp.gmail.com
 EMAIL_PORT: "" # 587
 EMAILS_TO_ALERT: ""
 VERIFICATION_EMAIL: ""
-REGISTER: "True"
+REGISTER: "" # "True"
+SPIDERDATA_DB_ENGINE: mongodb
+SPIDERDATA_DB_CERTIFICATE_PATH: config/ca-certificate.crt
 
+KAFKA_CONSUMER_PRODUCTION: "" # "False"
 DJANGO_API_HOST: dummy
 
 AWS_DEFAULT_REGION: ""
@@ -42,10 +44,9 @@ REGISTRY_ID: ""
 
 #### Secrets ####
 
-secret: api-secrets
 DB_USER: "" # ZGphbmdvLWFwaQ==
 DB_PASSWORD: "" # ZXN0ZWxhMTIzNDU=
-MONGO_CONNECTION: ""
+SPIDERDATA_DB_CONNECTION: ""
 EMAIL_HOST_USER: ""
 EMAIL_HOST_PASSWORD: ""
 SECRET_KEY: ""

@@ -1,23 +1,25 @@
 # estela Installation Guide
 
-The installation can be divided into three parts:
+The installation can be divided into four parts:
 
 1. Set the needed resources to run estela.
 2. Set the environment variables to configure estela.
 3. Deploy the estela modules with Helm.
+4. Build and run the estela web application.
 
 Currently, estela is a kubernetes application, but it can be installed on different 
 architectures (soon).
 
 ## Requirements
 
-- Python v3.6.x
 - Docker v20.10.x with *docker-compose*
 - Kubectl >= v1.23.x
 - Helm >= v3.9.x
+- yarn 1.22.x
 
 Extra requirements needed for local installation:
 
+- Python v3.6.x
 - Minikube >= v1.25.0
 
 ## Resources
@@ -109,7 +111,9 @@ just use the Google services and your Gmail account credentials.
 
 ## Environment Variables
 
-Refer to the Helm installation guide, and complete the `values.yaml` file with the 
+Refer to the Helm Chart
+[variables guide](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart),
+and complete the `values.yaml` file with the 
 appropriate values.
 
 ## Helm Deployment
@@ -123,5 +127,74 @@ If you are using a local registry, you can build and upload the images by runnin
 $ make images
 ```
 
-Now, do refer to the Helm installation guide, and deploy estela inside kubernetes.
-For further help, please read the [official documentation](https://bitmaker.la/docs/).
+### Installing the Helm application
+
+If you are using local resources, a `.env` file should have been created, if not, 
+create a new one. Open the file and add the following lines:
+
+```
+RELEASE_NAME=<RELEASE_NAME>
+NAMESPACE=<NAMESPACE>
+```
+
+You can use any value for `<RELEASE_NAME>` and `<NAMESPACE>`. However, to avoid writing 
+the namespace every time you use kubectl, you can set `NAMESPACE=default`.
+
+1. Install the helm application:
+
+   ```
+   $ make install
+   ```
+
+2. If you are using Minikube, you need an external IP for the Django service, please 
+   run this command in a new terminal:
+
+   ```
+   $ minikube tunnel
+   ```
+
+3. Update the application with the value of the Django service external IP:
+
+   ```
+   $ make update-api-ip
+   ```
+
+5. Now, you can perform the migrations and create a super user for Django admin:
+
+   ```
+   $ make makemigrations
+   $ make migrate
+   $ make createsuperuser
+   ```
+
+6. Once you do the migrations, restart the `estela-celery-beat` deployment:
+
+   ```bash
+   $ make restart-celery-beat
+   ```
+
+   The application is ready!
+
+### Uninstalling the Helm application
+
+To uninstall estela, just run:
+
+```
+$ make uninstall
+```
+
+## estela Web Deployment
+
+To build the estela web application, run:
+
+```bash
+$ make build-web
+```
+
+Then, execute the web application locally:
+
+```bash
+$ make run-web
+```
+
+Visit the [web application](http://localhost:3000/login) and start creating projects!

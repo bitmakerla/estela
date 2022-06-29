@@ -26,9 +26,9 @@ spec:
         command: ['gunicorn', 'config.wsgi', '--bind=0.0.0.0:8000']
         envFrom:
         - secretRef:
-            name: {{ .Values.secret }}
+            name: api-secrets
         - configMapRef:
-            name: {{ .Values.config }}
+            name: api-config
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -63,9 +63,9 @@ spec:
         command: ['celery', '-A', 'config.celery', 'beat', '--loglevel=info']
         envFrom:
         - secretRef:
-            name: {{ .Values.secret }}
+            name: api-secrets
         - configMapRef:
-            name: {{ .Values.config }}
+            name: api-config
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -100,9 +100,9 @@ spec:
         command: ['celery', '-A', 'config.celery', 'worker', '--loglevel=info']
         envFrom:
         - secretRef:
-            name: {{ .Values.secret }}
+            name: api-secrets
         - configMapRef:
-            name: {{ .Values.config }}
+            name: api-config
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

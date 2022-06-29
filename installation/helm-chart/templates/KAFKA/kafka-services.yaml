@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  namespace: default
+  namespace: {{ .Release.Namespace }}
   name: kafka
 spec:
   ports:
@@ -15,7 +15,7 @@ spec:
 kind: Endpoints
 apiVersion: v1
 metadata:
-  namespace: default
+  namespace: {{ .Release.Namespace }}
   name: kafka
 subsets:
 - addresses:
