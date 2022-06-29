@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
@@ -72,7 +71,6 @@ class DeployViewSet(
         launch_deploy_job(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
-        ##############################
 
         headers = self.get_success_headers(serializer.data)
         return Response(

@@ -113,7 +113,7 @@ class SpiderCronJobViewSet(
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         methods=["GET"], responses={status.HTTP_200_OK: SpiderCronJobSerializer()}
