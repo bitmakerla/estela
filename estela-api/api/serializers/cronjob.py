@@ -130,16 +130,12 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
                 instance.data_status = SpiderCronJob.PENDING_STATUS
                 if data_expiry_days < 1:
                     raise serializers.ValidationError(
-                        {
-                            "error": errors.POSITIVE_SMALL_INTEGER_FIELD
-                        }
+                        {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}
                     )
                 else:
                     instance.data_expiry_days = data_expiry_days
             else:
-                raise serializers.ValidationError(
-                    {"error": errors.INVALID_DATA_STATUS}
-                )
-        
+                raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
+
         instance.save()
         return instance

@@ -111,23 +111,22 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                 else:
                     job_manager.delete_job(instance.name)
             instance.status = status
-        if "data_status" in validated_data and instance.data_status != SpiderJob.DELETED_STATUS:
+        if (
+            "data_status" in validated_data
+            and instance.data_status != SpiderJob.DELETED_STATUS
+        ):
             if data_status == SpiderJob.PERSISTENT_STATUS:
                 instance.data_status = SpiderJob.PERSISTENT_STATUS
             elif data_status == SpiderJob.PENDING_STATUS:
                 instance.data_status = SpiderJob.PENDING_STATUS
                 if data_expiry_days < 1:
                     raise serializers.ValidationError(
-                        {
-                            "error": errors.POSITIVE_SMALL_INTEGER_FIELD
-                        }
+                        {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}
                     )
                 else:
                     instance.data_expiry_days = data_expiry_days
             else:
-                raise serializers.ValidationError(
-                    {"error": errors.INVALID_DATA_STATUS}
-                )
+                raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 
         instance.save()
         return instance

@@ -167,7 +167,6 @@ class JobDataViewSet(
             ),
         ],
     )
-
     @action(methods=["POST"], detail=False)
     def delete(self, request, *args, **kwargs):
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
