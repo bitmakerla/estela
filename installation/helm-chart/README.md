@@ -26,7 +26,7 @@ variable, fill its value with an empty string `""`.
   has been set to `true`. Use the value `[ name: regcred ]`.
 
 * _nodeSelector_: (Optional) The name of the node on which estela will be installed in case
-  the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROL_NAME }`.
+  the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROLE_NAME }`.
 
 ## estela module variables
 
