@@ -26,6 +26,7 @@ $ estela create job [OPTIONS] SID [PID]
 |arg (-a)|Set spider job argument NAME=VALUE (may be repeated)|
 |env (-e)|Set spider job environment variable NAME=VALUE (may be repeated)|
 |tag (-t)|Set spider cronjob tag (may have multiple)|
+|day (-d)|Set number of days data stored (must be a number)|
 
 ## Examples
 
@@ -37,6 +38,9 @@ $ estela create job -e STAGE=dev -e API_KEY=412dea23 -a job_type=products
 # Create a job with tag "test", which can be used to later retrieve the job
 # by its tag.
 $ estela create job --tag test
+
+# Create a cronjob with 30 data expiry days.
+$ estela create job --day 30
 ```
 
 ## Related Commands
