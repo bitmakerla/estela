@@ -14,7 +14,7 @@ Update a cronjobs status and/or schedule.
 ## Usage
 
 ```bash
-$ estela update cronjob [OPTIONS] JID SID [PID]
+$ estela update cronjob [OPTIONS] CJID SID [PID]
 ```
 
 ## Options
@@ -26,6 +26,8 @@ $ estela update cronjob [OPTIONS] JID SID [PID]
 |PID (Required)|The project's id. It will use the currently active project by default.|
 |status|The cronjob's status. Possible values are: [ACTIVE\|DISABLED]|
 |schedule (-s)|The cronjob's crontab schedule.|
+|persistent (-p)|The cronjob's crontab schedule.|
+|days (-d)|The cronjob's crontab schedule.|
 
 ## Examples
 
@@ -37,9 +39,13 @@ cronjob/spider-cjob-51-7cf2fda9-5675-4f27-9d8c-faf54ead40c5 updated.
 # Update cronjob's schedule and disable the cronjob.
 $ estela update cronjob 51 101 --status DISABLED --schedule "0 21 * * *"
 cronjob/spider-cjob-51-7cf2fda9-5675-4f27-9d8c-faf54ead40c5 updated.
+
+# Update cronjob's data status and data expiry days.
+$ estela update cronjob 51 101 --persistent false --day 30
+cronjob/spider-cjob-51-7cf2fda9-5675-4f27-9d8c-faf54ead40c5 updated.
 ```
 
 ## Related Commands
 
-- [estela create cronjob]({% link estela-cli/commands/create_cronjob.md %})
-- [estela list cronjob]({% link estela-cli/commands/list_cronjob.md %})
+- [estela create cronjob](https://github.com/bitmakerla/estela/blob/main/docs/estela-cli/commands/create_cronjob.md)
+- [estela list cronjob](https://github.com/bitmakerla/estela/blob/main/docs/estela-cli/commands/list_cronjob.md)
