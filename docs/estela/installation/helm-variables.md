@@ -25,7 +25,7 @@ variable, fill its value with an empty string `""`.
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
   ```
 
-* _registryHost_: The registry host where the images of the estela modules are. If a local
+* _registryHost_: The registry host where the images of the estela modules are located. If a local
   registry is being used, do not forget to include the port.
   
 * _awsRegistry_: Set this variable to `true` if the registry is being hosted in AWS.

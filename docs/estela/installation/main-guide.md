@@ -170,7 +170,7 @@ the namespace every time you use kubectl, you can set `NAMESPACE=default`.
    $ make update-api-ip
    ```
 
-5. Now, you can perform the migrations and create a super user for Django admin:
+4. Now, you can perform the migrations and create a super user for Django admin:
 
    ```
    $ make makemigrations
@@ -178,11 +178,22 @@ the namespace every time you use kubectl, you can set `NAMESPACE=default`.
    $ make createsuperuser
    ```
 
-6. Once you do the migrations, restart the `estela-celery-beat` deployment:
+5. Once you do the migrations, restart the `estela-celery-beat` deployment:
 
    ```bash
    $ make restart-celery-beat
    ```
+
+6. Finally, create a new superuser named `deploy_manager`. This user is required
+   for the deployment of projects to work correctly. Use the following command
+   to create it:
+
+   ```
+   $ make createsuperuser
+   ```
+
+   The `deploy_manager`'s password can be set to anything. Just make sure that
+   the name is set correctly.
 
 The estela application is ready!
 
@@ -230,14 +241,11 @@ If you are using the local resources, specifically MinIO, you need to create a
 public bucket with the name specified in the _BUCKET\_NAME\_PROJECTS_ variable 
 (defined in the `values.yaml` file).
 
-* Go to the [web dashboard](http://localhost:9001) and login using the default
+* Go to the [web dashboard](http://localhost:9001) and log in using the default
   credentials: `minioadmin:minioadmin`.
   
 * Then, [create a bucket](http://localhost:9001/buckets/add-bucket) using the
-  _BUCKET\_NAME\_PROJECTS_.
-  
-* Now, [create a user](http://localhost:9001/identity/users/add-user) with
-  `deploy_manager` as the User Name. The password is not important.
+  _BUCKET\_NAME\_PROJECTS_ value as the bucket name.
   
 * Finally, go to the [bucket's page](http://localhost:9001/buckets), click the
   _Manage_ button of the newly created bucket, and change the _Access Policy_
