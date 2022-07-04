@@ -1,7 +1,7 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  namespace: default
+  namespace: {{ .Release.Namespace }}
   name: kafka-items-consumer
 spec:
   selector:
@@ -12,32 +12,38 @@ spec:
       labels:
         app: kafka-consumer
     spec:
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: consumer
-        image: {{ .Values.registryHost }}/estela-consumer
+        image: {{ .Values.registryHost }}/estela-consumer:latest
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_items']
         env:
         - name: KAFKA_ADVERTISED_PORT
-          value: "9092"
+          value: {{ .Values.KAFKA_PORT | quote }}
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: kafka
+          value: {{ .Values.KAFKA_HOSTS }}
         - name: PRODUCTION
-          value: "False"
-        - name: MONGO_CONNECTION
+          value: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
+        - name: DB_ENGINE
+          value: {{ .Values.SPIDERDATA_DB_ENGINE }}
+        - name: DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: kafka-secrets
-              key: MONGO_CONNECTION
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  namespace: default
+  namespace: {{ .Release.Namespace }}
   name: kafka-requests-consumer
 spec:
   selector:
@@ -48,32 +54,38 @@ spec:
       labels:
         app: kafka-consumer
     spec:
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: consumer
-        image: {{ .Values.registryHost }}/estela-consumer
+        image: {{ .Values.registryHost }}/estela-consumer:latest
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_requests']
         env:
         - name: KAFKA_ADVERTISED_PORT
-          value: "9092"
+          value: {{ .Values.KAFKA_PORT | quote }}
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: kafka
+          value: {{ .Values.KAFKA_HOSTS }}
         - name: PRODUCTION
-          value: "False"
-        - name: MONGO_CONNECTION
+          value: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
+        - name: DB_ENGINE
+          value: {{ .Values.SPIDERDATA_DB_ENGINE }}
+        - name: DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: kafka-secrets
-              key: MONGO_CONNECTION
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  namespace: default
+  namespace: {{ .Release.Namespace }}
   name: kafka-logs-consumer
 spec:
   selector:
@@ -84,24 +96,30 @@ spec:
       labels:
         app: kafka-consumer
     spec:
+      {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
       containers:
       - name: consumer
-        image: {{ .Values.registryHost }}/estela-consumer
+        image: {{ .Values.registryHost }}/estela-consumer:latest
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_logs']
         env:
         - name: KAFKA_ADVERTISED_PORT
-          value: "9092"
+          value: {{ .Values.KAFKA_PORT | quote }}
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: kafka
+          value: {{ .Values.KAFKA_HOSTS }}
         - name: PRODUCTION
-          value: "False"
-        - name: MONGO_CONNECTION
+          value: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
+        - name: DB_ENGINE
+          value: {{ .Values.SPIDERDATA_DB_ENGINE }}
+        - name: DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: kafka-secrets
-              key: MONGO_CONNECTION
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}

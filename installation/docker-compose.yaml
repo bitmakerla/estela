@@ -1,6 +1,39 @@
-version: '3.2'
+version: '3'
 
 services:
+  db:
+    container_name: estela_db
+    image: mysql:8
+    volumes:
+      - estela_dbdata:/var/lib/mysql
+      - ./local/db/mysql:/docker-entrypoint-initdb.d
+    command: --default_authentication_plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
+    ports:
+      - "3306:3306"
+
+  registry:
+    container_name: estela_registry
+    image: registry:2
+    ports:
+      - 5000:5000
+    volumes:
+      - registry_data:/var/lib/registry
+  
+  minio:
+    container_name: estela_storage
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - datastore:/data
+    command: server /data --console-address ":9001"
+
   zookeeper:
     container_name: zookeeper
     image: wurstmeister/zookeeper:latest
@@ -14,10 +47,9 @@ services:
     container_name: kafka
     image: wurstmeister/kafka:latest
     environment:
-      # Check: minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
       KAFKA_ADVERTISED_LISTENERS: >- 
-        LISTENER_DOCKER_INTERNAL://kafka:19092, 
-        LISTENER_DOCKER_EXTERNAL://192.168.49.1:9092
+        LISTENER_DOCKER_INTERNAL://kafka:19092,
+        LISTENER_DOCKER_EXTERNAL://${HOST_IP}:9092
       KAFKA_LISTENERS: >-
         LISTENER_DOCKER_INTERNAL://:19092,
         LISTENER_DOCKER_EXTERNAL://:9092
@@ -37,3 +69,8 @@ services:
     - zookeeper
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  estela_dbdata:
+  registry_data:
+  datastore:

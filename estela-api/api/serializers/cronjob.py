@@ -1,4 +1,3 @@
-from tkinter import N
 from croniter import croniter
 from rest_framework import serializers
 from api import errors

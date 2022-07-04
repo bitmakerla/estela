@@ -18,6 +18,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: database
 spec:
   ports:
@@ -25,18 +26,43 @@ spec:
     targetPort: 3306
     protocol: TCP
 ---
-{{- if .Values.Local }}
+{{- if .Values.local }}
 kind: Endpoints
 apiVersion: v1
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: database
 subsets:
   - addresses:
-    - ip: {{ .Values.Endpoint_ip }}
+    - ip: {{ .Values.hostIp }}
     ports:
     - port: 3306
 ---
-{{- end  }}
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: storage
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+---
+{{- if .Values.local }}
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: storage
+subsets:
+  - addresses:
+    - ip: {{ .Values.hostIp }}
+    ports:
+    - port: 9000
+---
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:

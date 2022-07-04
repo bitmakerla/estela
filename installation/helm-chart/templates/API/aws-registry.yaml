@@ -1,4 +1,4 @@
-{{- if .Values.aws_registry }}
+{{- if .Values.awsRegistry }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:

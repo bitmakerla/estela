@@ -7,10 +7,6 @@ data:
   DB_HOST: {{ .Values.DB_HOST }}
   DB_PORT: {{ .Values.DB_PORT | quote }}
   DB_NAME: {{ .Values.DB_NAME }}
-  DJANGO_API_HOST: http://{{ .Values.django_api_host }}
-  DJANGO_ALLOWED_HOSTS: {{ .Values.django_api_host }},localhost
-  AWS_DEFAULT_REGION: {{ .Values.AWS_DEFAULT_REGION }}
-  REGISTRY_ID: {{ .Values.REGISTRY_ID | quote }}
   REGISTRY_HOST: {{ .Values.REGISTRY_HOST }}
   REPOSITORY_NAME: {{ .Values.REPOSITORY_NAME }}
   CORS_ORIGIN_WHITELIST: {{ .Values.CORS_ORIGIN_WHITELIST }}
@@ -21,13 +17,20 @@ data:
   CELERY_BROKER_URL: {{ .Values.CELERY_BROKER_URL }}
   CELERY_RESULT_BACKEND: {{ .Values.CELERY_RESULT_BACKEND }}
   BUCKET_NAME_PROJECTS: {{ .Values.BUCKET_NAME_PROJECTS }}
-  ELASTICSEARCH_HOST: {{ .Values.ELASTICSEARCH_HOST }}
-  ELASTICSEARCH_PORT: {{ .Values.ELASTICSEARCH_PORT }}
-  LOGS_INDEX: {{ .Values.LOGS_INDEX }}
   ENGINE: {{ .Values.ENGINE }}
   CREDENTIALS: {{ .Values.CREDENTIALS }}
   EMAIL_HOST: {{ .Values.EMAIL_HOST }}
-  EMAIL_PORT: {{ .Values.EMAIL_PORT }}
+  EMAIL_PORT: {{ .Values.EMAIL_PORT | quote }}
   EMAILS_TO_ALERT: {{ .Values.EMAILS_TO_ALERT }}
-  REGISTER: {{ .Values.REGISTER }}
   VERIFICATION_EMAIL: {{ .Values.VERIFICATION_EMAIL }}
+  REGISTER: {{ .Values.REGISTER | quote }}
+  DJANGO_API_HOST: http://{{ .Values.DJANGO_API_HOST }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.DJANGO_API_HOST }},localhost
+  SPIDERDATA_DB_ENGINE: {{ .Values.SPIDERDATA_DB_ENGINE }}
+  SPIDERDATA_DB_CERTIFICATE_PATH: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
+  {{- if .Values.AWS_DEFAULT_REGION }}
+  AWS_DEFAULT_REGION: {{ .Values.AWS_DEFAULT_REGION }}
+  {{- end }}
+  {{- if .Values.REGISTRY_ID }}
+  REGISTRY_ID: {{ .Values.REGISTRY_ID | quote }}
+  {{- end }}
