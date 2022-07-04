@@ -7,8 +7,9 @@ grand_parent: estela
 
 # estela Helm Chart variables guide
 
-First, make a copy of `values.yaml.example` and rename it to `values.yaml`.
-Then, complete the following fields:
+First, make a copy (in the same _helm-chart_ directory) of 
+[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example)
+and rename it to `values.yaml`. Then, complete the following fields:
 
 _Note_: The values that should be used if the resources have been deployed locally are
 commented in the `values.yaml.example` file. If you do not need to define an optional 
@@ -24,7 +25,7 @@ variable, fill its value with an empty string `""`.
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
   ```
 
-* _registryHost_: The registry host where are the images of the estela modules. If a local
+* _registryHost_: The registry host where the images of the estela modules are. If a local
   registry is being used, do not forget to include the port.
   
 * _awsRegistry_: Set this variable to `true` if the registry is being hosted in AWS.
@@ -45,7 +46,8 @@ The variables that already have an assigned value should not be modified.
 
 * _<DB\_NAME>_: Database name used by the API module.
 
-* _<REGISTRY\_HOST>_: Address of the registry used by the API module.
+* _<REGISTRY\_HOST>_: Address of the registry used by the API module to store the projects.
+  Locally, this value can be equal to the value of _registryHost_ previously defined.
 
 * _<RESPOSITORY\_NAME>_: Name of the image repository used by the API module to store
   the project's images.

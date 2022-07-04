@@ -30,6 +30,9 @@ Extra requirements needed for local installation:
 - Python v3.6.x
 - Minikube >= v1.25.0
 
+For the rest of the installation, open a terminal in the _installation_ folder
+of the cloned [estela repository](https://github.com/bitmakerla/estela).
+
 ## Resources
 
 We must have all the needed resources up and running. Here is the detailed list:
@@ -181,7 +184,7 @@ the namespace every time you use kubectl, you can set `NAMESPACE=default`.
    $ make restart-celery-beat
    ```
 
-   The application is ready!
+The estela application is ready!
 
 ### Uninstalling the Helm application
 
@@ -222,3 +225,20 @@ And stop the application along with all the resources with:
 ```bash
 $ make stop
 ```
+
+If you are using the local resources, specifically MinIO, you need to create a 
+public bucket with the name specified in the _BUCKET\_NAME\_PROJECTS_ variable 
+(defined in the `values.yaml` file).
+
+* Go to the [web dashboard](http://localhost:9001) and login using the default
+  credentials: `minioadmin:minioadmin`.
+  
+* Then, [create a bucket](http://localhost:9001/buckets/add-bucket) using the
+  _BUCKET\_NAME\_PROJECTS_.
+  
+* Now, [create a user](http://localhost:9001/identity/users/add-user) with
+  `deploy_manager` as the User Name. The password is not important.
+  
+* Finally, go to the [bucket's page](http://localhost:9001/buckets), click the
+  _Manage_ button of the newly created bucket, and change the _Access Policy_
+  to _public_.
