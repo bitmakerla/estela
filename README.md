@@ -3,10 +3,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 <h4 align="center">
-estela is an elastic web scraping cluster created by <a href="https://bitmaker.la/">Bitmaker</a>. It allows users
-interested in web scraping to run their spiders (e.g., Scrapy spiders) in an infrastructure that lets them monitor and
-manage their projects more effortlessly, similar to <a href="https://www.zyte.com/scrapy-cloud/">Scrapy Cloud</a>. It
-contains some unique features and functionalities to the point that you can deploy it in-house.
+estela is an elastic web scraping cluster running on Kubernetes. It provides mechanisms to deploy, run and scale
+web scraping spiders via a REST API and a web interface.
 </h4>
 
 <h3>Technologies</h3>
@@ -20,14 +18,12 @@ contains some unique features and functionalities to the point that you can depl
 <h3>Project Structure</h3>
 
 The project consists of three main modules:
-- API: Implements a REST API built with the Django REST framework toolkit, which exposes several endpoints to manage
-    projects, spiders, and jobs. It uses Celery for task processing and takes care of deploying your Scrapy projects,
-    among other things.
-- Queueing: estela needs a high-throughput, low-latency platform that controls real-time data feeds in a
+- REST API (estela-api): built with the Django REST framework toolkit, it exposes several endpoints to manage projects, spiders, and
+    jobs. It uses Celery for task processing and takes care of deploying your Scrapy projects, among other things.
+- Queueing (queueing): estela needs a high-throughput, low-latency platform that controls real-time data feeds in a
     producer-consumer architecture. In this module, you will find a Kafka consumer used to collect and transport the
-    information from the spiders into a database.
-- Web: A front-end project implemented with React Framework (with Ant Design) and Typescript. This module implements a
-    user-friendly environment that communicates with the API and lets you manage your spiders and scraping projects.
+    information from the spider jobs into a database.
+- Web (estela-web): A web interface implemented with React and Typescript that lets you manage projects and spiders.
 
-Each of these modules works independently of the rest and can be changed. Enter each folder to obtain a more detailed
-description of the module.
+Each of these modules works independently of the rest and can be changed. Each module has a more detailed description
+in its corresponding directory.
