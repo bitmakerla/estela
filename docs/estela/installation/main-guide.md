@@ -69,7 +69,7 @@ We must have all the needed resources up and running. Here is the detailed list:
 - **Object Storage Service**:
 
   This storage is used to store the projects deployed from the
-  [estela CLI](https://github.com/bitmakerla/bitmaker-cli).
+  [estela CLI](https://github.com/bitmakerla/estela-cli).
   The storage can be managed by a cloud provider, e.g., [S3](https://aws.amazon.com/s3/),
   or by your local computer, e.g., [MinIO](https://min.io/).
 

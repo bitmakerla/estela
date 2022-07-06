@@ -28,7 +28,7 @@ $ estela create cronjob [OPTIONS] SCHEDULE SID [PID]
 |arg (-a)|Set spider cronjob argument NAME=VALUE (may be repeated)|
 |env (-e)|Set spider cronjob environment variable NAME=VALUE (may be repeated)|
 |tag (-t)|Set spider cronjob tag (may have multiple)|
-|day (-d)|Set number of days data stored (must be a number)|
+|day (-d)|Set for how many days the data of the jobs created from this cronjob will be retained (must be a positive integer)|
 
 ## Examples
 
@@ -39,13 +39,14 @@ $ estela create cronjob -e STAGE=dev -a job_type=products
 
 # Create a cronjob with tag "test", which can be used to later retrieve the cronjob
 # by its tag.
-$ estela create job --tag test
+$ estela create cronjob --tag test
 
-# Create a cronjob with 30 data expiry days
-$ estela create job --day 30
+# Create a cronjob. The jobs created from this cronjob will have their data
+# retained for 30 days after the job creation date.
+$ estela create cronjob --day 30
 ```
 
 ## Related Commands
 
-- [estela create job](https://github.com/bitmakerla/estela/blob/main/docs/estela-cli/commands/create_job.md)
-- [estela create project](https://github.com/bitmakerla/estela/blob/main/docs/estela-cli/commands/create_project.md)
+- [estela create job]({% link estela-cli/commands/create_job.md %})
+- [estela create project]({% link estela-cli/commands/create_project.md %})

@@ -13,7 +13,7 @@ spiders into a database.
 ## Kafka
 
 The project uses a Kafka cluster as its scheduler to transport scraped items into the database. The script
-[`consumer.py`](https://github.com/bitmakerla/bitmaker-cloud/blob/main/bitmaker-kafka/consumer.py)
+[`consumer.py`](https://github.com/bitmakerla/estela/blob/main/queueing/consumer.py)
 was created to perform the task of transporting items from Kafka to the database.
 
 All the configurations for the Kafka cluster on Kubernetes are also provided in the project, allowing upscaling and
