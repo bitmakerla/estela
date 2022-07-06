@@ -31,7 +31,7 @@ The project was thought to work in Kubernetes but can run in any other orchestra
 everything with Celery and models. Suppose you want to run jobs in another orchestrator. In that case, you need to
 define a new engine as a class following a specific structure, such as containing Job and Status inner classes
 according to your needs but respecting base methods. For more details on implementing your Engine, refer to the
-[Engines](https://bitmaker.la/docs/bitmaker-cloud/api/engines.html) section in our official documentation.
+[Engines](https://estela.bitmaker.la/docs/estela/api/engines.html) section in our official documentation.
 
 <h1>Credentials</h1>
 

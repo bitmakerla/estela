@@ -1,0 +1,40 @@
+name: Build and Deploy the Docs
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - docs/**
+  workflow_dispatch:
+
+jobs:
+  build_deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set-up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "2.5.1"
+        bundler-cache: true
+
+    - name: Build Site
+      run: bundle exec jekyll build
+      env:
+        JEKYLL_ENV: production
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+    - name: Deploy to S3 Bucket
+      run: aws s3 sync ./_site/ s3://${{ secrets.AWS_S3_BUCKET_NAME }}/docs/ --delete
+
+    - name: Create Cloudfront Invalidation
+      run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
