@@ -19,7 +19,49 @@
 
 This module introduces users with a friendly interface that interacts with the [estela API 🕷](https://github.com/bitmakerla/estela/tree/main/estela-api)  and lets you manage your spiders and scraping projects.
 
-The module allows users to **CREATE**, **UPDATE** and **DELETE** information and data collected from your spiders. Similar to [estela-cli](https://github.com/bitmakerla/estela-cli) but, with an interactive interface.
+<!-- The module allows users to **CREATE**, **UPDATE** and **DELETE** information and data collected from your spiders. Similar to  but, with an interactive interface. -->
+
+This module allows users to **manage** their scraping projects and data collected from their spiders. This is a graphical alternative to [estela-cli](https://github.com/bitmakerla/estela-cli).
+
+<div align="center">
+
+[Features](https://github.com/bitmakerla/estela/tree/main/estela-web#-getting-started) • 
+[Getting Started](https://github.com/bitmakerla/estela/tree/main/estela-web#-getting-started) • 
+[Components](https://github.com/bitmakerla/estela/tree/main/estela-web#-components) • 
+[Routes](https://github.com/bitmakerla/estela/tree/main/estela-web#-routes) • 
+[Services](https://github.com/bitmakerla/estela/tree/main/estela-web#-services) • 
+[LICENSE]()
+
+</div>
+
+# Features
+
+Run spider projects with
+
+- Platform support
+- Storage support
+- Data Persistence support
+- No Data Loss
+
+# Getting Started
+
+## Install Packages
+```bash
+yarn install
+```
+## Run App
+```bash
+yarn dev
+```
+## Generate Docs
+```bash
+yarn generate-api
+```
+# Components
+
+# Routes
+
+# Services
 
 - <span style="vertical-align: middle"><a href="https://github.com/ant.design">
     <img width="20" src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg">
@@ -29,8 +71,8 @@ The module allows users to **CREATE**, **UPDATE** and **DELETE** information and
     <img width="20" src="https://user-images.githubusercontent.com/109659/40094839-2bc8f2ee-5897-11e8-8092-583c26e4d0df.png">
     </a></span>[**OpenApi**](https://openapi-generator.tech) A Tool that can easily generate documentation from metadata
 
-- <span style="vertical-align: middle"><a href="https://www.typescriptlang.org">
+<!-- - <span style="vertical-align: middle"><a href="https://www.typescriptlang.org">
     <img width="20" src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Typescript_logo_2020.svg">
-    </a></span>[**TypeScript**](https://www.typescriptlang.org) A Strongly **Typed** Programming Language
+    </a></span>[**TypeScript**](https://www.typescriptlang.org) A Strongly **Typed** Programming Language -->
 
 For more information on this module and how to set it up, please refer to our [official documentation 📂](https://bitmaker.la/docs/bitmaker-cloud/web.html).
