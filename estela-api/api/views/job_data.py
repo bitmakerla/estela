@@ -2,11 +2,13 @@ import csv
 import codecs
 
 from django.http.response import JsonResponse, HttpResponse
+from django.db import DatabaseError
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import APIException
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
@@ -15,6 +17,10 @@ from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 
+class DataBaseError(APIException):
+    status_code = 404
+    default_detail = errors.UNABLE_CONNECT_DB
+    default_code = "Unable connect Database"
 
 class JobDataViewSet(
     BaseViewSet,
@@ -171,11 +177,10 @@ class JobDataViewSet(
     def delete(self, request, *args, **kwargs):
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         data_type = request.query_params.get("type")
-        if not spiderdata_db_client.get_connection():
-            return Response(
-                {"error": errors.UNABLE_CONNECT_DB},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        try:
+            spiderdata_db_client.get_connection()
+        except DatabaseError as error:
+           raise DataBaseError()
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
