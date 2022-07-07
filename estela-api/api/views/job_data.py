@@ -2,7 +2,6 @@ import csv
 import codecs
 
 from django.http.response import JsonResponse, HttpResponse
-from django.db import DatabaseError
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
@@ -104,10 +103,7 @@ class JobDataViewSet(
             )
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if not spiderdata_db_client.get_connection():
-            return Response(
-                {"error": errors.UNABLE_CONNECT_DB},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise DataBaseError("ConnectionFailure")
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
@@ -177,10 +173,8 @@ class JobDataViewSet(
     def delete(self, request, *args, **kwargs):
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         data_type = request.query_params.get("type")
-        try:
-            spiderdata_db_client.get_connection()
-        except DatabaseError as error:
-           raise DataBaseError()
+        if not spiderdata_db_client.get_connection():
+           raise DataBaseError("ConnectionFailure")
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
