@@ -38,9 +38,9 @@ This module allows users to **manage** their scraping projects and data collecte
 
 Run spider projects with
 
-- Platform support
-- Storage support
-- Data Persistence support
+- Friendly platform to deploy spiders
+- Storage of data spiders
+- 
 - No Data Loss
 
 # Getting Started
