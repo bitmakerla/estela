@@ -4,6 +4,7 @@
 
 [![version](https://img.shields.io/badge/version-0.1-blue)](https://github.com/bitmakerla/estela)
 [![yarn-version](https://img.shields.io/badge/yarn-v1.22.19-blue)](https://yarnpkg.com)
+[![django-version](https://img.shields.io/badge/Django-v3.1.1-orange)](https://www.djangoproject.com)
 [![build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bitmakerla/estela/actions)
 ![CI](https://github.com/eslint/eslint/workflows/CI/badge.svg)
 [![licene](https://img.shields.io/badge/license-MIT-lightgrey)](https://github.com/bitmakerla/estela/blob/main/LICENSE.md)
