@@ -25,8 +25,8 @@ $ estela create job [OPTIONS] SID [PID]
 |PID (Required)|The project's id. It will use the currently active project by default.|
 |arg (-a)|Set spider job argument NAME=VALUE (may be repeated)|
 |env (-e)|Set spider job environment variable NAME=VALUE (may be repeated)|
-|tag (-t)|Set spider cronjob tag (may have multiple)|
-|day (-d)|Set number of days data stored (must be a number)|
+|tag (-t)|Set spider job tag (may have multiple)|
+|day (-d)|Set for how many days the data from this job will be retained (must be a positive integer)|
 
 ## Examples
 
@@ -39,7 +39,7 @@ $ estela create job -e STAGE=dev -e API_KEY=412dea23 -a job_type=products
 # by its tag.
 $ estela create job --tag test
 
-# Create a cronjob with 30 data expiry days.
+# Create a job. This job's data will be retained for 30 days.
 $ estela create job --day 30
 ```
 

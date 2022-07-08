@@ -68,9 +68,9 @@ The variables that already have an assigned value should not be modified.
 
 * _<BUCKET\_NAME\_PROJECTS>_: Name of the bucket used to store the project files.
 
-* _\<ENGINE\>_: The [engine]() used by the API module.
+* _\<ENGINE\>_: The [engine]({% link estela/api/engines.md %}) used by the API module.
 
-* _\<CREDENTIALS\>_: The [credentials]() used by the API module.
+* _\<CREDENTIALS\>_: The [credentials]({% link estela/api/credentials.md %}) used by the API module.
 
 * _<EMAIL\_HOST>_: Host of the SMTP email server.
 
