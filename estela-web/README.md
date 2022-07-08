@@ -34,7 +34,7 @@ This module allows users to **manage** their scraping projects and data collecte
 
 </div>
 
-# Features
+ # Features
 
 Run spider projects with
 
@@ -56,6 +56,7 @@ yarn dev
 ```bash
 yarn generate-api
 ```
+<!--
 # Components
 
 ## Projects
@@ -93,8 +94,19 @@ yarn generate-api
 `projects/<project-id>/spiders/<spider-id>/cronjobs/<cronjob-id>`
 
 # Services
+<!-- authentication token logo -->
+<!-- swagger services -->
 
-## Create
+<!-- ## Shared
+### Notifications
+### Header
+
+<!-- Mention, for modifications -->
+<!-- Custom notification AntDesign -->
+
+<!-- ### ProjectSidebar --> -->
+
+<!-- ## Create
 #### Projects
 #### Spiders
 #### Jobs
@@ -105,7 +117,7 @@ yarn generate-api
 #### Jobs
 #### Cronjobs
 ## Delete
-#### Data Collected
+#### Data Collected --> -->
 
 - <span style="vertical-align: middle"><a href="https://github.com/ant.design">
     <img width="20" src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg">
