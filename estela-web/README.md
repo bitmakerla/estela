@@ -39,9 +39,8 @@ This module allows users to **manage** their scraping projects and data collecte
 Run spider projects with
 
 - Friendly platform to deploy spiders
-- Storage of data spiders
-- 
-- No Data Loss
+- Monitoring interface
+- All CRUD services to manage spiders
 
 # Getting Started
 
@@ -59,9 +58,54 @@ yarn generate-api
 ```
 # Components
 
+## Projects
+
+
+
+## Spiders
+
+
+
+## Jobs
+
+
+
+## Cronjobs
+
+
+
 # Routes
 
+### Projects
+
+`projects/<project-id>`
+
+### Spiders
+
+`projects/<project-id>/spiders/<spider-id>`
+
+### Jobs
+
+`projects/<project-id>/spiders/<spider-id>/jobs/<job-id>`
+
+### Cronjobs
+
+`projects/<project-id>/spiders/<spider-id>/cronjobs/<cronjob-id>`
+
 # Services
+
+## Create
+#### Projects
+#### Spiders
+#### Jobs
+#### Cronjobs
+## List
+#### Data Collected
+## Update
+#### Jobs
+#### Cronjobs
+## Delete
+#### Data Collected
 
 - <span style="vertical-align: middle"><a href="https://github.com/ant.design">
     <img width="20" src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg">
