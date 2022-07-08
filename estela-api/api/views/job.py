@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from django.shortcuts import get_object_or_404
+from django.core import exceptions
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -193,13 +194,12 @@ class SpiderJobViewSet(
         instance = self.get_object()
         page, page_size = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            return Response(
-                {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         if page < 1:
-            return Response(
-                {"error": errors.INVALID_PAGE_NUMBER},
-                status=status.HTTP_400_BAD_REQUEST,
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         count, logs = get_logs(instance.name, page_size * (page - 1), page_size)
         return Response({"logs": logs, "count": count}, status=status.HTTP_200_OK)

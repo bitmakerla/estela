@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.core import exceptions
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -83,9 +84,8 @@ class DeployViewSet(
     )
     def update(self, request, *args, **kwargs):
         if not request.user.is_superuser:
-            return Response(
-                {"error": errors.INSUFFICIENT_PERMISSIONS.format("Admin")},
-                status=status.HTTP_403_FORBIDDEN,
+            raise exceptions.PermissionDenied(
+                {"error": errors.INSUFFICIENT_PERMISSIONS.format("Admin")}
             )
         partial = kwargs.pop("partial", False)
         instance = self.get_object()

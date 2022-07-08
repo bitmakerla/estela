@@ -2,24 +2,21 @@ import csv
 import codecs
 
 from django.http.response import JsonResponse, HttpResponse
+from django.core import exceptions
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.response import APIException
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
+from api import exceptions
 from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 
-class DataBaseError(APIException):
-    status_code = 404
-    default_detail = errors.UNABLE_CONNECT_DB
-    default_code = "Unable connect Database"
 
 class JobDataViewSet(
     BaseViewSet,
@@ -88,22 +85,22 @@ class JobDataViewSet(
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            return Response(
-                {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         if page_size < 1:
-            return Response(
-                {"error": errors.INVALID_PAGE_NUMBER},
-                status=status.HTTP_400_BAD_REQUEST,
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         if data_type not in self.JOB_DATA_TYPES:
-            return Response(
-                {"error": errors.INVALID_JOB_DATA_TYPE},
-                status=status.HTTP_400_BAD_REQUEST,
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if not spiderdata_db_client.get_connection():
-            raise DataBaseError("ConnectionFailure")
+            raise exceptions.DataBaseError(
+                {"error": errors.UNABLE_CONNECT_DB}
+            )
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
@@ -174,7 +171,9 @@ class JobDataViewSet(
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
-           raise DataBaseError("ConnectionFailure")
+           raise exceptions.DataBaseError(
+                {"error": errors.UNABLE_CONNECT_DB}
+            )
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection

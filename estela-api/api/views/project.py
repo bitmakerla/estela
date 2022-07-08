@@ -1,3 +1,4 @@
+from django.core import exceptions
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -112,13 +113,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         page, page_size = self.get_parameters(request)
 
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            return Response(
-                {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         if page < 1:
-            return Response(
-                {"error": errors.INVALID_PAGE_NUMBER},
-                status=status.HTTP_400_BAD_REQUEST,
+            raise exceptions.ValidationError(
+                {"error": errors.INVALID_PAGE_SIZE}
             )
         spider_set = Spider.objects.filter(project=kwargs["pid"])
         sid_set = spider_set.values_list("pk", flat=True)
