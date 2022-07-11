@@ -1,10 +1,10 @@
-from django.core import exceptions
 from django.core.paginator import Paginator
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import MethodNotAllowed, NotFound, ParseError
 
 from api import errors
 from api.mixins import BaseViewSet
@@ -74,11 +74,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                     ):
                         instance.users.remove(user)
                     else:
-                        raise exceptions.BadRequest(
+                        raise MethodNotAllowed(
                             {"error": "User cannot be removed."}
                         )
             else:
-                raise exceptions.BadRequest(
+                raise NotFound(
                     {"email": "User does not exist."}
                 )
         serializer.save()
@@ -111,11 +111,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         page, page_size = self.get_parameters(request)
 
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            raise exceptions.ValidationError(
+            raise ParseError(
                 {"error": errors.INVALID_PAGE_SIZE}
             )
         if page < 1:
-            raise exceptions.ValidationError(
+            raise ParseError(
                 {"error": errors.INVALID_PAGE_SIZE}
             )
         spider_set = Spider.objects.filter(project=kwargs["pid"])

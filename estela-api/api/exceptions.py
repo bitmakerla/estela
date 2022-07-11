@@ -1,4 +1,4 @@
-from rest_framework.response import APIException
+from rest_framework.exceptions import APIException
 
 from api import errors
 

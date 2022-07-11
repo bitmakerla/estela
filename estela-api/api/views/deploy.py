@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
-from django.core import exceptions
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, APIException, PermissionDenied
 
 from api.mixins import BaseViewSet
 from api.serializers.deploy import (
@@ -52,7 +52,7 @@ class DeployViewSet(
         serializer.save(project=project, user=user)
 
         if not project_zip:
-            raise exceptions.BadRequest(
+            raise NotFound(
                 {"error": "Project zip not found"}
             )
 
@@ -62,7 +62,7 @@ class DeployViewSet(
         )
 
         if error:
-            raise exceptions.RequestAborted(
+            raise APIException(
                 {"error": error}
             )
 
@@ -82,7 +82,7 @@ class DeployViewSet(
     )
     def update(self, request, *args, **kwargs):
         if not request.user.is_superuser:
-            raise exceptions.PermissionDenied(
+            raise PermissionDenied(
                 {"error": errors.INSUFFICIENT_PERMISSIONS.format("Admin")}
             )
         partial = kwargs.pop("partial", False)

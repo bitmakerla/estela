@@ -2,16 +2,16 @@ import csv
 import codecs
 
 from django.http.response import JsonResponse, HttpResponse
-from django.core import exceptions
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.response import Response
+from rest_framework.exceptions import ParseError
 from rest_framework.decorators import action
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
-from api import exceptions
+from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
@@ -85,20 +85,20 @@ class JobDataViewSet(
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            raise exceptions.ValidationError(
+            raise ParseError(
                 {"error": errors.INVALID_PAGE_SIZE}
             )
         if page_size < 1:
-            raise exceptions.ValidationError(
+            raise ParseError(
                 {"error": errors.INVALID_PAGE_SIZE}
             )
         if data_type not in self.JOB_DATA_TYPES:
-            raise exceptions.ValidationError(
+            raise ParseError(
                 {"error": errors.INVALID_PAGE_SIZE}
             )
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if not spiderdata_db_client.get_connection():
-            raise exceptions.DataBaseError(
+            raise DataBaseError(
                 {"error": errors.UNABLE_CONNECT_DB}
             )
         if (
@@ -171,7 +171,7 @@ class JobDataViewSet(
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
-           raise exceptions.DataBaseError(
+            raise DataBaseError(
                 {"error": errors.UNABLE_CONNECT_DB}
             )
         if (
