@@ -74,14 +74,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                     ):
                         instance.users.remove(user)
                     else:
-                        return Response(
-                            {"error": "User cannot be removed."},
-                            status=status.HTTP_403_FORBIDDEN,
+                        raise exceptions.BadRequest(
+                            {"error": "User cannot be removed."}
                         )
             else:
-                return Response(
-                    {"email": "User does not exist."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                raise exceptions.BadRequest(
+                    {"email": "User does not exist."}
                 )
         serializer.save()
 

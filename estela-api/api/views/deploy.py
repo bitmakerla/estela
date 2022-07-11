@@ -52,9 +52,8 @@ class DeployViewSet(
         serializer.save(project=project, user=user)
 
         if not project_zip:
-            return Response(
-                {"error": "Project zip not found"},
-                status=status.HTTP_400_BAD_REQUEST,
+            raise exceptions.BadRequest(
+                {"error": "Project zip not found"}
             )
 
         # Upload project to S3
@@ -63,9 +62,8 @@ class DeployViewSet(
         )
 
         if error:
-            return Response(
-                {"error": error},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            raise exceptions.RequestAborted(
+                {"error": error}
             )
 
         # Launch Job to build Project

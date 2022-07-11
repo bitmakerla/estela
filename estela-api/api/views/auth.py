@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
+from django.core import exceptions
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from api.tokens import account_activation_token
@@ -44,9 +45,8 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         if user and not user.get().is_active:
             user = user.get()
             self.retry_send_verification_email(user, request)
-            return Response(
-                {"error": "Check the verification email that was sent to you."},
-                status=status.HTTP_401_UNAUTHORIZED,
+            raise exceptions.BadRequest(
+                {"error": "Check the verification email that was sent to you."}
             )
 
         serializer.is_valid(raise_exception=True)
@@ -61,9 +61,8 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     @action(methods=["POST"], detail=False, serializer_class=UserSerializer)
     def register(self, request, *args, **kwargs):
         if not settings.REGISTER == "True":
-            return Response(
-                {"error": "This action is disabled"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            raise exceptions.MethodNotAllowed(
+                {"error": "This action is disabled"}
             )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -74,11 +73,10 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         try:
             send_verification_email(user, request)
         except Exception as ex:
-            return Response(
+            raise exceptions.RequestAborted(
                 {
                     "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
