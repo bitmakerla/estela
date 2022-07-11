@@ -1,13 +1,28 @@
 <h1 align="center">estela</h1>
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![version](https://img.shields.io/badge/version-0.1-blue)](https://github.com/bitmakerla/estela)
-[![yarn-version](https://img.shields.io/badge/yarn-v1.22.19-blue)](https://yarnpkg.com)
-[![django-version](https://img.shields.io/badge/Django-v3.1.1-orange)](https://www.djangoproject.com)
-[![build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bitmakerla/estela/actions)
-![CI](https://github.com/eslint/eslint/workflows/CI/badge.svg)
-[![license](https://img.shields.io/badge/license-MIT-lightgrey)](https://github.com/bitmakerla/estela/blob/main/LICENSE.md)
-
+<div align="center">
+  <a href="https://github.com/bitmakerla/estela">
+    <img src="https://img.shields.io/badge/version-0.1-blue">
+  </a>
+  <a href="https://yarnpkg.com">
+    <img src="https://img.shields.io/badge/yarn-v1.22.19-blue">
+  </a>
+  <a href="https://www.djangoproject.com">
+    <img src="https://img.shields.io/badge/Django-v3.1.1-orange">
+  </a>
+  <a href="https://github.com/bitmakerla/estela/actions">
+    <img src="https://img.shields.io/badge/build-passing-brightgreen">
+  </a>
+  <a href="">
+    <img src="https://github.com/eslint/eslint/workflows/CI/badge.svg">
+  </a>
+  <a href="https://github.com/bitmakerla/estela/blob/main/LICENSE.md">
+    <img src="https://img.shields.io/badge/license-MIT-lightgrey">
+  </a>
+  <a href="https://github.com/psf/black">
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg">
+  </a>
+</div>
 
 <h4 align="center">
 <strong>estela</strong> is an elastic web scraping cluster running on Kubernetes. It provides mechanisms to deploy, run and scale
