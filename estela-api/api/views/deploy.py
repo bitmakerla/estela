@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.exceptions import ParseError, APIException, PermissionDenied
 
 from api.mixins import BaseViewSet
 from api.serializers.deploy import (
@@ -52,10 +52,7 @@ class DeployViewSet(
         serializer.save(project=project, user=user)
 
         if not project_zip:
-            return Response(
-                {"error": "Project zip not found"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ParseError({"error": "Project zip not found"})
 
         # Upload project to S3
         error = credentials.upload_project(
@@ -63,16 +60,12 @@ class DeployViewSet(
         )
 
         if error:
-            return Response(
-                {"error": error},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            raise APIException({"error": error})
 
         # Launch Job to build Project
         launch_deploy_job(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
-        ##############################
 
         headers = self.get_success_headers(serializer.data)
         return Response(
@@ -85,9 +78,8 @@ class DeployViewSet(
     )
     def update(self, request, *args, **kwargs):
         if not request.user.is_superuser:
-            return Response(
-                {"error": errors.INSUFFICIENT_PERMISSIONS.format("Admin")},
-                status=status.HTTP_403_FORBIDDEN,
+            raise PermissionDenied(
+                {"error": errors.INSUFFICIENT_PERMISSIONS.format("Admin")}
             )
         partial = kwargs.pop("partial", False)
         instance = self.get_object()

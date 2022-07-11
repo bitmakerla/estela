@@ -12,10 +12,12 @@ from django.utils.http import urlsafe_base64_decode
 from api.tokens import account_activation_token
 from django.contrib.auth.models import User
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.conf import settings
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
 
+from api.exceptions import EmailServiceError
 from api.serializers.auth import TokenSerializer, UserSerializer
 from core.views import send_verification_email
 
@@ -44,9 +46,8 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         if user and not user.get().is_active:
             user = user.get()
             self.retry_send_verification_email(user, request)
-            return Response(
-                {"error": "Check the verification email that was sent to you."},
-                status=status.HTTP_401_UNAUTHORIZED,
+            raise PermissionDenied(
+                {"error": "Check the verification email that was sent to you."}
             )
 
         serializer.is_valid(raise_exception=True)
@@ -61,10 +62,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     @action(methods=["POST"], detail=False, serializer_class=UserSerializer)
     def register(self, request, *args, **kwargs):
         if not settings.REGISTER == "True":
-            return Response(
-                {"error": "This action is disabled"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
+            raise MethodNotAllowed({"error": "This action is disabled"})
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -74,11 +72,10 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         try:
             send_verification_email(user, request)
         except Exception as ex:
-            return Response(
+            raise EmailServiceError(
                 {
                     "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)

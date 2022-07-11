@@ -4,6 +4,7 @@ from drf_yasg import openapi
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied, NotFound, ParseError
 
 from api import errors
 from api.mixins import BaseViewSet
@@ -73,15 +74,9 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                     ):
                         instance.users.remove(user)
                     else:
-                        return Response(
-                            {"error": "User cannot be removed."},
-                            status=status.HTTP_403_FORBIDDEN,
-                        )
+                        raise PermissionDenied({"error": "User cannot be removed."})
             else:
-                return Response(
-                    {"email": "User does not exist."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                raise NotFound({"email": "User does not exist."})
         serializer.save()
 
         headers = self.get_success_headers(serializer.data)
@@ -112,14 +107,9 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         page, page_size = self.get_parameters(request)
 
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            return Response(
-                {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page < 1:
-            return Response(
-                {"error": errors.INVALID_PAGE_NUMBER},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         spider_set = Spider.objects.filter(project=kwargs["pid"])
         sid_set = spider_set.values_list("pk", flat=True)
         jobs_set = SpiderJob.objects.filter(spider__in=sid_set)

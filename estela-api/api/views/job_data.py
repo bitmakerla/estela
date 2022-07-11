@@ -1,4 +1,3 @@
-import json
 import csv
 import codecs
 
@@ -7,10 +6,12 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.response import Response
+from rest_framework.exceptions import ParseError
 from rest_framework.decorators import action
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
+from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
@@ -84,25 +85,14 @@ class JobDataViewSet(
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            return Response(
-                {"error": errors.INVALID_PAGE_SIZE}, status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page_size < 1:
-            return Response(
-                {"error": errors.INVALID_PAGE_NUMBER},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if data_type not in self.JOB_DATA_TYPES:
-            return Response(
-                {"error": errors.INVALID_JOB_DATA_TYPE},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if not spiderdata_db_client.get_connection():
-            return Response(
-                {"error": errors.UNABLE_CONNECT_DB},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
@@ -168,16 +158,12 @@ class JobDataViewSet(
             ),
         ],
     )
-
     @action(methods=["POST"], detail=False)
     def delete(self, request, *args, **kwargs):
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
-            return Response(
-                {"error": errors.UNABLE_CONNECT_DB},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
