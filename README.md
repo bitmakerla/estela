@@ -1,7 +1,6 @@
 <h1 align="center">estela</h1>
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
 [![version](https://img.shields.io/badge/version-0.1-blue)](https://github.com/bitmakerla/estela)
 [![yarn-version](https://img.shields.io/badge/yarn-v1.22.19-blue)](https://yarnpkg.com)
 [![django-version](https://img.shields.io/badge/Django-v3.1.1-orange)](https://www.djangoproject.com)
