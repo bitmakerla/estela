@@ -7,11 +7,11 @@
 [![django-version](https://img.shields.io/badge/Django-v3.1.1-orange)](https://www.djangoproject.com)
 [![build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/bitmakerla/estela/actions)
 ![CI](https://github.com/eslint/eslint/workflows/CI/badge.svg)
-[![licene](https://img.shields.io/badge/license-MIT-lightgrey)](https://github.com/bitmakerla/estela/blob/main/LICENSE.md)
+[![license](https://img.shields.io/badge/license-MIT-lightgrey)](https://github.com/bitmakerla/estela/blob/main/LICENSE.md)
 
 
 <h4 align="center">
-<strong>estela</strong> is an elastic web scraping cluster running on <a>Kubernetes</a>. It provides mechanisms to deploy, run and scale
+<strong>estela</strong> is an elastic web scraping cluster running on Kubernetes. It provides mechanisms to deploy, run and scale
 web scraping spiders via a REST API and a web interface.
 </h4>
 
