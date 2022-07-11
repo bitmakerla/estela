@@ -112,7 +112,7 @@ class SpiderJobViewSet(
             date_str = request.data.pop("data_expiry_days", date.today() + timedelta(1))
             data_expiry_days = self.date_to_days(date_str)
             if data_expiry_days < 1:
-                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                raise ParseError({"error": "Invalid data expiry days value."})
         else:
             data_expiry_days = None
 
@@ -194,12 +194,8 @@ class SpiderJobViewSet(
         instance = self.get_object()
         page, page_size = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            raise ParseError(
-                {"error": errors.INVALID_PAGE_SIZE}
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page < 1:
-            raise ParseError(
-                {"error": errors.INVALID_PAGE_SIZE}
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         count, logs = get_logs(instance.name, page_size * (page - 1), page_size)
         return Response({"logs": logs, "count": count}, status=status.HTTP_200_OK)

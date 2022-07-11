@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, APIException, PermissionDenied
+from rest_framework.exceptions import ParseError, APIException, PermissionDenied
 
 from api.mixins import BaseViewSet
 from api.serializers.deploy import (
@@ -52,9 +52,7 @@ class DeployViewSet(
         serializer.save(project=project, user=user)
 
         if not project_zip:
-            raise NotFound(
-                {"error": "Project zip not found"}
-            )
+            raise ParseError({"error": "Project zip not found"})
 
         # Upload project to S3
         error = credentials.upload_project(
@@ -62,9 +60,7 @@ class DeployViewSet(
         )
 
         if error:
-            raise APIException(
-                {"error": error}
-            )
+            raise APIException({"error": error})
 
         # Launch Job to build Project
         launch_deploy_job(

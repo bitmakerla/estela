@@ -85,22 +85,14 @@ class JobDataViewSet(
     def list(self, request, *args, **kwargs):
         page, data_type, mode, page_size, export_format = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            raise ParseError(
-                {"error": errors.INVALID_PAGE_SIZE}
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page_size < 1:
-            raise ParseError(
-                {"error": errors.INVALID_PAGE_SIZE}
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if data_type not in self.JOB_DATA_TYPES:
-            raise ParseError(
-                {"error": errors.INVALID_PAGE_SIZE}
-            )
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if not spiderdata_db_client.get_connection():
-            raise DataBaseError(
-                {"error": errors.UNABLE_CONNECT_DB}
-            )
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
@@ -171,9 +163,7 @@ class JobDataViewSet(
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
-            raise DataBaseError(
-                {"error": errors.UNABLE_CONNECT_DB}
-            )
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection

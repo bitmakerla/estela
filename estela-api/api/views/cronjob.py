@@ -4,6 +4,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
@@ -71,7 +72,7 @@ class SpiderCronJobViewSet(
             date_str = request.data.pop("data_expiry_days", "0/1")
             data_expiry_days = self.get_days(date_str)
             if data_expiry_days < 1:
-                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                raise ParseError({"error": "Invalid data expiry days value."})
         else:
             data_expiry_days = None
 
