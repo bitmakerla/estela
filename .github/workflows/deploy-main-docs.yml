@@ -22,6 +22,16 @@ jobs:
         bundler-cache: true
         working-directory: "./docs/"
 
+    - name: Build Swagger Documentation
+      uses: seeebiii/redoc-cli-github-action@v10
+      with:
+        args: 'build ./estela-api/docs/api.yaml --options=\'{"hideDownloadButton": true}\''
+
+    - name: Add Swagger to Docs
+      run: |
+        echo "---\ntitle: Endpoints\nparent: API\ngrand_parent: estela\n---\n" > docs/estela/api/endpoints.html && echo | cat redoc-static.html >> docs/estela/api/endpoints.html
+        rm redoc-static.html
+
     - name: Build Site
       run: |
         cd ./docs
