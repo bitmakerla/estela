@@ -16,8 +16,9 @@ $ bundle install
 ```
 Build the swagger specification
 ```bash
-$ redoc-cli build ../estela-api/docs/api.yaml --options='{"hideDownloadButton": true}'
-$ echo "---\ntitle: Endpoints\nparent: API\ngrand_parent: estela\n---" > ./estela/api/endpoints.html && echo | cat redoc-static.html >> ./estela/api/endpoints.html
+$ redoc-cli build ../estela-api/docs/api.yaml -t assets/swagger-template.hbs --options.hideDownloadButton
+$ echo "---\ntitle: Endpoints\nparent: API\ngrand_parent: estela\n---" > ./estela/api/endpoints.html
+$ echo | cat redoc-static.html >> ./estela/api/endpoints.html
 $ rm redoc-static.html
 ```
 Then, build and run the site
