@@ -23,14 +23,10 @@ jobs:
         bundler-cache: true
         working-directory: "./docs/"
 
-    - name: Set-up node
-      uses: actions/setup-node@v3
-      with:
-        node-version: 17
-        cache: "yarn"
-
     - name: Install redoc-cli
-      run: yarn global add redoc-cli@0.13.16
+      run: |
+        yarn global add redoc-cli@0.13.16
+        echo "$(yarn global bin)" >> $GITHUB_PATH
 
     - name: Build Swagger Documentation
       run: redoc-cli build ./estela-api/docs/api.yaml -t ./docs/assets/swagger-template.hbs --options.hideDownloadButton
