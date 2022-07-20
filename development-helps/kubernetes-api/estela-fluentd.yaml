@@ -47,7 +47,7 @@ data:
     <match kubernetes.var.log.containers.**jobcontainer**.log>
       @type kafka2
       @id out_kafka2
-      brokers kafka-0.kafka-hs.default.svc.cluster.local:9092,kafka-1.kafka-hs.default.svc.cluster.local:9092,kafka-2.kafka-hs.default.svc.cluster.local:9092
+      brokers kafka-0.kafka-hs.default.svc.cluster.local:9092
       default_topic "job_logs"
       get_kafka_client_log true
       max_send_retries 1
