@@ -34,9 +34,10 @@ jobs:
     - name: Add Swagger to Docs
       run: |
         ls -al
-        echo "---\ntitle: Endpoints\nparent: API\ngrand_parent: estela\n---" > docs/estela/api/endpoints.html
-        echo | cat redoc-static.html >> docs/estela/api/endpoints.html
-        rm redoc-static.html
+        rm ./docs/estela/api/endpoints.html
+        echo "---\ntitle: Endpoints\nparent: API\ngrand_parent: estela\n---" > ./docs/estela/api/endpoints.html
+        echo | cat ./redoc-static.html >> ./docs/estela/api/endpoints.html
+        rm ./redoc-static.html
 
     - name: Build Site
       run: |
