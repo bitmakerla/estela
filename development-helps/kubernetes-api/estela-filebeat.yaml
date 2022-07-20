@@ -2,159 +2,164 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: filebeat-config
+  name: fluentdconf
   namespace: kube-system
-  labels:
-    k8s-app: filebeat
 data:
-  filebeat.yml: |-
-    filebeat.inputs:
-    - type: container
-      exclude_lines: ['kafka']
-      multiline:
-        pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
-        negate: true
-        match: after
-      paths:
-        - /var/log/containers/*.log
-      processors:
-        - add_kubernetes_metadata:
-            host: ${NODE_NAME}
-            matchers:
-            - logs_path:
-                logs_path: "/var/log/containers/"
-        - drop_event:
-            when:
-              or:
-                - not:
-                    has_fields: ['kubernetes.container.name']
-                - not:
-                    equals:
-                      kubernetes.container.name: "jobcontainer"
-    processors:
-      - add_cloud_metadata:
-      - add_host_metadata:
-    output.elasticsearch:
-      hosts: ['${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}']
-      username: ${ELASTICSEARCH_USERNAME}
-      password: ${ELASTICSEARCH_PASSWORD}
-      protocol: https
-    setup.ilm.enabled: false
-    setup.pack.security.enabled: false
-    setup.xpack.graph.enabled: false
-    setup.xpack.watcher.enabled: false
-    setup.xpack.monitoring.enabled: false
-    setup.xpack.reporting.enabled: false
+  fluent.conf: |
+    <source>
+        @type tail
+        @id in_tail_container_logs
+        path "/var/log/containers/*.log"
+        pos_file "/var/log/fluentd-containers.log.pos"
+        tag "kubernetes.*"
+        exclude_path []
+        read_from_head true
+        <parse>
+            @type "/^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/"
+            time_format "%Y-%m-%dT%H:%M:%S.%NZ"
+            unmatched_lines 
+            expression ^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$
+            ignorecase false
+            multiline false
+        </parse>
+    </source>
+
+    <match fluent.**>
+        @type null
+    </match>
+
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+      skip_container_metadata true
+      skip_master_url true
+      skip_namespace_metadata true
+      skip_labels true
+    </filter>
+
+    <match kubernetes.var.log.containers.**fluentd**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**jobcontainer**.log>
+      @type kafka2
+      @id out_kafka2
+      brokers kafka-0.kafka-hs.default.svc.cluster.local:9092,kafka-1.kafka-hs.default.svc.cluster.local:9092,kafka-2.kafka-hs.default.svc.cluster.local:9092
+      default_topic "job_logs"
+      get_kafka_client_log true
+      max_send_retries 1
+      required_acks -1
+      max_send_limit_bytes 100000000
+      compression_codec "gzip"
+      ack_timeout
+      discard_kafka_delivery_failed false
+      share_producer true
+      <format>
+          @type "json"
+      </format>
+    </match>
 ---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: filebeat
+  name: fluentd
   namespace: kube-system
   labels:
-    k8s-app: filebeat
+    k8s-app: fluentd-logging
+    version: v1
+    kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
-      k8s-app: filebeat
+      k8s-app: fluentd-logging
   template:
     metadata:
       labels:
-        k8s-app: filebeat
+        k8s-app: fluentd-logging
+        version: v1
+        kubernetes.io/cluster-service: "true"
     spec:
-      serviceAccountName: filebeat
-      terminationGracePeriodSeconds: 30
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
       containers:
-      - name: filebeat
-        image: docker.elastic.co/beats/filebeat-oss:7.10.2
-        args: [
-          "-c",
-          "/etc/filebeat.yml",
-          "-e",
-        ]
-        envFrom:
-        - secretRef:
-            name: filebeat-secrets
-        - configMapRef:
-            name: filebeat-configmap
+      - name: fluentd
+        image: fluent/fluentd-kubernetes-daemonset:v1.11-debian-kafka2-1
         env:
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        securityContext:
-          runAsUser: 0
+        - name:  FLUENT_KAFKA_BROKERS
+          value: "kafka-1.kafka-hs.default.svc.cluster.local:9092"
+        - name:  FLUENT_KAFKA_DEFAULT_TOPIC
+          value: "job_logs"
+        - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+          value: /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
+        - name: FLUENT_KAFKA_COMPRESSION_CODEC
+          value: "gzip"
+        - name: FLUENT_KAFKA_MAX_SEND_LIMIT_BYTES
+          value: "1000000"
+        - name: FLUENT_KAFKA_REQUIRED_ACKS
+          value: "1"
+        - name: K8S_NODE_NAME
+          value: "bitmaker-workers"
         resources:
           limits:
             memory: 200Mi
           requests:
             cpu: 100m
-            memory: 100Mi
+            memory: 200Mi
         volumeMounts:
-        - name: config
-          mountPath: /etc/filebeat.yml
-          readOnly: true
-          subPath: filebeat.yml
-        - name: data
-          mountPath: /usr/share/filebeat/data
+        - name: fluentconfig
+          mountPath: /fluentd/etc/
+        - name: varlog
+          mountPath: /var/log
         - name: varlibdockercontainers
           mountPath: /var/lib/docker/containers
           readOnly: true
-        - name: varlog
-          mountPath: /var/log
-          readOnly: true
+      terminationGracePeriodSeconds: 30
       volumes:
-      - name: config
+      - name: fluentconfig
         configMap:
-          defaultMode: 0640
-          name: filebeat-config
-      - name: varlibdockercontainers
-        hostPath:
-          path: /var/lib/docker/containers
+          name: fluentdconf
       - name: varlog
         hostPath:
           path: /var/log
-      - name: data
-        hostPath:
-          path: /var/lib/filebeat-data
-          type: DirectoryOrCreate
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: filebeat
-subjects:
-- kind: ServiceAccount
-  name: filebeat
-  namespace: kube-system
-roleRef:
-  kind: ClusterRole
-  name: filebeat
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: filebeat
-  labels:
-    k8s-app: filebeat
-rules:
-- apiGroups: [""]
-  resources:
-  - namespaces
-  - pods
-  verbs:
-  - get
-  - watch
-  - list
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: filebeat
+  name: fluentd
   namespace: kube-system
-  labels:
-    k8s-app: filebeat
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fluentd
+  namespace: kube-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluentd
+roleRef:
+  kind: ClusterRole
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: fluentd
+  namespace: kube-system
 
