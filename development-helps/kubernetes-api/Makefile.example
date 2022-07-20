@@ -33,7 +33,7 @@ setup: build-api-image upload-api-image
 	-kubectl apply -f config/kubernetes/estela-api-services.yaml
 	-kubectl apply -f config/kubernetes/estela-api-configmaps.yaml
 	-kubectl apply -f config/kubernetes/aws-registry-cronjob.yaml
-	-kubectl apply -f config/kubernetes/estela-filebeat.yaml
+	-kubectl apply -f config/kubernetes/estela-fluentd.yaml
 	-kubectl apply -f config/kubernetes/estela-api-deployments.yaml
 	-kubectl set image deployment/estela-django-api estela-django-api=$(REGISTRY_HOST)/estela-django-api:$(DEVTAG)
 

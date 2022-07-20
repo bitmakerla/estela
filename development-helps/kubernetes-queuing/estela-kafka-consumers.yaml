@@ -92,7 +92,7 @@ spec:
       - name: consumer
         image: 192.168.49.1:5000/estela-consumer
         imagePullPolicy: Always
-        command: ['python', 'consumer.py', 'job_logs']
+        command: ['python', 'consumer.py', 'job_stats']
         env:
         - name: KAFKA_ADVERTISED_PORT
           value: "9092"
