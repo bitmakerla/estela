@@ -51,7 +51,7 @@ class SpiderCronJobViewSet(
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=False,
-                description="Cronjob tag",
+                description="Cron job tag.",
             ),
         ],
     )

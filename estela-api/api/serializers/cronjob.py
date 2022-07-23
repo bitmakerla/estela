@@ -13,9 +13,18 @@ from core.cronjob import enable_cronjob, disable_cronjob, update_schedule
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):
-    cargs = SpiderJobArgSerializer(many=True, required=False)
-    cenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
-    ctags = SpiderJobTagSerializer(many=True, required=False)
+    cargs = SpiderJobArgSerializer(
+        many=True, required=False, help_text="Cron job arguments."
+    )
+    cenv_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Cron job env variables."
+    )
+    ctags = SpiderJobTagSerializer(
+        many=True, required=False, help_text="Cron job tags."
+    )
+    name = serializers.CharField(
+        required=False, read_only=True, help_text="Unique cron job name."
+    )
 
     class Meta:
         model = SpiderCronJob
@@ -36,11 +45,22 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
 
 
 class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
-    cargs = SpiderJobArgSerializer(many=True, required=False)
-    cenv_vars = SpiderJobEnvVarSerializer(many=True, required=False)
-    ctags = SpiderJobTagSerializer(many=True, required=False)
-    data_status = serializers.CharField(required=True)
-    data_expiry_days = serializers.CharField(required=False)
+    cargs = SpiderJobArgSerializer(
+        many=True, required=False, help_text="Cron job arguments."
+    )
+    cenv_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Cron job env variables."
+    )
+    ctags = SpiderJobTagSerializer(
+        many=True, required=False, help_text="Cron job tags."
+    )
+    data_status = serializers.CharField(required=True, help_text="Data status.")
+    data_expiry_days = serializers.CharField(
+        required=False, help_text="Days before data expires."
+    )
+    name = serializers.CharField(
+        required=False, read_only=True, help_text="Unique cron job name."
+    )
 
     def validate(self, attrs):
         attrs = super(SpiderCronJobCreateSerializer, self).validate(attrs)
