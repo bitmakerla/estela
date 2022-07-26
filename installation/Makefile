@@ -26,7 +26,10 @@ resources:
 	-minikube delete
 	-. ./.env && minikube start \
 	           --feature-gates="TTLAfterFinished=true" \
-		   --insecure-registry $${HOST_REGISTRY}
+		   --insecure-registry=[$${HOST_REGISTRY}] \
+		   --cpus="2" \
+                   --memory="2500mb" \
+		   --disk-size="20000mb"
 	-minikube addons enable metrics-server
 
 

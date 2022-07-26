@@ -229,6 +229,7 @@ and the resources with:
 
 ```bash
 $ make start
+$ minikube tunnel # Run this in another terminal
 ```
 
 And stop the application along with all the resources with:
