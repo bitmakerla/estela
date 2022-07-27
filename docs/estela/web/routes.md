@@ -1,23 +1,10 @@
 ---
 layout: page
-title: Services
-parent: Routes
+title: Routes
+parent: Web
 grand_parent: estela
 ---
 
 # Routes
-
-Each **route** is related to one component in **estela**
-For more information about components see [Components]({% link estela/web/components.md %})
-
-### Projects
-`projects/<project-id>`
-
-### Spiders
-`projects/<project-id>/spiders/<spider-id>`
-
-### Jobs
-`projects/<project-id>/spiders/<spider-id>/jobs/<job-id>`
-
-### Cronjobs
-`projects/<project-id>/spiders/<spider-id>/cronjobs/<cronjob-id>`
+Each **route** is related to a corresponding estela API endpoint. The routes index can be found [here](https://github.com/bitmakerla/estela/blob/main/estela-web/src/routes/index.tsx).
+For more information on the available endpoints, see [estela API documentation](https://estela.bitmaker.la/docs/estela/api/endpoints.html).

@@ -6,18 +6,27 @@ grand_parent: estela
 ---
 
 # Components
+estela has five important general categories of **components**:
 
-estela has four important **components** :
+## Auth
+estela web contains components to log in and to register. When registering, the user will need to verify their email before being allowed to log in.
 
 ## Projects 🗄
-Is the bigger component in estela, It represents the organization or schema in which every group user belong. The **Project** contain **Spiders** and **Jobs**
+Projects work like a container for spiders and jobs, and essentially represent a scraping project per se. The **Project** contains **Spiders** and **Jobs**.
+estela web contains components for the creation, detail, and list view of projects.
 
 ## Spiders 🕷
-An **Spider** is a class that define a scraped's method for a website. A project can contain several **spider**.
+A **Spider** is a class that defines a class with methods to scrape a website. A project can contain several **spiders**.
+estela web contains components for the detail and list view of spiders per project. Creating spiders is not something manual
+in the frontend, and must be done via [estela-cli](https://github.com/bitmakerla/estela-cli) by deploying a project. The project's spiders will then appear
+in the graphical interface for the project.
 
 ## Jobs 📂
-A **Job** is an instance of an spider that will be run, the **job** record and storage every data founded
+A **Job** is an instance of an spider that will be run. The **job** records and stores the data extracted by the spider.
+estela web contains components for the creation, detail, list view of jobs per spider, and list view of jobs per project.
 
-## Cronjobs 🗓
+## Cron jobs 🗓
 
-A **Cronjob** define a **PeriodicTask**, this scheduler is in charge to launh job avery time the task is scheduled
+A **cron job** defines a **PeriodicTask** that will be run in the API. The scheduler is in charge to launch a job on schedule.
+estela web contains components for the creation, detail, and list view of cron jobs per spider.
+
