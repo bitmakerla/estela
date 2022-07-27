@@ -33,7 +33,7 @@ Docker image's name in the AWS registry. This file will also
 the Python version, requirements file path, and files to ignore when deploying (like
 your virtual environment).
 
-Alternatively, suppose you created the project via the [web interface]({% link estela/web.md %}).
+Alternatively, suppose you created the project via the [web interface]({% link estela/web/web.md %}).
 In that case, you can directly use the `estela init <project_id>` command with the project ID that you can
 find on the project detail page.
 
