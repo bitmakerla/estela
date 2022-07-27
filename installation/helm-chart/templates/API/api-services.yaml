@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: estela-django-api-service
+  labels:
+    app: estela-django-api
+spec:
+  ports:
+  - port: 80
+    targetPort: 8000
+    name: estela-django-api-port
+    protocol: TCP
+  selector:
+    app: estela-django-api
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: database
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+    protocol: TCP
+---
+{{- if .Values.local }}
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: database
+subsets:
+  - addresses:
+    - ip: {{ .Values.hostIp }}
+    ports:
+    - port: 3306
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: storage
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+---
+{{- if .Values.local }}
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: storage
+subsets:
+  - addresses:
+    - ip: {{ .Values.hostIp }}
+    ports:
+    - port: 9000
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: estela-celery-beat-service
+  labels:
+    app: estela-celery-beat
+spec:
+  ports:
+  - port: 8000
+    name: estela-celery-beat-port
+    protocol: TCP
+  selector:
+    app: estela-celery-beat
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: estela-celery-worker-service
+  labels:
+    app: estela-celery-worker
+spec:
+  ports:
+  - port: 8000
+    name: estela-celery-worker-port
+    protocol: TCP
+  selector:
+    app: estela-celery-worker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: estela-redis-service
+  labels:
+    app: estela-redis
+spec:
+  ports:
+  - port: 6379
+    name:  estela-redis-port
+    protocol: TCP
+  selector:
+    app:  estela-redis

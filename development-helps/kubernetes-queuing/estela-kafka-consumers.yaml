@@ -1,0 +1,111 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: kafka-items-consumer
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      containers:
+      - name: consumer
+        image: 192.168.49.1:5000/estela-consumer
+        imagePullPolicy: Always
+        command: ['python', 'consumer.py', 'job_items']
+        env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: kafka
+        - name: PRODUCTION
+          value: "False"
+        - name: DB_ENGINE
+          value: mongodb
+        - name: DB_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: "config/ca-certificate.crt"
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: kafka-requests-consumer
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: consumer
+        image: 192.168.49.1:5000/estela-consumer
+        imagePullPolicy: Always
+        command: ['python', 'consumer.py', 'job_requests']
+        env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: kafka
+        - name: PRODUCTION
+          value: "False"
+        - name: DB_ENGINE
+          value: mongodb
+        - name: DB_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: "config/ca-certificate.crt"
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: kafka-logs-consumer
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: consumer
+        image: 192.168.49.1:5000/estela-consumer
+        imagePullPolicy: Always
+        command: ['python', 'consumer.py', 'job_stats']
+        env:
+        - name: KAFKA_ADVERTISED_PORT
+          value: "9092"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: kafka
+        - name: PRODUCTION
+          value: "False"
+        - name: DB_ENGINE
+          value: mongodb
+        - name: DB_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: DB_CONNECTION
+        - name: DB_CERTIFICATE_PATH
+          value: "config/ca-certificate.crt"

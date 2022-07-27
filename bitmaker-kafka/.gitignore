@@ -1,7 +1,0 @@
-venv/
-.venv/
-.idea/
-
-kubernetes/bitmaker-kafka-secrets.yaml
-config/mongo_certificate/ca-certificate.crt
-Makefile

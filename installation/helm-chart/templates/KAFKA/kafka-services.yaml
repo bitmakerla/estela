@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: kafka
+spec:
+  ports:
+  - name: broker
+    protocol: TCP
+    port: 9092
+    targetPort: 9092
+    nodePort: 0
+---
+{{- if .Values.local }}
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: kafka
+subsets:
+- addresses:
+  - ip: {{ .Values.hostIp }}
+  ports:
+  - name: broker
+    port: 9092
+{{- end  }}
