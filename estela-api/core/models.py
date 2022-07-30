@@ -14,7 +14,7 @@ class Project(models.Model):
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
-        help_text="A uuid identifying this project.",
+        help_text="A UUID identifying this project.",
     )
     name = models.CharField(max_length=1000, help_text="Project's name.")
     users = models.ManyToManyField(
@@ -43,7 +43,7 @@ class Permission(models.Model):
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="User.")
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, help_text="Project uuid."
+        Project, on_delete=models.CASCADE, help_text="Project UUID."
     )
     permission = models.CharField(
         max_length=16,
@@ -62,7 +62,7 @@ class Spider(models.Model):
         Project,
         on_delete=models.CASCADE,
         related_name="spiders",
-        help_text="Project uuid.",
+        help_text="Project UUID.",
     )
     deleted = models.BooleanField(
         default=False, help_text="True if the spider has been deleted."
@@ -91,7 +91,7 @@ class Deploy(models.Model):
         User, on_delete=models.CASCADE, help_text="User who performed the deploy."
     )
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, help_text="Project uuid"
+        Project, on_delete=models.CASCADE, help_text="Project UUID."
     )
     status = models.CharField(
         max_length=12,

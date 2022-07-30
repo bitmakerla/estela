@@ -22,7 +22,7 @@ class PermissionSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     pid = serializers.UUIDField(
-        read_only=True, help_text="A uuid identifying this project."
+        read_only=True, help_text="A UUID identifying this project."
     )
     users = PermissionSerializer(
         source="permission_set",
@@ -50,7 +50,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     ]
 
     pid = serializers.UUIDField(
-        read_only=True, help_text="A uuid identifying this project."
+        read_only=True, help_text="A UUID identifying this project."
     )
     users = UserDetailSerializer(many=True, required=False, help_text="Afected users.")
     email = serializers.EmailField(

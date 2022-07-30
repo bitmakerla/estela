@@ -28,6 +28,7 @@ class SpiderCronJobViewSet(
     model_class = SpiderCronJob
     serializer_class = SpiderCronJobSerializer
     lookup_field = "cjid"
+    queryset = SpiderCronJob.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpiderCronJobFilter
 

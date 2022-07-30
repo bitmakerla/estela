@@ -15,6 +15,7 @@ from core.models import Project, User, Permission, Spider, SpiderJob
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Project
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     lookup_field = "pid"
 

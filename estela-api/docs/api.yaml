@@ -181,8 +181,10 @@ paths:
     parameters:
       - name: pid
         in: path
+        description: A UUID identifying this project.
         required: true
         type: string
+        format: uuid
   /api/projects/{pid}/deploys:
     get:
       operationId: api_projects_deploys_list
@@ -332,8 +334,10 @@ paths:
     parameters:
       - name: pid
         in: path
+        description: A UUID identifying this project.
         required: true
         type: string
+        format: uuid
   /api/projects/{pid}/spiders:
     get:
       operationId: api_projects_spiders_list
@@ -398,8 +402,9 @@ paths:
         type: string
       - name: sid
         in: path
+        description: A unique integer value identifying this spider.
         required: true
-        type: string
+        type: integer
   /api/projects/{pid}/spiders/{sid}/cronjobs:
     get:
       operationId: api_projects_spiders_cronjobs_list
@@ -517,8 +522,9 @@ paths:
     parameters:
       - name: cjid
         in: path
+        description: A unique integer value identifying this cron job.
         required: true
-        type: string
+        type: integer
       - name: pid
         in: path
         required: true
@@ -542,8 +548,9 @@ paths:
     parameters:
       - name: cjid
         in: path
+        description: A unique integer value identifying this cron job.
         required: true
-        type: string
+        type: integer
       - name: pid
         in: path
         required: true
@@ -922,7 +929,7 @@ definitions:
     properties:
       pid:
         title: Pid
-        description: A uuid identifying this project.
+        description: A UUID identifying this project.
         type: string
         format: uuid
         readOnly: true
@@ -950,7 +957,7 @@ definitions:
     properties:
       pid:
         title: Pid
-        description: A uuid identifying this project.
+        description: A UUID identifying this project.
         type: string
         format: uuid
         readOnly: true
@@ -1005,7 +1012,7 @@ definitions:
         minLength: 1
       project:
         title: Project
-        description: Project uuid.
+        description: Project UUID.
         type: string
         format: uuid
   Deploy:
@@ -1021,7 +1028,7 @@ definitions:
         readOnly: true
       project:
         title: Project
-        description: Project uuid
+        description: Project UUID.
         type: string
         format: uuid
       user:
