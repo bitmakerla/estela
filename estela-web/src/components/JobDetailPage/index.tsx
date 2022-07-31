@@ -21,14 +21,12 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import {
     ApiProjectsSpidersJobsReadRequest,
-    ApiProjectsSpidersJobsLogsRequest,
     SpiderJobUpdateStatusEnum,
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
     SpiderJob,
     SpiderJobUpdate,
     SpiderJobUpdateDataStatusEnum,
-    GetLogs,
 } from "../../services/api";
 import {
     authNotification,
@@ -165,7 +163,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     resourceNotAllowedNotification();
                 },
             );
-            this.getLogs(1);
         }
     }
 
@@ -221,24 +218,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
-    getLogs = (page: number): void => {
-        const requestParams: ApiProjectsSpidersJobsLogsRequest = {
-            pid: this.projectId,
-            sid: this.spiderId,
-            jid: this.jobId,
-            page: page,
-            pageSize: this.PAGE_SIZE,
-        };
-        this.apiService.apiProjectsSpidersJobsLogs(requestParams).then((response: GetLogs) => {
-            const data: string[] = response.logs;
-            this.setState({ logs: [...data], count: response.count, current: page });
-        });
-    };
-
-    onPageChange = async (page: number): Promise<void> => {
-        await this.getLogs(page);
-    };
-
     onChangeData = (): void => {
         const _dataStatus =
             this.state.dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
@@ -268,7 +247,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.newJobId,
-            type: "logs",
+            type: "stats",
         };
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
@@ -467,24 +446,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     </Text>
                                                 </Panel>
                                             </Collapse>
-                                            <List
-                                                size="large"
-                                                header={<div>Logs</div>}
-                                                bordered
-                                                dataSource={logs}
-                                                renderItem={(item) => (
-                                                    <List.Item style={{ whiteSpace: "pre-line" }}>{item}</List.Item>
-                                                )}
-                                            />
-                                            <Pagination
-                                                className="pagination"
-                                                defaultCurrent={1}
-                                                total={count}
-                                                current={current}
-                                                pageSize={this.PAGE_SIZE}
-                                                onChange={this.onPageChange}
-                                                showSizeChanger={false}
-                                            />
                                         </Space>
                                     </Row>
                                 </Content>

@@ -4,22 +4,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework import mixins, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
 
-from api import errors
 from api.filters import SpiderJobFilter
 from api.mixins import BaseViewSet
 from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobCreateSerializer,
     SpiderJobUpdateSerializer,
-    GetLogsSerializer,
 )
 from config.job_manager import job_manager
 from core.models import Spider, SpiderJob
-from core.registry import get_logs
 
 
 class SpiderJobViewSet(
@@ -171,34 +167,3 @@ class SpiderJobViewSet(
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
-
-    @swagger_auto_schema(
-        methods=["GET"],
-        manual_parameters=[
-            openapi.Parameter(
-                "page",
-                openapi.IN_QUERY,
-                description="A page number within the paginated result set.",
-                type=openapi.TYPE_NUMBER,
-                required=False,
-            ),
-            openapi.Parameter(
-                "page_size",
-                openapi.IN_QUERY,
-                description="Number of results to return per page.",
-                type=openapi.TYPE_NUMBER,
-                required=False,
-            ),
-        ],
-        responses={status.HTTP_200_OK: GetLogsSerializer()},
-    )
-    @action(methods=["GET"], detail=True)
-    def logs(self, request, *args, **kwargs):
-        instance = self.get_object()
-        page, page_size = self.get_parameters(request)
-        if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
-            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
-        if page < 1:
-            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
-        count, logs = get_logs(instance.name, page_size * (page - 1), page_size)
-        return Response({"logs": logs, "count": count}, status=status.HTTP_200_OK)
