@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentdconf
+  namespace: kube-system
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      @id in_tail_container_logs
+      path "/var/log/containers/*.log"
+      pos_file "/var/log/fluentd-containers.log.pos"
+      tag "kubernetes.*"
+      exclude_path []
+      read_from_head true
+      <parse>
+        @type "json"
+        time_key time
+        time_type float
+        keep_time_key true
+      </parse>
+    </source>
+
+    <match fluent.**>
+        @type null
+    </match>
+
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+      skip_container_metadata true
+      skip_master_url true
+      skip_namespace_metadata true
+      skip_labels true
+    </filter>
+
+    <filter kubernetes.var.log.containers.**jobcontainer**.log>
+      @type record_modifier
+      <record>
+        jid ${record["kubernetes"]["pod_name"]}
+        payload ${ {"log":record["log"], "time": Time.parse(record["time"]).to_f} }
+      </record>
+      whitelist_keys jid,payload
+    </filter>
+
+    <match kubernetes.var.log.containers.**fluentd**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**kube-system**.log>
+      @type null
+    </match>
+
+    <match kubernetes.var.log.containers.**jobcontainer**.log>
+      @type kafka2
+      @id out_kafka2
+      brokers "#{ENV['FLUENT_KAFKA_BROKERS']}"
+      default_topic "#{ENV['FLUENT_KAFKA_DEFAULT_TOPIC'] || nil}"
+      get_kafka_client_log "#{ENV['FLUENT_KAFKA_GET_KAFKA_CLIENT_LOG'] || true}"
+      max_send_retries "#{ENV['FLUENT_KAFKA_MAX_SEND_RETRIES'] || 1}"
+      required_acks "#{ENV['FLUENT_KAFKA_REQUIRED_ACKS'] || -1}"
+      max_send_limit_bytes "#{ENV['FLUENT_KAFKA_MAX_SEND_LIMIT_BYTES'] || 100000000}"
+      compression_codec "#{ENV['FLUENT_KAFKA_COMPRESSION_CODEC'] || gzip}"
+      ack_timeout
+      <format>
+          @type "json"
+      </format>
+    </match>
