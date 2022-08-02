@@ -51,21 +51,24 @@ class JobDataViewSet(
                     required=["count", "result"],
                     properties={
                         "count": openapi.Schema(
-                            type=openapi.TYPE_NUMBER,
+                            type=openapi.TYPE_NUMBER, description="Data items count."
                         ),
                         "previous": openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_URI,
                             x_nullable=True,
+                            description="URI to the previous data chunk.",
                         ),
                         "next": openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_URI,
                             x_nullable=True,
+                            description="URI to the next data chunk.",
                         ),
                         "results": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Items(type=openapi.TYPE_OBJECT),
+                            description="Data items.",
                         ),
                     },
                 ),

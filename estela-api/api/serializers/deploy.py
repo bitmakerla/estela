@@ -6,8 +6,12 @@ from api.serializers.project import UserDetailSerializer
 
 
 class DeploySerializer(serializers.ModelSerializer):
-    spiders = SpiderSerializer(many=True, required=False)
-    user = UserDetailSerializer(required=True)
+    spiders = SpiderSerializer(
+        many=True, required=False, help_text="Spiders in this deploy."
+    )
+    user = UserDetailSerializer(
+        required=True, help_text="User who performed the deploy."
+    )
 
     class Meta:
         model = Deploy
@@ -15,7 +19,9 @@ class DeploySerializer(serializers.ModelSerializer):
 
 
 class DeployCreateSerializer(serializers.ModelSerializer):
-    project_zip = serializers.FileField(write_only=True)
+    project_zip = serializers.FileField(
+        write_only=True, help_text="Zip file containing the project."
+    )
 
     class Meta:
         model = Deploy
@@ -24,7 +30,9 @@ class DeployCreateSerializer(serializers.ModelSerializer):
 
 class DeployUpdateSerializer(serializers.ModelSerializer):
     spiders_names = serializers.ListField(
-        child=serializers.CharField(max_length=1000), required=False
+        child=serializers.CharField(max_length=1000),
+        required=False,
+        help_text="Spider names in this deploy.",
     )
 
     class Meta:

@@ -28,6 +28,7 @@ class SpiderCronJobViewSet(
     model_class = SpiderCronJob
     serializer_class = SpiderCronJobSerializer
     lookup_field = "cjid"
+    queryset = SpiderCronJob.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpiderCronJobFilter
 
@@ -51,7 +52,7 @@ class SpiderCronJobViewSet(
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=False,
-                description="Cronjob tag",
+                description="Cron job tag.",
             ),
         ],
     )
