@@ -100,6 +100,9 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
     def get_items_data_size(self, project):
         return self.get_datatype_data_size(project, "items")
 
+    def get_items_data_size(self, project):
+        return get_datatype_data_size(project, "items")
+
     def get_requests_data_size(self, project):
         return self.get_datatype_data_size(project, "requests")
 
