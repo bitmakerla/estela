@@ -63,6 +63,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             request_count=0,
             items_data_size=0,
             requests_data_size=0,
+            logs_data_size=0,
         )
 
     @swagger_auto_schema(
