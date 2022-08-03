@@ -142,6 +142,7 @@ def record_project_usage_after_data_delete(project_id, job_id):
     project = Project.objects.get(pid=project_id)
     items_data_size = spiderdata_db_client.get_database_size(str(project.pid), "items")
     requests_data_size = spiderdata_db_client.get_database_size(str(project.pid), "requests")
+    logs_data_size = spiderdata_db_client.get_database_size(str(project.pid), "logs")
 
     new_usage_record = UsageRecord.objects.filter(project=project).first()
     new_usage_record.pk = None
@@ -152,6 +153,7 @@ def record_project_usage_after_data_delete(project_id, job_id):
     new_usage_record.request_count -= job.request_count
     new_usage_record.items_data_size = items_data_size
     new_usage_record.requests_data_size = requests_data_size
+    new_usage_record.logs_data_size = logs_data_size
     new_usage_record.save()
 
 
@@ -182,6 +184,10 @@ def record_project_usage_after_job_event(job_id):
     requests_data_size = spiderdata_db_client.get_collection_size(
         str(project.pid), requests_collection_name
     )
+    logs_collection_name = "{}-{}-job_logs".format(job.spider.sid, job.jid)
+    logs_data_size = spiderdata_db_client.get_collection_size(
+        str(project.pid), logs_collection_name
+    )
 
     updated_values = {
         "processing_time": job.lifespan,
@@ -189,6 +195,7 @@ def record_project_usage_after_job_event(job_id):
         "item_count": job.item_count,
         "request_count": job.request_count,
         "requests_data_size": requests_data_size,
+        "logs_data_size": logs_data_size,
     }
     last_usage_record = UsageRecord.objects.filter(project=project).first()
     if last_usage_record:

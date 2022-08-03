@@ -239,6 +239,7 @@ class UsageRecord(models.Model):
     request_count = models.PositiveBigIntegerField()
     items_data_size = models.PositiveBigIntegerField()
     requests_data_size = models.PositiveBigIntegerField()
+    logs_data_size = models.PositiveBigIntegerField()
 
     class Meta:
         ordering = ["-created_at"]

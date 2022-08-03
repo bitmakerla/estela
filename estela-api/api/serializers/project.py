@@ -41,6 +41,7 @@ class UsageRecordSerializer(serializers.ModelSerializer):
             "request_count",
             "items_data_size",
             "requests_data_size",
+            "logs_data_size",
         )
 
 
@@ -87,18 +88,19 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
         total_request_count = project_jobs.aggregate(Sum("request_count"))
         return total_request_count["request_count__sum"]
 
-    def get_items_data_size(self, project):
+    def get_datatype_data_size(self, project, datatype):
         if not spiderdata_db_client.get_connection():
-            raise APIException("Could not get items data size.")
+            raise APIException(f"Could not get {datatype} data size.")
         return spiderdata_db_client.get_database_size(str(project.pid), "items")
 
+    def get_items_data_size(self, project):
+        return get_datatype_data_size(project, "items")
+
     def get_requests_data_size(self, project):
-        if not spiderdata_db_client.get_connection():
-            raise APIException("Could not get requests data size.")
-        return spiderdata_db_client.get_database_size(str(project.pid), "requests")
+        return get_datatype_data_size(project, "requests")
 
     def get_logs_data_size(self, project):
-        return 0
+        return get_datatype_data_size(project, "logs")
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):

@@ -297,7 +297,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             lifespan,
             totalResponseBytes,
             created,
-            status,
             cronjob,
             stats,
             logs,
