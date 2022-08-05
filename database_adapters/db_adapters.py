@@ -28,11 +28,15 @@ class DatabaseInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def insert_unique_collection_data(self):
+    def insert_one_to_unique_collection(self):
         pass
 
     @abstractmethod
-    def insert_collection_data(self):
+    def insert_one_to_collection(self):
+        pass
+
+    @abstractmethod
+    def insert_many_to_collection(self):
         pass
 
 
@@ -52,9 +56,7 @@ class MongoAdapter(DatabaseInterface):
                 )
                 client.admin.command("ismaster")
             else:
-                client = pymongo.MongoClient(
-                    self.mongo_connection
-                )
+                client = pymongo.MongoClient(self.mongo_connection)
         except ConnectionFailure:
             client = None
             return False
@@ -82,13 +84,20 @@ class MongoAdapter(DatabaseInterface):
     def get_estimated_document_count(self):
         return self.collection.estimated_document_count()
 
-    def insert_unique_collection_data(self, database_name, collection_name, data):
-        self.client[database_name][collection_name].update_one(
-            data, {"$set": data}, upsert=True
+    def insert_one_to_unique_collection(self, database_name, collection_name, item):
+        return self.client[database_name][collection_name].update_one(
+            item, {"$set": item}, upsert=True
         )
 
-    def insert_collection_data(self, database_name, collection_name, data):
-        self.client[database_name][collection_name].insert_one(data)
+    def insert_one_to_collection(self, database_name, collection_name, item):
+        return self.client[database_name][collection_name].insert_one(item)
+
+    def insert_many_to_collection(
+        self, database_name, collection_name, items, ordered=False
+    ):
+        return self.client[database_name][collection_name].insert_many(
+            items, ordered=ordered
+        )
 
 
 def get_database_interface(engine, connection, production, certificate_path):

@@ -21,7 +21,7 @@ endif
 resources:
 	-minikube start
 	-echo "$$(minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1')" > tmp
-	-python start-environment.py
+	-python3 start-environment.py
 	-$(DOCKER_COMPOSE) up -d
 	-minikube delete
 	-. ./.env && minikube start \
@@ -111,8 +111,8 @@ run-web:
 
 .PHONY: start
 start:
-	-minikube start
 	-$(DOCKER_COMPOSE) up -d
+	-minikube start
 
 
 .PHONY: stop
