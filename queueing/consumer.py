@@ -3,9 +3,6 @@ import sys
 import json
 import logging
 import threading
-import boto3
-import botocore
-import ssl
 import time
 
 from queue import Queue
@@ -33,15 +30,20 @@ def connect_kafka_consumer(topic_name):
         for kafka_advertised_listener in kafka_advertised_listeners
     ]
     try:
+        max_pool_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
         _consumer = KafkaConsumer(
             topic_name,
             bootstrap_servers=bootstrap_servers,
             auto_offset_reset="earliest",
             enable_auto_commit=True,
-            auto_commit_interval_ms=3000,
+            auto_commit_interval_ms=1000,
             group_id="group_{}".format(topic_name),
             api_version=(0, 10),
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
+            max_poll_interval_ms=max_pool_interval_ms,
+            session_timeout_ms=max_pool_interval_ms,
+            request_timeout_ms=max_pool_interval_ms + 1,
+            connections_max_idle_ms=max_pool_interval_ms + 2,
         )
     except Exception as ex:
         logging.error("Exception while connecting Kafka.")
@@ -76,8 +78,10 @@ def read_from_queue():
             item = item_queue.get(timeout=current_timeout)
             current_timeout = QUEUE_BASE_TIMEOUT
         except:
-            if current_timeout < QUEUE_MAX_TIMEOUT:
-                current_timeout *= 2
+            next_timeout = current_timeout * 2
+            current_timeout = (
+                QUEUE_MAX_TIMEOUT if next_timeout > QUEUE_MAX_TIMEOUT else next_timeout
+            )
             for identifier, inserter in inserters.items():
                 inserter.flush()
             continue
