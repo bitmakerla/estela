@@ -139,7 +139,6 @@ paths:
         - api
     put:
       operationId: api_projects_update
-      summary: Update Project information
       description: ''
       parameters:
         - name: data
@@ -182,8 +181,10 @@ paths:
     parameters:
       - name: pid
         in: path
+        description: A UUID identifying this project.
         required: true
         type: string
+        format: uuid
   /api/projects/{pid}/current_usage:
     get:
       operationId: api_projects_current_usage
@@ -199,8 +200,10 @@ paths:
     parameters:
       - name: pid
         in: path
+        description: A UUID identifying this project.
         required: true
         type: string
+        format: uuid
   /api/projects/{pid}/deploys:
     get:
       operationId: api_projects_deploys_list
@@ -243,7 +246,6 @@ paths:
         - api
     post:
       operationId: api_projects_deploys_create
-      summary: Create a new Deploy
       description: ''
       parameters:
         - name: data
@@ -333,12 +335,12 @@ paths:
       parameters:
         - name: page
           in: query
-          description: DataPaginated.
+          description: A page number within the paginated result set.
           required: false
           type: number
         - name: page_size
           in: query
-          description: DataPaginated.
+          description: Number of results to return per page.
           required: false
           type: number
       responses:
@@ -351,8 +353,10 @@ paths:
     parameters:
       - name: pid
         in: path
+        description: A UUID identifying this project.
         required: true
         type: string
+        format: uuid
   /api/projects/{pid}/spiders:
     get:
       operationId: api_projects_spiders_list
@@ -417,8 +421,9 @@ paths:
         type: string
       - name: sid
         in: path
+        description: A unique integer value identifying this spider.
         required: true
-        type: string
+        type: integer
   /api/projects/{pid}/spiders/{sid}/cronjobs:
     get:
       operationId: api_projects_spiders_cronjobs_list
@@ -426,7 +431,7 @@ paths:
       parameters:
         - name: tag
           in: query
-          description: Cronjob tag
+          description: Cron job tag.
           required: false
           type: string
         - name: page
@@ -536,8 +541,9 @@ paths:
     parameters:
       - name: cjid
         in: path
+        description: A unique integer value identifying this cron job.
         required: true
-        type: string
+        type: integer
       - name: pid
         in: path
         required: true
@@ -561,8 +567,9 @@ paths:
     parameters:
       - name: cjid
         in: path
+        description: A unique integer value identifying this cron job.
         required: true
-        type: string
+        type: integer
       - name: pid
         in: path
         required: true
@@ -578,17 +585,17 @@ paths:
       parameters:
         - name: cronjob
           in: query
-          description: Cronjob
+          description: Related cron job.
           required: false
           type: number
         - name: status
           in: query
-          description: Job status
+          description: Job status.
           required: false
           type: string
         - name: tag
           in: query
-          description: Job tag
+          description: Job tag.
           required: false
           type: string
         - name: page
@@ -637,6 +644,7 @@ paths:
             $ref: '#/definitions/SpiderJobCreate'
         - name: async
           in: query
+          description: True if this job is async.
           type: boolean
       responses:
         '201':
@@ -701,7 +709,7 @@ paths:
     parameters:
       - name: jid
         in: path
-        description: A unique integer value identifying this spider job.
+        description: A unique integer value identifying this job.
         required: true
         type: integer
       - name: pid
@@ -742,16 +750,20 @@ paths:
             type: object
             properties:
               count:
+                description: Data items count.
                 type: number
               previous:
+                description: URI to the previous data chunk.
                 type: string
                 format: uri
                 x-nullable: true
               next:
+                description: URI to the next data chunk.
                 type: string
                 format: uri
                 x-nullable: true
               results:
+                description: Data items.
                 type: array
                 items:
                   type: object
@@ -807,12 +819,12 @@ paths:
       parameters:
         - name: page
           in: query
-          description: DataPaginated.
+          description: A page number within the paginated result set.
           required: false
           type: number
         - name: page_size
           in: query
-          description: DataPaginated.
+          description: Number of results to return per page.
           required: false
           type: number
       responses:
@@ -825,7 +837,7 @@ paths:
     parameters:
       - name: jid
         in: path
-        description: A unique integer value identifying this spider job.
+        description: A unique integer value identifying this job.
         required: true
         type: integer
       - name: pid
@@ -863,8 +875,10 @@ paths:
     parameters:
       - name: pid
         in: path
+        description: A UUID identifying this project.
         required: true
         type: string
+        format: uuid
 definitions:
   AuthToken:
     required:
@@ -887,11 +901,13 @@ definitions:
     properties:
       user:
         title: User
+        description: Username.
         type: string
         pattern: ^[\w.@+-]+$
         readOnly: true
       key:
         title: Key
+        description: User's auth token key.
         type: string
         maxLength: 40
         minLength: 1
@@ -924,6 +940,7 @@ definitions:
         maxLength: 128
         minLength: 1
   UserDetail:
+    description: Username.
     required:
       - username
     type: object
@@ -942,12 +959,14 @@ definitions:
         format: email
         maxLength: 254
   Permission:
+    description: Users with permissions on this project.
     type: object
     properties:
       user:
         $ref: '#/definitions/UserDetail'
       permission:
         title: Permission
+        description: Permission on this project.
         type: string
         enum:
           - EDITOR
@@ -960,19 +979,24 @@ definitions:
     properties:
       pid:
         title: Pid
+        description: A UUID identifying this project.
         type: string
         format: uuid
         readOnly: true
       name:
         title: Name
+        description: Project's name.
         type: string
         maxLength: 1000
         minLength: 1
       container_image:
         title: Container image
+        description: Path of the project's container image.
         type: string
         readOnly: true
+        minLength: 1
       users:
+        description: Users with permissions on this project.
         type: array
         items:
           $ref: '#/definitions/Permission'
@@ -983,31 +1007,37 @@ definitions:
     properties:
       pid:
         title: Pid
+        description: A UUID identifying this project.
         type: string
         format: uuid
         readOnly: true
       name:
         title: Name
+        description: Project's name.
         type: string
         maxLength: 1000
         minLength: 1
       users:
+        description: Afected users.
         type: array
         items:
           $ref: '#/definitions/UserDetail'
       email:
         title: Email
+        description: Email address.
         type: string
         format: email
         minLength: 1
       action:
         title: Action
+        description: Performed action.
         type: string
         enum:
           - remove
           - add
       permission:
         title: Permission
+        description: New permission.
         type: string
         enum:
           - EDITOR
@@ -1019,11 +1049,13 @@ definitions:
     properties:
       pid:
         title: Pid
+        description: A UUID identifying this project.
         type: string
         format: uuid
         readOnly: true
       name:
         title: Name
+        description: Project's name.
         type: string
         maxLength: 1000
         minLength: 1
@@ -1056,6 +1088,7 @@ definitions:
         type: string
         readOnly: true
   Spider:
+    description: Spiders in this deploy.
     required:
       - name
       - project
@@ -1063,15 +1096,18 @@ definitions:
     properties:
       sid:
         title: Sid
+        description: A unique integer value identifying this spider.
         type: integer
         readOnly: true
       name:
         title: Name
+        description: Spider's name.
         type: string
         maxLength: 1000
         minLength: 1
       project:
         title: Project
+        description: Project UUID.
         type: string
         format: uuid
   Deploy:
@@ -1082,16 +1118,19 @@ definitions:
     properties:
       did:
         title: Did
+        description: A unique integer value identifying this deploy.
         type: integer
         readOnly: true
       project:
         title: Project
+        description: Project UUID.
         type: string
         format: uuid
       user:
         $ref: '#/definitions/UserDetail'
       status:
         title: Status
+        description: Deploy status.
         type: string
         enum:
           - SUCCESS
@@ -1099,11 +1138,13 @@ definitions:
           - FAILURE
           - CANCELED
       spiders:
+        description: Spiders in this deploy.
         type: array
         items:
           $ref: '#/definitions/Spider'
       created:
         title: Created
+        description: Deploy creation date.
         type: string
         format: date-time
         readOnly: true
@@ -1112,10 +1153,12 @@ definitions:
     properties:
       did:
         title: Did
+        description: A unique integer value identifying this deploy.
         type: integer
         readOnly: true
       status:
         title: Status
+        description: Deploy status.
         type: string
         enum:
           - SUCCESS
@@ -1124,11 +1167,13 @@ definitions:
           - CANCELED
       created:
         title: Created
+        description: Deploy creation date.
         type: string
         format: date-time
         readOnly: true
       project_zip:
         title: Project zip
+        description: Zip file containing the project.
         type: string
         readOnly: true
         format: uri
@@ -1137,10 +1182,12 @@ definitions:
     properties:
       did:
         title: Did
+        description: A unique integer value identifying this deploy.
         type: integer
         readOnly: true
       status:
         title: Status
+        description: Deploy status.
         type: string
         enum:
           - SUCCESS
@@ -1148,12 +1195,14 @@ definitions:
           - FAILURE
           - CANCELED
       spiders_names:
+        description: Spider names in this deploy.
         type: array
         items:
           type: string
           maxLength: 1000
           minLength: 1
   SpiderJobArg:
+    description: Job arguments.
     required:
       - name
       - value
@@ -1161,15 +1210,18 @@ definitions:
     properties:
       name:
         title: Name
+        description: Argument name.
         type: string
         maxLength: 1000
         minLength: 1
       value:
         title: Value
+        description: Argument value.
         type: string
         maxLength: 1000
         minLength: 1
   SpiderJobEnvVar:
+    description: Job env variables.
     required:
       - name
       - value
@@ -1177,91 +1229,113 @@ definitions:
     properties:
       name:
         title: Name
+        description: Env variable name.
         type: string
         maxLength: 1000
         minLength: 1
       value:
         title: Value
+        description: Env variable value.
         type: string
         maxLength: 1000
         minLength: 1
   SpiderJobTag:
+    description: Job tags.
     required:
       - name
     type: object
     properties:
       name:
         title: Name
+        description: Tag name.
         type: string
         maxLength: 50
         minLength: 1
   SpiderJob:
+    description: Project jobs.
     required:
       - spider
     type: object
     properties:
       jid:
         title: Jid
+        description: A unique integer value identifying this job.
         type: integer
         readOnly: true
       spider:
         title: Spider
+        description: Spider sid.
         type: integer
       created:
         title: Created
+        description: Job creation date.
         type: string
         format: date-time
         readOnly: true
       name:
         title: Name
+        description: Unique job name.
         type: string
         readOnly: true
+        minLength: 1
       lifespan:
         title: Lifespan
+        description: The elapsed seconds the spider job was running.
         type: number
       total_response_bytes:
         title: Total response bytes
+        description: The total bytes received in responses.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       item_count:
         title: Item count
+        description: The number of items extracted in the job.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       request_count:
         title: Request count
+        description: The number of requests made by the spider job.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       args:
+        description: Job arguments.
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
       env_vars:
+        description: Job env variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
       tags:
+        description: Job tags.
         type: array
         items:
           $ref: '#/definitions/SpiderJobTag'
       job_status:
         title: Job status
+        description: Current job status.
         type: string
         readOnly: true
+        minLength: 1
       cronjob:
         title: Cronjob
+        description: Related cron job.
         type: integer
         x-nullable: true
       data_expiry_days:
         title: Data expiry days
+        description: Days before data expires.
         type: integer
         maximum: 65535
         minimum: 0
         x-nullable: true
       data_status:
         title: Data status
+        description: Data status.
         type: string
         enum:
           - PERSISTENT
@@ -1274,11 +1348,13 @@ definitions:
     type: object
     properties:
       results:
+        description: Project jobs.
         type: array
         items:
           $ref: '#/definitions/SpiderJob'
       count:
         title: Count
+        description: Project jobs count.
         type: integer
   SpiderCronJob:
     required:
@@ -1287,47 +1363,59 @@ definitions:
     properties:
       cjid:
         title: Cjid
+        description: A unique integer value identifying this cron job.
         type: integer
         readOnly: true
       spider:
         title: Spider
+        description: Spider sid.
         type: integer
       created:
         title: Created
+        description: Cron job creation date.
         type: string
         format: date-time
         readOnly: true
       name:
         title: Name
+        description: Unique cron job name.
         type: string
         readOnly: true
+        minLength: 1
       cargs:
+        description: Cron job arguments.
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
       cenv_vars:
+        description: Cron job env variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
       ctags:
+        description: Cron job tags.
         type: array
         items:
           $ref: '#/definitions/SpiderJobTag'
       schedule:
         title: Schedule
+        description: Cron job schedule definition.
         type: string
         maxLength: 20
       status:
         title: Status
+        description: Cron job status.
         type: string
         enum:
           - ACTIVE
           - DISABLED
       unique_collection:
         title: Unique collection
+        description: True if this cron job stores its items in a unique collection.
         type: boolean
       data_status:
         title: Data status
+        description: Data status.
         type: string
         enum:
           - PERSISTENT
@@ -1335,6 +1423,7 @@ definitions:
           - PENDING
       data_expiry_days:
         title: Data expiry days
+        description: Days before data expires.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1346,37 +1435,47 @@ definitions:
     properties:
       cjid:
         title: Cjid
+        description: A unique integer value identifying this cron job.
         type: integer
         readOnly: true
       name:
         title: Name
+        description: Unique cron job name.
         type: string
         readOnly: true
+        minLength: 1
       cargs:
+        description: Cron job arguments.
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
       cenv_vars:
+        description: Cron job env variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
       ctags:
+        description: Cron job tags.
         type: array
         items:
           $ref: '#/definitions/SpiderJobTag'
       schedule:
         title: Schedule
+        description: Cron job schedule definition.
         type: string
         maxLength: 20
       unique_collection:
         title: Unique collection
+        description: True if this cron job stores its items in a unique collection.
         type: boolean
       data_expiry_days:
         title: Data expiry days
+        description: Days before data expires.
         type: string
         minLength: 1
       data_status:
         title: Data status
+        description: Data status.
         type: string
         minLength: 1
   SpiderCronJobUpdate:
@@ -1384,23 +1483,28 @@ definitions:
     properties:
       cjid:
         title: Cjid
+        description: A unique integer value identifying this cron job.
         type: integer
         readOnly: true
       status:
         title: Status
+        description: Cron job status.
         type: string
         enum:
           - ACTIVE
           - DISABLED
       schedule:
         title: Schedule
+        description: Cron job schedule definition.
         type: string
         maxLength: 20
       unique_collection:
         title: Unique collection
+        description: True if this cron job stores its items in a unique collection.
         type: boolean
       data_status:
         title: Data status
+        description: Data status.
         type: string
         enum:
           - PERSISTENT
@@ -1408,6 +1512,7 @@ definitions:
           - PENDING
       data_expiry_days:
         title: Data expiry days
+        description: Days before data expires.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1419,38 +1524,49 @@ definitions:
     properties:
       jid:
         title: Jid
+        description: A unique integer value identifying this job.
         type: integer
         readOnly: true
       name:
         title: Name
+        description: Unique job name.
         type: string
         readOnly: true
+        minLength: 1
       args:
+        description: Job arguments.
         type: array
         items:
           $ref: '#/definitions/SpiderJobArg'
       env_vars:
+        description: Job env variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
       tags:
+        description: Job tags.
         type: array
         items:
           $ref: '#/definitions/SpiderJobTag'
       job_status:
         title: Job status
+        description: Current job status.
         type: string
         readOnly: true
+        minLength: 1
       cronjob:
         title: Cronjob
+        description: Related cron job.
         type: integer
         x-nullable: true
       data_expiry_days:
         title: Data expiry days
+        description: Days before data expires.
         type: string
         minLength: 1
       data_status:
         title: Data status
+        description: Data status.
         type: string
         minLength: 1
   SpiderJobUpdate:
@@ -1458,10 +1574,12 @@ definitions:
     properties:
       jid:
         title: Jid
+        description: A unique integer value identifying this job.
         type: integer
         readOnly: true
       status:
         title: Status
+        description: Job status.
         type: string
         enum:
           - IN_QUEUE
@@ -1474,24 +1592,29 @@ definitions:
           - ERROR
       lifespan:
         title: Lifespan
+        description: The elapsed seconds the spider job was running.
         type: number
       total_response_bytes:
         title: Total response bytes
+        description: The total bytes received in responses.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       item_count:
         title: Item count
+        description: The number of items extracted in the job.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       request_count:
         title: Request count
+        description: The number of requests made by the spider job.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       data_status:
         title: Data status
+        description: Data status.
         type: string
         enum:
           - PERSISTENT
@@ -1499,6 +1622,7 @@ definitions:
           - PENDING
       data_expiry_days:
         title: Data expiry days
+        description: Days before data expires.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1510,6 +1634,7 @@ definitions:
     properties:
       count:
         title: Count
+        description: Deleted items count.
         type: integer
   GetLogs:
     required:
@@ -1518,6 +1643,7 @@ definitions:
     type: object
     properties:
       logs:
+        description: Job logs.
         type: array
         items:
           type: string
@@ -1525,6 +1651,7 @@ definitions:
           minLength: 1
       count:
         title: Count
+        description: Job logs count.
         type: integer
   UsageRecord:
     required:
@@ -1539,39 +1666,47 @@ definitions:
     properties:
       created_at:
         title: Created at
+        description: Usage record creation date.
         type: string
         format: date-time
         readOnly: true
       processing_time:
         title: Processing time
+        description: Time of CPU use.
         type: number
       network_usage:
         title: Network usage
+        description: Amount of network bytes used.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       item_count:
         title: Item count
+        description: Amount of items extracted.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       request_count:
         title: Request count
+        description: Amount of requests made.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       items_data_size:
         title: Items data size
+        description: Amount in bytes occupied by items in the database
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       requests_data_size:
         title: Requests data size
+        description: Amount in bytes occupied by requests in the database
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       logs_data_size:
         title: Logs data size
+        description: Amount in bytes occupied by logs in the database
         type: integer
         maximum: 18446744073709551615
         minimum: 0

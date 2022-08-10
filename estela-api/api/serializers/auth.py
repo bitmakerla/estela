@@ -40,7 +40,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    user = serializers.SlugRelatedField(
+        read_only=True, slug_field="username", help_text="Username."
+    )
+    key = serializers.CharField(max_length=40, help_text="User's auth token key.")
 
     class Meta:
         model = Token

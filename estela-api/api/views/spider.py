@@ -9,6 +9,7 @@ class SpiderViewSet(BaseViewSet, viewsets.ReadOnlyModelViewSet):
     model_class = Spider
     serializer_class = SpiderSerializer
     lookup_field = "sid"
+    queryset = Spider.objects.all()
 
     def get_queryset(self):
         return self.model_class.objects.filter(

@@ -38,7 +38,6 @@ class DeployViewSet(
         )
 
     @swagger_auto_schema(
-        operation_summary="Create a new Deploy",
         request_body=DeployCreateSerializer,
         responses={status.HTTP_201_CREATED: DeployCreateSerializer()},
     )

@@ -9,5 +9,6 @@ COPY queueing/requirements requirements
 RUN pip install -r requirements/consumer.txt
 
 COPY queueing/consumer.py .
+COPY queueing/inserter.py .
 COPY queueing/config config
 COPY database_adapters/ ./database_adapters

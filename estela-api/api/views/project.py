@@ -21,6 +21,7 @@ from rest_framework.exceptions import PermissionDenied, NotFound, ParseError
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Project
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     lookup_field = "pid"
 
@@ -56,7 +57,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         )
 
     @swagger_auto_schema(
-        operation_summary="Update Project information",
         request_body=ProjectUpdateSerializer,
         responses={status.HTTP_200_OK: ProjectUpdateSerializer()},
     )
@@ -116,14 +116,14 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             openapi.Parameter(
                 "page",
                 openapi.IN_QUERY,
-                description="DataPaginated.",
+                description="A page number within the paginated result set.",
                 type=openapi.TYPE_NUMBER,
                 required=False,
             ),
             openapi.Parameter(
                 "page_size",
                 openapi.IN_QUERY,
-                description="DataPaginated.",
+                description="Number of results to return per page.",
                 type=openapi.TYPE_NUMBER,
                 required=False,
             ),

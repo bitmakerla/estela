@@ -13,7 +13,17 @@ class Project(models.Model):
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
     users = models.ManyToManyField(User, through="Permission")
-    deleted = models.BooleanField(default=False)
+    pid = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="A UUID identifying this project.",
+    )
+    name = models.CharField(max_length=1000, help_text="Project's name.")
+    users = models.ManyToManyField(
+        User, through="Permission", help_text="Users with permissions on this project."
+    )
+    deleted = models.BooleanField(default=False, help_text="Whether the project was deleted.")
 
     @property
     def container_image(self):
@@ -35,20 +45,32 @@ class Permission(models.Model):
         (VIEWER_PERMISSION, "Viewer"),
         (OWNER_PERMISSION, "Owner"),
     ]
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="User.")
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, help_text="Project UUID."
+    )
     permission = models.CharField(
-        max_length=16, choices=PERMISSIONS_OPTIONS, default=VIEWER_PERMISSION
+        max_length=16,
+        choices=PERMISSIONS_OPTIONS,
+        default=VIEWER_PERMISSION,
+        help_text="Permission on this project.",
     )
 
 
 class Spider(models.Model):
-    sid = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=1000)
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="spiders"
+    sid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this spider."
     )
-    deleted = models.BooleanField(default=False)
+    name = models.CharField(max_length=1000, help_text="Spider's name.")
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="spiders",
+        help_text="Project UUID.",
+    )
+    deleted = models.BooleanField(
+        default=False, help_text="True if the spider has been deleted."
+    )
 
 
 class Deploy(models.Model):
@@ -62,13 +84,24 @@ class Deploy(models.Model):
         (FAILURE_STATUS, "Failure"),
         (CANCELED_STATUS, "Canceled"),
     ]
-    did = models.AutoField(primary_key=True)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    spiders = models.ManyToManyField(Spider)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    did = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this deploy."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Deploy creation date."
+    )
+    spiders = models.ManyToManyField(Spider, help_text="Spiders in this deploy.")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, help_text="User who performed the deploy."
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, help_text="Project UUID."
+    )
     status = models.CharField(
-        max_length=12, choices=STATUS_OPTIONS, default=BUILDING_STATUS
+        max_length=12,
+        choices=STATUS_OPTIONS,
+        default=BUILDING_STATUS,
+        help_text="Deploy status.",
     )
 
     class Meta:
@@ -93,20 +126,40 @@ class SpiderCronJob(models.Model):
         (PENDING_STATUS, "Pending"),
     ]
 
-    cjid = models.AutoField(primary_key=True)
+    cjid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this cron job."
+    )
     spider = models.ForeignKey(
-        Spider, on_delete=models.CASCADE, related_name="cronjobs"
+        Spider,
+        on_delete=models.CASCADE,
+        related_name="cronjobs",
+        help_text="Spider sid.",
     )
-    schedule = models.CharField(max_length=20, blank=True)
+    schedule = models.CharField(
+        max_length=20, blank=True, help_text="Cron job schedule definition."
+    )
     status = models.CharField(
-        max_length=16, choices=STATUS_OPTIONS, default=ACTIVE_STATUS
+        max_length=16,
+        choices=STATUS_OPTIONS,
+        default=ACTIVE_STATUS,
+        help_text="Cron job status.",
     )
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    unique_collection = models.BooleanField(default=False)
+    created = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Cron job creation date."
+    )
+    unique_collection = models.BooleanField(
+        default=False,
+        help_text="True if this cron job stores its items in a unique collection.",
+    )
     data_status = models.CharField(
-        max_length=20, choices=DATA_STATUS_OPTIONS, default=PERSISTENT_STATUS
+        max_length=20,
+        choices=DATA_STATUS_OPTIONS,
+        default=PERSISTENT_STATUS,
+        help_text="Data status.",
     )
-    data_expiry_days = models.PositiveSmallIntegerField(null=True)
+    data_expiry_days = models.PositiveSmallIntegerField(
+        null=True, help_text="Days before data expires."
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -152,23 +205,41 @@ class SpiderJob(models.Model):
         (PENDING_STATUS, "Pending"),
     ]
 
-    jid = models.AutoField(primary_key=True)
-    spider = models.ForeignKey(Spider, on_delete=models.CASCADE, related_name="jobs")
+    jid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this job."
+    )
+    spider = models.ForeignKey(
+        Spider, on_delete=models.CASCADE, related_name="jobs", help_text="Spider sid."
+    )
     cronjob = models.ForeignKey(
-        SpiderCronJob, on_delete=models.CASCADE, related_name="jobs", null=True
+        SpiderCronJob,
+        on_delete=models.CASCADE,
+        related_name="jobs",
+        null=True,
+        help_text="Related cron job.",
     )
     status = models.CharField(
-        max_length=16, choices=STATUS_OPTIONS, default=WAITING_STATUS
+        max_length=16,
+        choices=STATUS_OPTIONS,
+        default=WAITING_STATUS,
+        help_text="Job status.",
     )
     data_status = models.CharField(
-        max_length=20, choices=DATA_STATUS_OPTIONS, default=PERSISTENT_STATUS
+        max_length=20,
+        choices=DATA_STATUS_OPTIONS,
+        default=PERSISTENT_STATUS,
+        help_text="Data status.",
     )
-    data_expiry_days = models.PositiveSmallIntegerField(null=True)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    lifespan = models.DurationField(default=timedelta(0))
-    total_response_bytes = models.PositiveBigIntegerField(default=0)
-    item_count = models.PositiveBigIntegerField(default=0)
-    request_count = models.PositiveBigIntegerField(default=0)
+    data_expiry_days = models.PositiveSmallIntegerField(
+        null=True, help_text="Days before data expires."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Job creation date."
+    )
+    lifespan = models.DurationField(default=timedelta(0), help_text="The elapsed seconds the spider job was running.")
+    total_response_bytes = models.PositiveBigIntegerField(default=0, help_text="The total bytes received in responses.")
+    item_count = models.PositiveBigIntegerField(default=0, help_text="The number of items extracted in the job.")
+    request_count = models.PositiveBigIntegerField(default=0, help_text="The number of requests made by the spider job.")
 
     class Meta:
         ordering = ["-created"]
@@ -200,46 +271,80 @@ class SpiderJob(models.Model):
 
 
 class SpiderJobArg(models.Model):
-    aid = models.AutoField(primary_key=True)
+    aid = models.AutoField(
+        primary_key=True,
+        help_text="A unique integer value identifying this job argument.",
+    )
     job = models.ForeignKey(
-        SpiderJob, on_delete=models.CASCADE, related_name="args", null=True
+        SpiderJob,
+        on_delete=models.CASCADE,
+        related_name="args",
+        null=True,
+        help_text="Job jid.",
     )
     cronjob = models.ForeignKey(
-        SpiderCronJob, on_delete=models.CASCADE, related_name="cargs", null=True
+        SpiderCronJob,
+        on_delete=models.CASCADE,
+        related_name="cargs",
+        null=True,
+        help_text="Cron job cjid.",
     )
-    name = models.CharField(max_length=1000)
-    value = models.CharField(max_length=1000)
+    name = models.CharField(max_length=1000, help_text="Argument name.")
+    value = models.CharField(max_length=1000, help_text="Argument value.")
 
 
 class SpiderJobEnvVar(models.Model):
-    evid = models.AutoField(primary_key=True)
+    evid = models.AutoField(
+        primary_key=True,
+        help_text="A unique integer value identifying this job env variable.",
+    )
     job = models.ForeignKey(
-        SpiderJob, on_delete=models.CASCADE, related_name="env_vars", null=True
+        SpiderJob,
+        on_delete=models.CASCADE,
+        related_name="env_vars",
+        null=True,
+        help_text="Job jid.",
     )
     cronjob = models.ForeignKey(
-        SpiderCronJob, on_delete=models.CASCADE, related_name="cenv_vars", null=True
+        SpiderCronJob,
+        on_delete=models.CASCADE,
+        related_name="cenv_vars",
+        null=True,
+        help_text="Cron job cjid.",
     )
-    name = models.CharField(max_length=1000)
-    value = models.CharField(max_length=1000)
+    name = models.CharField(max_length=1000, help_text="Env variable name.")
+    value = models.CharField(max_length=1000, help_text="Env variable value.")
 
 
 class SpiderJobTag(models.Model):
-    tid = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50)
-    jobs = models.ManyToManyField(SpiderJob, related_name="tags", blank=True)
-    cronjobs = models.ManyToManyField(SpiderCronJob, related_name="ctags", blank=True)
+    tid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this tag."
+    )
+    name = models.CharField(max_length=50, help_text="Tag name.")
+    jobs = models.ManyToManyField(
+        SpiderJob,
+        related_name="tags",
+        blank=True,
+        help_text="Related jobs to this tag.",
+    )
+    cronjobs = models.ManyToManyField(
+        SpiderCronJob,
+        related_name="ctags",
+        blank=True,
+        help_text="Related cron jobs to this tag.",
+    )
 
 
 class UsageRecord(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    processing_time = models.DurationField()
-    network_usage = models.PositiveBigIntegerField()
-    item_count = models.PositiveBigIntegerField()
-    request_count = models.PositiveBigIntegerField()
-    items_data_size = models.PositiveBigIntegerField()
-    requests_data_size = models.PositiveBigIntegerField()
-    logs_data_size = models.PositiveBigIntegerField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, help_text="Project to which the usage record corresponds.")
+    created_at = models.DateTimeField(auto_now_add=True, editable=False, help_text="Usage record creation date.")
+    processing_time = models.DurationField(help_text="Time of CPU use.")
+    network_usage = models.PositiveBigIntegerField(help_text="Amount of network bytes used.")
+    item_count = models.PositiveBigIntegerField(help_text="Amount of items extracted.")
+    request_count = models.PositiveBigIntegerField(help_text="Amount of requests made.")
+    items_data_size = models.PositiveBigIntegerField(help_text="Amount in bytes occupied by items in the database")
+    requests_data_size = models.PositiveBigIntegerField(help_text="Amount in bytes occupied by requests in the database")
+    logs_data_size = models.PositiveBigIntegerField(help_text="Amount in bytes occupied by logs in the database")
 
     class Meta:
         ordering = ["-created_at"]

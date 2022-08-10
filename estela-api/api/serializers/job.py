@@ -11,9 +11,17 @@ from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
-    args = SpiderJobArgSerializer(many=True, required=False)
-    env_vars = SpiderJobEnvVarSerializer(many=True, required=False)
-    tags = SpiderJobTagSerializer(many=True, required=False)
+    args = SpiderJobArgSerializer(many=True, required=False, help_text="Job arguments.")
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Job env variables."
+    )
+    tags = SpiderJobTagSerializer(many=True, required=False, help_text="Job tags.")
+    name = serializers.CharField(
+        required=False, read_only=True, help_text="Unique job name."
+    )
+    job_status = serializers.CharField(
+        required=False, read_only=True, help_text="Current job status."
+    )
 
     class Meta:
         model = SpiderJob
@@ -37,11 +45,21 @@ class SpiderJobSerializer(serializers.ModelSerializer):
 
 
 class SpiderJobCreateSerializer(serializers.ModelSerializer):
-    args = SpiderJobArgSerializer(many=True, required=False)
-    env_vars = SpiderJobEnvVarSerializer(many=True, required=False)
-    tags = SpiderJobTagSerializer(many=True, required=False)
-    data_status = serializers.CharField(required=True)
-    data_expiry_days = serializers.CharField(required=False)
+    args = SpiderJobArgSerializer(many=True, required=False, help_text="Job arguments.")
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Job env variables."
+    )
+    tags = SpiderJobTagSerializer(many=True, required=False, help_text="Job tags.")
+    name = serializers.CharField(
+        required=False, read_only=True, help_text="Unique job name."
+    )
+    job_status = serializers.CharField(
+        required=False, read_only=True, help_text="Current job status."
+    )
+    data_status = serializers.CharField(required=True, help_text="Data status.")
+    data_expiry_days = serializers.CharField(
+        required=False, help_text="Days before data expires."
+    )
 
     class Meta:
         model = SpiderJob
@@ -152,15 +170,17 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
 
 class GetLogsSerializer(serializers.Serializer):
     logs = serializers.ListField(
-        child=serializers.CharField(max_length=1000), required=True
+        child=serializers.CharField(max_length=1000),
+        required=True,
+        help_text="Job logs.",
     )
-    count = serializers.IntegerField(required=True)
+    count = serializers.IntegerField(required=True, help_text="Job logs count.")
 
 
 class DeleteJobDataSerializer(serializers.Serializer):
-    count = serializers.IntegerField(required=True)
+    count = serializers.IntegerField(required=True, help_text="Deleted items count.")
 
 
 class ProjectJobSerializer(serializers.Serializer):
-    results = SpiderJobSerializer(many=True, required=True)
-    count = serializers.IntegerField(required=True)
+    results = SpiderJobSerializer(many=True, required=True, help_text="Project jobs.")
+    count = serializers.IntegerField(required=True, help_text="Project jobs count.")
