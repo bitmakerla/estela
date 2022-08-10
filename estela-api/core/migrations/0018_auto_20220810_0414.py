@@ -8,51 +8,64 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0017_auto_20220621_1353'),
+        ("core", "0017_auto_20220621_1353"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='deleted',
+            model_name="project",
+            name="deleted",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='spiderjob',
-            name='item_count',
+            model_name="spiderjob",
+            name="item_count",
             field=models.PositiveBigIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='spiderjob',
-            name='lifespan',
+            model_name="spiderjob",
+            name="lifespan",
             field=models.DurationField(default=datetime.timedelta(0)),
         ),
         migrations.AddField(
-            model_name='spiderjob',
-            name='request_count',
+            model_name="spiderjob",
+            name="request_count",
             field=models.PositiveBigIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='spiderjob',
-            name='total_response_bytes',
+            model_name="spiderjob",
+            name="total_response_bytes",
             field=models.PositiveBigIntegerField(default=0),
         ),
         migrations.CreateModel(
-            name='UsageRecord',
+            name="UsageRecord",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('processing_time', models.DurationField()),
-                ('network_usage', models.PositiveBigIntegerField()),
-                ('item_count', models.PositiveBigIntegerField()),
-                ('request_count', models.PositiveBigIntegerField()),
-                ('items_data_size', models.PositiveBigIntegerField()),
-                ('requests_data_size', models.PositiveBigIntegerField()),
-                ('logs_data_size', models.PositiveBigIntegerField()),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.project')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("processing_time", models.DurationField()),
+                ("network_usage", models.PositiveBigIntegerField()),
+                ("item_count", models.PositiveBigIntegerField()),
+                ("request_count", models.PositiveBigIntegerField()),
+                ("items_data_size", models.PositiveBigIntegerField()),
+                ("requests_data_size", models.PositiveBigIntegerField()),
+                ("logs_data_size", models.PositiveBigIntegerField()),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.project"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

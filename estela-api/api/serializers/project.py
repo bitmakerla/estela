@@ -6,6 +6,7 @@ from rest_framework.exceptions import APIException
 from config.job_manager import spiderdata_db_client
 from core.models import Permission, Project, SpiderJob, UsageRecord
 
+
 class UserDetailSerializer(serializers.ModelSerializer):
     """A serializer for our user objects."""
 

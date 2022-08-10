@@ -141,7 +141,9 @@ def record_project_usage_after_data_delete(project_id, job_id):
 
     project = Project.objects.get(pid=project_id)
     items_data_size = spiderdata_db_client.get_database_size(str(project.pid), "items")
-    requests_data_size = spiderdata_db_client.get_database_size(str(project.pid), "requests")
+    requests_data_size = spiderdata_db_client.get_database_size(
+        str(project.pid), "requests"
+    )
     logs_data_size = spiderdata_db_client.get_database_size(str(project.pid), "logs")
 
     new_usage_record = UsageRecord.objects.filter(project=project).first()
@@ -172,7 +174,9 @@ def record_project_usage_after_job_event(job_id):
         items_collection_name = "{}-scj{}-job_items".format(
             job.spider.sid, job.cronjob.cjid
         )
-        items_data_size = spiderdata_db_client.get_database_size(str(project.pid), "items")
+        items_data_size = spiderdata_db_client.get_database_size(
+            str(project.pid), "items"
+        )
         unique_collection = True
     else:
         items_collection_name = "{}-{}-job_items".format(job.spider.sid, job.jid)
