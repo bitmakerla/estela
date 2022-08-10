@@ -30,7 +30,7 @@ def connect_kafka_consumer(topic_name):
         for kafka_advertised_listener in kafka_advertised_listeners
     ]
     try:
-        max_pool_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
+        max_poll_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
         _consumer = KafkaConsumer(
             topic_name,
             bootstrap_servers=bootstrap_servers,
@@ -40,10 +40,10 @@ def connect_kafka_consumer(topic_name):
             group_id="group_{}".format(topic_name),
             api_version=(0, 10),
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
-            max_poll_interval_ms=max_pool_interval_ms,
-            session_timeout_ms=max_pool_interval_ms,
-            request_timeout_ms=max_pool_interval_ms + 1,
-            connections_max_idle_ms=max_pool_interval_ms + 2,
+            max_poll_interval_ms=max_poll_interval_ms,
+            session_timeout_ms=max_poll_interval_ms,
+            request_timeout_ms=max_poll_interval_ms + 1,
+            connections_max_idle_ms=max_poll_interval_ms + 2,
         )
     except Exception as ex:
         logging.error("Exception while connecting Kafka.")
@@ -158,7 +158,6 @@ def consume_from_kafka(topic_name):
 
     item_queue.join()
     consumer.close()
-    client.close()
 
 
 def main():
