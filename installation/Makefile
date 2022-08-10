@@ -72,6 +72,8 @@ update-api-ip:
 	-. ./.env && cd helm-chart && \
 	 helm upgrade --install $${RELEASE_NAME} . --set DJANGO_API_HOST=$(API_IP) -n $${NAMESPACE}
 	-. ./.env && kubectl rollout restart deploy estela-django-api -n $${NAMESPACE}
+	-. ./.env && kubectl wait deployment -n $${NAMESPACE} estela-django-api --for condition=Available=True
+	-sleep 5
 
 
 .PHONY: restart-celery-beat
@@ -92,6 +94,12 @@ migrate:
 .PHONY: createsuperuser
 createsuperuser:
 	-kubectl exec --stdin --tty $(API_POD) -- python manage.py createsuperuser
+
+
+.PHONY: setup
+setup: update-api-ip migrate restart-celery-beat
+	-kubectl exec $(API_POD) -- bash -c \
+	 "echo \"from django.contrib.auth.models import User; User.objects.create_superuser('deploy_manager', '', '')\" | python manage.py shell"
 
 
 .PHONY: build-web

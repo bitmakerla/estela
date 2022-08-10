@@ -8,7 +8,7 @@ grand_parent: estela
 # estela Helm Chart variables guide
 
 First, make a copy (in the same _helm-chart_ directory) of 
-[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example)
+[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example){:target="\_blank"}
 and rename it to `values.yaml`. Then, complete the following fields:
 
 _Note_: The values that should be used if the resources have been deployed locally are
@@ -68,9 +68,11 @@ The variables that already have an assigned value should not be modified.
 
 * _<BUCKET\_NAME\_PROJECTS>_: Name of the bucket used to store the project files.
 
-* _\<ENGINE\>_: The [engine]({% link estela/api/engines.md %}) used by the API module.
+* _\<ENGINE\>_: The [engine]({% link estela/api/engines.md %}){:target="\_blank"} used by 
+  the API module.
 
-* _\<CREDENTIALS\>_: The [credentials]({% link estela/api/credentials.md %}) used by the API module.
+* _\<CREDENTIALS\>_: The [credentials]({% link estela/api/credentials.md %}){:target="\_blank"}
+  used by the API module.
 
 * _<EMAIL\_HOST>_: Host of the SMTP email server.
 
@@ -100,7 +102,7 @@ The variables that already have an assigned value should not be modified.
 * _<REGISTRY\_ID>_: (Optional) Fill this values if you registry has an associated ID.
 
 The following values need to be in base64, you can use an
-[online tool](https://www.base64encode.org/) or your terminal with
+[online tool](https://www.base64encode.org/){:target="\_blank"} or your terminal with
 `printf "<TEXT>" | base64`:
 
 * _<DB\_USER>_: User name of the API module database.
@@ -114,6 +116,7 @@ The following values need to be in base64, you can use an
 
 * _<EMAIL\_HOST\_PASSWORD>_: Password of the user above.
 
-* _<SECRET\_KEY>_: The Django secret key, you can generate one [here](https://djecrety.ir/).
+* _<SECRET\_KEY>_: The Django secret key, you can generate one 
+  [here](https://djecrety.ir/){:target="\_blank"}.
 
 * _<AWS\_ACCESS\_KEY\_ID>_ and _<AWS\_SECRET\_ACCESS\_KEY>_: (Optional) Your aws credentials.

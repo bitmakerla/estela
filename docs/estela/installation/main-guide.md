@@ -31,103 +31,23 @@ Extra requirements needed for local installation:
 - Minikube >= v1.25.0
 
 For the rest of the installation, open a terminal in the _installation_ folder
-of the cloned [estela repository](https://github.com/bitmakerla/estela).
+of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="\_blank"}.
 
-## Resources
+## Installation
 
-We must have all the needed resources up and running. Here is the detailed list:
+### 1. Resources
 
-- **Container Orchestrator System**: 
+Refer to the 
+[resources guide]({% link estela/installation/resources.md %}){:target="\_blank"}
+to complete this step and have all the needed resources up and running.
 
-  This system is used to manage the execution of the scrapy jobs, as well as the management
-  of the services and deployments of the API module and the Queuing module.
-  estela was thought to work with Kubernetes, but any other orchestrator can be used (soon).
-  The system can be managed by a cloud provider, e.g., [EKS](https://aws.amazon.com/eks/),
-  or by your local computer, e.g., [minikube](https://minikube.sigs.k8s.io/).
+### 2. Environment Variables
 
-- **SQL Relational Database**:
+Refer to the
+[variables guide]({% link estela/installation/helm-variables.md %}){:target="\_blank"},
+and complete the `values.yaml` file with the appropriate environment values.
 
-  This database is used to store the metadata of the API module. The default relational 
-  database management system is MySQL, but any other manager can be used (soon).
-  The database can be managed by a cloud provider, e.g., [RDS](https://aws.amazon.com/rds/),
-  or by your local computer.
-
-- **Document Oriented Database**:
-
-  This database is used to store all the data collected from the spiders. The default
-  database management system is MongoDB, but any other manager can be used (soon).
-  The database can be managed by a cloud provider,
-  e.g., [MongoDB Atlas](https://www.mongodb.com/cloud/atlas),
-  or by your local computer.
-
-- **Docker Container Registry**:
-
-  This registry is used to store the Docker images of the API module and the Queuing module.
-  The registry can be managed by a cloud provider, e.g., [ECR](https://aws.amazon.com/ecr/),
-  or by your local computer.
-
-- **Object Storage Service**:
-
-  This storage is used to store the projects deployed from the
-  [estela CLI](https://github.com/bitmakerla/estela-cli).
-  The storage can be managed by a cloud provider, e.g., [S3](https://aws.amazon.com/s3/),
-  or by your local computer, e.g., [MinIO](https://min.io/).
-
-- **Queuing Platform**:
-
-  This platform controls real-time data feeds in a producer-consumer architecture.
-  The default platform is Kafka, but any other platform can be used (soon).
-  The queuing service can be deployed within the container orchestrator system,
-  or in your local computer.
-  
-- **SMTP Email Server**:
-
-  This server is used to send confirmation emails after creating an account through the 
-  web interface. The SMTP server can be dedicated, e.g.,
-  [SES](https://aws.amazon.com/ses/); or public, e.g.,
-  [Google SMTP server](https://support.google.com/a/answer/176600?hl=en).
-
-### Local Deployment of Resources
-
-All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
-can be started locally by running:
-
-```bash
-$ make resources
-```
-
-To allow the use of images stored in the local container registry, you need to
-add the following line to the Docker daemon 
-[config file](https://docs.docker.com/config/daemon/#configure-the-docker-daemon).
-And then restart Docker.
-
-```json
-{
-	...
-	"insecure-registries" : [ "<HOST_IP>:5000" ]
-	...
-}
-```
-Where _<HOST\_IP>_ is equal to the result of:
-
-```bash
-$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
-```
-
-The MongoDB database can be deployed on MongoDB Atlas for
-[free](https://www.mongodb.com/free-cloud-database).
-To configure the use of a public SMTP server, please read the following
-[guide](https://kinsta.com/blog/gmail-smtp-server/). Nothing needs to be configured,
-just use the Google services and your Gmail account credentials.
-
-## Environment Variables
-
-Refer to the Helm Chart
-[variables guide]({% link estela/installation/helm-variables.md %}),
-and complete the `values.yaml` file with the 
-appropriate values.
-
-## Helm Deployment
+### 3. Helm Deployment
 
 The images of each of the estela modules must be built and uploaded to the Docker
 Container Registry, make sure to do this step before installing the Helm application.
@@ -138,74 +58,46 @@ If you are using a local registry, you can build and upload the images by runnin
 $ make images
 ```
 
-### Installing the Helm application
-
-If you are using local resources, a `.env` file should have been created, if not, 
-create a new one. Open the file and add the following lines:
+The Helm deployment needs a release name and a namespace to identify the current version
+of the installed application. By default, the values of these variables are:
 
 ```
-RELEASE_NAME=<RELEASE_NAME>
-NAMESPACE=<NAMESPACE>
+RELEASE_NAME=base
+NAMESPACE=default
 ```
 
-You can use any value for `<RELEASE_NAME>` and `<NAMESPACE>`. However, to avoid writing 
-the namespace every time you use kubectl, you can set `NAMESPACE=default`.
+Now, perform the following steps:
 
-1. Install the helm application:
+* Install the helm application:
 
    ```
    $ make install
    ```
 
-2. If you are using Minikube, you need an external IP for the Django service, please 
-   run this command in a new terminal:
+* If you are using Minikube, you need an external IP for the Django service, please 
+  run this command in a new terminal:
 
-   ```
-   $ minikube tunnel
-   ```
+  ```
+  $ minikube tunnel
+  ```
 
-3. Update the application with the value of the Django service external IP:
+* Now, some settings need to be applied for estela to work properly. For example,
+  update the application with the value of the Django service external IP, perform the 
+  migrations, and the creation of the needed Django super users.
 
-   ```
-   $ make update-api-ip
-   ```
+  ```
+  $ make setup
+  ```
 
-4. Now, you can perform the migrations and create a super user for Django admin:
+* Finally, you can create a new super user to manage and use estela.
+  
+  ```
+  $ make createsuperuser
+  ```
 
-   ```
-   $ make makemigrations
-   $ make migrate
-   $ make createsuperuser
-   ```
+The estela application is now ready to use!
 
-5. Once you do the migrations, restart the `estela-celery-beat` deployment:
-
-   ```bash
-   $ make restart-celery-beat
-   ```
-
-6. Finally, create a new superuser named `deploy_manager`. This user is required
-   for the deployment of projects to work correctly. Use the following command
-   to create it:
-
-   ```
-   $ make createsuperuser
-   ```
-
-   The `deploy_manager`'s password can be set to anything. Just make sure that
-   the name is set correctly.
-
-The estela application is ready!
-
-### Uninstalling the Helm application
-
-To uninstall estela, just run:
-
-```
-$ make uninstall
-```
-
-## estela Web Deployment
+### 4. Web Deployment
 
 To build the estela web application, run:
 
@@ -219,7 +111,16 @@ Then, execute the web application locally:
 $ make run-web
 ```
 
-Visit the [web application](http://localhost:3000/login) and start creating projects!
+Visit the [web application](http://localhost:3000/login){:target="\_blank"} and start
+creating projects!
+
+## Uninstalling estela
+
+To uninstall estela, just run:
+
+```
+$ make uninstall
+```
 
 ## Final Notes
 
@@ -241,12 +142,12 @@ If you are using the local resources, specifically MinIO, you need to create a
 public bucket with the name specified in the _BUCKET\_NAME\_PROJECTS_ variable 
 (defined in the `values.yaml` file).
 
-* Go to the [web dashboard](http://localhost:9001) and log in using the default
-  credentials: `minioadmin:minioadmin`.
+* Go to the [web dashboard](http://localhost:9001){:target="\_blank"} and log in using 
+  the default credentials: `minioadmin : minioadmin`.
   
-* Then, [create a bucket](http://localhost:9001/buckets/add-bucket) using the
-  _BUCKET\_NAME\_PROJECTS_ value as the bucket name.
+* Then, [create a bucket](http://localhost:9001/buckets/add-bucket){:target="\_blank"} 
+  using the _BUCKET\_NAME\_PROJECTS_ value as the bucket name.
   
-* Finally, go to the [bucket's page](http://localhost:9001/buckets), click the
-  _Manage_ button of the newly created bucket, and change the _Access Policy_
+* Finally, go to the [bucket's page](http://localhost:9001/buckets){:target="\_blank"}, 
+  click the _Manage_ button of the newly created bucket, and change the _Access Policy_
   to _public_.
