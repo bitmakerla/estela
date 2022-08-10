@@ -7,8 +7,8 @@ from rest_framework.authtoken.models import Token
 from api.serializers.job import SpiderJobCreateSerializer
 from config.celery import app as celery_app
 from config.job_manager import job_manager
-from core.database_adapters import get_database_interface
 from core.models import Spider, SpiderJob
+from database_adapters.db_adapters import get_database_interface
 
 
 def get_default_token(job):

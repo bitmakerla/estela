@@ -1,22 +1,24 @@
 import os
 import sys
 import json
-import pymongo
 import logging
 import threading
-import boto3
-import botocore
-import ssl
+import time
 
 from queue import Queue
 from kafka import KafkaConsumer
-from pymongo.errors import ConnectionFailure
 from config.database_manager import db_client
+from inserter import Inserter
 
-DEFAULT_WORKER_POOL = 15
+
+WORKER_POOL = 10
+HEARTBEAT_TICK = 600  # seconds
+QUEUE_BASE_TIMEOUT = 10  # seconds
+QUEUE_MAX_TIMEOUT = 600  # seconds
+
 item_queue = Queue()
-
-count = 0
+inserters = {}
+heartbeat_lock = threading.Lock()
 
 
 def connect_kafka_consumer(topic_name):
@@ -28,18 +30,23 @@ def connect_kafka_consumer(topic_name):
         for kafka_advertised_listener in kafka_advertised_listeners
     ]
     try:
+        max_poll_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
         _consumer = KafkaConsumer(
             topic_name,
             bootstrap_servers=bootstrap_servers,
             auto_offset_reset="earliest",
             enable_auto_commit=True,
-            auto_commit_interval_ms=3000,
+            auto_commit_interval_ms=1000,
             group_id="group_{}".format(topic_name),
             api_version=(0, 10),
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
+            max_poll_interval_ms=max_poll_interval_ms,
+            session_timeout_ms=max_poll_interval_ms,
+            request_timeout_ms=max_poll_interval_ms + 1,
+            connections_max_idle_ms=max_poll_interval_ms + 2,
         )
     except Exception as ex:
-        logging.error("Exception while connecting Kafka")
+        logging.error("Exception while connecting Kafka.")
         logging.error(str(ex))
     finally:
         return _consumer
@@ -62,65 +69,101 @@ def mongo_jsonify(item):
         return item
 
 
-def read_from_queue(client):
+def read_from_queue():
+    current_timeout = QUEUE_BASE_TIMEOUT
     while True:
-        item = mongo_jsonify(item_queue.get())
+        if heartbeat_lock.locked():
+            return
         try:
-            if item["unique"] == "True":
-                client.insert_unique_collection_data(
-                    item["database_name"], item["collection_name"], item["payload"]
-                )
-            else:
-                client.insert_collection_data(
-                    item["database_name"], item["collection_name"], item["payload"]
-                )
-            logging.debug("Document inserted {}.".format(item["collection_name"]))
+            item = item_queue.get(timeout=current_timeout)
+            current_timeout = QUEUE_BASE_TIMEOUT
+        except:
+            next_timeout = current_timeout * 2
+            current_timeout = (
+                QUEUE_MAX_TIMEOUT if next_timeout > QUEUE_MAX_TIMEOUT else next_timeout
+            )
+            for identifier, inserter in inserters.items():
+                inserter.flush()
+            continue
+
+        item = mongo_jsonify(item)
+        try:
+            inserters[item["identifier"]].insert(item["payload"])
         except:
             logging.warning(
-                "An exception occurs during the insertion in: {}/{}.".format(
-                    item["database_name"], item["collection_name"]
+                "An exception occurs during the insertion in {}.".format(
+                    item["identifier"]
                 )
             )
         item_queue.task_done()
 
 
-def consume_from_kafka(topic_name, worker_pool):
-    if db_client.get_connection():
-        logging.debug("DB connection established")
-    else:
-        logging.error("Could not connect to the DB")
-        return
-
-    consumer = connect_kafka_consumer(topic_name)
-    partitions = consumer.partitions_for_topic(topic_name)
+def start_workers():
     workers = []
-    for i in range(worker_pool):
-        worker = threading.Thread(
-            target=read_from_queue, args=(db_client,), daemon=True
-        )
+    for i in range(WORKER_POOL):
+        worker = threading.Thread(target=read_from_queue)
         worker.start()
         workers.append(worker)
+    return workers
+
+
+def heartbeat():
+    while True:
+        workers = start_workers()
+        time.sleep(HEARTBEAT_TICK)
+
+        with heartbeat_lock:
+            logging.debug("Heartbeat: A new inspection has started.")
+
+            for worker in workers:
+                worker.join()
+
+            for identifier, inserter in inserters.items():
+                if inserter.is_inactive():
+                    inserter.flush()
+                    del inserters[identifier]
+
+            logging.debug("Heartbeat: {} alive inserters.".format(len(inserters)))
+
+
+def consume_from_kafka(topic_name):
+    if db_client.get_connection():
+        logging.info("DB connection established.")
+    else:
+        raise Exception("Could not connect to the DB.")
+
+    consumer = connect_kafka_consumer(topic_name)
+    _heartbeat = threading.Thread(target=heartbeat, daemon=True)
+    _heartbeat.start()
 
     for message in consumer:
+        if heartbeat_lock.locked():
+            heartbeat_lock.acquire()
+            heartbeat_lock.release()
+
         job, spider, project = message.value["jid"].split(".")
-        item_queue.put(
-            {
-                "payload": message.value["payload"],
-                "database_name": project,
-                "collection_name": "{}-{}-{}".format(spider, job, topic_name),
-                "unique": message.value.get("unique", "False"),
-            }
-        )
+
+        collection_name = "{}-{}-{}".format(spider, job, topic_name)
+        identifier = "{}/{}".format(project, collection_name)
+        unique = message.value.get("unique", "False") == "True"
+
+        if inserters.get(identifier) is None:
+            inserters[identifier] = Inserter(
+                db_client, project, collection_name, unique
+            )
+        else:
+            inserters[identifier].last_activity = time.time()
+
+        item_queue.put({"identifier": identifier, "payload": message.value["payload"]})
+
     item_queue.join()
     consumer.close()
-    client.close()
 
 
 def main():
     logging.basicConfig(level=logging.INFO)
     try:
-        worker_pool = int(sys.argv[2]) if len(sys.argv) == 3 else DEFAULT_WORKER_POOL
-        consume_from_kafka(sys.argv[1], worker_pool)
+        consume_from_kafka(sys.argv[1])
     except Exception as ex:
         logging.exception(str(ex))
         return 1
