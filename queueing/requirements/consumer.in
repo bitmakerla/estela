@@ -1,5 +1,5 @@
 pip-tools
-kafka
+kafka-python
 pymongo[srv]
 black
 boto3<=1.17
