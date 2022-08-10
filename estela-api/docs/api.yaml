@@ -1271,16 +1271,6 @@ definitions:
         type: integer
         maximum: 18446744073709551615
         minimum: 0
-      item_count:
-        title: Item count
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      request_count:
-        title: Request count
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       args:
         description: Job arguments.
         type: array
@@ -1630,88 +1620,39 @@ definitions:
     properties:
       created_at:
         title: Created at
-        description: Usage record creation date.
         type: string
         format: date-time
         readOnly: true
       processing_time:
         title: Processing time
-        description: Time of CPU use.
         type: number
       network_usage:
         title: Network usage
-        description: Amount of network bytes used.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       item_count:
         title: Item count
-        description: Amount of items extracted.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       request_count:
         title: Request count
-        description: Amount of requests made.
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       items_data_size:
         title: Items data size
-        description: Amount in bytes occupied by items in the database
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       requests_data_size:
         title: Requests data size
-        description: Amount in bytes occupied by requests in the database
         type: integer
         maximum: 18446744073709551615
         minimum: 0
       logs_data_size:
         title: Logs data size
-        description: Amount in bytes occupied by logs in the database
-        type: integer
-  UsageRecord:
-    required:
-      - processing_time
-      - network_usage
-      - item_count
-      - request_count
-      - items_data_size
-      - requests_data_size
-    type: object
-    properties:
-      created_at:
-        title: Created at
-        type: string
-        format: date-time
-        readOnly: true
-      processing_time:
-        title: Processing time
-        type: number
-      network_usage:
-        title: Network usage
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      item_count:
-        title: Item count
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      request_count:
-        title: Request count
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      items_data_size:
-        title: Items data size
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      requests_data_size:
-        title: Requests data size
         type: integer
         maximum: 18446744073709551615
         minimum: 0
