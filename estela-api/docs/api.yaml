@@ -1534,6 +1534,7 @@ definitions:
       - request_count
       - items_data_size
       - requests_data_size
+      - logs_data_size
     type: object
     properties:
       created_at:
@@ -1566,6 +1567,11 @@ definitions:
         minimum: 0
       requests_data_size:
         title: Requests data size
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      logs_data_size:
+        title: Logs data size
         type: integer
         maximum: 18446744073709551615
         minimum: 0

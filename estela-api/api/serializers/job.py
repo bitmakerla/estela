@@ -82,7 +82,6 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
     allowed_status_to_stop = [
         SpiderJob.WAITING_STATUS,
         SpiderJob.RUNNING_STATUS,
-        SpiderJob.ERROR_STATUS,
     ]
 
     class Meta:

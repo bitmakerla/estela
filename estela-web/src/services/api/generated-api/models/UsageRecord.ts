@@ -61,6 +61,12 @@ export interface UsageRecord {
      * @memberof UsageRecord
      */
     requestsDataSize: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof UsageRecord
+     */
+    logsDataSize: number;
 }
 
 export function UsageRecordFromJSON(json: any): UsageRecord {
@@ -80,6 +86,7 @@ export function UsageRecordFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'requestCount': json['request_count'],
         'itemsDataSize': json['items_data_size'],
         'requestsDataSize': json['requests_data_size'],
+        'logsDataSize': json['logs_data_size'],
     };
 }
 
@@ -98,6 +105,7 @@ export function UsageRecordToJSON(value?: UsageRecord | null): any {
         'request_count': value.requestCount,
         'items_data_size': value.itemsDataSize,
         'requests_data_size': value.requestsDataSize,
+        'logs_data_size': value.logsDataSize,
     };
 }
 
