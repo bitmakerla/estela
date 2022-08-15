@@ -23,7 +23,9 @@ class Project(models.Model):
     users = models.ManyToManyField(
         User, through="Permission", help_text="Users with permissions on this project."
     )
-    deleted = models.BooleanField(default=False, help_text="Whether the project was deleted.")
+    deleted = models.BooleanField(
+        default=False, help_text="Whether the project was deleted."
+    )
 
     @property
     def container_image(self):
@@ -236,10 +238,19 @@ class SpiderJob(models.Model):
     created = models.DateTimeField(
         auto_now_add=True, editable=False, help_text="Job creation date."
     )
-    lifespan = models.DurationField(default=timedelta(0), help_text="The elapsed seconds the spider job was running.")
-    total_response_bytes = models.PositiveBigIntegerField(default=0, help_text="The total bytes received in responses.")
-    item_count = models.PositiveBigIntegerField(default=0, help_text="The number of items extracted in the job.")
-    request_count = models.PositiveBigIntegerField(default=0, help_text="The number of requests made by the spider job.")
+    lifespan = models.DurationField(
+        default=timedelta(0),
+        help_text="The elapsed seconds the spider job was running.",
+    )
+    total_response_bytes = models.PositiveBigIntegerField(
+        default=0, help_text="The total bytes received in responses."
+    )
+    item_count = models.PositiveBigIntegerField(
+        default=0, help_text="The number of items extracted in the job."
+    )
+    request_count = models.PositiveBigIntegerField(
+        default=0, help_text="The number of requests made by the spider job."
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -336,15 +347,29 @@ class SpiderJobTag(models.Model):
 
 
 class UsageRecord(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, help_text="Project to which the usage record corresponds.")
-    created_at = models.DateTimeField(auto_now_add=True, editable=False, help_text="Usage record creation date.")
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        help_text="Project to which the usage record corresponds.",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Usage record creation date."
+    )
     processing_time = models.DurationField(help_text="Time of CPU use.")
-    network_usage = models.PositiveBigIntegerField(help_text="Amount of network bytes used.")
+    network_usage = models.PositiveBigIntegerField(
+        help_text="Amount of network bytes used."
+    )
     item_count = models.PositiveBigIntegerField(help_text="Amount of items extracted.")
     request_count = models.PositiveBigIntegerField(help_text="Amount of requests made.")
-    items_data_size = models.PositiveBigIntegerField(help_text="Amount in bytes occupied by items in the database")
-    requests_data_size = models.PositiveBigIntegerField(help_text="Amount in bytes occupied by requests in the database")
-    logs_data_size = models.PositiveBigIntegerField(help_text="Amount in bytes occupied by logs in the database")
+    items_data_size = models.PositiveBigIntegerField(
+        help_text="Amount in bytes occupied by items in the database"
+    )
+    requests_data_size = models.PositiveBigIntegerField(
+        help_text="Amount in bytes occupied by requests in the database"
+    )
+    logs_data_size = models.PositiveBigIntegerField(
+        help_text="Amount in bytes occupied by logs in the database"
+    )
 
     class Meta:
         ordering = ["-created_at"]
