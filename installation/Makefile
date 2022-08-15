@@ -131,4 +131,4 @@ start:
 .PHONY: stop
 stop:
 	-minikube stop
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml down ${RESOURCES}
+	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml down
