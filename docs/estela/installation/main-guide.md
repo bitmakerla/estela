@@ -31,21 +31,21 @@ Extra requirements needed for local installation:
 - Minikube >= v1.25.0
 
 For the rest of the installation, open a terminal in the _installation_ folder
-of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="\_blank"}.
+of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="_blank"}.
 
 ## Installation
 
 ### 1. Resources
 
 Refer to the 
-[resources guide]({% link estela/installation/resources.md %}){:target="\_blank"}
+[resources guide]({% link estela/installation/resources.md %}){:target="_blank"}
 to complete this step and have all the needed resources up and running.
 
 ### 2. Environment Variables
 
 Refer to the
-[variables guide]({% link estela/installation/helm-variables.md %}){:target="\_blank"},
-and complete the `values.yaml` file with the appropriate environment values.
+[variables guide]({% link estela/installation/helm-variables.md %}){:target="_blank"},
+and complete the `helm-chart/values.yaml` file with the appropriate environment values.
 
 ### 3. Helm Deployment
 
@@ -59,12 +59,8 @@ $ make images
 ```
 
 The Helm deployment needs a release name and a namespace to identify the current version
-of the installed application. By default, the values of these variables are:
-
-```
-RELEASE_NAME=base
-NAMESPACE=default
-```
+of the installed application. By default, the values of these variables are `base` and 
+`default` respectively.
 
 Now, perform the following steps:
 
@@ -74,7 +70,7 @@ Now, perform the following steps:
    $ make install
    ```
 
-* If you are using Minikube, you need an external IP for the Django service, please 
+* If you are using Minikube, you need an external IP for the API Django service, please 
   run this command in a new terminal:
 
   ```
@@ -89,8 +85,20 @@ Now, perform the following steps:
   $ make setup
   ```
 
-* Finally, you can create a new super user to manage and use estela.
-  
+* If you are using the local resources, specifically MinIO, you need to create a 
+  public bucket with the name specified in the 
+  [_BUCKET\_NAME\_PROJECTS_]({% link estela/installation/helm-variables.md %}#registry){:target="_blank"}
+  variable.
+  * Go to the [web dashboard](http://localhost:9001){:target="_blank"} and log in using 
+    the default credentials: `minioadmin : minioadmin`.
+  * Then, [create a bucket](http://localhost:9001/buckets/add-bucket){:target="_blank"} 
+	using the _BUCKET\_NAME\_PROJECTS_ value as the bucket name.
+  * Finally, go to the [bucket's page](http://localhost:9001/buckets){:target="_blank"}, 
+	click the _Manage_ button of the newly created bucket, and change the _Access Policy_
+	to _public_.
+
+* You can create a new super user to manage and use estela.
+
   ```
   $ make createsuperuser
   ```
@@ -111,7 +119,7 @@ Then, execute the web application locally:
 $ make run-web
 ```
 
-Visit the [web application](http://localhost:3000/login){:target="\_blank"} and start
+Visit the [web application](http://localhost:3000/login){:target="_blank"} and start
 creating projects!
 
 ## Uninstalling estela
@@ -138,17 +146,3 @@ And stop the application along with all the resources with:
 ```bash
 $ make stop
 ```
-
-If you are using the local resources, specifically MinIO, you need to create a 
-public bucket with the name specified in the _BUCKET\_NAME\_PROJECTS_ variable 
-(defined in the `values.yaml` file).
-
-* Go to the [web dashboard](http://localhost:9001){:target="\_blank"} and log in using 
-  the default credentials: `minioadmin : minioadmin`.
-  
-* Then, [create a bucket](http://localhost:9001/buckets/add-bucket){:target="\_blank"} 
-  using the _BUCKET\_NAME\_PROJECTS_ value as the bucket name.
-  
-* Finally, go to the [bucket's page](http://localhost:9001/buckets){:target="\_blank"}, 
-  click the _Manage_ button of the newly created bucket, and change the _Access Policy_
-  to _public_.

@@ -11,10 +11,10 @@ from config.database_manager import db_client
 from inserter import Inserter
 
 
-WORKER_POOL = 10
-HEARTBEAT_TICK = 600  # seconds
-QUEUE_BASE_TIMEOUT = 10  # seconds
-QUEUE_MAX_TIMEOUT = 600  # seconds
+WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
+HEARTBEAT_TICK = int(os.getenv("HEARTBEAT_TICK", "300"))
+QUEUE_BASE_TIMEOUT = int(os.getenv("QUEUE_BASE_TIMEOUT", "5"))
+QUEUE_MAX_TIMEOUT = int(os.getenv("QUEUE_MAX_TIMEOUT", "300"))
 
 item_queue = Queue()
 inserters = {}
@@ -119,8 +119,8 @@ def heartbeat():
                 worker.join()
 
             for identifier, inserter in inserters.items():
+                inserter.flush()
                 if inserter.is_inactive():
-                    inserter.flush()
                     del inserters[identifier]
 
             logging.debug("Heartbeat: {} alive inserters.".format(len(inserters)))

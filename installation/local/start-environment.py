@@ -10,7 +10,7 @@ os.remove("tmp")
 release_name = "base"
 namespace = "default"
 
-with open(".env", "w") as f:
+with open("local/.env", "w") as f:
     lines = [
         f"HOST_IP={host_ip}",
         "LOCAL_REGISTRY=localhost:5000",
