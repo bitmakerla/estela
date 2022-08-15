@@ -20,25 +20,25 @@ import { exists, mapValues } from '../runtime';
  */
 export interface DeployCreate {
     /**
-     * 
+     * A unique integer value identifying this deploy.
      * @type {number}
      * @memberof DeployCreate
      */
     readonly did?: number;
     /**
-     * 
+     * Deploy status.
      * @type {string}
      * @memberof DeployCreate
      */
     status?: DeployCreateStatusEnum;
     /**
-     * 
+     * Deploy creation date.
      * @type {Date}
      * @memberof DeployCreate
      */
     readonly created?: Date;
     /**
-     * 
+     * Zip file containing the project.
      * @type {string}
      * @memberof DeployCreate
      */

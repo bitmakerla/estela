@@ -20,25 +20,25 @@ import { exists, mapValues } from '../runtime';
  */
 export interface SpiderJobUpdate {
     /**
-     * 
+     * A unique integer value identifying this job.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     readonly jid?: number;
     /**
-     * 
+     * Job status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     status?: SpiderJobUpdateStatusEnum;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     dataStatus?: SpiderJobUpdateDataStatusEnum;
     /**
-     * 
+     * Days before data expires.
      * @type {number}
      * @memberof SpiderJobUpdate
      */

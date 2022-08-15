@@ -21,7 +21,7 @@ import {
 } from './';
 
 /**
- * 
+ * Users with permissions on this project.
  * @export
  * @interface Permission
  */
@@ -33,7 +33,7 @@ export interface Permission {
      */
     user?: UserDetail;
     /**
-     * 
+     * Permission on this project.
      * @type {string}
      * @memberof Permission
      */

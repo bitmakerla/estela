@@ -14,19 +14,19 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * 
+ * Job arguments.
  * @export
  * @interface SpiderJobArg
  */
 export interface SpiderJobArg {
     /**
-     * 
+     * Argument name.
      * @type {string}
      * @memberof SpiderJobArg
      */
     name: string;
     /**
-     * 
+     * Argument value.
      * @type {string}
      * @memberof SpiderJobArg
      */

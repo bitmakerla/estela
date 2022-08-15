@@ -14,13 +14,13 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * 
+ * Job tags.
  * @export
  * @interface SpiderJobTag
  */
 export interface SpiderJobTag {
     /**
-     * 
+     * Tag name.
      * @type {string}
      * @memberof SpiderJobTag
      */
