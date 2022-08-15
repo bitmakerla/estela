@@ -14,19 +14,19 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * 
+ * Job env variables.
  * @export
  * @interface SpiderJobEnvVar
  */
 export interface SpiderJobEnvVar {
     /**
-     * 
+     * Env variable name.
      * @type {string}
      * @memberof SpiderJobEnvVar
      */
     name: string;
     /**
-     * 
+     * Env variable value.
      * @type {string}
      * @memberof SpiderJobEnvVar
      */

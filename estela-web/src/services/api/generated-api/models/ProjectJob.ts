@@ -27,13 +27,13 @@ import {
  */
 export interface ProjectJob {
     /**
-     * 
+     * Project jobs.
      * @type {Array<SpiderJob>}
      * @memberof ProjectJob
      */
     results: Array<SpiderJob>;
     /**
-     * 
+     * Project jobs count.
      * @type {number}
      * @memberof ProjectJob
      */

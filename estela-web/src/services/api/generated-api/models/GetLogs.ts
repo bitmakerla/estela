@@ -20,13 +20,13 @@ import { exists, mapValues } from '../runtime';
  */
 export interface GetLogs {
     /**
-     * 
+     * Job logs.
      * @type {Array<string>}
      * @memberof GetLogs
      */
     logs: Array<string>;
     /**
-     * 
+     * Job logs count.
      * @type {number}
      * @memberof GetLogs
      */

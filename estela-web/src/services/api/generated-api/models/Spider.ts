@@ -14,25 +14,25 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * 
+ * Spiders in this deploy.
  * @export
  * @interface Spider
  */
 export interface Spider {
     /**
-     * 
+     * A unique integer value identifying this spider.
      * @type {number}
      * @memberof Spider
      */
     readonly sid?: number;
     /**
-     * 
+     * Spider's name.
      * @type {string}
      * @memberof Spider
      */
     name: string;
     /**
-     * 
+     * Project UUID.
      * @type {string}
      * @memberof Spider
      */

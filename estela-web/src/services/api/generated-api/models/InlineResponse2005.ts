@@ -20,25 +20,25 @@ import { exists, mapValues } from '../runtime';
  */
 export interface InlineResponse2005 {
     /**
-     * 
+     * Data items count.
      * @type {number}
      * @memberof InlineResponse2005
      */
     count: number;
     /**
-     * 
+     * URI to the previous data chunk.
      * @type {string}
      * @memberof InlineResponse2005
      */
     previous?: string | null;
     /**
-     * 
+     * URI to the next data chunk.
      * @type {string}
      * @memberof InlineResponse2005
      */
     next?: string | null;
     /**
-     * 
+     * Data items.
      * @type {Array<object>}
      * @memberof InlineResponse2005
      */

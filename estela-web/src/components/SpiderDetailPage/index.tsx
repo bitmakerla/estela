@@ -87,7 +87,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         if (!AuthService.getAuthToken()) {
             authNotification();
         } else {
-            const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: this.spiderId };
+            const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
             this.apiService.apiProjectsSpidersRead(requestParams).then(
                 async (response: Spider) => {
                     const data = await this.getSpiderJobs(1);
