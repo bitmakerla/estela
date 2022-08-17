@@ -35,55 +35,55 @@ import {
  */
 export interface SpiderCronJobCreate {
     /**
-     * 
+     * A unique integer value identifying this cron job.
      * @type {number}
      * @memberof SpiderCronJobCreate
      */
     readonly cjid?: number;
     /**
-     * 
+     * Unique cron job name.
      * @type {string}
      * @memberof SpiderCronJobCreate
      */
     readonly name?: string;
     /**
-     * 
+     * Cron job arguments.
      * @type {Array<SpiderJobArg>}
      * @memberof SpiderCronJobCreate
      */
     cargs?: Array<SpiderJobArg>;
     /**
-     * 
+     * Cron job env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof SpiderCronJobCreate
      */
     cenvVars?: Array<SpiderJobEnvVar>;
     /**
-     * 
+     * Cron job tags.
      * @type {Array<SpiderJobTag>}
      * @memberof SpiderCronJobCreate
      */
     ctags?: Array<SpiderJobTag>;
     /**
-     * 
+     * Cron job schedule definition.
      * @type {string}
      * @memberof SpiderCronJobCreate
      */
     schedule?: string;
     /**
-     * 
+     * True if this cron job stores its items in a unique collection.
      * @type {boolean}
      * @memberof SpiderCronJobCreate
      */
     uniqueCollection?: boolean;
     /**
-     * 
+     * Days before data expires.
      * @type {string}
      * @memberof SpiderCronJobCreate
      */
     dataExpiryDays?: string;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderCronJobCreate
      */

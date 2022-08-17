@@ -117,7 +117,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 status: job.jobStatus,
             }));
             const jobs: SpiderJobData[] = data;
-            this.setState({ jobs: [...jobs], loaded: true, count: response.count });
+            this.setState({ jobs: [...jobs], loaded: true, count: response.count, current: page });
         });
     };
 

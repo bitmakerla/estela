@@ -20,13 +20,13 @@ import { exists, mapValues } from '../runtime';
  */
 export interface Token {
     /**
-     * 
+     * Username.
      * @type {string}
      * @memberof Token
      */
     readonly user?: string;
     /**
-     * 
+     * User's auth token key.
      * @type {string}
      * @memberof Token
      */

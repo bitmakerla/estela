@@ -29,97 +29,97 @@ import {
 } from './';
 
 /**
- * 
+ * Project jobs.
  * @export
  * @interface SpiderJob
  */
 export interface SpiderJob {
     /**
-     * 
+     * A unique integer value identifying this job.
      * @type {number}
      * @memberof SpiderJob
      */
     readonly jid?: number;
     /**
-     * 
+     * Spider sid.
      * @type {number}
      * @memberof SpiderJob
      */
     spider: number;
     /**
-     * 
+     * Job creation date.
      * @type {Date}
      * @memberof SpiderJob
      */
     readonly created?: Date;
     /**
-     * 
+     * Unique job name.
      * @type {string}
      * @memberof SpiderJob
      */
     readonly name?: string;
     /**
-     * 
+     * The elapsed seconds the spider job was running.
      * @type {number}
      * @memberof SpiderJob
      */
     lifespan?: number;
     /**
-     * 
+     * The total bytes received in responses.
      * @type {number}
      * @memberof SpiderJob
      */
     totalResponseBytes?: number;
     /**
-     * 
+     * The number of items extracted in the job.
      * @type {number}
      * @memberof SpiderJob
      */
     itemCount?: number;
     /**
-     * 
+     * The number of requests made by the spider job.
      * @type {number}
      * @memberof SpiderJob
      */
     requestCount?: number;
     /**
-     * 
+     * Job arguments.
      * @type {Array<SpiderJobArg>}
      * @memberof SpiderJob
      */
     args?: Array<SpiderJobArg>;
     /**
-     * 
+     * Job env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof SpiderJob
      */
     envVars?: Array<SpiderJobEnvVar>;
     /**
-     * 
+     * Job tags.
      * @type {Array<SpiderJobTag>}
      * @memberof SpiderJob
      */
     tags?: Array<SpiderJobTag>;
     /**
-     * 
+     * Current job status.
      * @type {string}
      * @memberof SpiderJob
      */
     readonly jobStatus?: string;
     /**
-     * 
+     * Related cron job.
      * @type {number}
      * @memberof SpiderJob
      */
     cronjob?: number | null;
     /**
-     * 
+     * Days before data expires.
      * @type {number}
      * @memberof SpiderJob
      */
     dataExpiryDays?: number | null;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderJob
      */

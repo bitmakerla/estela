@@ -20,49 +20,49 @@ import { exists, mapValues } from '../runtime';
  */
 export interface SpiderJobUpdate {
     /**
-     * 
+     * A unique integer value identifying this job.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     readonly jid?: number;
     /**
-     * 
+     * Job status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     status?: SpiderJobUpdateStatusEnum;
     /**
-     * 
+     * The elapsed seconds the spider job was running.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     lifespan?: number;
     /**
-     * 
+     * The total bytes received in responses.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     totalResponseBytes?: number;
     /**
-     * 
+     * The number of items extracted in the job.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     itemCount?: number;
     /**
-     * 
+     * The number of requests made by the spider job.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     requestCount?: number;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     dataStatus?: SpiderJobUpdateDataStatusEnum;
     /**
-     * 
+     * Days before data expires.
      * @type {number}
      * @memberof SpiderJobUpdate
      */

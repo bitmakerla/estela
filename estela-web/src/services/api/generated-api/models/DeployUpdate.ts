@@ -20,19 +20,19 @@ import { exists, mapValues } from '../runtime';
  */
 export interface DeployUpdate {
     /**
-     * 
+     * A unique integer value identifying this deploy.
      * @type {number}
      * @memberof DeployUpdate
      */
     readonly did?: number;
     /**
-     * 
+     * Deploy status.
      * @type {string}
      * @memberof DeployUpdate
      */
     status?: DeployUpdateStatusEnum;
     /**
-     * 
+     * Spider names in this deploy.
      * @type {Array<string>}
      * @memberof DeployUpdate
      */

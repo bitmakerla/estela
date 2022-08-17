@@ -35,73 +35,73 @@ import {
  */
 export interface SpiderCronJob {
     /**
-     * 
+     * A unique integer value identifying this cron job.
      * @type {number}
      * @memberof SpiderCronJob
      */
     readonly cjid?: number;
     /**
-     * 
+     * Spider sid.
      * @type {number}
      * @memberof SpiderCronJob
      */
     spider: number;
     /**
-     * 
+     * Cron job creation date.
      * @type {Date}
      * @memberof SpiderCronJob
      */
     readonly created?: Date;
     /**
-     * 
+     * Unique cron job name.
      * @type {string}
      * @memberof SpiderCronJob
      */
     readonly name?: string;
     /**
-     * 
+     * Cron job arguments.
      * @type {Array<SpiderJobArg>}
      * @memberof SpiderCronJob
      */
     cargs?: Array<SpiderJobArg>;
     /**
-     * 
+     * Cron job env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof SpiderCronJob
      */
     cenvVars?: Array<SpiderJobEnvVar>;
     /**
-     * 
+     * Cron job tags.
      * @type {Array<SpiderJobTag>}
      * @memberof SpiderCronJob
      */
     ctags?: Array<SpiderJobTag>;
     /**
-     * 
+     * Cron job schedule definition.
      * @type {string}
      * @memberof SpiderCronJob
      */
     schedule?: string;
     /**
-     * 
+     * Cron job status.
      * @type {string}
      * @memberof SpiderCronJob
      */
     status?: SpiderCronJobStatusEnum;
     /**
-     * 
+     * True if this cron job stores its items in a unique collection.
      * @type {boolean}
      * @memberof SpiderCronJob
      */
     uniqueCollection?: boolean;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderCronJob
      */
     dataStatus?: SpiderCronJobDataStatusEnum;
     /**
-     * 
+     * Days before data expires.
      * @type {number}
      * @memberof SpiderCronJob
      */

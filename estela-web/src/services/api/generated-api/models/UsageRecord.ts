@@ -20,49 +20,49 @@ import { exists, mapValues } from '../runtime';
  */
 export interface UsageRecord {
     /**
-     * 
+     * Usage record creation date.
      * @type {Date}
      * @memberof UsageRecord
      */
     readonly createdAt?: Date;
     /**
-     * 
+     * Time of CPU use.
      * @type {number}
      * @memberof UsageRecord
      */
     processingTime: number;
     /**
-     * 
+     * Amount of network bytes used.
      * @type {number}
      * @memberof UsageRecord
      */
     networkUsage: number;
     /**
-     * 
+     * Amount of items extracted.
      * @type {number}
      * @memberof UsageRecord
      */
     itemCount: number;
     /**
-     * 
+     * Amount of requests made.
      * @type {number}
      * @memberof UsageRecord
      */
     requestCount: number;
     /**
-     * 
+     * Amount in bytes occupied by items in the database
      * @type {number}
      * @memberof UsageRecord
      */
     itemsDataSize: number;
     /**
-     * 
+     * Amount in bytes occupied by requests in the database
      * @type {number}
      * @memberof UsageRecord
      */
     requestsDataSize: number;
     /**
-     * 
+     * Amount in bytes occupied by logs in the database
      * @type {number}
      * @memberof UsageRecord
      */

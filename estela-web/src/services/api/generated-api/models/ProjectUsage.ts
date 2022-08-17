@@ -20,13 +20,13 @@ import { exists, mapValues } from '../runtime';
  */
 export interface ProjectUsage {
     /**
-     * 
+     * A UUID identifying this project.
      * @type {string}
      * @memberof ProjectUsage
      */
     readonly pid?: string;
     /**
-     * 
+     * Project's name.
      * @type {string}
      * @memberof ProjectUsage
      */

@@ -1,7 +1,0 @@
-venv/
-.venv/
-.idea/
-
-kubernetes/
-config/mongo_certificate/ca-certificate.crt
-Makefile

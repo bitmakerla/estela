@@ -183,26 +183,26 @@ export interface ApiProjectsSpidersCronjobsListRequest {
 }
 
 export interface ApiProjectsSpidersCronjobsPartialUpdateRequest {
-    cjid: string;
+    cjid: number;
     pid: string;
     sid: string;
     data: SpiderCronJob;
 }
 
 export interface ApiProjectsSpidersCronjobsReadRequest {
-    cjid: string;
+    cjid: number;
     pid: string;
     sid: string;
 }
 
 export interface ApiProjectsSpidersCronjobsRunOnceRequest {
-    cjid: string;
+    cjid: number;
     pid: string;
     sid: string;
 }
 
 export interface ApiProjectsSpidersCronjobsUpdateRequest {
-    cjid: string;
+    cjid: number;
     pid: string;
     sid: string;
     data: SpiderCronJobUpdate;
@@ -277,7 +277,7 @@ export interface ApiProjectsSpidersListRequest {
 
 export interface ApiProjectsSpidersReadRequest {
     pid: string;
-    sid: string;
+    sid: number;
 }
 
 export interface ApiProjectsUpdateRequest {
@@ -487,7 +487,6 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create a new Deploy
      */
     async apiProjectsDeploysCreateRaw(requestParameters: ApiProjectsDeploysCreateRequest): Promise<runtime.ApiResponse<DeployCreate>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
@@ -519,7 +518,6 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Create a new Deploy
      */
     async apiProjectsDeploysCreate(requestParameters: ApiProjectsDeploysCreateRequest): Promise<DeployCreate> {
         const response = await this.apiProjectsDeploysCreateRaw(requestParameters);
@@ -1572,7 +1570,6 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update Project information
      */
     async apiProjectsUpdateRaw(requestParameters: ApiProjectsUpdateRequest): Promise<runtime.ApiResponse<ProjectUpdate>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
@@ -1604,7 +1601,6 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Update Project information
      */
     async apiProjectsUpdate(requestParameters: ApiProjectsUpdateRequest): Promise<ProjectUpdate> {
         const response = await this.apiProjectsUpdateRaw(requestParameters);
