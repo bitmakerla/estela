@@ -27,37 +27,37 @@ import {
  */
 export interface ProjectUpdate {
     /**
-     * 
+     * A UUID identifying this project.
      * @type {string}
      * @memberof ProjectUpdate
      */
     readonly pid?: string;
     /**
-     * 
+     * Project's name.
      * @type {string}
      * @memberof ProjectUpdate
      */
     name: string;
     /**
-     * 
+     * Afected users.
      * @type {Array<UserDetail>}
      * @memberof ProjectUpdate
      */
     users?: Array<UserDetail>;
     /**
-     * 
+     * Email address.
      * @type {string}
      * @memberof ProjectUpdate
      */
     email?: string;
     /**
-     * 
+     * Performed action.
      * @type {string}
      * @memberof ProjectUpdate
      */
     action?: ProjectUpdateActionEnum;
     /**
-     * 
+     * New permission.
      * @type {string}
      * @memberof ProjectUpdate
      */

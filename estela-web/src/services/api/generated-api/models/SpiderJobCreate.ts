@@ -35,55 +35,55 @@ import {
  */
 export interface SpiderJobCreate {
     /**
-     * 
+     * A unique integer value identifying this job.
      * @type {number}
      * @memberof SpiderJobCreate
      */
     readonly jid?: number;
     /**
-     * 
+     * Unique job name.
      * @type {string}
      * @memberof SpiderJobCreate
      */
     readonly name?: string;
     /**
-     * 
+     * Job arguments.
      * @type {Array<SpiderJobArg>}
      * @memberof SpiderJobCreate
      */
     args?: Array<SpiderJobArg>;
     /**
-     * 
+     * Job env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof SpiderJobCreate
      */
     envVars?: Array<SpiderJobEnvVar>;
     /**
-     * 
+     * Job tags.
      * @type {Array<SpiderJobTag>}
      * @memberof SpiderJobCreate
      */
     tags?: Array<SpiderJobTag>;
     /**
-     * 
+     * Current job status.
      * @type {string}
      * @memberof SpiderJobCreate
      */
     readonly jobStatus?: string;
     /**
-     * 
+     * Related cron job.
      * @type {number}
      * @memberof SpiderJobCreate
      */
     cronjob?: number | null;
     /**
-     * 
+     * Days before data expires.
      * @type {string}
      * @memberof SpiderJobCreate
      */
     dataExpiryDays?: string;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderJobCreate
      */

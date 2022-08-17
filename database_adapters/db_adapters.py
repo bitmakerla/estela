@@ -39,6 +39,14 @@ class DatabaseInterface(metaclass=ABCMeta):
     def insert_many_to_collection(self):
         pass
 
+    @abstractmethod
+    def get_database_size(self):
+        pass
+
+    @abstractmethod
+    def get_collection_size(self):
+        pass
+
 
 class MongoAdapter(DatabaseInterface):
     def __init__(self, mongo_connection, mongo_production, mongo_certificate_path):
@@ -98,6 +106,23 @@ class MongoAdapter(DatabaseInterface):
         return self.client[database_name][collection_name].insert_many(
             items, ordered=ordered
         )
+
+    def get_database_size(self, database_name, data_type):
+        database = self.client[database_name]
+        collections = database.list_collection_names()
+        total_size_bytes = 0
+        for collection in collections:
+            if data_type in collection:
+                total_size_bytes += self.get_collection_size(database_name, collection)
+
+        return total_size_bytes
+
+    def get_collection_size(self, database_name, collection):
+        database = self.client[database_name]
+        collection_size = database.command("dataSize", f"{database_name}.{collection}")[
+            "size"
+        ]
+        return collection_size
 
 
 def get_database_interface(engine, connection, production, certificate_path):

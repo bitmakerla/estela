@@ -20,7 +20,7 @@ import { exists, mapValues } from '../runtime';
  */
 export interface DeleteJobData {
     /**
-     * 
+     * Deleted items count.
      * @type {number}
      * @memberof DeleteJobData
      */

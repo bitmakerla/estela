@@ -100,7 +100,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
-    cronjobId: string = this.props.match.params.cronjobId;
+    cronjobId: number = parseInt(this.props.match.params.cronjobId);
     columns = [
         {
             title: "Job ID",
@@ -248,7 +248,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             sid: this.spiderId,
             page,
             pageSize: this.PAGE_SIZE,
-            cronjob: parseInt(this.cronjobId),
+            cronjob: this.cronjobId,
         };
         const response = await this.apiService.apiProjectsSpidersJobsList(requestParams);
         const data = response.results.map((job: SpiderJob, iterator: number) => ({

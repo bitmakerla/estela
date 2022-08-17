@@ -20,25 +20,49 @@ import { exists, mapValues } from '../runtime';
  */
 export interface SpiderJobUpdate {
     /**
-     * 
+     * A unique integer value identifying this job.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
     readonly jid?: number;
     /**
-     * 
+     * Job status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     status?: SpiderJobUpdateStatusEnum;
     /**
-     * 
+     * The elapsed seconds the spider job was running.
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    lifespan?: number;
+    /**
+     * The total bytes received in responses.
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    totalResponseBytes?: number;
+    /**
+     * The number of items extracted in the job.
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    itemCount?: number;
+    /**
+     * The number of requests made by the spider job.
+     * @type {number}
+     * @memberof SpiderJobUpdate
+     */
+    requestCount?: number;
+    /**
+     * Data status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     dataStatus?: SpiderJobUpdateDataStatusEnum;
     /**
-     * 
+     * Days before data expires.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
@@ -80,6 +104,10 @@ export function SpiderJobUpdateFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'status': !exists(json, 'status') ? undefined : json['status'],
+        'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
+        'totalResponseBytes': !exists(json, 'total_response_bytes') ? undefined : json['total_response_bytes'],
+        'itemCount': !exists(json, 'item_count') ? undefined : json['item_count'],
+        'requestCount': !exists(json, 'request_count') ? undefined : json['request_count'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
@@ -95,6 +123,10 @@ export function SpiderJobUpdateToJSON(value?: SpiderJobUpdate | null): any {
     return {
         
         'status': value.status,
+        'lifespan': value.lifespan,
+        'total_response_bytes': value.totalResponseBytes,
+        'item_count': value.itemCount,
+        'request_count': value.requestCount,
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
     };

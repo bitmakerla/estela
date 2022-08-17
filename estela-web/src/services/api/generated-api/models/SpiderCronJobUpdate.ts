@@ -20,37 +20,37 @@ import { exists, mapValues } from '../runtime';
  */
 export interface SpiderCronJobUpdate {
     /**
-     * 
+     * A unique integer value identifying this cron job.
      * @type {number}
      * @memberof SpiderCronJobUpdate
      */
     readonly cjid?: number;
     /**
-     * 
+     * Cron job status.
      * @type {string}
      * @memberof SpiderCronJobUpdate
      */
     status?: SpiderCronJobUpdateStatusEnum;
     /**
-     * 
+     * Cron job schedule definition.
      * @type {string}
      * @memberof SpiderCronJobUpdate
      */
     schedule?: string;
     /**
-     * 
+     * True if this cron job stores its items in a unique collection.
      * @type {boolean}
      * @memberof SpiderCronJobUpdate
      */
     uniqueCollection?: boolean;
     /**
-     * 
+     * Data status.
      * @type {string}
      * @memberof SpiderCronJobUpdate
      */
     dataStatus?: SpiderCronJobUpdateDataStatusEnum;
     /**
-     * 
+     * Days before data expires.
      * @type {number}
      * @memberof SpiderCronJobUpdate
      */

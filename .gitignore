@@ -1,6 +1,21 @@
-development-helps/kubernetes-api/estela-api-configmaps.yaml
-development-helps/kubernetes-api/estela-api-secrets.yaml
-development-helps/kubernetes-api/Makefile
+# Environments
+.env
+.env.local
+.venv/
+venv/
 
-development-helps/kubernetes-queuing/estela-kafka-secrets.yaml
-development-helps/kubernetes-queuing/Makefile
+# Python
+__pycache__/
+*.pyc
+
+# Various IDEs
+.project
+.idea/
+*.tmproj
+.vscode/
+
+# Misc
+.DS_Store
+
+# Certificates
+*.crt

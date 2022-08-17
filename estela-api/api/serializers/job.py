@@ -30,6 +30,10 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "spider",
             "created",
             "name",
+            "lifespan",
+            "total_response_bytes",
+            "item_count",
+            "request_count",
             "args",
             "env_vars",
             "tags",
@@ -96,7 +100,6 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
     allowed_status_to_stop = [
         SpiderJob.WAITING_STATUS,
         SpiderJob.RUNNING_STATUS,
-        SpiderJob.ERROR_STATUS,
     ]
 
     class Meta:
@@ -104,6 +107,10 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         fields = (
             "jid",
             "status",
+            "lifespan",
+            "total_response_bytes",
+            "item_count",
+            "request_count",
             "data_status",
             "data_expiry_days",
         )
@@ -129,6 +136,17 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                 else:
                     job_manager.delete_job(instance.name)
             instance.status = status
+
+        for field in [
+            "lifespan",
+            "total_response_bytes",
+            "item_count",
+            "request_count",
+        ]:
+            if not getattr(instance, field):
+                new_value = validated_data.get(field, getattr(instance, field))
+                setattr(instance, field, new_value)
+
         if (
             "data_status" in validated_data
             and instance.data_status != SpiderJob.DELETED_STATUS

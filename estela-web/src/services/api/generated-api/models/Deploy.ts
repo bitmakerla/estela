@@ -31,13 +31,13 @@ import {
  */
 export interface Deploy {
     /**
-     * 
+     * A unique integer value identifying this deploy.
      * @type {number}
      * @memberof Deploy
      */
     readonly did?: number;
     /**
-     * 
+     * Project UUID.
      * @type {string}
      * @memberof Deploy
      */
@@ -49,19 +49,19 @@ export interface Deploy {
      */
     user: UserDetail;
     /**
-     * 
+     * Deploy status.
      * @type {string}
      * @memberof Deploy
      */
     status?: DeployStatusEnum;
     /**
-     * 
+     * Spiders in this deploy.
      * @type {Array<Spider>}
      * @memberof Deploy
      */
     spiders?: Array<Spider>;
     /**
-     * 
+     * Deploy creation date.
      * @type {Date}
      * @memberof Deploy
      */

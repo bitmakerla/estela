@@ -27,25 +27,25 @@ import {
  */
 export interface Project {
     /**
-     * 
+     * A UUID identifying this project.
      * @type {string}
      * @memberof Project
      */
     readonly pid?: string;
     /**
-     * 
+     * Project's name.
      * @type {string}
      * @memberof Project
      */
     name: string;
     /**
-     * 
+     * Path of the project's container image.
      * @type {string}
      * @memberof Project
      */
     readonly containerImage?: string;
     /**
-     * 
+     * Users with permissions on this project.
      * @type {Array<Permission>}
      * @memberof Project
      */
