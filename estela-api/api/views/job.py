@@ -134,6 +134,7 @@ class SpiderJobViewSet(
                 job_args,
                 job_env_vars,
                 job.spider.project.container_image,
+                job.resources,
                 auth_token=token,
             )
         else:

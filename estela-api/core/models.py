@@ -177,6 +177,19 @@ class SpiderCronJob(models.Model):
         return "{}.{}.{}".format(self.cjid, self.spider.sid, self.spider.project.pid)
 
 
+def spiderjob_resources_default():
+    return {
+        "requests": {
+            "cpu": "200m",
+            "memory": "64Mi",
+        },
+        "limits": {
+            "cpu": "500m",
+            "memory": "128Mi",
+        },
+    }
+
+
 class SpiderJob(models.Model):
     WAITING_STATUS = "WAITING"
     RUNNING_STATUS = "RUNNING"
@@ -251,6 +264,7 @@ class SpiderJob(models.Model):
     request_count = models.PositiveBigIntegerField(
         default=0, help_text="The number of requests made by the spider job."
     )
+    resources = models.JSONField(default=spiderjob_resources_default)
 
     class Meta:
         ordering = ["-created"]

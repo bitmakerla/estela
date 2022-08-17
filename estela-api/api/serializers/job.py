@@ -60,6 +60,9 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
     data_expiry_days = serializers.CharField(
         required=False, help_text="Days before data expires."
     )
+    resources = serializers.JSONField(
+        required=False, help_text="Allocated resources to run the job."
+    )
 
     class Meta:
         model = SpiderJob
@@ -73,6 +76,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "cronjob",
             "data_expiry_days",
             "data_status",
+            "resources",
         )
 
     def create(self, validated_data):

@@ -1,8 +1,9 @@
 from distutils.command.build import build
+from json import dumps
+
 from django.conf import settings
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
-from json import dumps
 
 
 class KubernetesEngine:
@@ -36,6 +37,7 @@ class KubernetesEngine:
         container_image,
         namespace,
         container_name,
+        container_resources,
         env_vars,
         volume_spec,
         command,
@@ -68,6 +70,10 @@ class KubernetesEngine:
                 name=volume_spec["name"],
                 host_path=host_path,
             )
+        resource_requirements = client.V1ResourceRequirements(
+            requests=container_resources["requests"],
+            limits=container_resources["limits"],
+        )
         container = client.V1Container(
             name=container_name,
             image=container_image,
@@ -75,6 +81,7 @@ class KubernetesEngine:
             command=command,
             image_pull_policy=self.IMAGE_PULL_POLICY,
             volume_mounts=[volume_mount] if volume_mount else None,
+            resources=container_resources,
         )
 
         template.template.spec = client.V1PodSpec(
@@ -105,6 +112,7 @@ class KubernetesEngine:
         job_args=[],
         job_env_vars=[],
         container_image="",
+        container_resources={},
         namespace="default",
         container_name="jobcontainer",
         api_instance=None,
@@ -145,6 +153,7 @@ class KubernetesEngine:
             container_image,
             namespace,
             container_name,
+            container_resources,
             job_env_vars,
             volume,
             command,
