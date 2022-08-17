@@ -24,3 +24,6 @@ class ExampleEngine:
 
     def read_job_status(self, job_name):
         return self.Status()
+
+    def get_scale_size(self):
+        pass

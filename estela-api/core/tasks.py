@@ -22,10 +22,16 @@ def get_default_token(job):
 
 @celery_app.task
 def run_spider_jobs():
-    jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS)[
-        : settings.RUN_JOBS_PER_LOT
-    ]
+    running_jobs_count = SpiderJob.objects.filter(
+        status=SpiderJob.RUNNING_STATUS
+    ).count()
+    number_of_jobs_to_run = (
+        settings.MAX_CONCURRENT_JOBS * job_manager.get_scale_size()
+    ) - running_jobs_count
 
+    jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS)[
+        :number_of_jobs_to_run
+    ]
     for job in jobs:
         job_args = {arg.name: arg.value for arg in job.args.all()}
         job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}

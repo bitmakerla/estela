@@ -2,8 +2,8 @@ from config.settings.base import *  # noqa: F401,F403,F405
 
 DEBUG = False
 
-RUN_JOBS_PER_LOT = 1000
 CHECK_JOB_ERRORS_BATCH_SIZE = 1000
+MAX_CONCURRENT_JOBS = 40
 
 MULTI_NODE_MODE = True
 
