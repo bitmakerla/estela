@@ -16,6 +16,7 @@ from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
+from core.tasks import record_project_usage_after_data_delete
 
 
 class JobDataViewSet(
@@ -108,6 +109,7 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
+
         if mode == "json":
             result = spiderdata_db_client.get_all_collection_data(
                 kwargs["pid"], job_collection_name
@@ -179,11 +181,17 @@ class JobDataViewSet(
             job_collection_name = "{}-{}-job_{}".format(
                 kwargs["sid"], kwargs["jid"], data_type
             )
+
+        count = spiderdata_db_client.delete_collection_data(
+            kwargs["pid"], job_collection_name
+        )
+        record_project_usage_after_data_delete.s(
+            job.spider.project.pid, job.jid
+        ).apply_async()
+
         return Response(
             {
-                "count": spiderdata_db_client.delete_collection_data(
-                    kwargs["pid"], job_collection_name
-                )
+                "count": count,
             },
             status=status.HTTP_200_OK,
         )

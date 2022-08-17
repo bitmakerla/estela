@@ -18,6 +18,7 @@ models/Permission.ts
 models/Project.ts
 models/ProjectJob.ts
 models/ProjectUpdate.ts
+models/ProjectUsage.ts
 models/Spider.ts
 models/SpiderCronJob.ts
 models/SpiderCronJobCreate.ts
@@ -29,6 +30,7 @@ models/SpiderJobEnvVar.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
 models/Token.ts
+models/UsageRecord.ts
 models/User.ts
 models/UserDetail.ts
 models/index.ts

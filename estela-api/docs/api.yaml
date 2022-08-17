@@ -175,7 +175,26 @@ paths:
       parameters: []
       responses:
         '204':
+          description: Project deleted
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
+  /api/projects/{pid}/current_usage:
+    get:
+      operationId: api_projects_current_usage
+      description: ''
+      parameters: []
+      responses:
+        '200':
           description: ''
+          schema:
+            $ref: '#/definitions/ProjectUsage'
       tags:
         - api
     parameters:
@@ -829,6 +848,37 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/usage:
+    get:
+      operationId: api_projects_usage
+      description: ''
+      parameters:
+        - name: start_date
+          in: query
+          description: Start of date range.
+          required: false
+          type: string
+        - name: end_date
+          in: query
+          description: End of date range.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UsageRecord'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
 definitions:
   AuthToken:
     required:
@@ -992,6 +1042,51 @@ definitions:
         enum:
           - EDITOR
           - VIEWER
+  ProjectUsage:
+    required:
+      - name
+    type: object
+    properties:
+      pid:
+        title: Pid
+        description: A UUID identifying this project.
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Project's name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      network_usage:
+        title: Network usage
+        type: string
+        readOnly: true
+      processing_time:
+        title: Processing time
+        type: string
+        readOnly: true
+      item_count:
+        title: Item count
+        type: string
+        readOnly: true
+      request_count:
+        title: Request count
+        type: string
+        readOnly: true
+      items_data_size:
+        title: Items data size
+        type: string
+        readOnly: true
+      requests_data_size:
+        title: Requests data size
+        type: string
+        readOnly: true
+      logs_data_size:
+        title: Logs data size
+        type: string
+        readOnly: true
   Spider:
     description: Spiders in this deploy.
     required:
@@ -1183,6 +1278,28 @@ definitions:
         type: string
         readOnly: true
         minLength: 1
+      lifespan:
+        title: Lifespan
+        description: The elapsed seconds the spider job was running.
+        type: number
+      total_response_bytes:
+        title: Total response bytes
+        description: The total bytes received in responses.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        description: The number of items extracted in the job.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        description: The number of requests made by the spider job.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       args:
         description: Job arguments.
         type: array
@@ -1473,6 +1590,28 @@ definitions:
           - CANCELLED
           - COMPLETED
           - ERROR
+      lifespan:
+        title: Lifespan
+        description: The elapsed seconds the spider job was running.
+        type: number
+      total_response_bytes:
+        title: Total response bytes
+        description: The total bytes received in responses.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        description: The number of items extracted in the job.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        description: The number of requests made by the spider job.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       data_status:
         title: Data status
         description: Data status.
@@ -1514,3 +1653,60 @@ definitions:
         title: Count
         description: Job logs count.
         type: integer
+  UsageRecord:
+    required:
+      - processing_time
+      - network_usage
+      - item_count
+      - request_count
+      - items_data_size
+      - requests_data_size
+      - logs_data_size
+    type: object
+    properties:
+      created_at:
+        title: Created at
+        description: Usage record creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      processing_time:
+        title: Processing time
+        description: Time of CPU use.
+        type: number
+      network_usage:
+        title: Network usage
+        description: Amount of network bytes used.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        description: Amount of items extracted.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        description: Amount of requests made.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      items_data_size:
+        title: Items data size
+        description: Amount in bytes occupied by items in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      requests_data_size:
+        title: Requests data size
+        description: Amount in bytes occupied by requests in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      logs_data_size:
+        title: Logs data size
+        description: Amount in bytes occupied by logs in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
