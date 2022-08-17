@@ -81,38 +81,36 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
         )
 
     def get_network_usage(self, project):
-        project_jobs = SpiderJob.objects.filter(spider__project=project)
-        total_network_usage = project_jobs.aggregate(Sum("total_response_bytes"))
-        return total_network_usage["total_response_bytes__sum"]
+        return self.get_aggregate_sum(project, "total_response_bytes")
 
     def get_processing_time(self, project):
-        project_jobs = SpiderJob.objects.filter(spider__project=project)
-        total_processing_time = project_jobs.aggregate(Sum("lifespan"))
-        return total_processing_time["lifespan__sum"]
+        return self.get_aggregate_sum(project, "lifespan")
 
     def get_item_count(self, project):
-        project_jobs = SpiderJob.objects.filter(spider__project=project)
-        total_item_count = project_jobs.aggregate(Sum("item_count"))
-        return total_item_count["item_count__sum"]
+        return self.get_aggregate_sum(project, "item_count")
 
     def get_request_count(self, project):
+        return self.get_aggregate_sum(project, "request_count")
+
+    def get_aggregate_sum(self, project, field):
         project_jobs = SpiderJob.objects.filter(spider__project=project)
-        total_request_count = project_jobs.aggregate(Sum("request_count"))
-        return total_request_count["request_count__sum"]
+        total_sum = project_jobs.aggregate(Sum(field))
+        return total_sum[f"{field}__sum"]
+
+    def get_items_data_size(self, project):
+        return self.get_datatype_data_size(project, "items")
+
+    def get_requests_data_size(self, project):
+        return self.get_datatype_data_size(project, "requests")
+
+    def get_logs_data_size(self, project):
+        return self.get_datatype_data_size(project, "logs")
 
     def get_datatype_data_size(self, project, datatype):
         if not spiderdata_db_client.get_connection():
-            raise APIException(f"Could not get {datatype} data size.")
-        return spiderdata_db_client.get_database_size(str(project.pid), "items")
+            raise APIException(f"Could not connect to the database to get {datatype} data size.")
+        return spiderdata_db_client.get_database_size(str(project.pid), datatype)
 
-    def get_items_data_size(self, project):
-        return get_datatype_data_size(project, "items")
-
-    def get_requests_data_size(self, project):
-        return get_datatype_data_size(project, "requests")
-
-    def get_logs_data_size(self, project):
-        return get_datatype_data_size(project, "logs")
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):
