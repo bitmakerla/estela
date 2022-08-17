@@ -23,22 +23,11 @@ spec:
         image: {{ .Values.registryHost }}/estela-consumer:latest
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_items']
-        env:
-        - name: KAFKA_ADVERTISED_PORT
-          value: {{ .Values.KAFKA_PORT | quote }}
-        - name: KAFKA_ADVERTISED_LISTENERS
-          value: {{ .Values.KAFKA_HOSTS }}
-        - name: PRODUCTION
-          value: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
-        - name: DB_ENGINE
-          value: {{ .Values.SPIDERDATA_DB_ENGINE }}
-        - name: DB_CONNECTION
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: DB_CONNECTION
-        - name: DB_CERTIFICATE_PATH
-          value: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
+        envFrom:
+        - secretRef:
+            name: kafka-secrets
+        - configMapRef:
+            name: kafka-config
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -65,22 +54,11 @@ spec:
         image: {{ .Values.registryHost }}/estela-consumer:latest
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_requests']
-        env:
-        - name: KAFKA_ADVERTISED_PORT
-          value: {{ .Values.KAFKA_PORT | quote }}
-        - name: KAFKA_ADVERTISED_LISTENERS
-          value: {{ .Values.KAFKA_HOSTS }}
-        - name: PRODUCTION
-          value: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
-        - name: DB_ENGINE
-          value: {{ .Values.SPIDERDATA_DB_ENGINE }}
-        - name: DB_CONNECTION
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: DB_CONNECTION
-        - name: DB_CERTIFICATE_PATH
-          value: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
+        envFrom:
+        - secretRef:
+            name: kafka-secrets
+        - configMapRef:
+            name: kafka-config
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -107,19 +85,8 @@ spec:
         image: {{ .Values.registryHost }}/estela-consumer:latest
         imagePullPolicy: Always
         command: ['python', 'consumer.py', 'job_logs']
-        env:
-        - name: KAFKA_ADVERTISED_PORT
-          value: {{ .Values.KAFKA_PORT | quote }}
-        - name: KAFKA_ADVERTISED_LISTENERS
-          value: {{ .Values.KAFKA_HOSTS }}
-        - name: PRODUCTION
-          value: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
-        - name: DB_ENGINE
-          value: {{ .Values.SPIDERDATA_DB_ENGINE }}
-        - name: DB_CONNECTION
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: DB_CONNECTION
-        - name: DB_CERTIFICATE_PATH
-          value: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
+        envFrom:
+        - secretRef:
+            name: kafka-secrets
+        - configMapRef:
+            name: kafka-config

@@ -1,12 +1,13 @@
+import os
 import logging
 import sys
 import threading
 import time
 
 
-SIZE_THRESHOLD = 1024  # bytes
-INSERT_TIME_THRESHOLD = 60  # seconds
-ACTIVITY_TIME_THRESHOLD = 3600  # seconds
+BATCH_SIZE_THRESHOLD = int(os.getenv("BATCH_SIZE_THRESHOLD", "4096"))
+INSERT_TIME_THRESHOLD = int(os.getenv("INSERT_TIME_THRESHOLD", "5"))
+ACTIVITY_TIME_THRESHOLD = int(os.getenv("ACTIVITY_TIME_THRESHOLD", "600"))
 
 
 class Inserter:
@@ -47,7 +48,7 @@ class Inserter:
             with self.__lock:
                 self.__items.append(item)
                 if (
-                    sys.getsizeof(self.__items) > SIZE_THRESHOLD
+                    sys.getsizeof(self.__items) > BATCH_SIZE_THRESHOLD
                     or time.time() - self.__last_insertion > INSERT_TIME_THRESHOLD
                 ):
                     response = self.__insert_items()

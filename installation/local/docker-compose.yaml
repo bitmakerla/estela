@@ -6,7 +6,7 @@ services:
     image: mysql:8
     volumes:
       - estela_dbdata:/var/lib/mysql
-      - ./local/db/mysql:/docker-entrypoint-initdb.d
+      - ./db/mysql:/docker-entrypoint-initdb.d
     command: --default_authentication_plugin=mysql_native_password
     environment:
       - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
