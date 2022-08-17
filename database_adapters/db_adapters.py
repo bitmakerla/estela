@@ -154,6 +154,23 @@ class MongoAdapter(DatabaseInterface):
         ]
         return collection_size
 
+    def get_database_size(self, database_name, data_type):
+        database = self.client[database_name]
+        collections = database.list_collection_names()
+        total_size_bytes = 0
+        for collection in collections:
+            if data_type in collection:
+                total_size_bytes += self.get_collection_size(database_name, collection)
+
+        return total_size_bytes
+
+    def get_collection_size(self, database_name, collection):
+        database = self.client[database_name]
+        collection_size = database.command("dataSize", f"{database_name}.{collection}")[
+            "size"
+        ]
+        return collection_size
+
 
 def get_database_interface(engine, connection, production, certificate_path):
     database_interfaces = {
