@@ -108,9 +108,10 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
 
     def get_datatype_data_size(self, project, datatype):
         if not spiderdata_db_client.get_connection():
-            raise APIException(f"Could not connect to the database to get {datatype} data size.")
+            raise APIException(
+                f"Could not connect to the database to get {datatype} data size."
+            )
         return spiderdata_db_client.get_database_size(str(project.pid), datatype)
-
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):
