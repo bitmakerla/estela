@@ -205,6 +205,9 @@ def record_project_usage_after_job_event(job_id):
     if last_usage_record:
         for field in updated_values.keys():
             updated_values[field] += getattr(last_usage_record, field)
+    else:
+        last_usage_record = UsageRecord()
+        last_usage_record.items_data_size = 0
 
     new_items_data_size = (
         items_data_size
