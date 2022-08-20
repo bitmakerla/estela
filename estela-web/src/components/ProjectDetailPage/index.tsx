@@ -29,6 +29,7 @@ const { Option } = Select;
 
 interface ProjectDetailPageState {
     name: string;
+    user: string;
     users: Permission[];
     loaded: boolean;
     newUser: string;
@@ -42,6 +43,7 @@ interface RouteParams {
 export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams>, ProjectDetailPageState> {
     state: ProjectDetailPageState = {
         name: "",
+        user: "",
         users: [],
         loaded: false,
         newUser: "",
@@ -77,7 +79,10 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
 
     addUser = (): void => {
         const action = ProjectUpdateActionEnum.Add;
+        const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
+            ?.email;
         const requestData: ProjectUpdate = {
+            user: user_email,
             email: this.state.newUser,
             action: action,
             permission: this.state.permission,
@@ -103,7 +108,10 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
     };
 
     removeUser = (): void => {
+        const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
+            ?.email;
         const requestData: ProjectUpdate = {
+            user: user_email,
             email: this.state.newUser,
             action: ProjectUpdateActionEnum.Remove,
             name: this.state.name,
@@ -198,7 +206,8 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                                             style={{ width: 120 }}
                                             onChange={this.handleSelectChange}
                                         >
-                                            <Option value={ProjectUpdatePermissionEnum.Editor}>Editor</Option>
+                                            <Option value={ProjectUpdatePermissionEnum.Admin}>Admin</Option>
+                                            <Option value={ProjectUpdatePermissionEnum.Developer}>Developer</Option>
                                             <Option value={ProjectUpdatePermissionEnum.Viewer}>Viewer</Option>
                                         </Select>
                                     </Space>
