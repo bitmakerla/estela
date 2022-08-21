@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Enpoints
+title: Endpoints
 parent: API
 grand_parent: estela
 ---
@@ -36,4 +36,4 @@ RESPONSE SCHEMA: application/json
     - name(required): string(Name)
     - project(required): string<uuid>(Project)
 ```
-estela's endpoints documentation is generated following the [OpenApi](https://spec.openapis.org/oas/latest.html) standard. You can find the full endpoint documentation at the following [link](endpoints.html).
+estela's endpoints documentation is generated following the [OpenApi](https://spec.openapis.org/oas/latest.html) standard. You can find the full endpoints documentation at the following [link](endpoints.html).
