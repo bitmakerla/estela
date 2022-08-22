@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Layout, List, Pagination, Typography, Button } from "antd";
+import { Layout, List, Pagination, Typography, Button, Modal, message } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -20,6 +20,7 @@ import {
 
 const { Content } = Layout;
 const { Title } = Typography;
+const { confirm } = Modal;
 
 interface JobDataListPageState {
     data: unknown[];
@@ -74,6 +75,32 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                 resourceNotAllowedNotification();
             },
         );
+    };
+
+    showConfirm = (): void => {
+        confirm({
+            title: "We are deleting your data from ...",
+            content: (
+                <>
+                    <p>
+                        Project: <strong>{this.projectId}</strong>
+                        <br />
+                        Spider: <strong>{this.spiderId}</strong>
+                        <br />
+                        Job: <strong>{this.jobId}</strong>
+                    </p>
+                    <p>Are you sure?</p>
+                </>
+            ),
+            onOk: () => {
+                console.log("Delete");
+                message.success("Your data is being deleted");
+                this.deleteSpiderJobData();
+            },
+            onCancel: () => {
+                console.log("Cancel action");
+            },
+        });
     };
 
     async getSpiderJobData(page: number): Promise<void> {
@@ -146,7 +173,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                                         )}
                                         className="data-list"
                                     />
-                                    <Button danger className="stop-job" onClick={this.deleteSpiderJobData}>
+                                    <Button danger className="stop-job" onClick={this.showConfirm}>
                                         <div>Delete Job Data</div>
                                     </Button>
                                     <Pagination
