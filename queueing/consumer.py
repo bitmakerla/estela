@@ -6,9 +6,9 @@ import threading
 import time
 
 from queue import Queue
-from kafka import KafkaConsumer
 from config.database_manager import db_client
 from inserter import Inserter
+from utils import connect_kafka_consumer, jsonify
 
 
 WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
@@ -19,54 +19,6 @@ QUEUE_MAX_TIMEOUT = int(os.getenv("QUEUE_MAX_TIMEOUT", "300"))
 item_queue = Queue()
 inserters = {}
 heartbeat_lock = threading.Lock()
-
-
-def connect_kafka_consumer(topic_name):
-    _consumer = None
-    kafka_advertised_port = os.getenv("KAFKA_ADVERTISED_PORT", "9092")
-    kafka_advertised_listeners = os.getenv("KAFKA_ADVERTISED_LISTENERS").split(",")
-    bootstrap_servers = [
-        "{}:{}".format(kafka_advertised_listener, kafka_advertised_port)
-        for kafka_advertised_listener in kafka_advertised_listeners
-    ]
-    try:
-        max_poll_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
-        _consumer = KafkaConsumer(
-            topic_name,
-            bootstrap_servers=bootstrap_servers,
-            auto_offset_reset="earliest",
-            enable_auto_commit=True,
-            auto_commit_interval_ms=1000,
-            group_id="group_{}".format(topic_name),
-            api_version=(0, 10),
-            value_deserializer=lambda x: json.loads(x.decode("utf-8")),
-            max_poll_interval_ms=max_poll_interval_ms,
-            session_timeout_ms=max_poll_interval_ms,
-            request_timeout_ms=max_poll_interval_ms + 1,
-            connections_max_idle_ms=max_poll_interval_ms + 2,
-        )
-    except Exception as ex:
-        logging.error("Exception while connecting Kafka.")
-        logging.error(str(ex))
-    finally:
-        return _consumer
-
-
-# https://stackoverflow.com/questions/12397118/mongodb-dot-in-key-name
-def mongo_jsonify(item):
-    new_item = {}
-    if type(item) is dict:
-        for key, value in item.items():
-            new_key = key.replace(".", "\\u002e")
-            if type(value) is dict:
-                new_item[new_key] = mongo_jsonify(value)
-            elif type(value) is list:
-                new_item[new_key] = [mongo_jsonify(x) for x in value]
-            else:
-                new_item[new_key] = item[key]
-        return new_item
-    else:
-        return item
 
 
 def read_from_queue():
@@ -83,18 +35,11 @@ def read_from_queue():
                 QUEUE_MAX_TIMEOUT if next_timeout > QUEUE_MAX_TIMEOUT else next_timeout
             )
             for identifier, inserter in inserters.items():
-                inserter.flush()
+                inserter.flush("empty queue")
             continue
 
-        item = mongo_jsonify(item)
-        try:
-            inserters[item["identifier"]].insert(item["payload"])
-        except:
-            logging.warning(
-                "An exception occurs during the insertion in {}.".format(
-                    item["identifier"]
-                )
-            )
+        item = jsonify(item)
+        inserters[item["identifier"]].insert(item["value"])
         item_queue.task_done()
 
 
@@ -118,9 +63,9 @@ def heartbeat():
             for worker in workers:
                 worker.join()
 
-            for identifier, inserter in inserters.items():
-                inserter.flush()
-                if inserter.is_inactive():
+            for identifier in list(inserters):
+                inserters[identifier].flush("heartbeat")
+                if inserters[identifier].is_inactive():
                     del inserters[identifier]
 
             logging.debug("Heartbeat: {} alive inserters.".format(len(inserters)))
@@ -132,7 +77,10 @@ def consume_from_kafka(topic_name):
     else:
         raise Exception("Could not connect to the DB.")
 
-    consumer = connect_kafka_consumer(topic_name)
+    consumer = connect_kafka_consumer(topic_name, QUEUE_MAX_TIMEOUT)
+    if consumer is None:
+        raise Exception("Could not connect to kafka.")
+
     _heartbeat = threading.Thread(target=heartbeat, daemon=True)
     _heartbeat.start()
 
@@ -145,16 +93,16 @@ def consume_from_kafka(topic_name):
 
         collection_name = "{}-{}-{}".format(spider, job, topic_name)
         identifier = "{}/{}".format(project, collection_name)
-        unique = message.value.get("unique", "False") == "True"
+        unique = message.value.get("unique", "") == "True"
 
         if inserters.get(identifier) is None:
             inserters[identifier] = Inserter(
-                db_client, project, collection_name, unique
+                db_client, project, collection_name, unique, topic_name
             )
         else:
             inserters[identifier].last_activity = time.time()
 
-        item_queue.put({"identifier": identifier, "payload": message.value["payload"]})
+        item_queue.put({"identifier": identifier, "value": message.value})
 
     item_queue.join()
     consumer.close()
