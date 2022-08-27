@@ -201,6 +201,9 @@ STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 
 
+# API limit download settings (Megabytes)
+MAX_DOWNLOADED_SIZE = 1024 * 1024
+
 # Pagination settings used in api_app
 
 API_PAGE_SIZE = 100  # Paginator page size
