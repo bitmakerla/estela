@@ -1,3 +1,4 @@
+import sys
 import json
 import pymongo
 
@@ -12,6 +13,8 @@ class InsertionResponse:
         self.need_upsert = need_upsert
         self.error = None if (ok or exception is None) else exception.__class__.__name__
 
+# Megabytes
+MAX_DOWNLOADED_ITEMS = 1000
 
 class DatabaseInterface(metaclass=ABCMeta):
     @abstractmethod
@@ -86,7 +89,9 @@ class MongoAdapter(DatabaseInterface):
         collection = self.client[database_name][collection_name]
         result = collection.find()
         result = loads(json.dumps(list(result), default=str))
-        return result
+        size_per_item = sys.getsizeof(result) / len(result)
+        items = int(MAX_DOWNLOADED_ITEMS // size_per_item)
+        return result[:items]
 
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
