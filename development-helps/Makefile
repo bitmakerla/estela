@@ -118,3 +118,21 @@ docs:
 .PHONY: lint
 lint:
 	-cd $(ROOT_DIR) && black .
+
+
+.PHONY: upgrade-release
+upgrade-release:
+	-cd $(INSTALLATION_DIR) && . ./local/.env && cd helm-chart && \
+	 helm upgrade $${RELEASE_NAME} . && helm history $${RELEASE_NAME} && helm get values $${RELEASE_NAME}
+
+
+.PHONY: rollback-release
+rollback-release:
+	-cd $(INSTALLATION_DIR) && . ./local/.env && cd helm-chart && \
+	 helm rollback $${RELEASE_NAME} $(release) && helm history $${RELEASE_NAME} && helm get values $${RELEASE_NAME}
+
+
+.PHONY: history-release
+history-release:
+	-cd $(INSTALLATION_DIR) && . ./local/.env && cd helm-chart && \
+	 helm history $${RELEASE_NAME}
