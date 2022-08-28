@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements/deploy.in
 #
-amqp==5.0.6
+amqp==5.1.1
     # via
     #   -r requirements/base.txt
     #   kombu
@@ -12,50 +12,50 @@ appdirs==1.4.4
     # via
     #   -r requirements/base.txt
     #   black
-asgiref==3.2.10
+asgiref==3.5.2
     # via
     #   -r requirements/base.txt
     #   django
-awscli==1.18.150
+awscli==1.25.62
     # via
     #   -r requirements/base.txt
     #   eks-token
-billiard==3.6.4.0
+billiard==4.0.2
     # via
     #   -r requirements/base.txt
     #   celery
-black==21.5b1
+black==21.12b0
     # via -r requirements/base.txt
-boto3==1.15.0
+boto3==1.24.61
     # via
     #   -r requirements/base.txt
     #   -r requirements/deploy.in
-botocore==1.18.9
+botocore==1.27.61
     # via
     #   -r requirements/base.txt
     #   awscli
     #   boto3
     #   s3transfer
-cachetools==4.2.1
+cachetools==5.2.0
     # via
     #   -r requirements/base.txt
     #   google-auth
-celery==5.0.5
+celery==5.2.7
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
-certifi==2020.12.5
+certifi==2022.6.15
     # via
     #   -r requirements/base.txt
     #   elasticsearch
     #   kubernetes
     #   minio
     #   requests
-chardet==4.0.0
+chardet==5.0.0
     # via
     #   -r requirements/base.txt
     #   requests
-click==7.1.2
+click==8.1.3
     # via
     #   -r requirements/base.txt
     #   black
@@ -63,7 +63,7 @@ click==7.1.2
     #   click-didyoumean
     #   click-plugins
     #   click-repl
-click-didyoumean==0.0.3
+click-didyoumean==0.3.0
     # via
     #   -r requirements/base.txt
     #   celery
@@ -71,11 +71,11 @@ click-plugins==1.1.1
     # via
     #   -r requirements/base.txt
     #   celery
-click-repl==0.1.6
+click-repl==0.2.0
     # via
     #   -r requirements/base.txt
     #   celery
-colorama==0.4.3
+colorama==0.4.5
     # via
     #   -r requirements/base.txt
     #   awscli
@@ -88,9 +88,9 @@ coreschema==0.0.4
     #   -r requirements/base.txt
     #   coreapi
     #   drf-yasg
-croniter==1.0.15
+croniter==1.3.5
     # via -r requirements/base.txt
-django==3.1.1
+django==4.1
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
@@ -99,43 +99,43 @@ django==3.1.1
     #   django-timezone-field
     #   djangorestframework
     #   drf-yasg
-django-celery-beat==2.2.0
+django-celery-beat==2.3.0
     # via -r requirements/base.txt
-django-cors-headers==3.7.0
+django-cors-headers==3.13.0
     # via -r requirements/base.txt
-django-environ==0.4.5
+django-environ==0.9.0
     # via -r requirements/base.txt
-django-filter==21.1
+django-filter==22.1
     # via -r requirements/base.txt
-django-timezone-field==4.1.2
+django-timezone-field==5.0
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
-djangorestframework==3.11.1
+djangorestframework==3.13.1
     # via
     #   -r requirements/base.txt
     #   drf-yasg
-dnspython==1.16.0
+dnspython==2.2.1
     # via
     #   -r requirements/base.txt
     #   pymongo
-docker==5.0.3
+docker==6.0.0
     # via -r requirements/deploy.in
-docutils==0.15.2
+docutils==0.19
     # via
     #   -r requirements/base.txt
     #   awscli
-drf-yasg==1.20.0
+drf-yasg==1.21.3
     # via -r requirements/base.txt
 eks-token==0.1.1
     # via -r requirements/base.txt
-elasticsearch==7.13.4
+elasticsearch==8.4.0
     # via -r requirements/base.txt
-google-auth==1.28.0
+google-auth==2.11.0
     # via
     #   -r requirements/base.txt
     #   kubernetes
-idna==2.10
+idna==3.3
     # via
     #   -r requirements/base.txt
     #   requests
@@ -147,26 +147,26 @@ itypes==1.2.0
     # via
     #   -r requirements/base.txt
     #   coreapi
-jinja2==3.0.1
+jinja2==3.1.2
     # via
     #   -r requirements/base.txt
     #   coreschema
-jmespath==0.10.0
+jmespath==1.0.1
     # via
     #   -r requirements/base.txt
     #   boto3
     #   botocore
-kombu==5.0.2
+kombu==5.2.4
     # via
     #   -r requirements/base.txt
     #   celery
-kubernetes==12.0.1
+kubernetes==24.2.0
     # via -r requirements/base.txt
-markupsafe==2.0.1
+markupsafe==2.1.1
     # via
     #   -r requirements/base.txt
     #   jinja2
-minio==7.1.7
+minio==7.1.11
     # via
     #   -r requirements/base.txt
     #   -r requirements/deploy.in
@@ -174,21 +174,21 @@ mypy-extensions==0.4.3
     # via
     #   -r requirements/base.txt
     #   black
-mysqlclient==2.0.1
+mysqlclient==2.1.1
     # via -r requirements/base.txt
-oauthlib==3.1.0
+oauthlib==3.2.0
     # via
     #   -r requirements/base.txt
     #   requests-oauthlib
-packaging==21.0
+packaging==21.3
     # via
     #   -r requirements/base.txt
     #   drf-yasg
-pathspec==0.8.1
+pathspec==0.9.0
     # via
     #   -r requirements/base.txt
     #   black
-prompt-toolkit==3.0.18
+prompt-toolkit==3.0.30
     # via
     #   -r requirements/base.txt
     #   click-repl
@@ -201,57 +201,57 @@ pyasn1-modules==0.2.8
     # via
     #   -r requirements/base.txt
     #   google-auth
-pymongo[srv]==3.12.0
+pymongo[srv]==4.2.0
     # via -r requirements/base.txt
-pyparsing==2.4.7
+pyparsing==3.0.9
     # via
     #   -r requirements/base.txt
     #   packaging
-python-crontab==2.5.1
+python-crontab==2.6.0
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
-python-dateutil==2.8.1
+python-dateutil==2.8.2
     # via
     #   -r requirements/base.txt
     #   botocore
     #   croniter
     #   kubernetes
     #   python-crontab
-pytz==2020.1
+pytz==2022.2.1
     # via
     #   -r requirements/base.txt
     #   celery
     #   django
     #   django-timezone-field
-pyyaml==5.3.1
+pyyaml==6.0
     # via
     #   -r requirements/base.txt
     #   awscli
     #   kubernetes
-redis==3.5.3
+redis==4.3.4
     # via -r requirements/base.txt
-regex==2021.4.4
+regex==2022.8.17
     # via
     #   -r requirements/base.txt
     #   black
-requests==2.25.1
+requests==2.28.1
     # via
     #   -r requirements/base.txt
     #   coreapi
     #   docker
     #   kubernetes
     #   requests-oauthlib
-requests-oauthlib==1.3.0
+requests-oauthlib==1.3.1
     # via
     #   -r requirements/base.txt
     #   kubernetes
-rsa==4.5
+rsa==4.9
     # via
     #   -r requirements/base.txt
     #   awscli
     #   google-auth
-ruamel.yaml==0.17.10
+ruamel.yaml==0.17.21
     # via
     #   -r requirements/base.txt
     #   drf-yasg
@@ -259,12 +259,12 @@ ruamel.yaml.clib==0.2.6
     # via
     #   -r requirements/base.txt
     #   ruamel.yaml
-s3transfer==0.3.6
+s3transfer==0.6.0
     # via
     #   -r requirements/base.txt
     #   awscli
     #   boto3
-six==1.15.0
+six==1.16.0
     # via
     #   -r requirements/base.txt
     #   click-repl
@@ -272,7 +272,7 @@ six==1.15.0
     #   kubernetes
     #   python-dateutil
     #   websocket-client
-sqlparse==0.3.1
+sqlparse==0.4.2
     # via
     #   -r requirements/base.txt
     #   django
@@ -280,12 +280,12 @@ toml==0.10.2
     # via
     #   -r requirements/base.txt
     #   black
-uritemplate==3.0.1
+uritemplate==4.1.1
     # via
     #   -r requirements/base.txt
     #   coreapi
     #   drf-yasg
-urllib3==1.25.11
+urllib3==1.26.12
     # via
     #   -r requirements/base.txt
     #   botocore
@@ -302,7 +302,7 @@ wcwidth==0.2.5
     # via
     #   -r requirements/base.txt
     #   prompt-toolkit
-websocket-client==0.58.0
+websocket-client==1.4.0
     # via
     #   -r requirements/base.txt
     #   docker
