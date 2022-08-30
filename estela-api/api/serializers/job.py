@@ -168,15 +168,6 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class GetLogsSerializer(serializers.Serializer):
-    logs = serializers.ListField(
-        child=serializers.CharField(max_length=1000),
-        required=True,
-        help_text="Job logs.",
-    )
-    count = serializers.IntegerField(required=True, help_text="Job logs count.")
-
-
 class DeleteJobDataSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=True, help_text="Deleted items count.")
 
