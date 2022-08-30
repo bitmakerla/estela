@@ -1,19 +1,6 @@
 import React, { Component } from "react";
 import moment from "moment";
-import {
-    Layout,
-    Typography,
-    Pagination,
-    Collapse,
-    Row,
-    Space,
-    Tag,
-    Button,
-    List,
-    Switch,
-    DatePicker,
-    DatePickerProps,
-} from "antd";
+import { Layout, Typography, Collapse, Row, Space, Tag, Button, Switch, DatePicker, DatePickerProps } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
 
@@ -278,9 +265,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             created,
             cronjob,
             stats,
-            logs,
-            count,
-            current,
             dataStatus,
             dataExpiryDays,
             loading_status,
