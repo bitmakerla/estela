@@ -234,7 +234,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.newJobId,
-            type: "stats",
+            type: "logs",
         };
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
