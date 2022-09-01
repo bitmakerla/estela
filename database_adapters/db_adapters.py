@@ -87,9 +87,7 @@ class MongoAdapter(DatabaseInterface):
         collection = self.client[database_name][collection_name]
         result = collection.find()
         result = loads(json.dumps(list(result), default=str))
-        size_per_item = sys.getsizeof(result) / len(result)
-        items = int(settings.MAX_DOWNLOADED_SIZE // size_per_item)
-        return result[:items]
+        return result
 
 
     def get_paginated_collection_data(
