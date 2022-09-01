@@ -33,19 +33,22 @@ class Inserter:
 
     def __handle_insertion_error(self, response, items):
         logging.warning(
-            "The exception {} occured during the insertion of {} items in {}.".format(
-                response.message, len(items), self.identifier
+            "The exception [{}] occurred during the insertion of {} items in {}.".format(
+                response.error, len(items), self.identifier
             )
         )
         for item in items:
+            if item["payload"].get("_id"):
+                del item["payload"]["_id"]
             if response.need_upsert:
                 item["need_upsert"] = "True"
             kafka_producer.send(self.topic, value=item)
 
-    def __insert_items(self, reason=""):
-        items = [copy(item["payload"]) for item in self.__items]
+    def __insert_items(self, reason):
         response = self.__client.insert_many_to_collection(
-            self.database_name, self.collection_name, items
+            self.database_name,
+            self.collection_name,
+            [item["payload"] for item in self.__items],
         )
         if response.ok:
             logging.info(
@@ -61,9 +64,9 @@ class Inserter:
         return time.time() - self.__last_activity > ACTIVITY_TIME_THRESHOLD
 
     def insert(self, item):
-        if self.unique or item.get("need_upsert") is not None:
+        if self.unique or item.get("need_upsert"):
             response = self.__client.insert_one_to_unique_collection(
-                self.database_name, self.collection_name, copy(item["payload"])
+                self.database_name, self.collection_name, item["payload"]
             )
             if response.ok:
                 logging.debug("1 document inserted in {}.".format(self.identifier))
@@ -80,9 +83,9 @@ class Inserter:
         self.__last_insertion = time.time()
         self.__last_activity = time.time()
 
-    def flush(self, reason="unknown"):
+    def flush(self, reason):
         if not self.unique:
             with self.__lock:
-                if len(self.__items):
+                if len(self.__items) > 0:
                     self.__insert_items("{} flush".format(reason))
                     self.__last_activity = time.time()

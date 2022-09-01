@@ -10,9 +10,7 @@ class InsertionResponse:
     def __init__(self, ok, exception=None, need_upsert=False):
         self.ok = ok
         self.need_upsert = need_upsert
-        self.message = (
-            "Everything good! :)" if ok else "[{}]".format(exception.__class__.__name__)
-        )
+        self.error = None if (ok or exception is None) else exception.__class__.__name__
 
 
 class DatabaseInterface(metaclass=ABCMeta):

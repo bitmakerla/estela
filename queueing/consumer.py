@@ -34,7 +34,7 @@ def read_from_queue():
             current_timeout = (
                 QUEUE_MAX_TIMEOUT if next_timeout > QUEUE_MAX_TIMEOUT else next_timeout
             )
-            for identifier, inserter in inserters.items():
+            for inserter in inserters.values():
                 inserter.flush("empty queue")
             continue
 
