@@ -16,7 +16,7 @@ with open("local/.env", "w") as f:
         "LOCAL_REGISTRY=localhost:5000",
         f"HOST_REGISTRY={host_ip}:5000",
         f"RELEASE_NAME={release_name}",
-        f"NAMESPACE={namespace}"
+        f"NAMESPACE={namespace}",
     ]
     print(lines)
     f.write("\n".join(lines))
