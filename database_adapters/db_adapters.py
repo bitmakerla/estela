@@ -3,7 +3,14 @@ import pymongo
 
 from abc import ABCMeta, abstractmethod
 from bson.json_util import loads
-from pymongo.errors import ConnectionFailure
+from pymongo.errors import ConnectionFailure, PyMongoError
+
+
+class InsertionResponse:
+    def __init__(self, ok, exception=None, need_upsert=False):
+        self.ok = ok
+        self.need_upsert = need_upsert
+        self.error = None if (ok or exception is None) else exception.__class__.__name__
 
 
 class DatabaseInterface(metaclass=ABCMeta):
@@ -93,19 +100,40 @@ class MongoAdapter(DatabaseInterface):
         return self.collection.estimated_document_count()
 
     def insert_one_to_unique_collection(self, database_name, collection_name, item):
-        return self.client[database_name][collection_name].update_one(
-            item, {"$set": item}, upsert=True
-        )
+        response = None
+        try:
+            self.client[database_name][collection_name].update_one(
+                item, {"$set": item}, upsert=True
+            )
+            response = InsertionResponse(True)
+        except PyMongoError as ex:
+            response = InsertionResponse(False, ex)
+        finally:
+            return response
 
     def insert_one_to_collection(self, database_name, collection_name, item):
-        return self.client[database_name][collection_name].insert_one(item)
+        response = None
+        try:
+            self.client[database_name][collection_name].insert_one(item)
+            response = InsertionResponse(True)
+        except PyMongoError as ex:
+            response = InsertionResponse(False, ex)
+        finally:
+            return response
 
     def insert_many_to_collection(
         self, database_name, collection_name, items, ordered=False
     ):
-        return self.client[database_name][collection_name].insert_many(
-            items, ordered=ordered
-        )
+        response = None
+        try:
+            self.client[database_name][collection_name].insert_many(
+                items, ordered=ordered
+            )
+            response = InsertionResponse(True)
+        except PyMongoError as ex:
+            response = InsertionResponse(False, ex, need_upsert=True)
+        finally:
+            return response
 
     def get_database_size(self, database_name, data_type):
         database = self.client[database_name]
