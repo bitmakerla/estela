@@ -4,7 +4,6 @@ import sys
 import threading
 import time
 
-from copy import copy
 from utils import connect_kafka_producer
 
 
