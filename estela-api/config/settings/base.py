@@ -47,10 +47,6 @@ env = environ.Env(
     SPIDERDATA_DB_CONNECTION=(str, "dummy"),
     SPIDERDATA_DB_CERTIFICATE_PATH=(str, "dummy"),
     CREDENTIALS=(str, "dummy"),
-    ELASTICSEARCH_HOST=(str, "dummy"),
-    ELASTICSEARCH_USER=(str, "dummy"),
-    ELASTICSEARCH_PASS=(str, "dummy"),
-    ELASTICSEARCH_PORT=(str, "dummy"),
     LOGS_INDEX=(str, "dummy"),
     EMAIL_HOST_USER=(str, "dummy"),
     EMAIL_HOST_PASSWORD=(str, "dummy"),
@@ -197,8 +193,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
+STATIC_URL = "/static/" ###############
+MEDIA_URL = "/media/"   ###############
 
 
 # Pagination settings used in api_app
@@ -209,8 +205,8 @@ API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
 
 # Cluster Settings
 
-CLUSTER_HOST = env("CLUSTER_HOST")
-CLUSTER_NAME = env("CLUSTER_NAME")
+CLUSTER_HOST = env("CLUSTER_HOST") ######################
+CLUSTER_NAME = env("CLUSTER_NAME") ######################
 
 
 # Container Registry Settings
@@ -227,12 +223,12 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Kafka settings
 
-KAFKA_HOSTS = env("KAFKA_HOSTS")
-KAFKA_PORT = env("KAFKA_PORT")
+KAFKA_HOSTS = env("KAFKA_HOSTS") ##############3
+KAFKA_PORT = env("KAFKA_PORT")  #############
 
 # Kubernetes settings
 
-MULTI_NODE_MODE = False
+MULTI_NODE_MODE = False ###############
 
 
 SWAGGER_SETTINGS = {
@@ -268,13 +264,6 @@ SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")
 SPIDERDATA_DB_PRODUCTION = True
 SPIDERDATA_DB_CERTIFICATE_PATH = env("SPIDERDATA_DB_CERTIFICATE_PATH")
-
-# ElasticSearch
-ELASTICSEARCH_HOST = env("ELASTICSEARCH_HOST")
-ELASTICSEARCH_USER = env("ELASTICSEARCH_USER")
-ELASTICSEARCH_PASS = env("ELASTICSEARCH_PASS")
-ELASTICSEARCH_PORT = env("ELASTICSEARCH_PORT")
-LOGS_INDEX = env("LOGS_INDEX")
 
 # Email confirmation
 EMAIL_USE_TLS = True
