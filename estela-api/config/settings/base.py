@@ -24,8 +24,6 @@ env = environ.Env(
     DB_PASSWORD=(str, "dummy"),
     DB_HOST=(str, "db"),
     DB_PORT=(str, "port"),
-    CLUSTER_HOST=(str, "dummy"),
-    CLUSTER_NAME=(str, "dummy"),
     REGISTRY_HOST=(str, "dummy"),
     REPOSITORY_NAME=(str, "dummy"),
     CELERY_BROKER_URL=(str, "redis://redis"),
@@ -39,7 +37,6 @@ env = environ.Env(
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_DEFAULT_REGION=(str, "us-east-2"),
     AWS_STORAGE_BUCKET_NAME=(str, "estela-django-api"),
-    MONGO_CONNECTION=(str, "dummy"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
@@ -47,7 +44,6 @@ env = environ.Env(
     SPIDERDATA_DB_CONNECTION=(str, "dummy"),
     SPIDERDATA_DB_CERTIFICATE_PATH=(str, "dummy"),
     CREDENTIALS=(str, "dummy"),
-    LOGS_INDEX=(str, "dummy"),
     EMAIL_HOST_USER=(str, "dummy"),
     EMAIL_HOST_PASSWORD=(str, "dummy"),
     EMAILS_TO_ALERT=(str, "dummy"),
@@ -193,8 +189,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/" ###############
-MEDIA_URL = "/media/"   ###############
+STATIC_URL = "/static/" 
+MEDIA_URL = "/media/" 
 
 
 # Pagination settings used in api_app
@@ -203,16 +199,11 @@ API_PAGE_SIZE = 100  # Paginator page size
 API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
 
 
-# Cluster Settings
-
-CLUSTER_HOST = env("CLUSTER_HOST") ######################
-CLUSTER_NAME = env("CLUSTER_NAME") ######################
-
-
 # Container Registry Settings
 
 REGISTRY_HOST = env("REGISTRY_HOST")
 REPOSITORY_NAME = env("REPOSITORY_NAME")
+
 
 # Celery settings
 
@@ -223,12 +214,13 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Kafka settings
 
-KAFKA_HOSTS = env("KAFKA_HOSTS") ##############3
+KAFKA_HOSTS = env("KAFKA_HOSTS") ##############
 KAFKA_PORT = env("KAFKA_PORT")  #############
 
-# Kubernetes settings
 
-MULTI_NODE_MODE = False ###############
+# Cluster settings
+
+MULTI_NODE_MODE = False
 
 
 SWAGGER_SETTINGS = {
