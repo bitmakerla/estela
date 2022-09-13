@@ -189,8 +189,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/" 
-MEDIA_URL = "/media/" 
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
 
 
 # Pagination settings used in api_app
@@ -214,7 +214,7 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Kafka settings
 
-KAFKA_HOSTS = env("KAFKA_HOSTS") ##############
+KAFKA_HOSTS = env("KAFKA_HOSTS")  ##############
 KAFKA_PORT = env("KAFKA_PORT")  #############
 
 
