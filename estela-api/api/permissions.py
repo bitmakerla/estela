@@ -13,9 +13,9 @@ class IsProjectUser(BasePermission):
         )
 
 
-class IsOwnerOrReadOnly(BasePermission):
+class IsAdminOrReadOnly(BasePermission):
     """
-    Custom permission to only allow owners of an object to edit it.
+    Custom permission to only allow admins or developers of an object to edit it.
     """
 
     def has_permission(self, request, view):
@@ -29,12 +29,12 @@ class IsOwnerOrReadOnly(BasePermission):
             return True
         if request.user.is_superuser:
             return True
-        # Write permissions are only allowed to the owner of the snippet.
+        # Write permissions are only allowed to the admin of the snippet.
         project = Project.objects.filter(pid=pid).get()
         user_permission = request.user.permission_set.get(project=project)
         if user_permission.permission in [
-            Permission.EDITOR_PERMISSION,
-            Permission.OWNER_PERMISSION,
+            Permission.DEVELOPER_PERMISSION,
+            Permission.ADMIN_PERMISSION,
         ]:
             return True
         return False

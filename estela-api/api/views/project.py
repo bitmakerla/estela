@@ -43,7 +43,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         instance = serializer.save()
         instance.users.add(
             self.request.user,
-            through_defaults={"permission": Permission.OWNER_PERMISSION},
+            through_defaults={"permission": Permission.ADMIN_PERMISSION},
         )
         UsageRecord.objects.create(
             project=instance,
@@ -70,6 +70,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         name = serializer.validated_data.get("name", "")
         user_email = serializer.validated_data.pop("email", "")
+        user_permision = serializer.validated_data.pop("user", "")
         action = serializer.validated_data.pop("action", "")
         permission = serializer.validated_data.pop("permission", "")
 
@@ -77,20 +78,19 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             instance.name = name
         if user_email:
             user = User.objects.filter(email=user_email)
+            user_instance = User.objects.filter(email=user_permision)
             if user:
                 user = user.get()
-                if action == "add":
-                    instance.users.add(
-                        user, through_defaults={"permission": permission}
-                    )
-                elif action == "remove":
-                    if (
-                        user.permission_set.get(project=instance).permission
-                        != Permission.OWNER_PERMISSION
-                    ):
+                user_instance = user_instance.get()
+                if user_instance.permission_set.get(project=instance).permission == Permission.ADMIN_PERMISSION:
+                    if action == "add":
+                        instance.users.add(
+                            user, through_defaults={"permission": permission}
+                        )
+                    elif action == "remove":
                         instance.users.remove(user)
-                    else:
-                        raise PermissionDenied({"error": "User cannot be removed."})
+                else:
+                    raise ParseError({"error": "Action not supported."})
             else:
                 raise NotFound({"email": "User does not exist."})
         serializer.save()

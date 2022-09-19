@@ -39,13 +39,13 @@ class Project(models.Model):
 
 
 class Permission(models.Model):
-    EDITOR_PERMISSION = "EDITOR"
+    ADMIN_PERMISSION = "ADMIN"
+    DEVELOPER_PERMISSION = "DEVELOPER"
     VIEWER_PERMISSION = "VIEWER"
-    OWNER_PERMISSION = "OWNER"
     PERMISSIONS_OPTIONS = [
-        (EDITOR_PERMISSION, "Editor"),
+        (ADMIN_PERMISSION, "Admin"),
+        (DEVELOPER_PERMISSION, "Developer"),
         (VIEWER_PERMISSION, "Viewer"),
-        (OWNER_PERMISSION, "Owner"),
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="User.")
     project = models.ForeignKey(
