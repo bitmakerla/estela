@@ -1,4 +1,3 @@
-import sys
 import csv
 import codecs
 
@@ -113,14 +112,18 @@ class JobDataViewSet(
             )
 
         if mode != "paged":
-            result = spiderdata_db_client.get_all_collection_data(
+            collection_size = spiderdata_db_client.get_collection_size(
                 kwargs["pid"], job_collection_name
             )
-            if sys.getsizeof(result) > settings.MAX_DOWNLOADED_SIZE:
+            if collection_size > settings.MAX_DOWNLOADED_SIZE:
                 return Response(
                     {"detail": errors.MAX_RESPONSE_SIZE_EXCEEDED},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            result = spiderdata_db_client.get_all_collection_data(
+                kwargs["pid"], job_collection_name
+            )
             if mode == "json":
                 response = JsonResponse(result, safe=False)
                 return response
