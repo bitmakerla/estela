@@ -120,7 +120,8 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         ("add", "Add"),
     ]
     PERMISSION_CHOICES = [
-        ("EDITOR", "Editor"),
+        ("ADMIN", "Admin"),
+        ("DEVELOPER", "Developer"),
         ("VIEWER", "Viewer"),
     ]
 
@@ -128,6 +129,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         read_only=True, help_text="A UUID identifying this project."
     )
     users = UserDetailSerializer(many=True, required=False, help_text="Afected users.")
+    user = serializers.EmailField(
+        write_only=True, required=False, help_text="User email address."
+    )
     email = serializers.EmailField(
         write_only=True, required=False, help_text="Email address."
     )
@@ -146,4 +150,4 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ("pid", "name", "users", "email", "action", "permission")
+        fields = ("pid", "name", "users", "user", "email", "action", "permission")

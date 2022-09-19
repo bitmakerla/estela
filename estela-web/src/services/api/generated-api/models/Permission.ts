@@ -45,9 +45,9 @@ export interface Permission {
 * @enum {string}
 */
 export enum PermissionPermissionEnum {
-    Editor = 'EDITOR',
-    Viewer = 'VIEWER',
-    Owner = 'OWNER'
+    Admin = 'ADMIN',
+    Developer = 'DEVELOPER',
+    Viewer = 'VIEWER'
 }
 
 export function PermissionFromJSON(json: any): Permission {

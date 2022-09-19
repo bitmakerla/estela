@@ -969,9 +969,9 @@ definitions:
         description: Permission on this project.
         type: string
         enum:
-          - EDITOR
+          - ADMIN
+          - DEVELOPER
           - VIEWER
-          - OWNER
   Project:
     required:
       - name
@@ -1022,6 +1022,12 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/UserDetail'
+      user:
+        title: User
+        description: User email address.
+        type: string
+        format: email
+        minLength: 1
       email:
         title: Email
         description: Email address.
@@ -1040,7 +1046,8 @@ definitions:
         description: New permission.
         type: string
         enum:
-          - EDITOR
+          - ADMIN
+          - DEVELOPER
           - VIEWER
   ProjectUsage:
     required:

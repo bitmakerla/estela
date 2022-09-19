@@ -12,7 +12,7 @@ from django.utils.http import urlsafe_base64_decode
 from api.tokens import account_activation_token
 from django.contrib.auth.models import User
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 from django.conf import settings
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
