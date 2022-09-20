@@ -82,7 +82,10 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             if user:
                 user = user.get()
                 user_instance = user_instance.get()
-                if user_instance.permission_set.get(project=instance).permission == Permission.ADMIN_PERMISSION:
+                if (
+                    user_instance.permission_set.get(project=instance).permission
+                    == Permission.ADMIN_PERMISSION
+                ):
                     if action == "add":
                         instance.users.add(
                             user, through_defaults={"permission": permission}
