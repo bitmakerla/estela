@@ -6,13 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0018_auto_20220817_0624'),
+        ("core", "0018_auto_20220817_0624"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='permission',
-            name='permission',
-            field=models.CharField(choices=[('ADMIN', 'Admin'), ('DEVELOPER', 'Developer'), ('VIEWER', 'Viewer')], default='VIEWER', help_text='Permission on this project.', max_length=16),
+            model_name="permission",
+            name="permission",
+            field=models.CharField(
+                choices=[
+                    ("ADMIN", "Admin"),
+                    ("DEVELOPER", "Developer"),
+                    ("VIEWER", "Viewer"),
+                ],
+                default="VIEWER",
+                help_text="Permission on this project.",
+                max_length=16,
+            ),
         ),
     ]
