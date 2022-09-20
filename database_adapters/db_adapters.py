@@ -1,3 +1,4 @@
+import sys
 import json
 import pymongo
 
@@ -87,6 +88,7 @@ class MongoAdapter(DatabaseInterface):
         result = collection.find()
         result = loads(json.dumps(list(result), default=str))
         return result
+
 
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size

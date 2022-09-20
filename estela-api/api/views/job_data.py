@@ -2,6 +2,7 @@ import csv
 import codecs
 
 from django.http.response import JsonResponse, HttpResponse
+from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
@@ -110,45 +111,52 @@ class JobDataViewSet(
                 kwargs["sid"], kwargs["jid"], data_type
             )
 
-        if mode == "json":
+        if mode != "paged":
+            collection_size = spiderdata_db_client.get_collection_size(
+                kwargs["pid"], job_collection_name
+            )
+            if collection_size > settings.MAX_DOWNLOADED_SIZE:
+                return Response(
+                    {"detail": errors.MAX_RESPONSE_SIZE_EXCEEDED},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             result = spiderdata_db_client.get_all_collection_data(
                 kwargs["pid"], job_collection_name
             )
-            response = JsonResponse(result, safe=False)
-            return response
-        if mode == "csv":
-            result = spiderdata_db_client.get_all_collection_data(
-                kwargs["pid"], job_collection_name
+            if mode == "json":
+                response = JsonResponse(result, safe=False)
+                return response
+            if mode == "csv":
+                response = HttpResponse(content_type="text/csv; charset=utf-8")
+                response["Content-Disposition"] = "attachment; {}.csv".format(
+                    job_collection_name
+                )
+                # Force response to be UTF-8 - This is where the magic happens
+                response.write(codecs.BOM_UTF8)
+                csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
+                csv_writer.writeheader()
+
+                for item in result:
+                    csv_writer.writerow(item)
+
+                return response
+        else:
+            result = spiderdata_db_client.get_paginated_collection_data(
+                kwargs["pid"], job_collection_name, page, page_size
             )
-            response = HttpResponse(content_type="text/csv; charset=utf-8")
-            response["Content-Disposition"] = "attachment; {}.csv".format(
-                job_collection_name
+            count = spiderdata_db_client.get_estimated_document_count()
+
+            return Response(
+                {
+                    "count": count,
+                    "previous": self.get_paginated_link(page - 1),
+                    "next": self.get_paginated_link(page + 1)
+                    if page * page_size < count
+                    else None,
+                    "results": result,
+                }
             )
-            # Force response to be UTF-8 - This is where the magic happens
-            response.write(codecs.BOM_UTF8)
-            csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
-            csv_writer.writeheader()
-
-            for item in result:
-                csv_writer.writerow(item)
-
-            return response
-
-        result = spiderdata_db_client.get_paginated_collection_data(
-            kwargs["pid"], job_collection_name, page, page_size
-        )
-        count = spiderdata_db_client.get_estimated_document_count()
-
-        return Response(
-            {
-                "count": count,
-                "previous": self.get_paginated_link(page - 1),
-                "next": self.get_paginated_link(page + 1)
-                if page * page_size < count
-                else None,
-                "results": result,
-            }
-        )
 
     @swagger_auto_schema(
         methods=["POST"],
