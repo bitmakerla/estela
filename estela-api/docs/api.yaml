@@ -812,42 +812,6 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/logs:
-    get:
-      operationId: api_projects_spiders_jobs_logs
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: number
-        - name: page_size
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: number
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/GetLogs'
-      tags:
-        - api
-    parameters:
-      - name: jid
-        in: path
-        description: A unique integer value identifying this job.
-        required: true
-        type: integer
-      - name: pid
-        in: path
-        required: true
-        type: string
-      - name: sid
-        in: path
-        required: true
-        type: string
   /api/projects/{pid}/usage:
     get:
       operationId: api_projects_usage
@@ -1642,23 +1606,6 @@ definitions:
       count:
         title: Count
         description: Deleted items count.
-        type: integer
-  GetLogs:
-    required:
-      - logs
-      - count
-    type: object
-    properties:
-      logs:
-        description: Job logs.
-        type: array
-        items:
-          type: string
-          maxLength: 1000
-          minLength: 1
-      count:
-        title: Count
-        description: Job logs count.
         type: integer
   UsageRecord:
     required:
