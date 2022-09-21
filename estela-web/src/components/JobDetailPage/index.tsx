@@ -79,6 +79,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     PAGE_SIZE = 10;
     dataRequests = "requests";
     dataItems = "items";
+    dataLogs = "logs";
     state: JobDetailPageState = {
         loaded: false,
         name: "",
@@ -412,6 +413,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             >
                                                 <Button type="primary" className="go-to-job-data">
                                                     Go to spider job request data
+                                                </Button>
+                                            </Link>
+                                            <Link
+                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataLogs}`}
+                                            >
+                                                <Button type="primary" className="go-to-job-data">
+                                                    Go to spider job logs data
                                                 </Button>
                                             </Link>
                                             <Button danger className="stop-job" onClick={this.stopJob}>
