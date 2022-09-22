@@ -238,7 +238,7 @@ pytz==2020.1
     #   celery
     #   django
     #   django-timezone-field
-pyyaml==5.4
+pyyaml==5.3.1
     # via
     #   -r requirements/base.txt
     #   awscli
