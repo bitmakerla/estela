@@ -81,6 +81,7 @@ refresh-consumers: update-consumer-image
 	-kubectl rollout restart deployment kafka-items-consumer
 	-kubectl rollout restart deployment kafka-logs-consumer
 	-kubectl rollout restart deployment kafka-requests-consumer
+	-kubectl rollout restart deployment kafka-stats-consumer
 
 
 .PHONY: refresh-all
