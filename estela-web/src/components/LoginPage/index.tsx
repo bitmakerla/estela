@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Button, Form, Input, Layout, Typography } from "antd";
 
 import "./styles.scss";
+import "../../assets/index.css";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
