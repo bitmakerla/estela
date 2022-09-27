@@ -215,8 +215,8 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Kafka settings
 
-KAFKA_HOSTS = env("KAFKA_HOSTS")  ##############
-KAFKA_PORT = env("KAFKA_PORT")  #############
+KAFKA_HOSTS = env("KAFKA_HOSTS")
+KAFKA_PORT = env("KAFKA_PORT")
 
 
 # Cluster settings
