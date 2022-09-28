@@ -86,9 +86,9 @@ export class RegisterPage extends Component<unknown> {
                             <p className="text-3xl font-normal py-2 sm:p-auto">
                                 Scraped <span className="text-[#4D47C3]">when</span> you want it.
                             </p>
-                            <p className="text-sm font-normal py-4">
+                            <p className="text-sm font-normal py-4 flex">
                                 Powered by&nbsp;
-                                <span className="font-bold text-lg">ESTELA</span>
+                                <img src="Bitmaker.svg" width="100" className="mx-2" alt="" />
                             </p>
                         </div>
                     </Content>
