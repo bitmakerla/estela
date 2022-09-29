@@ -1,4 +1,4 @@
-# Contributing to ESTELA
+# Contributing to ESTELA 🕷
 We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - Reporting a bug
@@ -27,7 +27,7 @@ To keep **estela** documented make sure you comment every funcionality added if 
 ### Pull Request label
 We only accept two types of Pull requests **BUGS** and **ENHANCEMENT**. Every PR must have a label `bug` or `enhancement` and it hve to be reference to an issue.
 
-### Codestyle
+### Codestyle ✔
 Don't forget to run `black .`
 
 ## Any contributions you make will be under the MIT Software License
