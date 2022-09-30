@@ -79,7 +79,7 @@ django-filter==21.1
     # via -r requirements/base.in
 django-timezone-field==4.1.2
     # via django-celery-beat
-djangorestframework==3.11.1
+djangorestframework==3.11.2
     # via
     #   -r requirements/base.in
     #   drf-yasg

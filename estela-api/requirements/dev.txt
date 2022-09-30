@@ -117,7 +117,7 @@ django-timezone-field==4.1.2
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
-djangorestframework==3.11.1
+djangorestframework==3.11.
     # via
     #   -r requirements/test.txt
     #   drf-yasg
