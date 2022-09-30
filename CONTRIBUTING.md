@@ -19,19 +19,16 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 
 ## How to make Pull Requests
 
-We implemente a [Pull Request template](https://github.com/bitmakerla/estela/blob/main/.github/pull_request_template.md) that will be used in every propose requested. Just complete the template for you contribution.
+We implemente a [Pull Request template](https://github.com/bitmakerla/estela/blob/main/.github/pull_request_template.md) that will be used in every request proposed. Just complete the template. 
+
+### Don't forget to reference the issue that you are working on.
 
 ### Documentation updated
 To keep **estela** documented make sure you comment every funcionality added if it's necessary. Write the comment above that funcionality
 
 ### Pull Request label
-We only accept two types of Pull requests **BUGS** and **ENHANCEMENT**. Every PR must have a label `bug` or `enhancement` and it hve to be reference to an issue.
 
-### Codestyle ✔
-Don't forget to run `black .`
-
-## Any contributions you make will be under the MIT Software License
-In short, when you submit code changes, your submissions are understood to be under the same [MIT License](https://github.com/bitmakerla/estela/blob/main/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
+Label each request you made `bug | enhancement | documentation`. Even if you are first time contributor, label with `good-first-issues`
 
 ## Report bugs using Github's issues
 We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/bitmakerla/estela/issues); it's that easy!
@@ -53,6 +50,10 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 We use [black](https://github.com/psf/black) code formatter
 
 * Run `black .` for style unification
+
+
+## Any contributions you make will be under the MIT Software License
+In short, when you submit code changes, your submissions are understood to be under the same [MIT License](https://github.com/bitmakerla/estela/blob/main/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
 
 ## License
 By contributing, you agree that your contributions will be licensed under its MIT License.
