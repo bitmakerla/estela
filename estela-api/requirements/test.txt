@@ -200,7 +200,7 @@ prompt-toolkit==3.0.18
     # via
     #   -r requirements/base.txt
     #   click-repl
-py==1.9.0
+py==1.10.0
     # via pytest
 pyasn1==0.4.8
     # via
