@@ -18,7 +18,7 @@
     "@types/react-router-dom": "^5.1.8",
     "antd": "^4.16.9",
     "axios": "^0.21.2",
-    "eslint": "^8.0.0",
+    "eslint": "^7.5.0",
     "follow-redirects": "^1.14.8",
     "hosted-git-info": "^2.8.9",
     "node-fetch": "^2.6.7",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.3.1",
-    "@typescript-eslint/parser": "^5.3.1",
+    "@typescript-eslint/parser": "^4.0.0",
     "autoprefixer": "^10.4.12",
     "babel-eslint": "^10.1.0",
     "eslint-config-prettier": "^8.3.0",
