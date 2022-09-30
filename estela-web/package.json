@@ -16,6 +16,7 @@
     "axios": "^0.21.2",
     "eslint": "^8.0.0",
     "follow-redirects": "^1.14.8",
+    "hosted-git-info": "^2.8.9",
     "node-fetch": "^2.6.7",
     "nth-check": "^2.0.1",
     "react": "^17.0.2",
