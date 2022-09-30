@@ -28,7 +28,7 @@ To keep **estela** documented make sure you comment every funcionality added if 
 
 ### Pull Request label
 
-Label each request you made `bug | enhancement | documentation`. Even if you are first time contributor, label with `good-first-issues`
+Label each request you made `bug | enhancement | documentation`. Even if you are first time contributor, label with `good first issues`
 
 ## Report bugs using Github's issues
 We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/bitmakerla/estela/issues); it's that easy!
