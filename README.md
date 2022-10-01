@@ -49,3 +49,7 @@ The project consists of three main modules:
 
 Each of these modules works independently of the rest and can be changed. Each module has a more detailed description
 in its corresponding directory.
+
+## How to Contribute
+
+Please read `CONTRIBUTING.md` and follow the steps. Remember to abide by our adapted from [ESTELA Code of Conduct](https://github.com/bitmakerla/estela/blob/main/CODE_OF_CONDUCT.md) too.

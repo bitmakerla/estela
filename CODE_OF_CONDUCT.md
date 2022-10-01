@@ -1,4 +1,4 @@
-# Contributor Covenant Code of Conduct
+# ESTELA Code of Conduct
 
 ## Our Pledge
 
