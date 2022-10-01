@@ -90,7 +90,7 @@ coreschema==0.0.4
     #   drf-yasg
 croniter==1.0.15
     # via -r requirements/base.txt
-django==3.1.1
+django==3.1.14
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
@@ -111,7 +111,7 @@ django-timezone-field==4.1.2
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
-djangorestframework==3.11.1
+djangorestframework==3.11.2
     # via
     #   -r requirements/base.txt
     #   drf-yasg
