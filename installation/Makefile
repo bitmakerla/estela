@@ -11,7 +11,7 @@ ifeq ($(OS),Windows_NT)
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
-		DOCKER_COMPOSE = docker-compose
+		DOCKER_COMPOSE = docker compose
 	else # OSX
 		DOCKER_COMPOSE = docker compose
 	endif
