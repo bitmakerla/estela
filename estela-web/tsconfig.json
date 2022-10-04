@@ -7,6 +7,7 @@
       "esnext"
     ],
     "allowJs": true,
+    "sourceMap": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
