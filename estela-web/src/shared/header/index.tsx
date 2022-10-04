@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { Layout, Row, Col } from "antd";
 import { Link } from "react-router-dom";
 
@@ -25,12 +25,32 @@ export class CustomHeader extends Component<unknown> {
 
     render(): JSX.Element {
         return (
-            <Header className="header">
-                <Link to="/">
-                    <div className="logo-header">estela</div>
-                </Link>
-                <Row justify="end">
-                    {this.isLogged() ? (
+            <Header className="bg-white">
+                <Row justify="center" align="middle">
+                    <Col flex={1}>
+                        <Link to="/">
+                            <div className="text-xl ">estela</div>
+                        </Link>
+                    </Col>
+                    {/* <Row justify="center"> */}
+                    <Col>
+                        <img src="notification.svg" width="26" className="mr-10" alt="" />
+                    </Col>
+                    <Col className="flex text-[#4D47C3]">
+                        <img src="user.svg" width="26" className="mx-2" alt="" />
+                        {this.getUser()}
+                        <img src="arrowDown.svg" width="20" className="mx-2" alt="" />
+                    </Col>
+                    {/* <Col className="">
+                        <Link className="" to="/">
+                            Home
+                        </Link>
+                    </Col>
+                    <Col onClick={this.logout} className="">
+                        Log out
+                    </Col> */}
+                    {/* </Row> */}
+                    {/* {this.isLogged() ? (
                         <Fragment>
                             <Col className="header-item">{this.getUser()}</Col>
                             <Col className="header-item">
@@ -51,7 +71,7 @@ export class CustomHeader extends Component<unknown> {
                                 Login
                             </Link>
                         </Col>
-                    )}
+                    )} */}
                 </Row>
             </Header>
         );
