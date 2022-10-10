@@ -5,7 +5,12 @@ module.exports = {
     "./public/index.html",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'estela': '#4D47C3',
+        'button-hover': '#F6FAFD',
+      },
+    },
   },
   plugins: [],
 }

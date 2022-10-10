@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsCreateRequest, Project } from "../../services/api";
-import { authNotification, incorrectDataNotification, Header, Sidenav } from "../../shared";
+import { authNotification, incorrectDataNotification, Header } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -38,7 +38,6 @@ export class ProjectCreatePage extends Component<unknown> {
                 <Header />
                 <Layout className="white-background">
                     <Fragment>
-                        <Sidenav />
                         <Content className="content-padding">
                             <Title level={2} className="text-center">
                                 Create New Project
