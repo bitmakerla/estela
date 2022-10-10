@@ -24,8 +24,6 @@ env = environ.Env(
     DB_PASSWORD=(str, "dummy"),
     DB_HOST=(str, "db"),
     DB_PORT=(str, "port"),
-    CLUSTER_HOST=(str, "dummy"),
-    CLUSTER_NAME=(str, "dummy"),
     REGISTRY_HOST=(str, "dummy"),
     REPOSITORY_NAME=(str, "dummy"),
     CELERY_BROKER_URL=(str, "redis://redis"),
@@ -39,7 +37,6 @@ env = environ.Env(
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_DEFAULT_REGION=(str, "us-east-2"),
     AWS_STORAGE_BUCKET_NAME=(str, "estela-django-api"),
-    MONGO_CONNECTION=(str, "dummy"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
@@ -47,11 +44,6 @@ env = environ.Env(
     SPIDERDATA_DB_CONNECTION=(str, "dummy"),
     SPIDERDATA_DB_CERTIFICATE_PATH=(str, "dummy"),
     CREDENTIALS=(str, "dummy"),
-    ELASTICSEARCH_HOST=(str, "dummy"),
-    ELASTICSEARCH_USER=(str, "dummy"),
-    ELASTICSEARCH_PASS=(str, "dummy"),
-    ELASTICSEARCH_PORT=(str, "dummy"),
-    LOGS_INDEX=(str, "dummy"),
     EMAIL_HOST_USER=(str, "dummy"),
     EMAIL_HOST_PASSWORD=(str, "dummy"),
     EMAILS_TO_ALERT=(str, "dummy"),
@@ -200,6 +192,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 
+STATIC_ROOT = "/static/"
 
 # API limit download settings (Megabytes)
 MAX_DOWNLOADED_SIZE = 1024 * 1024
@@ -210,16 +203,11 @@ API_PAGE_SIZE = 100  # Paginator page size
 API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
 
 
-# Cluster Settings
-
-CLUSTER_HOST = env("CLUSTER_HOST")
-CLUSTER_NAME = env("CLUSTER_NAME")
-
-
 # Container Registry Settings
 
 REGISTRY_HOST = env("REGISTRY_HOST")
 REPOSITORY_NAME = env("REPOSITORY_NAME")
+
 
 # Celery settings
 
@@ -233,7 +221,8 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 KAFKA_HOSTS = env("KAFKA_HOSTS")
 KAFKA_PORT = env("KAFKA_PORT")
 
-# Kubernetes settings
+
+# Cluster settings
 
 MULTI_NODE_MODE = False
 
@@ -271,13 +260,6 @@ SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")
 SPIDERDATA_DB_PRODUCTION = True
 SPIDERDATA_DB_CERTIFICATE_PATH = env("SPIDERDATA_DB_CERTIFICATE_PATH")
-
-# ElasticSearch
-ELASTICSEARCH_HOST = env("ELASTICSEARCH_HOST")
-ELASTICSEARCH_USER = env("ELASTICSEARCH_USER")
-ELASTICSEARCH_PASS = env("ELASTICSEARCH_PASS")
-ELASTICSEARCH_PORT = env("ELASTICSEARCH_PORT")
-LOGS_INDEX = env("LOGS_INDEX")
 
 # Email confirmation
 EMAIL_USE_TLS = True

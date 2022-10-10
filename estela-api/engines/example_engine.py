@@ -11,7 +11,7 @@ class ExampleEngine:
     class Job:
         def __init__(self):
             self.name = "Job Name"
-            self.status = Status()
+            self.status = self.Status()
 
     def create_job(self):
         return self.Job()
