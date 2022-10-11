@@ -5,7 +5,8 @@ import { Button, Layout, List, Pagination, Typography } from "antd";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsListRequest, Project } from "../../services/api";
-import { authNotification, Header, Sidenav, Spin } from "../../shared";
+import { authNotification, Sidenav, Spin } from "../../shared";
+
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -62,7 +63,6 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         const { projects, loaded, count, current } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     {loaded ? (
                         <Fragment>

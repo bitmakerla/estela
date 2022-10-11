@@ -1,11 +1,11 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const { DefinePlugin } = require('webpack');
 
-// const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 
 const deps = require("./package.json").dependencies;
 module.exports = {
-  entry: './src/index.tsx',
+  entry: './src/index.ts',
   devtool: 'inline-source-map',
   output: {
     publicPath: "http://localhost:3000/",
@@ -44,6 +44,25 @@ module.exports = {
   },
 
   plugins: [
+    new ModuleFederationPlugin({
+      name: "estela-web",
+      filename: "remoteEntry.js",
+      remotes: {
+        testModule: "testModule@http://localhost:3005/remoteEntry.js",
+      },
+      exposes: {},
+      shared: {
+        ...deps,
+        react: {
+          singleton: true,
+          requiredVersion: deps.react,
+        },
+        "react-dom": {
+          singleton: true,
+          requiredVersion: deps["react-dom"],
+        },
+      },
+    }),
     new HtmlWebPackPlugin({
       template: "./public/index.html",
       favicon: "./public/favicon.ico",
@@ -55,3 +74,4 @@ module.exports = {
     }),
   ],
 };
+

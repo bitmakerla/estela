@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthRegisterRequest, Token } from "../../services/api";
-import { Header, insecurePasswordNotification, emailConfirmationNotification } from "../../shared";
+import { insecurePasswordNotification, emailConfirmationNotification } from "../../shared";
 
 import { handleInvalidDataError } from "../../utils";
 
@@ -77,7 +77,6 @@ export class RegisterPage extends Component<unknown> {
     render(): JSX.Element {
         return (
             <Layout className="white-background">
-                <Header />
                 <Content className="register-content">
                     <Form onFinish={this.handleSubmit}>
                         <Title className="text-center">Register</Title>

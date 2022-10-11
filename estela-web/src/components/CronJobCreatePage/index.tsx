@@ -16,7 +16,6 @@ import {
     incorrectDataNotification,
     invalidDataNotification,
     resourceNotAllowedNotification,
-    Header,
     Sidenav,
 } from "../../shared";
 
@@ -219,7 +218,6 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
 
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <Fragment>
                         <Sidenav />

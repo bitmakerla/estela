@@ -1,7 +1,6 @@
 import React, { Component } from "react";
-import { Router, Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 
-import history from "../history";
 import { LoginPage } from "../components/LoginPage";
 import { RegisterPage } from "../components/RegisterPage";
 import { ProjectListPage } from "../components/ProjectListPage";
@@ -17,11 +16,11 @@ import { CronJobListPage } from "../components/CronJobListPage";
 import { CronJobCreatePage } from "../components/CronJobCreatePage";
 import { CronJobDetailPage } from "../components/CronJobDetailPage";
 import { JobDataListPage } from "../components/JobDataListPage";
+import  AnotherApp   from "testModule/AnotherApp";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
         return (
-            <Router history={history}>
                 <Switch>
                     <Route path="/" exact>
                         <Redirect to="/login" />
@@ -53,8 +52,12 @@ export class MainRoutes extends Component<unknown, unknown> {
                         component={CronJobDetailPage}
                         exact
                     />
+                    <Route
+                        path="/anotherApp"
+                        component={AnotherApp}
+                        exact
+                    />
                 </Switch>
-            </Router>
         );
     }
 }

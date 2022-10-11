@@ -5,7 +5,6 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
-import { Header } from "../../shared";
 import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
@@ -39,7 +38,6 @@ export class LoginPage extends Component<unknown> {
     render(): JSX.Element {
         return (
             <Layout className="white-background">
-                <Header />
                 <Content className="login-content">
                     <Form onFinish={this.handleSubmit}>
                         <Title className="text-center">Log in</Title>
