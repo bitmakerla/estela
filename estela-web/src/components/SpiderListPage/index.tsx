@@ -64,7 +64,6 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         const { loaded, spiders, count, current } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
                     <Content>

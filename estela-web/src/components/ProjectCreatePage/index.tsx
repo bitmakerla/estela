@@ -36,7 +36,6 @@ export class ProjectCreatePage extends Component<unknown> {
     render(): JSX.Element {
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <Fragment>
                         <Content className="content-padding">

@@ -219,7 +219,6 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
 
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <Fragment>
                         <ProjectSidenav projectId={this.projectId} path={"/jobs"} />

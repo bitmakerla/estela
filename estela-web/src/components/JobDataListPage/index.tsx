@@ -152,7 +152,6 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
         const { loaded, data, count, current } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
                     <Content>

@@ -150,7 +150,6 @@ export class CronJobListPage extends Component<RouteComponentProps<RouteParams>,
         const { loaded, cronjobs, count, current, spiderName } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={""} />
                     <Content className="content-padding">

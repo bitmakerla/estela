@@ -91,9 +91,14 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     render(): JSX.Element {
         const { projects, loaded, count, current } = this.state;
         return (
+<<<<<<< HEAD
             <Layout className="h-screen">
                 <Header />
                 <Layout className="bg-metal p-6">
+=======
+            <Layout className="general-container">
+                <Layout className="white-background">
+>>>>>>> b68ce5a (Delete Header of each component)
                     {loaded ? (
                         <Fragment>
                             <Content className="mx-4">

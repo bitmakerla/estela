@@ -143,7 +143,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const { loaded, name, jobs, count, current } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
                     <Content className="content-padding">

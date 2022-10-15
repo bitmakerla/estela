@@ -152,7 +152,6 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
         const { loaded, name, users, newUser } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     {loaded ? (
                         <Fragment>

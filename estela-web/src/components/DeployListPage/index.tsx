@@ -114,11 +114,18 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     render(): JSX.Element {
         const { loaded, deploys, count, current } = this.state;
         return (
+<<<<<<< HEAD
             <Layout>
                 <Header />
                 <Layout>
                     <ProjectSidenav projectId={this.projectId} path={"/deploys"} />
                     <Content className="bg-white">
+=======
+            <Layout className="general-container">
+                <Layout className="white-background">
+                    <ProjectSidenav projectId={this.projectId} />
+                    <Content className="content-padding">
+>>>>>>> b68ce5a (Delete Header of each component)
                         {loaded ? (
                             <Layout className="bg-metal rounded-2xl">
                                 <Content className="lg:m-10 md:mx-6 mx-2">
