@@ -63,7 +63,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         return (
             <Layout className="general-container">
                 <Header />
-                <Layout className="bg-[#FBFCFD]">
+                <Layout className="container">
                     {loaded ? (
                         <Fragment>
                             <Content>
