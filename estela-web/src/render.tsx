@@ -4,11 +4,11 @@ import "antd/dist/antd.min.css";
 
 import "./assets/scss/index.scss";
 import "./assets/index.css";
-import { MainRoutes } from "./routes";
+import { App } from "./app";
 
 ReactDOM.render(
     <React.StrictMode>
-        <MainRoutes />
+        <App />
     </React.StrictMode>,
     document.getElementById("root"),
 );
