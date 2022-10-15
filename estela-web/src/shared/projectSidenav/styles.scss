@@ -1,33 +1,28 @@
+$estela: #4D47C3;
+
 .ant-menu-inline > .ant-menu-submenu:hover {
     div {
-        color: #4D47C3;
+        color: $estela;
     }
     svg {
-        stroke: #4D47C3;
+        stroke: $estela;
     }
 }
 
 .ant-menu-inline > .ant-menu-item:hover {
     a {
-        color: #4D47C3;
+        color: $estela;
     }
 }
 
-// .ant-menu-inline > .ant-menu-item,
-// .ant-menu-inline > .ant-menu-submenu {
-//     svg {
-//         stroke: #212529;
-//     }
-// }
-
 .ant-menu-inline > .ant-menu-submenu-selected {
     .sub-menu {
-        color: #4D47C3;
+        color: $estela;
         font-weight: 700;
         background-color: #F6FAFD !important;
     }
     svg {
-        stroke: #4D47C3;
+        stroke: $estela;
     }
 }
 
@@ -36,11 +31,11 @@
         background-color: #F6FAFD;
     }
     a {
-        color: #4D47C3;
+        color: $estela;
         font-weight: 700;
     }
     svg {
-        stroke: #4D47C3;
+        stroke: $estela;
     }
     background-color: white !important;
 }
