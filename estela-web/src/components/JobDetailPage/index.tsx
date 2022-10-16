@@ -19,7 +19,6 @@ import {
     authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
-    Header,
     ProjectSidenav,
     Spin,
 } from "../../shared";

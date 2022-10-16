@@ -13,7 +13,6 @@ import {
     authNotification,
     resourceNotAllowedNotification,
     dataDeletedNotification,
-    Header,
     ProjectSidenav,
     Spin,
 } from "../../shared";

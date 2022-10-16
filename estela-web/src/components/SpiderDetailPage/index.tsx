@@ -10,7 +10,7 @@ import {
     Spider,
     SpiderJob,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;

@@ -6,7 +6,7 @@ import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;

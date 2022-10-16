@@ -72,6 +72,8 @@ module.exports = {
         REACT_APP_API_BASE_URL: JSON.stringify('http://10.106.164.188'),
       },
     }),
-    new ESLintPlugin(),
+    new ESLintPlugin({
+        extensions: ["js", "jsx", "ts", "tsx"],
+      }),
   ],
 };

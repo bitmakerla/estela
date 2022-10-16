@@ -1,2 +1,2 @@
-import ("./render");
-export {}
+import("./render");
+export {};

@@ -15,7 +15,6 @@ import {
 import {
     authNotification,
     resourceNotAllowedNotification,
-    Header,
     ProjectSidenav,
     Spin,
     nonExistentUserNotification,

@@ -6,7 +6,7 @@ import { ReactComponent as Copy } from "../../assets/icons/copy.svg";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;

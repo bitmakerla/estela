@@ -37,7 +37,6 @@ export class LoginPage extends Component<unknown> {
 
     render(): JSX.Element {
         return (
-<<<<<<< HEAD
             <Layout className="white-background h-screen container mx-auto">
                 <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                     <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
@@ -52,29 +51,6 @@ export class LoginPage extends Component<unknown> {
                                 Powered by&nbsp;
                                 <img src="Bitmaker.svg" width="100" className="mx-2" alt="" />
                             </p>
-=======
-            <Layout className="white-background">
-                <Content className="login-content">
-                    <Form onFinish={this.handleSubmit}>
-                        <Title className="text-center">Log in</Title>
-                        <div className="login-inputs">
-                            <Form.Item
-                                label="Username"
-                                name="username"
-                                required
-                                rules={[{ required: true, message: "Please input your username" }]}
-                            >
-                                <Input autoComplete="username" />
-                            </Form.Item>
-                            <Form.Item
-                                label="Password"
-                                name="password"
-                                required
-                                rules={[{ required: true, message: "Please input your password" }]}
-                            >
-                                <Input.Password autoComplete="current-password" />
-                            </Form.Item>
->>>>>>> b68ce5a (Delete Header of each component)
                         </div>
                     </Content>
                     <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
