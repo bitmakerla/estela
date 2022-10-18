@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Suspense, Fragment } from "react";
 import { Router, Switch, Route, Redirect } from "react-router-dom";
 
 import history from "../history";
@@ -23,6 +23,19 @@ import { CronJobCreatePage } from "../components/CronJobCreatePage";
 import { CronJobDetailPage } from "../components/CronJobDetailPage";
 import { JobDataListPage } from "../components/JobDataListPage";
 import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
+
+const External_component = (): JSX.Element => {
+    if (process.env.path_component != undefined) {
+        console.log(process.env.path_component);
+        const ComponentRoutes = React.lazy(() => import(process.env.path_component));
+        return (
+            <Fragment>
+                <ComponentRoutes />
+            </Fragment>
+        );
+    }
+    return <Fragment></Fragment>;
+};
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {

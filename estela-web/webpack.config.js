@@ -1,7 +1,7 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
-const { DefinePlugin } = require('webpack');
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 const ESLintPlugin = require('eslint-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
 const deps = require("./package.json").dependencies;
 
 module.exports = {
@@ -67,11 +67,11 @@ module.exports = {
       template: "./public/index.html",
       favicon: "./public/favicon.ico",
     }),
-    new DefinePlugin({
-      'process.env': {
-        REACT_APP_API_BASE_URL: JSON.stringify('http://10.106.164.188'),
-      },
-    }),
+    new Dotenv(
+      {
+        defaults: true,
+      }
+    ),
     new ESLintPlugin({
         extensions: ["js", "jsx", "ts", "tsx"],
       }),
