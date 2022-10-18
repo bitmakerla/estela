@@ -29,7 +29,7 @@ import {
 } from './';
 
 /**
- * 
+ * Project Cronjobs.
  * @export
  * @interface SpiderCronJob
  */

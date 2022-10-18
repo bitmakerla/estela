@@ -9,6 +9,7 @@ import { ProjectDetailPage } from "../components/ProjectDetailPage";
 import { ProjectCreatePage } from "../components/ProjectCreatePage";
 import { ProjectMemberPage } from "../components/ProjectMemberPage";
 import { ProjectJobListPage } from "../components/ProjectJobListPage";
+import { ProjectCronJobListPage } from "../components/ProjectCronJobListPage";
 import { DeployListPage } from "../components/DeployListPage";
 import { SpiderListPage } from "../components/SpiderListPage";
 import { SpiderDetailPage } from "../components/SpiderDetailPage";
@@ -37,7 +38,8 @@ export class MainRoutes extends Component<unknown, unknown> {
                     <Route path="/projects/:projectId/deploys" component={DeployListPage} exact />
                     <Route path="/projects/:projectId/members" component={ProjectMemberPage} exact />
                     <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
-                    <Route path="/projects/:projectId/jobs" component={ProjectJobListPage} exact />
+                    {/* <Route path="/projects/:projectId/jobs" component={ProjectJobListPage} exact /> */}
+                    <Route path="/projects/:projectId/jobs" component={ProjectCronJobListPage} exact />
                     <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
                     <Route path="/projects/:projectId/spiders/:spiderId/jobs/create" component={JobCreatePage} exact />
                     <Route

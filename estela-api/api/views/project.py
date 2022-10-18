@@ -3,20 +3,21 @@ from datetime import datetime, timedelta
 from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
+from api.serializers.cronjob import ProjectCronJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,
     ProjectUsageSerializer,
     UsageRecordSerializer,
 )
-from core.models import Permission, Project, Spider, SpiderJob, UsageRecord, User
+from core.models import Permission, Project, Spider, SpiderJob, SpiderCronJob, UsageRecord, User
 from django.core.paginator import Paginator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, NotFound, ParseError
+from rest_framework.exceptions import NotFound, ParseError
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -149,6 +150,47 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         results = SpiderJobSerializer(page_result, many=True)
         return Response(
             {"results": results.data, "count": jobs_set.count()},
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="A page number within the paginated result set.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="Number of results to return per page.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+        ],
+        responses={status.HTTP_200_OK: ProjectCronJobSerializer()},
+    )
+    @action(methods=["GET"], detail=True)
+    def cronjobs(self, request, *args, **kwargs):
+        page, page_size = self.get_parameters(request)
+
+        if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        if page < 1:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        spider_set = Spider.objects.filter(project=kwargs["pid"])
+        sid_set = spider_set.values_list("pk", flat=True)
+        cronjobs_set = SpiderCronJob.objects.filter(spider__in=sid_set)
+        # jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
+        paginator_result = Paginator(cronjobs_set, page_size)
+        page_result = paginator_result.page(page)
+        results = SpiderJobSerializer(page_result, many=True)
+        print(results.data)
+        return Response(
+            {"results": results.data, "count": cronjobs_set.count()},
             status=status.HTTP_200_OK,
         )
 
