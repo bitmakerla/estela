@@ -39,7 +39,7 @@ export class LoginPage extends Component<unknown> {
         return (
             <Layout className="white-background container mx-auto">
                 <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                    <Content className="flex h-fit sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
+                    <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
                         <div className="">
                             <p className="text-5xl font-bold">
                                 Stable, reliable and <span className="text-[#4D47C3]">open source</span>
@@ -53,7 +53,7 @@ export class LoginPage extends Component<unknown> {
                             </p>
                         </div>
                     </Content>
-                    <Content className="flex h-fit sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
+                    <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                         <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
                             <div className="">
                                 <Form.Item
