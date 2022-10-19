@@ -37,7 +37,7 @@ export class LoginPage extends Component<unknown> {
 
     render(): JSX.Element {
         return (
-            <Layout className="white-background container mx-auto">
+            <Layout className="white-background h-screen container mx-auto">
                 <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                     <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
                         <div className="">
