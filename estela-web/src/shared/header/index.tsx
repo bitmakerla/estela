@@ -75,7 +75,7 @@ export class CustomHeader extends Component<unknown> {
                                     <Menu.Item key="3" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
                                             <Logout className="mx-1" width={20} />
-                                            <Link to={""} className="hover:text-estela">
+                                            <Link to={""} className="hover:text-estela" onClick={this.logout}>
                                                 Logout
                                             </Link>
                                         </div>
