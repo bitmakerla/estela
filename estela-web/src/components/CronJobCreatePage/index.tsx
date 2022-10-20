@@ -17,7 +17,7 @@ import {
     invalidDataNotification,
     resourceNotAllowedNotification,
     Header,
-    Sidenav,
+    ProjectSidenav,
 } from "../../shared";
 
 const { Content } = Layout;
@@ -222,7 +222,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                 <Header />
                 <Layout className="white-background">
                     <Fragment>
-                        <Sidenav />
+                        <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
                         <Content className="content-padding">
                             <Title level={2} className="text-center">
                                 Create {spiderName} CronJob

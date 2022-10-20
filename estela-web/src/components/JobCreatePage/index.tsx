@@ -19,7 +19,7 @@ import {
     invalidDataNotification,
     resourceNotAllowedNotification,
     Header,
-    Sidenav,
+    ProjectSidenav,
 } from "../../shared";
 
 const { Content } = Layout;
@@ -222,7 +222,7 @@ export class JobCreatePage extends Component<RouteComponentProps<RouteParams>, J
                 <Header />
                 <Layout className="white-background">
                     <Fragment>
-                        <Sidenav />
+                        <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
                         <Content className="content-padding">
                             <Title level={2} className="text-center">
                                 Run {spiderName} Job

@@ -156,7 +156,7 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
                 <Layout className="white-background">
                     {loaded ? (
                         <Fragment>
-                            <ProjectSidenav projectId={this.projectId} />
+                            <ProjectSidenav projectId={this.projectId} path={""} />
                             <Content className="content-padding">
                                 <Title level={3} className="text-center">
                                     {name}
