@@ -1,5 +1,5 @@
 import React, { Component, Fragment, ReactElement } from "react";
-import { Button, Layout, Space, Table, Row, Col, Tag } from "antd";
+import { Button, Layout, Space, Table, Row, Col, Tag, Modal, Input, Select } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -25,6 +25,7 @@ import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
+const { Option } = Select;
 
 interface MemberState {
     username: string | undefined;
@@ -38,6 +39,7 @@ interface ProjectMemberPageState {
     user: string;
     users: Permission[];
     loaded: boolean;
+    modal: boolean;
     newUser: string;
     members: MemberState[];
     permission: ProjectUpdatePermissionEnum;
@@ -51,6 +53,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     state: ProjectMemberPageState = {
         name: "",
         user: "",
+        modal: false,
         users: [],
         loaded: false,
         newUser: "",
@@ -80,7 +83,11 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
             title: "STATUS",
             dataIndex: "status",
             key: "status",
-            render: (status: string): ReactElement => <Tag key={1}>{status}</Tag>,
+            render: (status: string): ReactElement => (
+                <Tag className="text-estela border-0 rounded bg-button-hover" key={1}>
+                    {status}
+                </Tag>
+            ),
         },
     ];
 
@@ -92,15 +99,16 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                 if (users === undefined) {
                     users = [];
                 }
+                const membersList: MemberState[] = [];
                 users.map((user: Permission) => {
-                    this.state.members.push({
+                    membersList.push({
                         username: user.user?.username,
                         email: user.user?.email,
                         role: user.permission,
                         status: "In Project",
                     });
                 });
-                this.setState({ name: response.name, users: users, loaded: true });
+                this.setState({ name: response.name, users: users, members: membersList, loaded: true });
             },
             (error: unknown) => {
                 console.error(error);
@@ -189,7 +197,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     };
 
     render(): JSX.Element {
-        const { loaded, members } = this.state;
+        const { loaded, members, newUser } = this.state;
         return (
             <Layout className="">
                 <Header />
@@ -210,29 +218,80 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 icon={<User className="mr-2" width={19} />}
                                                 size="large"
                                                 className="flex items-center stroke-white hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                onClick={() => this.setState({ modal: true })}
                                             >
                                                 Add new member
                                             </Button>
+                                            <Modal
+                                                className=""
+                                                visible={this.state.modal}
+                                                title={<p className="text-center m-2">ADD NEW MEMBER</p>}
+                                                onCancel={() => this.setState({ modal: false })}
+                                                footer={[<></>]}
+                                            >
+                                                <div className="lg:mx-8 md:mx-8">
+                                                    <p className="lg:pb-4 py-2">Email</p>
+                                                    <Input
+                                                        className="border-estela rounded"
+                                                        name="newUser"
+                                                        placeholder="Please input your email"
+                                                        value={newUser}
+                                                        onChange={this.handleInputChange}
+                                                    />
+                                                    <p className="lg:py-4 py-2">Role</p>
+                                                    <Select
+                                                        className="w-full"
+                                                        defaultValue={ProjectUpdatePermissionEnum.Viewer}
+                                                        onChange={this.handleSelectChange}
+                                                    >
+                                                        <Option
+                                                            className="hover:bg-button-hover hover:text-estela"
+                                                            value={ProjectUpdatePermissionEnum.Admin}
+                                                        >
+                                                            Admin
+                                                        </Option>
+                                                        <Option
+                                                            className="hover:bg-button-hover hover:text-estela"
+                                                            value={ProjectUpdatePermissionEnum.Developer}
+                                                        >
+                                                            Developer
+                                                        </Option>
+                                                        <Option
+                                                            className="hover:bg-button-hover hover:text-estela"
+                                                            value={ProjectUpdatePermissionEnum.Viewer}
+                                                        >
+                                                            Viewer
+                                                        </Option>
+                                                    </Select>
+                                                    <Row className="mt-6 w-full grid grid-cols-2" justify="center">
+                                                        <Button
+                                                            size="large"
+                                                            className="mr-2 sm:mr-1 bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
+                                                            onClick={() => {
+                                                                this.setState({ modal: false });
+                                                                this.addUser();
+                                                            }}
+                                                        >
+                                                            Add
+                                                        </Button>
+                                                        <Button
+                                                            size="large"
+                                                            className="ml-2 sm:ml-1 border-estela hover:border-estela text-estela hover:text-estela"
+                                                            onClick={() => this.setState({ modal: false })}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </Row>
+                                                </div>
+                                            </Modal>
                                         </Col>
                                     </Row>
                                     <Row className="bg-white rounded-lg">
                                         <div className="m-4">
                                             <Space direction="vertical" className="">
                                                 <p className="text-silver text-lg font-medium">Members</p>
-                                                {/* {users.map((users: Permission, id) => (
-                                                    <Descriptions key={id}>
-                                                        <Descriptions.Item label="UserName">
-                                                            {users.user?.username}
-                                                        </Descriptions.Item>
-                                                        <Descriptions.Item label="Email">
-                                                            {users.user?.email}
-                                                        </Descriptions.Item>
-                                                        <Descriptions.Item label="Permission">
-                                                            {users.permission}
-                                                        </Descriptions.Item>
-                                                    </Descriptions>
-                                                ))} */}
                                                 <Table
+                                                    tableLayout="fixed"
                                                     className="rounded-2xl"
                                                     rowSelection={{
                                                         type: "checkbox",
@@ -242,31 +301,8 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                     pagination={false}
                                                     size="middle"
                                                 />
-                                                {/* <Input
-                                                    name="newUser"
-                                                    placeholder="email"
-                                                    value={newUser}
-                                                    onChange={this.handleInputChange}
-                                                /> */}
-                                                {/* <Select
-                                                    defaultValue={ProjectUpdatePermissionEnum.Viewer}
-                                                    style={{ width: 120 }}
-                                                    onChange={this.handleSelectChange}
-                                                >
-                                                    <Option value={ProjectUpdatePermissionEnum.Admin}>Admin</Option>
-                                                    <Option value={ProjectUpdatePermissionEnum.Developer}>
-                                                        Developer
-                                                    </Option>
-                                                    <Option value={ProjectUpdatePermissionEnum.Viewer}>Viewer</Option>
-                                                </Select> */}
                                             </Space>
                                         </div>
-                                        {/* <Button className="job-create-button" onClick={this.addUser}>
-                                            Add User
-                                        </Button>
-                                        <Button className="job-create-button" onClick={this.removeUser}>
-                                            Remove User
-                                        </Button> */}
                                     </Row>
                                 </div>
                             </Content>
