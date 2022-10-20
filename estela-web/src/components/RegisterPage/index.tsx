@@ -81,10 +81,10 @@ export class RegisterPage extends Component<unknown> {
                     <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
                         <div className="">
                             <p className="text-5xl font-bold">
-                                Stable, reliable and <span className="text-[#4D47C3]">open source</span>
+                                Stable, reliable and <span className="text-estela">open source</span>
                             </p>
                             <p className="text-3xl font-normal py-2 sm:p-auto">
-                                Scraped <span className="text-[#4D47C3]">when</span> you want it.
+                                Scraped <span className="text-estela">when</span> you want it.
                             </p>
                             <p className="text-sm font-normal py-4 flex">
                                 Powered by&nbsp;
@@ -101,7 +101,7 @@ export class RegisterPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your email", type: "email" }]}
                                 >
-                                    <Input autoComplete="email" className="border-[#4D47C3]" />
+                                    <Input autoComplete="email" className="border-estela" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Username"
@@ -109,7 +109,7 @@ export class RegisterPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your username" }]}
                                 >
-                                    <Input autoComplete="username" className="border-[#4D47C3]" />
+                                    <Input autoComplete="username" className="border-estela" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Password"
@@ -117,20 +117,20 @@ export class RegisterPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your password" }]}
                                 >
-                                    <Input.Password autoComplete="current-password" className="border-[#4D47C3]" />
+                                    <Input.Password autoComplete="current-password" className="border-estela" />
                                 </Form.Item>
                             </div>
                             <Button
                                 block
                                 htmlType="submit"
-                                className="border-[#4D47C3] bg-[#4D47C3] hover:border-[#4D47C3] hover:text-[#4D47C3] text-white rounded-md text-sm"
+                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm"
                             >
                                 Register
                             </Button>
                             <div className="text-center text-base m-5">
                                 <p>If you already have an account. You can</p>
                                 <p>
-                                    <Link className="text-[#4D47C3] text-base underline" to="/login">
+                                    <Link className="text-estela text-base underline" to="/login">
                                         login here
                                     </Link>
                                 </p>
