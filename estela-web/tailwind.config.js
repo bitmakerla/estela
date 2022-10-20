@@ -8,6 +8,8 @@ module.exports = {
     extend: {
       colors: {
         'estela': '#4D47C3',
+        'silver': '#6C757D',
+        'metal': '#FBFCFD',
         'button-hover': '#F6FAFD',
       },
     },

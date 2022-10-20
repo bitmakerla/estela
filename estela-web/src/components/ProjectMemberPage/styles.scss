@@ -1,9 +1,17 @@
-.project-data {
-    width: 500px;
-    margin: 30px auto;
-}
+$metal: #FBFCFD;
+$estela: #4D47C3;
 
-.go-to-spiders {
-    width: 200px;
-    margin: 10px calc(50% - 100px);
-}
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: $estela;
+    border-color: $estela;
+  }
+
+.ant-table-thead .ant-table-cell {
+    font-size: 12px;
+    font-weight: 500;
+    background-color: $metal;
+  }
+
+  .ant-table-cell::before {
+    display: none;
+  }

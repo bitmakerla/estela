@@ -81,19 +81,19 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <div>
                         <h2 className="m-5 text-[#6C757D] font-bold text-sm">Project Settings</h2>
                     </div>
-                    <Menu.Item key={`/projects/${this.projectId}/none`} className="">
+                    <Menu.Item key={`/projects/${this.projectId}/activity`} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Activity className="mr-1" />
                             <Link to={`/projects/${this.projectId}`}>Activity</Link>
                         </div>
                     </Menu.Item>
-                    <Menu.Item key={`/projects/${this.projectId}/none`} className="">
+                    <Menu.Item key={`/projects/${this.projectId}/members`} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Members className="mr-1" />
-                            <Link to={`/projects/${this.projectId}`}>Members</Link>
+                            <Link to={`/projects/${this.projectId}/members`}>Members</Link>
                         </div>
                     </Menu.Item>
-                    <Menu.Item key={`/projects/${this.projectId}/none`} className="">
+                    <Menu.Item key={`/projects/${this.projectId}/settings`} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Settings className="mr-1" />
                             <Link to={`/projects/${this.projectId}`} className="hover:text-estela">
