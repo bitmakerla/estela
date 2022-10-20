@@ -23,16 +23,11 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
     render(): JSX.Element {
         return (
             <Sider width={240}>
-                <Menu
-                    mode="inline"
-                    className="h-full"
-                    selectedKeys={[`/projects/${this.projectId}${this.path}`]}
-                    defaultOpenKeys={["2", "5"]}
-                >
+                <Menu mode="inline" className="h-full" selectedKeys={[`${this.path}`]} defaultOpenKeys={["2", "5"]}>
                     <div>
                         <p className="m-5 text-[#6C757D] font-bold text-sm">Tools</p>
                     </div>
-                    <Menu.Item key={`/projects/${this.projectId}`} className="">
+                    <Menu.Item key={"/"} className="">
                         <div className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
                             <Dashboard className="mr-1" />
                             <Link to={`/projects/${this.projectId}`}>Dashboard</Link>
@@ -47,12 +42,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                             </div>
                         }
                     >
-                        <Menu.Item key={`/projects/${this.projectId}/jobs`}>
+                        <Menu.Item key={"/jobs"}>
                             <div className="flex items-center hover:bg-button-hover pl-4 rounded">
                                 <Link to={`/projects/${this.projectId}/jobs`}>Overview</Link>
                             </div>
                         </Menu.Item>
-                        <Menu.Item key={`/projects/${this.projectId}/schedule`}>
+                        <Menu.Item key={"/schedule"}>
                             <div className="flex items-center hover:bg-button-hover pl-4 rounded">
                                 <Link to={`/projects/${this.projectId}/jobs`}>Schedule</Link>
                             </div>
@@ -67,12 +62,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                             </div>
                         }
                     >
-                        <Menu.Item key={`/projects/${this.projectId}/spiders`}>
+                        <Menu.Item key={"/spiders"}>
                             <div className="flex items-center hover:bg-button-hover pl-4 rounded">
                                 <Link to={`/projects/${this.projectId}/spiders`}>Overview</Link>
                             </div>
                         </Menu.Item>
-                        <Menu.Item key={`/projects/${this.projectId}/deploys`}>
+                        <Menu.Item key={"/deploys"}>
                             <div className="flex items-center hover:bg-button-hover pl-4 rounded">
                                 <Link to={`/projects/${this.projectId}/deploys`}>Deploys</Link>
                             </div>
@@ -81,19 +76,19 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <div>
                         <h2 className="m-5 text-[#6C757D] font-bold text-sm">Project Settings</h2>
                     </div>
-                    <Menu.Item key={`/projects/${this.projectId}/activity`} className="">
+                    <Menu.Item key={"/activity"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Activity className="mr-1" />
                             <Link to={`/projects/${this.projectId}`}>Activity</Link>
                         </div>
                     </Menu.Item>
-                    <Menu.Item key={`/projects/${this.projectId}/members`} className="">
+                    <Menu.Item key={"/members"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Members className="mr-1" />
                             <Link to={`/projects/${this.projectId}/members`}>Members</Link>
                         </div>
                     </Menu.Item>
-                    <Menu.Item key={`/projects/${this.projectId}/settings`} className="">
+                    <Menu.Item key={"/settings"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Settings className="mr-1" />
                             <Link to={`/projects/${this.projectId}`} className="hover:text-estela">

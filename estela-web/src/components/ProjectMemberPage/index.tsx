@@ -206,7 +206,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                         <Fragment>
                             <ProjectSidenav projectId={this.projectId} path={"/members"} />
                             <Content className="bg-metal rounded-2xl h-screen">
-                                <div className="lg:m-10">
+                                <div className="lg:m-10 md:mx-6 mx-2">
                                     <Row className="flow-root my-6">
                                         <Col className="float-left">
                                             <p className="text-xl font-medium text-silver float-left">
