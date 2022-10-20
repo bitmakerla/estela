@@ -1,9 +1,34 @@
-.project-data {
-    width: 500px;
-    margin: 30px auto;
+$metal: #FBFCFD;
+$estela: #4D47C3;
+
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: $estela;
+    border-color: $estela;
 }
 
-.go-to-spiders {
-    width: 200px;
-    margin: 10px calc(50% - 100px);
+.ant-modal-header, .ant-modal-content {
+    border-radius: 8px;
+}
+
+// .antd-select-item .ant-select-item-option-content .ant-select-item-option-selected {
+//     background-color: red;
+// }
+
+.antd-select-item .ant-select-selection {
+    background-color: green;
+}
+
+.ant-select-selector {
+    border-radius: 3px !important;
+    border: 1px solid $estela !important;
+}
+
+.ant-table-thead .ant-table-cell {
+    font-size: 12px;
+    font-weight: 500;
+    background-color: $metal;
+}
+
+  .ant-table-cell::before {
+    display: none;
 }
