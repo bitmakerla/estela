@@ -75,7 +75,6 @@ export class ProjectDetailPage extends Component<RouteComponentProps<RouteParams
         } else {
             this.updateInfo();
         }
-        console.log(`/projects/${this.projectId}`);
     }
 
     addUser = (): void => {
