@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Pagination, Typography, Row, Space, Table } from "antd";
+import { Layout, Pagination, Row, Space, Table, Button, Tag } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import { ReactComponent as Copy } from "../../assets/icons/copy.svg";
 
@@ -10,7 +10,6 @@ import { authNotification, resourceNotAllowedNotification, Header, ProjectSidena
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
-const { Title, Text } = Typography;
 
 interface DeployListPageState {
     deploys: Deploy[];
@@ -39,44 +38,41 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             title: "DEPLOY ID",
             dataIndex: "did",
             key: "id",
-            render: (name: string): ReactElement => <div className="tracking-wide w-12">{name}</div>,
         },
         {
             title: "MEMBER",
             key: "user",
             dataIndex: "user",
-            render: (user: UserDetail): ReactElement => <div className="tracking-wide w-24">{user.username}</div>,
+            render: (user: UserDetail): ReactElement => <div>{user.username}</div>,
         },
         {
             title: "DEPLOYMENT DATE",
             dataIndex: "created",
             key: "date",
-            render: (date: Date): ReactElement => <div className="tracking-wider">{convertDateToString(date)}</div>,
+            render: (date: Date): ReactElement => <div>{convertDateToString(date)}</div>,
         },
         {
             title: "SPIDER",
             key: "user",
             dataIndex: "user",
-            render: (user: UserDetail): ReactElement => <div className="text-blue-700 w-36">My spider</div>,
+            render: (): ReactElement => <div className="text-estela">My Spider</div>,
         },
         {
             title: "STATUS",
             key: "status",
             dataIndex: "status",
             render: (state: string): ReactElement => (
-                <div className="">
+                <div>
                     {state === "BUILDING" ? (
-                        <p className="font-normal bg-estela-blue-low rounded-md content-center  inline px-6 py-2 text-estela-yellow">
-                            Waiting
-                        </p>
+                        <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-yellow">Waiting</Tag>
                     ) : state === "SUCCESS" ? (
-                        <p className="font-normal bg-estela-blue-low rounded-md content-center  inline px-6 py-2 text-estela-green">
+                        <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-green">
                             Completed
-                        </p>
+                        </Tag>
                     ) : (
-                        <p className="font-normal bg-estela-blue-low rounded-md content-center  inline px-6 py-2 text-estela-red-full">
+                        <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-red-full">
                             Failure
-                        </p>
+                        </Tag>
                     )}
                 </div>
             ),
@@ -106,9 +102,6 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
         this.apiService.apiProjectsDeploysList(requestParams).then(
             (results) => {
                 const deploys: Deploy[] = results.results;
-                // deploys.map(function (val, indx) {
-                //     console.log(val, indx);
-                // });
                 this.setState({ deploys: [...deploys], count: results.count, current: page, loaded: true });
             },
             (error: unknown) => {
@@ -121,41 +114,39 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     render(): JSX.Element {
         const { loaded, deploys, count, current } = this.state;
         return (
-            <Layout className="general-container">
+            <Layout>
                 <Header />
-                <Layout className="white-background">
+                <Layout>
                     <ProjectSidenav projectId={this.projectId} path={"/deploys"} />
-                    <Content className="content-padding">
+                    <Content className="bg-white">
                         {loaded ? (
-                            <Layout className="white-background ">
-                                <Content className="w-full">
-                                    <Title level={2} className="tracking-wide py-7 px-5 text-left font-light">
-                                        <p className="font-medium text-2xl text-estela-black-medium font-sans">
-                                            SPIDER OVERVIEW
-                                        </p>
-                                    </Title>
-                                    <Row className="flex flex-col content-center text-6xl">
-                                        <div className="rounded-md px-10 py-6 bg-estela-blue-low text-base mx-auto mt-3 w-9/12 tracking-wide font-sans">
-                                            <b className="text-estela-black-full font-light">
+                            <Layout className="bg-metal rounded-2xl">
+                                <Content className="lg:m-10 md:mx-6 mx-2">
+                                    <p className="font-medium text-xl text-silver">SPIDER OVERVIEW</p>
+                                    <Row justify="center">
+                                        <Space
+                                            direction="horizontal"
+                                            className="rounded-md p-4 bg-estela-blue-low text-base"
+                                        >
+                                            <p className="text-estela-black-full text-sm font-normal">
                                                 Copy project ID to deploy your spiders:
-                                            </b>
+                                            </p>
                                             <Link
                                                 id="id_project"
-                                                className="text-links"
+                                                className="text-estela text-base font-normal"
                                                 to={`/projects/${this.projectId}`}
                                             >
                                                 &emsp;{this.projectId}
                                             </Link>
-                                            {/* <div className="relative ml-auto mr-0"> */}
-                                            <div className="inline-block w-5/12 text-right stroke-black hover:stroke-estela">
-                                                <button onClick={this.copy} className="">
-                                                    <Copy className="mr-1" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <Row className="mt-10 grid grid-cols-11 text-base mx-10 mb-10">
+                                            <Button
+                                                icon={<Copy width={24} />}
+                                                className="border-0 mx-4 hover:bg-button-hover stroke-black hover:stroke-estela"
+                                                onClick={this.copy}
+                                            ></Button>
+                                        </Space>
+                                        <Row className="my-6 grid grid-cols-11 text-base mx-10">
                                             <div className="col-span-5 flex flex-col font-sans text-xs mx-5">
-                                                <p className="font-medium text-center text-base text-estela-black-full">
+                                                <p className="font-medium text-center text-sm text-estela-black-full">
                                                     Deploy a demo
                                                 </p>
                                                 <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
@@ -170,17 +161,17 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                     <p className=" text-white ">$ estela deploy</p>
                                                 </div>
                                             </div>
-                                            <div className="col-span-1 font-sans text-xl my-auto">
+                                            <div className="col-span-1 text-base my-auto">
                                                 <p className="font-medium text-center mt-5 text-estela-black-medium">
                                                     OR
                                                 </p>
                                             </div>
                                             <div className="col-span-5 flex flex-col font-sans text-xs mx-5">
-                                                <p className="font-medium text-center text-base text-estela-black-full">
+                                                <p className="font-medium text-center text-sm text-estela-black-full">
                                                     Deploy your spider
                                                 </p>
                                                 <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
-                                                    <p className=" text-white ">
+                                                    <p className="text-white ">
                                                         $ estela create project &lt;project_name&gt;
                                                     </p>
                                                     <p className=" text-white ">$ cd &lt;project_name&gt;</p>
@@ -193,13 +184,22 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             </div>
                                         </Row>
                                         <Table
+                                            tableLayout="fixed"
                                             columns={this.columns}
                                             dataSource={deploys}
                                             pagination={false}
                                             size="middle"
-                                            className="w-9/12 mt-10 font-sans font-light ml-6"
+                                            className="my-4"
                                         />
                                     </Row>
+                                    <Pagination
+                                        className="pagination"
+                                        defaultCurrent={1}
+                                        total={count}
+                                        current={current}
+                                        pageSize={this.PAGE_SIZE}
+                                        showSizeChanger={false}
+                                    />
                                 </Content>
                             </Layout>
                         ) : (
