@@ -199,18 +199,18 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     render(): JSX.Element {
         const { loaded, members, newUser } = this.state;
         return (
-            <Layout className="">
+            <Layout>
                 <Header />
                 <Layout className="bg-white">
                     {loaded ? (
                         <Fragment>
                             <ProjectSidenav projectId={this.projectId} path={"/members"} />
-                            <Content className="bg-metal rounded-2xl h-screen">
+                            <Content className="bg-metal rounded-2xl">
                                 <div className="lg:m-10 md:mx-6 mx-2">
                                     <Row className="flow-root my-6">
                                         <Col className="float-left">
                                             <p className="text-xl font-medium text-silver float-left">
-                                                Project Members
+                                                PROJECT MEMBERS
                                             </p>
                                         </Col>
                                         <Col className="float-right">
@@ -223,7 +223,6 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 Add new member
                                             </Button>
                                             <Modal
-                                                className=""
                                                 visible={this.state.modal}
                                                 title={<p className="text-center m-2">ADD NEW MEMBER</p>}
                                                 onCancel={() => this.setState({ modal: false })}
