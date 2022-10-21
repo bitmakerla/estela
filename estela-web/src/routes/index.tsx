@@ -6,6 +6,7 @@ import { LoginPage } from "../components/LoginPage";
 import { RegisterPage } from "../components/RegisterPage";
 import { ProjectListPage } from "../components/ProjectListPage";
 import { ProjectDetailPage } from "../components/ProjectDetailPage";
+import { ProjectSettingsPage } from "../components/ProjectSettingsPage";
 import { ProjectCreatePage } from "../components/ProjectCreatePage";
 import { ProjectMemberPage } from "../components/ProjectMemberPage";
 import { ProjectJobListPage } from "../components/ProjectJobListPage";
@@ -35,6 +36,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                     <Route path="/projects/create" component={ProjectCreatePage} exact />
                     <Route path="/projects/:projectId" component={ProjectDetailPage} exact />
                     <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
+                    <Route path="/projects/:projectId/settings" component={ProjectSettingsPage} exact />
                     <Route path="/projects/:projectId/deploys" component={DeployListPage} exact />
                     <Route path="/projects/:projectId/members" component={ProjectMemberPage} exact />
                     <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
