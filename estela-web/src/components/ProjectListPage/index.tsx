@@ -120,7 +120,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                 </Link>
                                             </Col>
                                         </Row>
-                                        <Row >
+                                        <Row>
                                             <Table
                                                 showHeader={false}
                                                 tableLayout="fixed"
