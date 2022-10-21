@@ -142,7 +142,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} />
+                    <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
                     <Content className="content-padding">
                         {loaded ? (
                             <Layout className="white-background">
