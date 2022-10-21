@@ -38,7 +38,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             dataIndex: "name",
             key: "name",
             render: (name: string, project: Project): ReactElement => (
-                <Link className="text-sm font-medium hover:text-estela" to={`/projects/${project.pid}`}>
+                <Link className="text-sm font-medium hover:text-estela" to={`/projects/${project.pid}/dashboard`}>
                     {name}
                 </Link>
             ),
