@@ -1,9 +1,16 @@
 import React, { Component } from "react";
+<<<<<<< HEAD
 import { Button, Radio, Layout, Form, Typography, Row, Input, Select, Space } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
+=======
+import { Button, Layout, Form, Typography, Row, Input, Select } from "antd";
+import { RouteComponentProps, Link } from "react-router-dom";
+
+import "./styles.scss";
+>>>>>>> 9f488e6 (Added projectsettings page)
 import { ApiService, AuthService } from "../../services";
 import {
     ApiProjectsReadRequest,
@@ -109,12 +116,20 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     };
 
     deleteProject = (): void => {
+<<<<<<< HEAD
+=======
+        console.log("new name is", this.state.name);
+>>>>>>> 9f488e6 (Added projectsettings page)
         const request: ApiProjectsDeleteRequest = {
             pid: this.projectId,
         };
         this.apiService.apiProjectsDelete(request).then(
             () => {
+<<<<<<< HEAD
                 history.push(`/projects`);
+=======
+                this.updateInfo();
+>>>>>>> 9f488e6 (Added projectsettings page)
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
