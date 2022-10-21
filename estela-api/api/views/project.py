@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from api import errors
 from api.mixins import BaseViewSet
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
-from api.serializers.cronjob import ProjectCronJobSerializer
+from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,
@@ -187,7 +187,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         # jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
         paginator_result = Paginator(cronjobs_set, page_size)
         page_result = paginator_result.page(page)
-        results = SpiderJobSerializer(page_result, many=True)
+        results = SpiderCronJobSerializer(page_result, many=True)
         print(results.data)
         return Response(
             {"results": results.data, "count": cronjobs_set.count()},

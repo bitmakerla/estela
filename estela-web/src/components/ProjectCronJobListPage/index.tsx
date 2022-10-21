@@ -131,6 +131,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         };
 
         await this.apiService.apiProjectsCronjobs(requestParams).then((response: ProjectCronJob) => {
+            console.log(response.results);
             const data = response.results.map((cronjob: SpiderCronJob, iterator: number) => ({
                 key: iterator,
                 id: { sid: cronjob.spider, cid: cronjob.cjid },
