@@ -217,7 +217,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                             <Button
                                                 icon={<User className="mr-2" width={19} />}
                                                 size="large"
-                                                className="flex items-center stroke-white hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                                 onClick={() => this.setState({ modal: true })}
                                             >
                                                 Add new member

@@ -143,7 +143,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                             <p className="text-xl font-bold p-2 leading-8">00 GB</p>
                                         </Content>
                                         <Content className="white-background mt-5 mr-5">
-                                            <p className="text-base text-silver p-2">STORAGE USED</p>
+                                            <p className="text-base text-silver p-2">PROCESSING TIME USED</p>
                                             <p className="text-xl font-bold p-2 leading-8">00</p>
                                         </Content>
                                         <Content className="white-background mt-5 mr-5">
