@@ -1,5 +1,5 @@
 import React, { Component, Fragment, ReactElement } from "react";
-import { Button, Layout, Pagination, Typography, Row, Space, Table, Card, Tag } from "antd";
+import { Layout, Pagination, Row, Table } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -7,8 +7,7 @@ import { ApiProjectsReadRequest, ApiProjectsJobsRequest, Project, ProjectJob, Sp
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
-const { Content, Sider } = Layout;
-const { Title, Text } = Typography;
+const { Content } = Layout;
 
 interface Ids {
     sid: number | undefined;
@@ -128,7 +127,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     render(): JSX.Element {
-        const { loaded, name, jobs, count, current } = this.state;
+        const { loaded, jobs, count, current } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
