@@ -27,10 +27,10 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <div>
                         <p className="m-5 text-[#6C757D] font-bold text-sm">Tools</p>
                     </div>
-                    <Menu.Item key={"/"} className="">
+                    <Menu.Item key={"/dashboard"} className="">
                         <div className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
                             <Dashboard className="mr-1" />
-                            <Link to={`/projects/${this.projectId}`}>Dashboard</Link>
+                            <Link to={`/projects/${this.projectId}/dashboard`}>Dashboard</Link>
                         </div>
                     </Menu.Item>
                     <Menu.SubMenu

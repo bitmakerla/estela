@@ -1,0 +1,28 @@
+$metal: #FBFCFD;
+$estela: #4D47C3;
+
+.deploy-list {
+    max-width: 700px;
+    margin: 40px auto;
+}
+
+.table {
+    margin: 40px auto;
+}
+
+.general-container {
+    min-height: 100vh;
+}
+
+.create-new-job {
+    margin: 30px auto;
+    display: flex;
+    align-self: auto;
+}
+.spider-data1 {
+    margin: 30px auto;
+}
+
+.ant-layout-sider {
+    background-color: $metal;
+}
