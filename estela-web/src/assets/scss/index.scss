@@ -33,3 +33,15 @@ code {
     display: flex;
     justify-content: center;
 }
+
+
+.ant-btn-primary {
+    background-color: rgb(24, 144, 255) !important;
+    border-color: rgb(24, 144, 255);;
+}
+
+.ant-btn-primary:hover {
+    background-color: white !important;
+    border-color: rgb(24, 144, 255);;
+    color: rgb(24, 144, 255);;
+}
