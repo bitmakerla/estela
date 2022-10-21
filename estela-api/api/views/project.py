@@ -176,7 +176,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     @action(methods=["GET"], detail=True)
     def cronjobs(self, request, *args, **kwargs):
         page, page_size = self.get_parameters(request)
-
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page < 1:
@@ -187,7 +186,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         paginator_result = Paginator(cronjobs_set, page_size)
         page_result = paginator_result.page(page)
         results = SpiderCronJobSerializer(page_result, many=True)
-        print(results.data)
         return Response(
             {"results": results.data, "count": cronjobs_set.count()},
             status=status.HTTP_200_OK,
