@@ -1,5 +1,5 @@
-import React, { Component, ReactElement } from "react";
-import { Button, Layout, Pagination, Typography, Row, Space, Table, Col, Tag } from "antd";
+import React, { Component, Fragment, ReactElement } from "react";
+import { Button, Layout, Pagination, Typography, Row, Space, Table, Card, Tag } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -7,7 +7,7 @@ import { ApiProjectsReadRequest, ApiProjectsJobsRequest, Project, ProjectJob, Sp
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
-const { Content } = Layout;
+const { Content, Sider } = Layout;
 const { Title, Text } = Typography;
 
 interface Ids {
@@ -49,15 +49,17 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
 
     columns = [
         {
-            title: "Job ID",
+            title: "JOB",
             dataIndex: "id",
             key: "id",
             render: (id: Ids): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${id.sid}/jobs/${id.jid}`}>{id.jid}</Link>
+                <Link to={`/projects/${this.projectId}/spiders/${id.sid}/jobs/${id.jid}`} className="text-[#4D47C3]">
+                    Job-{id.jid}
+                </Link>
             ),
         },
         {
-            title: "Spider",
+            title: "SPIDER",
             dataIndex: "id",
             key: "id",
             render: (id: Ids): ReactElement => (
@@ -65,12 +67,12 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             ),
         },
         {
-            title: "Date",
+            title: "DATE",
             key: "date",
             dataIndex: "date",
         },
         {
-            title: "Cronjob",
+            title: "CRONJOB",
             key: "id",
             dataIndex: "id",
             render: (id: Ids): ReactElement => (
@@ -78,7 +80,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             ),
         },
         {
-            title: "Status",
+            title: "STATUS",
             key: "status",
             dataIndex: "status",
         },
@@ -132,42 +134,51 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/dashboard"} />
-                    <Content className="bg-metal rounded-2xl h-screen">
+                    <Layout className="bg-metal rounded-t-2xl h-screen">
                         {loaded ? (
-                            <Layout className="white-background">
-                                <Content>
-                                    <Title level={4} className="text-center">
-                                        {name}
-                                    </Title>
-                                    <Row justify="center" className="spider-data">
-                                        <Space direction="vertical" size="large">
-                                            <Text>
-                                                <b>Project ID:</b>
-                                                <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
-                                            </Text>
+                            <Fragment>
+                                <Row className="my-6 grid grid-cols-5 text-base mx-10 h-full">
+                                    <Layout className="bg-metal col-span-1">
+                                        <Content className="white-background mr-5">
+                                            <p className="text-base text-silver p-2">BANDWIDTH USED</p>
+                                            <p className="text-xl font-bold p-2 leading-8">00 GB</p>
+                                        </Content>
+                                        <Content className="white-background mt-5 mr-5">
+                                            <p className="text-base text-silver p-2">STORAGE USED</p>
+                                            <p className="text-xl font-bold p-2 leading-8">00</p>
+                                        </Content>
+                                        <Content className="white-background mt-5 mr-5">
+                                            <p className="text-base text-silver p-2">STORAGE USED</p>
+                                            <p className="text-xl font-bold p-2 leading-8">00 GB</p>
+                                        </Content>
+                                    </Layout>
+                                    <Layout className="bg-metal col-span-4 ">
+                                        <Content className="white-background  rounded-2xl h-scree">
+                                            <p className="text-base font-medium text-silver m-10">RECENT JOBS</p>
                                             <Table
                                                 columns={this.columns}
                                                 dataSource={jobs}
                                                 pagination={false}
-                                                size="middle"
+                                                size="large"
+                                                className="ml-10 mr-10"
                                             />
-                                        </Space>
-                                    </Row>
-                                    <Pagination
-                                        className="pagination"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
-                                    />
-                                </Content>
-                            </Layout>
+                                            <Pagination
+                                                className="pagination"
+                                                defaultCurrent={1}
+                                                total={count}
+                                                current={current}
+                                                pageSize={this.PAGE_SIZE}
+                                                onChange={this.onPageChange}
+                                                showSizeChanger={false}
+                                            />
+                                        </Content>
+                                    </Layout>
+                                </Row>
+                            </Fragment>
                         ) : (
                             <Spin />
                         )}
-                    </Content>
+                    </Layout>
                 </Layout>
             </Layout>
         );

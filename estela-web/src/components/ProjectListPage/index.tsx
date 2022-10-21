@@ -73,7 +73,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                     dataSource={projects}
                                     renderItem={(project: Project) => (
                                         <List.Item>
-                                            <Link to={`/projects/${project.pid}`}>{project.name}</Link>
+                                            <Link to={`/projects/${project.pid}/dashboard`}>{project.name}</Link>
                                         </List.Item>
                                     )}
                                     className="project-list"
