@@ -40,7 +40,7 @@ export class CustomHeader extends Component<unknown> {
                     </Col>
                     <Col flex={0.1} className="">
                         <Notification
-                            width={24}
+                            width={26}
                             className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
                         />
                     </Col>
@@ -85,7 +85,7 @@ export class CustomHeader extends Component<unknown> {
                             trigger={["click"]}
                         >
                             <a className="flex items-center hover:bg-button-hover rounded">
-                                <User className="stroke-estela" width={24.5} />
+                                <User className="stroke-estela" width={26} />
                                 <div className="mx-2 text-sm font-medium text-estela">{this.getUser()}</div>
                                 <ArrowDown width={15} className="stroke-estela" />
                             </a>
