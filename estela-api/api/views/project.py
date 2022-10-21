@@ -184,7 +184,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         spider_set = Spider.objects.filter(project=kwargs["pid"])
         sid_set = spider_set.values_list("pk", flat=True)
         cronjobs_set = SpiderCronJob.objects.filter(spider__in=sid_set)
-        # jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
         paginator_result = Paginator(cronjobs_set, page_size)
         page_result = paginator_result.page(page)
         results = SpiderCronJobSerializer(page_result, many=True)
