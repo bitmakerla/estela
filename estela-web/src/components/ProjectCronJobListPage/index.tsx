@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Pagination, Typography, Row, Space, Table, Tag } from "antd";
+import { Layout, Pagination, Typography, Row, Space, Table } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -86,18 +86,6 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             key: "schedule",
             dataIndex: "schedule",
         },
-        // {
-        //     title: "Tags",
-        //     key: "tags",
-        //     dataIndex: "tags",
-        //     render: (Tags: TagsData[]): ReactElement => (
-        //         <Space direction="horizontal">
-        //             {Tags.map((tag: TagsData, id) => (
-        //                 <Tag key={id}>{tag.name}</Tag>
-        //             ))}
-        //         </Space>
-        //     ),
-        // },
         {
             title: "Status",
             key: "status",
