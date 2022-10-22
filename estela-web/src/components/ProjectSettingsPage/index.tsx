@@ -159,7 +159,9 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                     <ProjectSidenav projectId={this.projectId} path={"/settings"} />
                     <Content className="bg-white">
                         <Layout className="bg-white w-full flex pl-10 pt-12 pb-11">
-                            <Typography className="font-sans text-xl text-gray-500">PROJECT SETTING</Typography>
+                            <Typography className="font-sans text-xl text-estela-black-medium">
+                                PROJECT SETTING
+                            </Typography>
                         </Layout>
                         <Layout className="bg-white flex pl-10">
                             <Typography className=" pt-10 pl-10 font-sans text-2xl text-black">Details</Typography>
@@ -173,53 +175,53 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                             >
                                                 <Input
                                                     onChange={this.handleNameChange}
-                                                    className="h-14 rounded-lg border-[#4D47C3]"
+                                                    className="h-14 rounded-lg border-estela"
                                                 />
                                             </Form.Item>
                                             <Form.Item label="Category" name="category">
                                                 <Select
-                                                    className="h-14 rounded-lg border border-[#4D47C3]"
+                                                    className="h-14 rounded-lg border border-estela"
                                                     placeholder={<div className="">Select...</div>}
                                                 >
                                                     <>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="notspecified"
                                                         >
                                                             Not Specified
                                                         </Option>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="ecommerce"
                                                         >
                                                             E-commerce
                                                         </Option>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="logistics"
                                                         >
                                                             Logistics
                                                         </Option>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="finance"
                                                         >
                                                             Finance
                                                         </Option>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="educational"
                                                         >
                                                             Educational
                                                         </Option>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="technology"
                                                         >
                                                             Technology
                                                         </Option>
                                                         <Option
-                                                            className="text-gray-500 hover:bg-[#F6FAFD] selection:border-[#4D47C3] selection:text-[#4D47C3]"
+                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
                                                             value="other"
                                                         >
                                                             Other Category
@@ -234,7 +236,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                 disabled={!detailsChanged}
                                                 htmlType="submit"
                                                 onClick={this.changeName}
-                                                className="border-[#4D47C3] bg-[#4D47C3] hover:border-[#4D47C3] hover:text-[#4D47C3] text-white rounded-md text-base  min-h-full"
+                                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
                                             >
                                                 <Link to={`/projects/${this.projectId}`}>Save Changes</Link>
                                             </Button>
@@ -245,8 +247,8 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                         </Layout>
                         <Layout className="bg-white pt-14 pl-20 w-5/12">
                             <Typography className="pt-10 font-sans text-2xl text-black">Data persistence</Typography>
-                            <Typography className="pt-4 pb-8 font-sans text-sm text-gray-500">
-                                New projects you create will hace this data persistence by default to retain data in
+                            <Typography className="pt-4 pb-8 font-sans text-sm text-estela-black-medium">
+                                New projects you create will have this data persistence by default to retain data in
                                 Bitmaker Cloud
                             </Typography>
                             <Layout className="auto-cols-auto grid grid-flow-col bg-white pb-10">
@@ -255,7 +257,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("1 day");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     1 day
                                 </Button>
@@ -264,7 +266,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("1 week");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     1 week
                                 </Button>
@@ -273,7 +275,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("1 month");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     1 month
                                 </Button>
@@ -282,7 +284,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("3 months");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     3 months
                                 </Button>
@@ -291,7 +293,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("6 months");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     6 months
                                 </Button>
@@ -300,7 +302,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("1 year");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     1 year
                                 </Button>
@@ -309,7 +311,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     onClick={() => {
                                         this.handlePersistenceChange("Forever");
                                     }}
-                                    className="h-9 w-20 border-[#F9F9F9] bg-[#F9F9F9] hover:border-[#F6FAFD] hover:text-[#4D47C3] text-[#6C757D] selection:border-[#4D47C3] selection:text-[#4D47C3] rounded-2xl text-sm  min-h-full"
+                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
                                 >
                                     Forever
                                 </Button>
@@ -319,7 +321,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     block
                                     disabled={!persistenceChanged}
                                     htmlType="submit"
-                                    className="border-[#4D47C3] bg-[#4D47C3] hover:border-[#4D47C3] hover:text-[#4D47C3] text-white rounded-md text-base  min-h-full"
+                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
                                 >
                                     Save Changes
                                 </Button>
@@ -327,7 +329,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                         </Layout>
                         <Layout className="bg-white pl-20 py-14">
                             <Typography className="pt-10 font-sans text-2xl text-black">Delete</Typography>
-                            <Typography className="pt-4 pb-8 font-sans text-sm text-gray-500">
+                            <Typography className="pt-4 pb-8 font-sans text-sm text-estela-black-medium">
                                 This action cannot be undone
                             </Typography>
                             <div className="h-14 w-72">
@@ -336,7 +338,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     disabled={false}
                                     htmlType="submit"
                                     onClick={() => this.openModal()}
-                                    className="border-[#c34747] bg-[#c34747] hover:border-[#c34747] hover:text-[#c34747] text-white rounded-md text-base min-h-full"
+                                    className="border-estela-red-full bg-estela-red-full hover:border-estela-red-full hover:text-estela-red-full text-white rounded-md text-base min-h-full"
                                 >
                                     Delete Project
                                 </Button>
@@ -363,7 +365,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                         >
                                                             <Input
                                                                 onChange={this.checkDeletable}
-                                                                className="h-14 rounded-lg border-[#4D47C3]"
+                                                                className="h-14 rounded-lg border-estela"
                                                             />
                                                         </Form.Item>
                                                     </div>
@@ -376,7 +378,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                         disabled={!this.state.deletable}
                                                         htmlType="submit"
                                                         onClick={() => this.deleteProject()}
-                                                        className="border-[#c34747] bg-[#c34747] hover:border-[#c34747] hover:text-[#c34747] text-white rounded-md text-base  min-h-full"
+                                                        className="border-estela-red-full bg-estela-red-full hover:border-estela-red-full hover:text-estela-red-full text-white rounded-md text-base  min-h-full"
                                                     >
                                                         <Link to={`/`}>Delete</Link>
                                                     </Button>
@@ -387,7 +389,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                         disabled={false}
                                                         htmlType="submit"
                                                         onClick={() => this.closeModal()}
-                                                        className="border-[#4D47C3] bg-white hover:bg-[#4D47C3] hover:border-white hover:text-white text-[#4D47C3] rounded-md text-base  min-h-full"
+                                                        className="border-estela bg-white hover:bg-estela hover:border-white hover:text-white text-estela rounded-md text-base  min-h-full"
                                                     >
                                                         Cancel
                                                     </Button>
