@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Layout, Row, Col, Menu, Dropdown } from "antd";
+import { Layout, Row, Col, Menu, Dropdown, Button } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
@@ -39,10 +39,15 @@ export class CustomHeader extends Component<unknown> {
                         </Link>
                     </Col>
                     <Col flex={0.1} className="">
-                        <Notification
-                            width={26}
-                            className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
-                        />
+                        <Button
+                            className="border-opacity-100 border-white hover:border-white"
+                            icon={
+                                <Notification
+                                    width={26}
+                                    className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
+                                />
+                            }
+                        ></Button>
                     </Col>
                     <Col className="">
                         <Dropdown
