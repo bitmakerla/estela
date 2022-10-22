@@ -1,9 +1,10 @@
 import React, { Component } from "react";
-import { Layout, Row, Col, Menu, Dropdown, Button } from "antd";
+import { Layout, Row, Col, Menu, Dropdown } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
 import { AuthService } from "../../services";
+import { NotificationsList } from "../../shared";
 
 import { ReactComponent as User } from "../../assets/icons/user.svg";
 import { ReactComponent as Notification } from "../../assets/icons/notification.svg";
@@ -38,16 +39,23 @@ export class CustomHeader extends Component<unknown> {
                             estela
                         </Link>
                     </Col>
-                    <Col flex={0.1} className="">
-                        <Button
-                            className="border-opacity-100 border-white hover:border-white"
-                            icon={
-                                <Notification
-                                    width={26}
-                                    className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
-                                />
+                    <Col flex={0.02} className="">
+                        <Dropdown
+                            overlay={
+                                <Layout className="p-5 w-96">
+                                    <NotificationsList />
+                                    <Link className="text-estela justify-center" to={"/notifications/inbox"}>
+                                        See all
+                                    </Link>
+                                </Layout>
                             }
-                        ></Button>
+                            trigger={["click"]}
+                        >
+                            <Notification
+                                width={26}
+                                className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
+                            />
+                        </Dropdown>
                     </Col>
                     <Col className="">
                         <Dropdown
