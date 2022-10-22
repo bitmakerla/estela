@@ -3,7 +3,11 @@ import { Layout, Space, Row } from "antd";
 
 import "./styles.scss";
 import { AuthService } from "../../services";
+<<<<<<< HEAD
 import { authNotification, Header, NotificationsSidenav } from "../../shared";
+=======
+import { authNotification, Header, NotificationsList, NotificationsSidenav } from "../../shared";
+>>>>>>> e078f51 (added notification settings page, using temp data)
 
 export class NotificationsSettingsPage extends Component<unknown, unknown> {
     async componentDidMount(): Promise<void> {
