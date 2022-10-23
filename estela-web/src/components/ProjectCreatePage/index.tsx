@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsCreateRequest, Project } from "../../services/api";
-import { authNotification, incorrectDataNotification, Header } from "../../shared";
+import { authNotification, incorrectDataNotification } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;

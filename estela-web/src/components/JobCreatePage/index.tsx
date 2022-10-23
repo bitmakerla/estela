@@ -18,7 +18,6 @@ import {
     incorrectDataNotification,
     invalidDataNotification,
     resourceNotAllowedNotification,
-    Header,
     ProjectSidenav,
 } from "../../shared";
 

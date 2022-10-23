@@ -4,7 +4,7 @@ import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ReactComponent as User } from "../../assets/icons/user.svg";
+import User from "../../assets/icons/user.svg";
 import {
     ApiProjectsReadRequest,
     Project,
@@ -16,7 +16,6 @@ import {
 import {
     authNotification,
     resourceNotAllowedNotification,
-    Header,
     ProjectSidenav,
     Spin,
     nonExistentUserNotification,
@@ -200,7 +199,6 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         const { loaded, members, newUser } = this.state;
         return (
             <Layout>
-                <Header />
                 <Layout className="bg-white">
                     {loaded ? (
                         <Fragment>

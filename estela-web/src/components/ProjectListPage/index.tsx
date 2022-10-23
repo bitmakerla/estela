@@ -4,12 +4,12 @@ import { Button, Layout, Pagination, Space, Row, Col, Tag, Table } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ReactComponent as Add } from "../../assets/icons/add.svg";
+import Add from "../../assets/icons/add.svg";
 import { ApiProjectsListRequest, Project } from "../../services/api";
-import { authNotification, Header, Spin } from "../../shared";
+import { authNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
-    
+
 interface ProjectsPageState {
     projects: Project[];
     username: string;
@@ -92,7 +92,6 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         const { projects, loaded, count, current } = this.state;
         return (
             <Layout className="h-screen">
-                <Header />
                 <Layout className="bg-metal p-6">
                     {loaded ? (
                         <Fragment>
