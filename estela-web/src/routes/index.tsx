@@ -25,10 +25,7 @@ import { JobDataListPage } from "../components/JobDataListPage";
 import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
 
 const External_component = (): JSX.Element => {
-    console.log("josecin");
-    console.log(process.env.component_path);
     if (process.env.component_path != undefined) {
-        console.log(process.env.path_component);
         const ComponentRoutes = React.lazy(() => import(`${process.env.component_path}`));
         return (
             <Fragment>
