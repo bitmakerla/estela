@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { Button, Layout, Form, Typography, Row, Input, Select } from "antd";
+import { Button, Radio, Layout, Form, Typography, Row, Input, Select, Space } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
+import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import {
     ApiProjectsReadRequest,
@@ -108,13 +109,12 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     };
 
     deleteProject = (): void => {
-        console.log("new name is", this.state.name);
         const request: ApiProjectsDeleteRequest = {
             pid: this.projectId,
         };
         this.apiService.apiProjectsDelete(request).then(
             () => {
-                this.updateInfo();
+                history.push(`/projects`);
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
@@ -153,253 +153,259 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     render(): JSX.Element {
         const { showModal, detailsChanged, persistenceChanged } = this.state;
         return (
-            <Layout className="bg-white">
+            <Layout>
                 <Header />
-                <Layout>
+                <Layout className="bg-white">
                     <ProjectSidenav projectId={this.projectId} path={"/settings"} />
-                    <Content className="bg-white">
-                        <Layout className="bg-white w-full flex pl-10 pt-12 pb-11">
-                            <Typography className="font-sans text-xl text-estela-black-medium">
-                                PROJECT SETTING
-                            </Typography>
-                        </Layout>
-                        <Layout className="bg-white flex pl-10">
-                            <Typography className=" pt-10 pl-10 font-sans text-2xl text-black">Details</Typography>
-                            <Layout>
-                                <Content className="flex pl-10 bg-white">
-                                    <Form layout="vertical" className="pt-7 w-96">
-                                        <div className="">
-                                            <Form.Item
-                                                label={<div className="text-base">Project Name</div>}
-                                                name="projectname"
+                    <Content className="bg-metal rounded-2xl">
+                        <div className="lg:m-10 md:mx-6 m-6">
+                            <Row className="font-medium my-6">
+                                <p className="text-xl text-silver">PROJECT SETTING</p>
+                            </Row>
+                            <Row className="bg-white rounded-lg">
+                                <div className="lg:m-8 md:mx-6 m-4">
+                                    <p className="text-2xl text-estela-black-full ">Details</p>
+                                    <div className="bg-white my-4">
+                                        <Content>
+                                            <Form layout="vertical" className="w-96">
+                                                <div className="">
+                                                    <Form.Item
+                                                        label={
+                                                            <div className="text-base text-estela-black-full">
+                                                                Project Name
+                                                            </div>
+                                                        }
+                                                        name="projectname"
+                                                    >
+                                                        <Input
+                                                            style={{ fontSize: 14 }}
+                                                            size="large"
+                                                            placeholder={this.state.name}
+                                                            onChange={this.handleNameChange}
+                                                            className="border-estela placeholder:text-estela-black-full"
+                                                        />
+                                                    </Form.Item>
+                                                    <Form.Item label="Category" name="category">
+                                                        <Select
+                                                            style={{ fontSize: 14 }}
+                                                            size="large"
+                                                            className="rounded-lg border-estela"
+                                                            placeholder="Select ..."
+                                                        >
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="notspecified"
+                                                            >
+                                                                Not Specified
+                                                            </Option>
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="ecommerce"
+                                                            >
+                                                                E-commerce
+                                                            </Option>
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="logistics"
+                                                            >
+                                                                Logistics
+                                                            </Option>
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="finance"
+                                                            >
+                                                                Finance
+                                                            </Option>
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="educational"
+                                                            >
+                                                                Educational
+                                                            </Option>
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="technology"
+                                                            >
+                                                                Technology
+                                                            </Option>
+                                                            <Option
+                                                                className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
+                                                                value="other"
+                                                            >
+                                                                Other Category
+                                                            </Option>
+                                                        </Select>
+                                                    </Form.Item>
+                                                </div>
+                                                <div className="h-12 w-72">
+                                                    <Button
+                                                        block
+                                                        disabled={!detailsChanged}
+                                                        htmlType="submit"
+                                                        onClick={this.changeName}
+                                                        className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                                    >
+                                                        <Link to={`/projects/${this.projectId}/dashboard`}>
+                                                            Save Changes
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </Form>
+                                        </Content>
+                                    </div>
+                                </div>
+                            </Row>
+                            <Row className="bg-white rounded-lg my-4">
+                                <div className="lg:m-8 md:mx-6 m-4">
+                                    <p className="text-2xl text-black">Data persistence</p>
+                                    <p className="text-sm my-2 text-estela-black-medium">
+                                        New projects you create will have this data persistence by default to retain
+                                        data in Bitmaker Cloud
+                                    </p>
+                                    <Content>
+                                        <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
+                                            <Radio.Button
+                                                value="1 day"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("1 day");
+                                                }}
                                             >
-                                                <Input
-                                                    onChange={this.handleNameChange}
-                                                    className="h-14 rounded-lg border-estela"
-                                                />
-                                            </Form.Item>
-                                            <Form.Item label="Category" name="category">
-                                                <Select
-                                                    className="h-14 rounded-lg border border-estela"
-                                                    placeholder={<div className="">Select...</div>}
-                                                >
-                                                    <>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="notspecified"
-                                                        >
-                                                            Not Specified
-                                                        </Option>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="ecommerce"
-                                                        >
-                                                            E-commerce
-                                                        </Option>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="logistics"
-                                                        >
-                                                            Logistics
-                                                        </Option>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="finance"
-                                                        >
-                                                            Finance
-                                                        </Option>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="educational"
-                                                        >
-                                                            Educational
-                                                        </Option>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="technology"
-                                                        >
-                                                            Technology
-                                                        </Option>
-                                                        <Option
-                                                            className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                            value="other"
-                                                        >
-                                                            Other Category
-                                                        </Option>
-                                                    </>
-                                                </Select>
-                                            </Form.Item>
-                                        </div>
-                                        <div className="h-14 w-72">
-                                            <Button
-                                                block
-                                                disabled={!detailsChanged}
-                                                htmlType="submit"
-                                                onClick={this.changeName}
-                                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                                1 day
+                                            </Radio.Button>
+                                            <Radio.Button
+                                                value="1 week"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("1 week");
+                                                }}
                                             >
-                                                <Link to={`/projects/${this.projectId}`}>Save Changes</Link>
-                                            </Button>
-                                        </div>
-                                    </Form>
-                                </Content>
-                            </Layout>
-                        </Layout>
-                        <Layout className="bg-white pt-14 pl-20 w-5/12">
-                            <Typography className="pt-10 font-sans text-2xl text-black">Data persistence</Typography>
-                            <Typography className="pt-4 pb-8 font-sans text-sm text-estela-black-medium">
-                                New projects you create will have this data persistence by default to retain data in
-                                Bitmaker Cloud
-                            </Typography>
-                            <Layout className="auto-cols-auto grid grid-flow-col bg-white pb-10">
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("1 day");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    1 day
-                                </Button>
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("1 week");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    1 week
-                                </Button>
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("1 month");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    1 month
-                                </Button>
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("3 months");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    3 months
-                                </Button>
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("6 months");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    6 months
-                                </Button>
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("1 year");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    1 year
-                                </Button>
-                                <Button
-                                    block
-                                    onClick={() => {
-                                        this.handlePersistenceChange("Forever");
-                                    }}
-                                    className="h-9 w-20 border-button-hover bg-button-hover hover:border-button-hover hover:text-estela text-silver selection:border-estela selection:text-estela rounded-2xl text-sm  min-h-full"
-                                >
-                                    Forever
-                                </Button>
-                            </Layout>
-                            <div className="h-14 w-72">
-                                <Button
-                                    block
-                                    disabled={!persistenceChanged}
-                                    htmlType="submit"
-                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
-                                >
-                                    Save Changes
-                                </Button>
-                            </div>
-                        </Layout>
-                        <Layout className="bg-white pl-20 py-14">
-                            <Typography className="pt-10 font-sans text-2xl text-black">Delete</Typography>
-                            <Typography className="pt-4 pb-8 font-sans text-sm text-estela-black-medium">
-                                This action cannot be undone
-                            </Typography>
-                            <div className="h-14 w-72">
-                                <Button
-                                    block
-                                    disabled={false}
-                                    htmlType="submit"
-                                    onClick={() => this.openModal()}
-                                    className="border-estela-red-full bg-estela-red-full hover:border-estela-red-full hover:text-estela-red-full text-white rounded-md text-base min-h-full"
-                                >
-                                    Delete Project
-                                </Button>
-                            </div>
-                        </Layout>
-                        <div className="">
-                            {showModal ? (
-                                <>
-                                    <Row className="inset-x-1/3 inset-y-1/3 w-4/12 align-middle items-center fixed z-50 bg-none">
-                                        <Layout className="bg-white align-middle object-center bg-none items-center text-center p-10 rounded-2xl">
-                                            <Typography className="text-xl">CONFIRM ACTION</Typography>
-                                            <Typography className="text-base pt-5">
-                                                Enter the name of the project to delete it
-                                            </Typography>
-                                            <Content className="bg-white w-9/12">
-                                                <Form
-                                                    layout="vertical"
-                                                    className="pt-7 items-center align-middle w-min-full"
-                                                >
-                                                    <div className="">
-                                                        <Form.Item
-                                                            label={<div className="text-base">Project Name</div>}
-                                                            name="deletingproject"
-                                                        >
+                                                1 week
+                                            </Radio.Button>
+                                            <Radio.Button
+                                                value="1 month"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("1 month");
+                                                }}
+                                            >
+                                                1&nbsp;month
+                                            </Radio.Button>
+                                            <Radio.Button
+                                                value="3 months"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("3 months");
+                                                }}
+                                            >
+                                                3&nbsp;months
+                                            </Radio.Button>
+                                            <Radio.Button
+                                                value="6 months"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("6 months");
+                                                }}
+                                            >
+                                                6&nbsp;months
+                                            </Radio.Button>
+                                            <Radio.Button
+                                                value="1 year"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("1 year");
+                                                }}
+                                            >
+                                                1 year
+                                            </Radio.Button>
+                                            <Radio.Button
+                                                value="forever"
+                                                onClick={() => {
+                                                    this.handlePersistenceChange("forever");
+                                                }}
+                                            >
+                                                Forever
+                                            </Radio.Button>
+                                        </Radio.Group>
+                                    </Content>
+                                    <div className="h-12 w-72">
+                                        <Button
+                                            block
+                                            disabled={!persistenceChanged}
+                                            htmlType="submit"
+                                            className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                        >
+                                            Save Changes
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Row>
+                            <Row className="bg-white rounded-lg">
+                                <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
+                                    <Typography className="text-2xl text-black">Delete</Typography>
+                                    <Typography className="mb-2 text-sm text-estela-black-medium">
+                                        This action cannot be undone
+                                    </Typography>
+                                    <div className="h-12 w-72">
+                                        <Button
+                                            block
+                                            disabled={false}
+                                            htmlType="submit"
+                                            onClick={() => this.openModal()}
+                                            className="border-estela-red-full bg-estela-red-full hover:border-estela-red-full hover:text-estela-red-full text-white rounded-md text-base min-h-full"
+                                        >
+                                            Delete Project
+                                        </Button>
+                                    </div>
+                                </Space>
+                            </Row>
+                            <div className="">
+                                {showModal ? (
+                                    <>
+                                        <Row className="inset-x-1/3 inset-y-1/3 lg:w-4/12 md:w-1/2 sm:w-1/2 align-middle items-center fixed z-50">
+                                            <Layout className="bg-white align-middle object-center items-center text-center p-8 rounded-2xl">
+                                                <Typography className="text-xl">CONFIRM ACTION</Typography>
+                                                <Typography className="text-left text-base my-4">
+                                                    Enter the name of the project to delete it
+                                                </Typography>
+                                                <Space direction="vertical" className="bg-white w-full">
+                                                    <Form className="items-center align-middle">
+                                                        <Form.Item name="deletingproject">
+                                                            <p className="text-left text-base text-estela-black-full mb-2">
+                                                                Project Name
+                                                            </p>
                                                             <Input
                                                                 onChange={this.checkDeletable}
-                                                                className="h-14 rounded-lg border-estela"
+                                                                placeholder={this.state.name}
+                                                                className="h-12 rounded-lg border-2 border-estela"
                                                             />
                                                         </Form.Item>
+                                                    </Form>
+                                                </Space>
+                                                <Row className="grid grid-cols-2 w-full items-center bg-white">
+                                                    <div className="h-12 mr-2 align-middle">
+                                                        <Button
+                                                            block
+                                                            disabled={!this.state.deletable}
+                                                            htmlType="submit"
+                                                            onClick={() => this.deleteProject()}
+                                                            className="border-estela-red-full bg-estela-red-full hover:border-estela-red-full hover:text-estela-red-full text-white rounded-md text-base  min-h-full"
+                                                        >
+                                                            <Link to={`/`}>Delete</Link>
+                                                        </Button>
                                                     </div>
-                                                </Form>
-                                            </Content>
-                                            <Layout className="grid grid-cols-2 items-center bg-white">
-                                                <div className="h-14 w-56 px-4 align-middle">
-                                                    <Button
-                                                        block
-                                                        disabled={!this.state.deletable}
-                                                        htmlType="submit"
-                                                        onClick={() => this.deleteProject()}
-                                                        className="border-estela-red-full bg-estela-red-full hover:border-estela-red-full hover:text-estela-red-full text-white rounded-md text-base  min-h-full"
-                                                    >
-                                                        <Link to={`/`}>Delete</Link>
-                                                    </Button>
-                                                </div>
-                                                <div className="h-14 w-56  px-4">
-                                                    <Button
-                                                        block
-                                                        disabled={false}
-                                                        htmlType="submit"
-                                                        onClick={() => this.closeModal()}
-                                                        className="border-estela bg-white hover:bg-estela hover:border-white hover:text-white text-estela rounded-md text-base  min-h-full"
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                </div>
+                                                    <div className="h-12 ml-2 align-middle">
+                                                        <Button
+                                                            block
+                                                            disabled={false}
+                                                            htmlType="submit"
+                                                            onClick={() => this.closeModal()}
+                                                            className="border-estela bg-white hover:bg-estela hover:border-white hover:text-white text-estela rounded-md text-base  min-h-full"
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                </Row>
                                             </Layout>
-                                        </Layout>
-                                    </Row>
-                                    <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
-                                </>
-                            ) : null}
+                                        </Row>
+                                        <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                                    </>
+                                ) : null}
+                            </div>
                         </div>
                     </Content>
                 </Layout>

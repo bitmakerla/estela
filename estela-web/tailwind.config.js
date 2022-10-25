@@ -14,6 +14,7 @@ module.exports = {
         'silver': '#6C757D',
         'metal': '#FBFCFD',
         'button-hover': '#F6FAFD',
+        'estela-white-medium': '#F9F9F9',
         'links': '#4D47C3',
         'back-code': '#33525F',
         'estela-blue-low': '#F6FAFD',
