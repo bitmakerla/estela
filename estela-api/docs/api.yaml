@@ -185,6 +185,35 @@ paths:
         required: true
         type: string
         format: uuid
+  /api/projects/{pid}/cronjobs:
+    get:
+      operationId: api_projects_cronjobs
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: number
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: number
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectCronJob'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
   /api/projects/{pid}/current_usage:
     get:
       operationId: api_projects_current_usage
@@ -752,13 +781,13 @@ paths:
               count:
                 description: Data items count.
                 type: number
-              previous:
-                description: URI to the previous data chunk.
+              next:
+                description: URI to the next data chunk.
                 type: string
                 format: uri
                 x-nullable: true
-              next:
-                description: URI to the next data chunk.
+              previous:
+                description: URI to the previous data chunk.
                 type: string
                 format: uri
                 x-nullable: true
@@ -1013,6 +1042,144 @@ definitions:
           - ADMIN
           - DEVELOPER
           - VIEWER
+  SpiderJobArg:
+    description: Cron job arguments.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        description: Argument name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        description: Argument value.
+        type: string
+        maxLength: 1000
+        minLength: 1
+  SpiderJobEnvVar:
+    description: Cron job env variables.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        description: Env variable name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        description: Env variable value.
+        type: string
+        maxLength: 1000
+        minLength: 1
+  SpiderJobTag:
+    description: Cron job tags.
+    required:
+      - name
+    type: object
+    properties:
+      name:
+        title: Name
+        description: Tag name.
+        type: string
+        maxLength: 50
+        minLength: 1
+  SpiderCronJob:
+    description: Project Cronjobs.
+    required:
+      - spider
+    type: object
+    properties:
+      cjid:
+        title: Cjid
+        description: A unique integer value identifying this cron job.
+        type: integer
+        readOnly: true
+      spider:
+        title: Spider
+        description: Spider sid.
+        type: integer
+      created:
+        title: Created
+        description: Cron job creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      name:
+        title: Name
+        description: Unique cron job name.
+        type: string
+        readOnly: true
+        minLength: 1
+      cargs:
+        description: Cron job arguments.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobArg'
+      cenv_vars:
+        description: Cron job env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
+      ctags:
+        description: Cron job tags.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
+      schedule:
+        title: Schedule
+        description: Cron job schedule definition.
+        type: string
+        maxLength: 20
+      status:
+        title: Status
+        description: Cron job status.
+        type: string
+        enum:
+          - ACTIVE
+          - DISABLED
+      unique_collection:
+        title: Unique collection
+        description: True if this cron job stores its items in a unique collection.
+        type: boolean
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - DELETED
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data expires.
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
+  ProjectCronJob:
+    required:
+      - results
+      - count
+    type: object
+    properties:
+      results:
+        description: Project Cronjobs.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderCronJob'
+      count:
+        title: Count
+        description: Project cronjobs count.
+        type: integer
   ProjectUsage:
     required:
       - name
@@ -1172,56 +1339,6 @@ definitions:
           type: string
           maxLength: 1000
           minLength: 1
-  SpiderJobArg:
-    description: Job arguments.
-    required:
-      - name
-      - value
-    type: object
-    properties:
-      name:
-        title: Name
-        description: Argument name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      value:
-        title: Value
-        description: Argument value.
-        type: string
-        maxLength: 1000
-        minLength: 1
-  SpiderJobEnvVar:
-    description: Job env variables.
-    required:
-      - name
-      - value
-    type: object
-    properties:
-      name:
-        title: Name
-        description: Env variable name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      value:
-        title: Value
-        description: Env variable value.
-        type: string
-        maxLength: 1000
-        minLength: 1
-  SpiderJobTag:
-    description: Job tags.
-    required:
-      - name
-    type: object
-    properties:
-      name:
-        title: Name
-        description: Tag name.
-        type: string
-        maxLength: 50
-        minLength: 1
   SpiderJob:
     description: Project jobs.
     required:
@@ -1327,78 +1444,6 @@ definitions:
         title: Count
         description: Project jobs count.
         type: integer
-  SpiderCronJob:
-    required:
-      - spider
-    type: object
-    properties:
-      cjid:
-        title: Cjid
-        description: A unique integer value identifying this cron job.
-        type: integer
-        readOnly: true
-      spider:
-        title: Spider
-        description: Spider sid.
-        type: integer
-      created:
-        title: Created
-        description: Cron job creation date.
-        type: string
-        format: date-time
-        readOnly: true
-      name:
-        title: Name
-        description: Unique cron job name.
-        type: string
-        readOnly: true
-        minLength: 1
-      cargs:
-        description: Cron job arguments.
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobArg'
-      cenv_vars:
-        description: Cron job env variables.
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobEnvVar'
-      ctags:
-        description: Cron job tags.
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobTag'
-      schedule:
-        title: Schedule
-        description: Cron job schedule definition.
-        type: string
-        maxLength: 20
-      status:
-        title: Status
-        description: Cron job status.
-        type: string
-        enum:
-          - ACTIVE
-          - DISABLED
-      unique_collection:
-        title: Unique collection
-        description: True if this cron job stores its items in a unique collection.
-        type: boolean
-      data_status:
-        title: Data status
-        description: Data status.
-        type: string
-        enum:
-          - PERSISTENT
-          - DELETED
-          - PENDING
-      data_expiry_days:
-        title: Data expiry days
-        description: Days before data expires.
-        type: integer
-        maximum: 65535
-        minimum: 0
-        x-nullable: true
   SpiderCronJobCreate:
     required:
       - data_status
