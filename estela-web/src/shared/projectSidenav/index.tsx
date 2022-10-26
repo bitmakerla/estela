@@ -91,9 +91,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <Menu.Item key={"/settings"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Settings className="mr-1" />
-                            <Link to={`/projects/${this.projectId}/dashboard`} className="hover:text-estela">
-                                Settings
-                            </Link>
+                            <Link to={`/projects/${this.projectId}/settings`}>Settings</Link>
                         </div>
                     </Menu.Item>
                 </Menu>
