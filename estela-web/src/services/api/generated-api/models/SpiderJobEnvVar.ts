@@ -14,7 +14,7 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * Job env variables.
+ * Cron job env variables.
  * @export
  * @interface SpiderJobEnvVar
  */
