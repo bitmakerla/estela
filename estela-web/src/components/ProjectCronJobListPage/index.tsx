@@ -19,6 +19,7 @@ import {
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
+import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { ReactComponent as Add } from "../../assets/icons/add.svg";
 import {
     ApiProjectsReadRequest,
@@ -75,6 +76,7 @@ interface EnvVarsData {
 
 interface ProjectCronJobListPageState {
     name: string;
+    spiders: Spider[];
     cronjobs: SpiderCronJobData[];
     loaded: boolean;
     modal: boolean;
@@ -98,6 +100,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     PAGE_SIZE = 10;
     state: ProjectCronJobListPageState = {
         name: "",
+        spiders: [],
         args: [],
         envVars: [],
         tags: [],
@@ -193,8 +196,23 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 },
             );
             this.getCronJobs(1);
+            this.getProjectSpiders(1);
         }
     }
+
+    getProjectSpiders = async (page: number): Promise<void> => {
+        const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
+        this.apiService.apiProjectsSpidersList(requestParams).then(
+            (results) => {
+                const spiders: Spider[] = results.results;
+                this.setState({ spiders: [...spiders] });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
 
     getCronJobs = async (page: number): Promise<void> => {
         const requestParams: ApiProjectsCronjobsRequest = {
@@ -297,6 +315,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         const {
             loaded,
             cronjobs,
+            spiders,
             modal,
             count,
             current,
@@ -342,7 +361,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                     width={900}
                                                     visible={modal}
                                                     title={
-                                                        <p className="text-xl text-center my-2 font-normal">
+                                                        <p className="text-xl text-center mt-2 font-normal">
                                                             NEW SCHEDULED JOB
                                                         </p>
                                                     }
@@ -354,19 +373,25 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                             <Col className="bg-red-100">
                                                                 <div className="mx-4">
                                                                     <Form>
-                                                                        <p>Spider</p>
-                                                                        <Select
-                                                                            size="large"
-                                                                            className="w-full"
-                                                                            defaultValue={"spider2"}
-                                                                        >
-                                                                            <Option value={"spide1"}>Spider 1</Option>
-                                                                            <Option value={"spide2"}>Spider 2</Option>
-                                                                            <Option value={"spide3"}>Spider 3</Option>
-                                                                        </Select>
+                                                                        <Form.Item>
+                                                                            <p className="my-2">Spider</p>
+                                                                            <Select
+                                                                                style={{ borderRadius: 16 }}
+                                                                                size="large"
+                                                                                className="w-full"
+                                                                                defaultValue={spiders[0].name}
+                                                                            >
+                                                                                {spiders.map((spider: Spider) => (
+                                                                                    <Option
+                                                                                        key={spider.sid}
+                                                                                        value={spider.name}
+                                                                                    >
+                                                                                        {spider.name}
+                                                                                    </Option>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </Form.Item>
                                                                         <Form.Item
-                                                                            // label="Data persistence"
-                                                                            // name="persistence"
                                                                             required
                                                                             rules={[
                                                                                 {
@@ -376,7 +401,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                                 },
                                                                             ]}
                                                                         >
-                                                                            <p>Data persistence</p>
+                                                                            <p className="my-2">Data persistence</p>
                                                                             <Input
                                                                                 size="large"
                                                                                 className="border-estela-blue-full rounded-lg"
@@ -389,7 +414,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                             <Checkbox>Unique Collection</Checkbox>
                                                                         </Form.Item>
                                                                         <Form.Item>
-                                                                            <p>Arguments</p>
+                                                                            <p className="my-2">Arguments</p>
                                                                             <Space direction="vertical">
                                                                                 {args.map((arg: ArgsData, id) => (
                                                                                     <Tag
@@ -433,18 +458,14 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                                         className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                                         onClick={this.addArgument}
                                                                                     ></Button>
-                                                                                    {/* <Button
-                                                                                        className=""
-                                                                                        onClick={this.addArgument}
-                                                                                    >
-                                                                                        Save Argument
-                                                                                    </Button> */}
                                                                                 </Space>
                                                                             </Space>
                                                                         </Form.Item>
                                                                         <Form.Item>
-                                                                            <p>Environment Variables</p>
-                                                                            <Space direction="vertical">
+                                                                            <p className="my-2">
+                                                                                Environment Variables
+                                                                            </p>
+                                                                            <Space direction="horizontal">
                                                                                 {envVars.map(
                                                                                     (envVar: EnvVarsData, id) => (
                                                                                         <Tag
@@ -461,48 +482,35 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                                         </Tag>
                                                                                     ),
                                                                                 )}
-                                                                                <Space
-                                                                                    direction="horizontal"
-                                                                                    className=""
-                                                                                >
-                                                                                    <Input
-                                                                                        size="large"
-                                                                                        className="border-estela-blue-full rounded-l-lg"
-                                                                                        name="newEnvVarName"
-                                                                                        placeholder="name"
-                                                                                        value={newEnvVarName}
-                                                                                        onChange={
-                                                                                            this.handleInputChange
-                                                                                        }
-                                                                                    />
-                                                                                    <Input
-                                                                                        size="large"
-                                                                                        className="border-estela-blue-full rounded-r-lg"
-                                                                                        name="newEnvVarValue"
-                                                                                        placeholder="value"
-                                                                                        value={newEnvVarValue}
-                                                                                        onChange={
-                                                                                            this.handleInputChange
-                                                                                        }
-                                                                                    />
-                                                                                    <Button
-                                                                                        shape="circle"
-                                                                                        size="small"
-                                                                                        icon={<Add className="p-1" />}
-                                                                                        className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                                        onClick={this.addEnvVar}
-                                                                                    ></Button>
-                                                                                    {/* <Button
-                                                                                        className=""
-                                                                                        onClick={this.addEnvVar}
-                                                                                    >
-                                                                                        Save Environment Variable
-                                                                                    </Button> */}
-                                                                                </Space>
+                                                                            </Space>
+                                                                            <Space direction="horizontal">
+                                                                                <Input
+                                                                                    size="large"
+                                                                                    className="border-estela-blue-full rounded-l-lg"
+                                                                                    name="newEnvVarName"
+                                                                                    placeholder="name"
+                                                                                    value={newEnvVarName}
+                                                                                    onChange={this.handleInputChange}
+                                                                                />
+                                                                                <Input
+                                                                                    size="large"
+                                                                                    className="border-estela-blue-full rounded-r-lg"
+                                                                                    name="newEnvVarValue"
+                                                                                    placeholder="value"
+                                                                                    value={newEnvVarValue}
+                                                                                    onChange={this.handleInputChange}
+                                                                                />
+                                                                                <Button
+                                                                                    shape="circle"
+                                                                                    size="small"
+                                                                                    icon={<Add className="p-1" />}
+                                                                                    className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                                    onClick={this.addEnvVar}
+                                                                                ></Button>
                                                                             </Space>
                                                                         </Form.Item>
                                                                         <Form.Item>
-                                                                            <p>Tags</p>
+                                                                            <p className="my-2">Tags</p>
                                                                             <Space direction="horizontal">
                                                                                 <Space direction="horizontal">
                                                                                     {tags.map((tag: TagsData, id) => (
