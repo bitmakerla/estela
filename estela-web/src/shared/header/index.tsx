@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import history from "../../history";
 import { AuthService } from "../../services";
+import { NotificationsList } from "../../shared";
 
 import { ReactComponent as User } from "../../assets/icons/user.svg";
 import { ReactComponent as Notification } from "../../assets/icons/notification.svg";
@@ -13,9 +14,14 @@ import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as Billing } from "../../assets/icons/billing.svg";
 import { ReactComponent as Logout } from "../../assets/icons/logout.svg";
 
-const { Header } = Layout;
+const { Header, Content } = Layout;
 
-export class CustomHeader extends Component<unknown> {
+interface HeaderInterface {
+    path?: string;
+}
+
+export class CustomHeader extends Component<HeaderInterface, unknown> {
+    path = this.props.path;
     isLogged = (): boolean => {
         return Boolean(AuthService.getAuthToken());
     };
@@ -38,11 +44,28 @@ export class CustomHeader extends Component<unknown> {
                             estela
                         </Link>
                     </Col>
-                    <Col flex={0.1} className="">
-                        <Notification
-                            width={26}
-                            className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
-                        />
+                    <Col flex={0.02} className="">
+                        <Dropdown
+                            overlay={
+                                <Layout className="p-5 w-96">
+                                    <NotificationsList />
+                                    <Link className="text-estela flex justify-center" to={"/notifications/inbox"}>
+                                        See all
+                                    </Link>
+                                </Layout>
+                            }
+                            trigger={["click"]}
+                        >
+                            {this.path === "/notifications/inbox" ? (
+                                <Content className="items-center border border-estela rounded-lg bg-estela-blue-low flex justify-center w-12 h-12">
+                                    <Notification className="text-estela stroke-estela rounded" />
+                                </Content>
+                            ) : (
+                                <Content className="items-center hover:bg-button-hover rounded-lg flex justify-center w-12 h-12">
+                                    <Notification className=" stroke-black hover:stroke-estela rounded" />
+                                </Content>
+                            )}
+                        </Dropdown>
                     </Col>
                     <Col className="">
                         <Dropdown

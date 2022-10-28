@@ -47,9 +47,9 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                                 <Link to={`/projects/${this.projectId}/jobs`}>Overview</Link>
                             </div>
                         </Menu.Item>
-                        <Menu.Item key={"/schedule"}>
+                        <Menu.Item key={"/cronjobs"}>
                             <div className="flex items-center hover:bg-button-hover pl-4 rounded">
-                                <Link to={`/projects/${this.projectId}/jobs`}>Schedule</Link>
+                                <Link to={`/projects/${this.projectId}/cronjobs`}>Schedule</Link>
                             </div>
                         </Menu.Item>
                     </Menu.SubMenu>
@@ -79,7 +79,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <Menu.Item key={"/activity"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Activity className="mr-1" />
-                            <Link to={`/projects/${this.projectId}`}>Activity</Link>
+                            <Link to={`/projects/${this.projectId}/dashboard`}>Activity</Link>
                         </div>
                     </Menu.Item>
                     <Menu.Item key={"/members"} className="">
@@ -91,9 +91,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <Menu.Item key={"/settings"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Settings className="mr-1" />
-                            <Link to={`/projects/${this.projectId}`} className="hover:text-estela">
-                                Settings
-                            </Link>
+                            <Link to={`/projects/${this.projectId}/settings`}>Settings</Link>
                         </div>
                     </Menu.Item>
                 </Menu>
