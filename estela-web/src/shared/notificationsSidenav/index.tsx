@@ -21,12 +21,16 @@ export class NotificationsSidenav extends Component<NotificationsInboxPropsInter
                     </div>
                     <Menu.Item key={"/notifications/inbox"} className="">
                         <div className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/notifications/inbox`}>Inbox</Link>
+                            <Link to={`/notifications/inbox`} className="ml-2">
+                                Inbox
+                            </Link>
                         </div>
                     </Menu.Item>
                     <Menu.Item key={"/notifications/settings"} className="">
                         <div className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/notifications/settings`}>Settings</Link>
+                            <Link to={`/notifications/settings`} className="ml-2">
+                                Settings
+                            </Link>
                         </div>
                     </Menu.Item>
                 </Menu>

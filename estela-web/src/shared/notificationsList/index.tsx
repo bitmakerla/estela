@@ -5,6 +5,8 @@ import "./styles.scss";
 
 import { ReactComponent as Ellipse } from "../../assets/icons/ellipse.svg";
 
+const { Content } = Layout;
+
 const notis = [
     {
         id: 1,
@@ -39,21 +41,17 @@ export class NotificationsList extends Component<unknown, unknown> {
                 {notis.map((notification) => {
                     return (
                         <div key={notification.id}>
-                            <Layout className="bg-white pb-2 overflow-hidden hover:text-estela hover:bg-estela-blue-low">
-                                <Space align="end">
+                            <Layout className="bg-white p-2 overflow-hidden hover:text-estela hover:bg-estela-blue-low rounded-md">
+                                <Space className="flex items-center" align="end">
                                     {!notification.seen ? (
                                         <Ellipse className="mx-1 fill-current text-estela" width={20} height={20} />
                                     ) : (
                                         <Ellipse className="mx-1 fill-current text-white" width={20} height={20} />
                                     )}
-                                    <Layout className="bg-white">
-                                        <Layout className="text-sm bg-white overflow-ellipsis">
-                                            {notification.message}
-                                        </Layout>
-                                        <Layout className="bg-white text-xs text-estela-black-low">
-                                            {notification.date}
-                                        </Layout>
-                                    </Layout>
+                                    <Content>
+                                        <Content className="text-sm overflow-ellipsis">{notification.message}</Content>
+                                        <Content className="text-xs text-estela-black-low">{notification.date}</Content>
+                                    </Content>
                                 </Space>
                             </Layout>
                         </div>
