@@ -9,15 +9,24 @@ $estela-blue-full: #4D47C3;
     background-color: $estela-green-full;
 }
 
-.schedule > .ant-switch-checked {
-    background-color: $estela-blue-full;
-}
-
-.ant-select-selection.ant-select-selection--single {
-    border-radius: 0px 16px 16px 0px !important;
-    height: 53px;
+.schedule {
+    .ant-switch-checked {
+        background-color: $estela-blue-full;
+    }
 }
 
 .ant-select-selector {
     border-radius: 8px !important;
 }
+
+.ant-radio-checked .ant-radio-inner{
+    border-color: $estela-blue-full;
+  }
+  
+  .ant-radio-checked .ant-radio-inner:after{
+    background-color: $estela-blue-full;
+  }
+  
+  .ant-radio:hover .ant-radio-inner {
+    border-color: $estela-blue-full;
+  }
