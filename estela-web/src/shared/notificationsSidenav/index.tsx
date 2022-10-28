@@ -14,8 +14,8 @@ export class NotificationsSidenav extends Component<NotificationsInboxPropsInter
     path = this.props.path;
     render(): JSX.Element {
         return (
-            <Sider width={240}>
-                <Menu mode="inline" className="h-full" selectedKeys={[`${this.path}`]} defaultOpenKeys={["2", "5"]}>
+            <Sider width={240} className="mr-5">
+                <Menu mode="inline" className="h-full" selectedKeys={[`${this.path}`]}>
                     <div>
                         <p className="m-5 text-estela-black-medium text-base">NOTIFICATIONS</p>
                     </div>

@@ -44,7 +44,7 @@ export class CustomHeader extends Component<unknown> {
                             overlay={
                                 <Layout className="p-5 w-96">
                                     <NotificationsList />
-                                    <Link className="text-estela justify-center" to={"/notifications/inbox"}>
+                                    <Link className="text-estela flex justify-center" to={"/notifications/inbox"}>
                                         See all
                                     </Link>
                                 </Layout>

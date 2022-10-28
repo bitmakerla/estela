@@ -3,7 +3,7 @@ import { Layout, Space, Row } from "antd";
 
 import "./styles.scss";
 import { AuthService } from "../../services";
-import { authNotification, Header, NotificationsList, NotificationsSidenav } from "../../shared";
+import { authNotification, Header, NotificationsSidenav } from "../../shared";
 
 export class NotificationsSettingsPage extends Component<unknown, unknown> {
     async componentDidMount(): Promise<void> {
@@ -23,7 +23,7 @@ export class NotificationsSettingsPage extends Component<unknown, unknown> {
                 <Layout className="bg-metal pt-16 pl-16">
                     <NotificationsSidenav path={"/notifications/settings"} />
                     <Layout className="bg-white pl-16">
-                        <p className="text-2xl pb-8 text-black">Notifications settings</p>
+                        <p className="text-2xl py-5 text-black">Notifications settings</p>
                         <Layout className="bg-white w-4/5 flex">
                             <Row className="pb-8">
                                 <Space>
