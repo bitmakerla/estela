@@ -14,9 +14,14 @@ import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
 import { ReactComponent as Billing } from "../../assets/icons/billing.svg";
 import { ReactComponent as Logout } from "../../assets/icons/logout.svg";
 
-const { Header } = Layout;
+const { Header, Content } = Layout;
 
-export class CustomHeader extends Component<unknown> {
+interface HeaderInterface {
+    path?: string;
+}
+
+export class CustomHeader extends Component<HeaderInterface, unknown> {
+    path = this.props.path;
     isLogged = (): boolean => {
         return Boolean(AuthService.getAuthToken());
     };
@@ -51,10 +56,15 @@ export class CustomHeader extends Component<unknown> {
                             }
                             trigger={["click"]}
                         >
-                            <Notification
-                                width={26}
-                                className="hover:bg-button-hover stroke-black hover:stroke-estela rounded"
-                            />
+                            {this.path === "/notifications/inbox" ? (
+                                <Content className="items-center border border-estela rounded-lg bg-estela-blue-low flex justify-center w-12 h-12">
+                                    <Notification className="text-estela stroke-estela rounded" />
+                                </Content>
+                            ) : (
+                                <Content className="items-center hover:bg-button-hover rounded-lg flex justify-center w-12 h-12">
+                                    <Notification className=" stroke-black hover:stroke-estela rounded" />
+                                </Content>
+                            )}
                         </Dropdown>
                     </Col>
                     <Col className="">
