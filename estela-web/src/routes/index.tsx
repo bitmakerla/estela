@@ -4,6 +4,8 @@ import { Router, Switch, Route, Redirect } from "react-router-dom";
 import history from "../history";
 import { LoginPage } from "../components/LoginPage";
 import { RegisterPage } from "../components/RegisterPage";
+import { NotificationsInboxPage } from "../components/NotificationsInboxPage";
+import { NotificationsSettingsPage } from "../components/NotificationsSettingsPage";
 import { ProjectListPage } from "../components/ProjectListPage";
 import { ProjectDetailPage } from "../components/ProjectDetailPage";
 import { ProjectSettingsPage } from "../components/ProjectSettingsPage";
@@ -32,6 +34,8 @@ export class MainRoutes extends Component<unknown, unknown> {
                     </Route>
                     <Route path="/login" component={LoginPage} exact />
                     <Route path="/register" component={RegisterPage} exact />
+                    <Route path="/notifications/inbox" component={NotificationsInboxPage} exact />
+                    <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
                     <Route path="/projects" component={ProjectListPage} exact />
                     <Route path="/projects/create" component={ProjectCreatePage} exact />
                     <Route path="/projects/:projectId" component={ProjectDetailPage} exact />
