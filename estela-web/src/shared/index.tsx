@@ -1,5 +1,6 @@
 export { CustomHeader as Header } from "./header";
 export { ProjectSidenav } from "./projectSidenav";
+export { ProfileSettingsSideNav } from "./profileSettingsSidenav";
 export { CustomSpin as Spin } from "./spin";
 export {
     authNotification,

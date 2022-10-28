@@ -59,7 +59,7 @@ export class CustomHeader extends Component<unknown> {
                                     <Menu.Item key="1" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
                                             <Settings className="mx-1" width={20} />
-                                            <Link to={""} className="hover:text-estela">
+                                            <Link to={"/settings/profile"} className="hover:text-estela">
                                                 Account Settings
                                             </Link>
                                         </div>

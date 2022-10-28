@@ -19,6 +19,9 @@ import { CronJobCreatePage } from "../components/CronJobCreatePage";
 import { CronJobDetailPage } from "../components/CronJobDetailPage";
 import { JobDataListPage } from "../components/JobDataListPage";
 import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
+import { SettingsProfilePage } from "../components/SettingsProfilePage";
+import { SettingsPasswordPage } from "../components/SettingsPasswordPage";
+import { SettingsDataPersistencePage } from "../components/SettingsDataPersistencePage";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -57,6 +60,9 @@ export class MainRoutes extends Component<unknown, unknown> {
                         component={CronJobDetailPage}
                         exact
                     />
+                    <Route path="/settings/profile" component={SettingsProfilePage} exact />
+                    <Route path="/settings/password" component={SettingsPasswordPage} exact />
+                    <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
                 </Switch>
             </Router>
         );
