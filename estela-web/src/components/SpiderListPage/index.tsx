@@ -130,39 +130,6 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                     ) : (
                         <Spin />
                     )}
-                    {/* <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
-                    <Content>
-                        {loaded ? (
-                            <Layout className="white-background">
-                                <Content>
-                                    <List
-                                        header={<Title level={3}>Project Spiders</Title>}
-                                        bordered
-                                        dataSource={spiders}
-                                        renderItem={(spider: Spider) => (
-                                            <List.Item>
-                                                <Link to={`/projects/${this.projectId}/spiders/${spider.sid}`}>
-                                                    {spider.name}
-                                                </Link>
-                                            </List.Item>
-                                        )}
-                                        className="spider-list"
-                                    />
-                                    <Pagination
-                                        className="pagination"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
-                                    />
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content> */}
                 </Layout>
             </Layout>
         );
