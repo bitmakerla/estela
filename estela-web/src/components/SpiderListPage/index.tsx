@@ -1,12 +1,14 @@
-import React, { Component } from "react";
+import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Layout, List, Pagination, Typography } from "antd";
+import { Col, Layout, Row, List, Pagination, Typography, Button, Space, Table, Tag } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { ColumnsType } from "antd/lib/table";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -47,6 +49,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
             (results) => {
                 const spiders: Spider[] = results.results;
                 this.setState({ spiders: [...spiders], count: results.count, current: page, loaded: true });
+                console.log(spiders);
             },
             (error: unknown) => {
                 console.error(error);
@@ -54,6 +57,25 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
             },
         );
     }
+
+    columns: ColumnsType<Spider> = [
+        {
+            title: "SPIDER",
+            dataIndex: "name",
+            key: "name",
+            render: (text: string): ReactElement => <p className="text-sky-400">{text}</p>,
+        },
+        {
+            title: "LAST RUN",
+            dataIndex: "lastRun",
+            key: "lastRun",
+        },
+        {
+            title: "JOBS",
+            dataIndex: "jobs",
+            key: "jobs",
+        },
+    ];
 
     onPageChange = async (page: number): Promise<void> => {
         this.setState({ loaded: false });
@@ -65,8 +87,50 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         return (
             <Layout className="general-container">
                 <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
+                <Layout className="bg-white">
+                    {loaded ? (
+                        <Fragment>
+                            <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
+                            <Content className="bg-metal rounded-2xl">
+                                <div className="lg:m-10 md:mx-6 mx-2">
+                                    <Row className="flow-root my-6">
+                                        <Col className="float-left">
+                                            <p className="text-xl font-medium text-silver float-left">
+                                                SPIDER OVERVIEW
+                                            </p>
+                                        </Col>
+                                        <Col className="float-right">
+                                            <Button
+                                                icon={<PlusOutlined className="mr-2" width={19} />}
+                                                size="large"
+                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                            >
+                                                Deploy new spider
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                    <Row className="bg-white rounded-lg">
+                                        <div className="m-4">
+                                            <Space direction="vertical" className="">
+                                                <Table
+                                                    tableLayout="fixed"
+                                                    className="rounded-2xl"
+                                                    columns={this.columns}
+                                                    dataSource={spiders}
+                                                    pagination={false}
+                                                    size="middle"
+                                                    locale={{ emptyText: "No spiders yet" }}
+                                                />
+                                            </Space>
+                                        </div>
+                                    </Row>
+                                </div>
+                            </Content>
+                        </Fragment>
+                    ) : (
+                        <Spin />
+                    )}
+                    {/* <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
                     <Content>
                         {loaded ? (
                             <Layout className="white-background">
@@ -98,7 +162,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                         ) : (
                             <Spin />
                         )}
-                    </Content>
+                    </Content> */}
                 </Layout>
             </Layout>
         );
