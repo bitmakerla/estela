@@ -25,6 +25,7 @@ import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
 import { SettingsProfilePage } from "../components/SettingsProfilePage";
 import { SettingsPasswordPage } from "../components/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../components/SettingsDataPersistencePage";
+import { ProjectActivityPage } from "../components/ProjectActivityPage";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -47,6 +48,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
                 <Route path="/projects/:projectId/jobs" component={ProjectJobListPage} exact />
                 <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
+                <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
                 <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
                 <Route path="/projects/:projectId/spiders/:spiderId/jobs/create" component={JobCreatePage} exact />
                 <Route
