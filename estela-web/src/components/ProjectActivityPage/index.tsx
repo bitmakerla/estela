@@ -162,7 +162,7 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
                                                         <Button
                                                             icon={<Filter className="h-6 w-6 mr-2" />}
                                                             size="large"
-                                                            className="flex items-center mr-2 stroke-estela text-estela border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                                            className="flex items-center mr-2 stroke-estela border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                                         >
                                                             Filter
                                                         </Button>
