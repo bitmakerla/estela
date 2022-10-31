@@ -81,7 +81,7 @@ module.exports = {
     }),
     new Dotenv(
       {
-        defaults: true,
+        path: '.env.local',
       }
     ),
     new ESLintPlugin({
