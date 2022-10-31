@@ -1,7 +1,6 @@
 import React, { Component, Suspense, Fragment } from "react";
 import { Router, Switch, Route, Redirect } from "react-router-dom";
 
-import history from "../history";
 import { LoginPage } from "../components/LoginPage";
 import { RegisterPage } from "../components/RegisterPage";
 import { NotificationsInboxPage } from "../components/NotificationsInboxPage";
