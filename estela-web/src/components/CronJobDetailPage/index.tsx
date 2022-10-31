@@ -281,7 +281,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         this.setState({ dataStatus: _dataStatus, modified: true });
     };
 
-    onChangeDay = (value: number): void => {
+    onChangeDay = (value: number | null): void => {
         this.setState({ dataExpiryDays: value, modified: true });
     };
 
