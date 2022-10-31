@@ -13,7 +13,7 @@ import {
     ApiProjectsUpdateRequest,
     ApiProjectsDeleteRequest,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, ProjectSidenav } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
@@ -154,7 +154,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         const { showModal, detailsChanged, persistenceChanged } = this.state;
         return (
             <Layout>
-                <Header />
                 <Layout className="bg-white">
                     <ProjectSidenav projectId={this.projectId} path={"/settings"} />
                     <Content className="bg-metal rounded-2xl">

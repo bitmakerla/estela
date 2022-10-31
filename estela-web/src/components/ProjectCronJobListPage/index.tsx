@@ -10,7 +10,7 @@ import {
     ProjectCronJob,
     SpiderCronJob,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -140,7 +140,6 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         const { loaded, name, cronjobs, count, current } = this.state;
         return (
             <Layout className="general-container">
-                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
                     <Content className="content-padding">
