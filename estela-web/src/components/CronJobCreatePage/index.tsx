@@ -16,6 +16,7 @@ import {
     incorrectDataNotification,
     invalidDataNotification,
     resourceNotAllowedNotification,
+    Header,
     ProjectSidenav,
 } from "../../shared";
 
@@ -218,6 +219,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
 
         return (
             <Layout className="general-container">
+                <Header />
                 <Layout className="white-background">
                     <Fragment>
                         <ProjectSidenav projectId={this.projectId} path={"/jobs"} />

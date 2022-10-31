@@ -6,7 +6,7 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import { ApiProjectsListRequest, Project } from "../../services/api";
-import { authNotification, Spin } from "../../shared";
+import { authNotification, Header, Spin } from "../../shared";
 
 const { Content } = Layout;
 
@@ -92,6 +92,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         const { projects, loaded, count, current } = this.state;
         return (
             <Layout className="h-screen">
+                <Header />
                 <Layout className="bg-metal p-6">
                     {loaded ? (
                         <Fragment>

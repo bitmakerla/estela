@@ -19,6 +19,7 @@ import {
     authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
+    Header,
     ProjectSidenav,
     Spin,
 } from "../../shared";
@@ -272,6 +273,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } = this.state;
         return (
             <Layout className="general-container">
+                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
                     <Content className="content-padding">

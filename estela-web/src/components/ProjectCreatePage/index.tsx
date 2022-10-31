@@ -5,7 +5,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsCreateRequest, Project } from "../../services/api";
-import { authNotification, incorrectDataNotification } from "../../shared";
+import { authNotification, incorrectDataNotification, Header } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -36,6 +36,7 @@ export class ProjectCreatePage extends Component<unknown> {
     render(): JSX.Element {
         return (
             <Layout className="general-container">
+                <Header />
                 <Layout className="white-background">
                     <Fragment>
                         <Content className="content-padding">

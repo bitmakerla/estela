@@ -20,6 +20,7 @@ import {
     authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
+    Header,
     ProjectSidenav,
     Spin,
 } from "../../shared";
@@ -350,6 +351,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         } = this.state;
         return (
             <Layout className="general-container">
+                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={""} />
                     <Content className="content-padding">

@@ -10,7 +10,7 @@ import {
     Spider,
     SpiderJob,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -143,6 +143,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const { loaded, name, jobs, count, current } = this.state;
         return (
             <Layout className="general-container">
+                <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
                     <Content className="content-padding">

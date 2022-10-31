@@ -6,7 +6,7 @@ import Copy from "../../assets/icons/copy.svg";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, ProjectSidenav, Spin } from "../../shared";
+import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -115,6 +115,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
         const { loaded, deploys, count, current } = this.state;
         return (
             <Layout>
+                <Header />
                 <Layout>
                     <ProjectSidenav projectId={this.projectId} path={"/deploys"} />
                     <Content className="bg-white">

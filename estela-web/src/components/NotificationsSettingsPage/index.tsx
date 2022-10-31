@@ -3,7 +3,7 @@ import { Layout, Space, Row } from "antd";
 
 import "./styles.scss";
 import { AuthService } from "../../services";
-import { authNotification, NotificationsSidenav } from "../../shared";
+import { authNotification, Header, NotificationsSidenav } from "../../shared";
 
 export class NotificationsSettingsPage extends Component<unknown, unknown> {
     async componentDidMount(): Promise<void> {
@@ -19,6 +19,7 @@ export class NotificationsSettingsPage extends Component<unknown, unknown> {
     render(): JSX.Element {
         return (
             <Layout className="">
+                <Header />
                 <Layout className="bg-metal pt-16 pl-16">
                     <NotificationsSidenav path={"/notifications/settings"} />
                     <Layout className="bg-white pl-16">
