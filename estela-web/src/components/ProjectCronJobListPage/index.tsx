@@ -1,4 +1,5 @@
 import React, { Component, ReactElement } from "react";
+import moment from "moment";
 import {
     Layout,
     Pagination,
@@ -16,24 +17,32 @@ import {
     Tag,
     // Checkbox,
     Radio,
+    TimePicker,
+    DatePicker,
 } from "antd";
+import type { DatePickerProps } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
+import history from "../../history";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { ReactComponent as Add } from "../../assets/icons/add.svg";
 import {
-    ApiProjectsReadRequest,
+    ApiProjectsSpidersCronjobsCreateRequest,
+    ApiProjectsSpidersListRequest,
     ApiProjectsCronjobsRequest,
-    Project,
+    SpiderCronJobStatusEnum,
+    ApiProjectsReadRequest,
+    SpiderCronJobCreate,
     ProjectCronJob,
     SpiderCronJob,
-    SpiderCronJobStatusEnum,
+    Project,
+    Spider,
 } from "../../services/api";
 import {
     authNotification,
     resourceNotAllowedNotification,
     invalidDataNotification,
+    incorrectDataNotification,
     Header,
     ProjectSidenav,
     Spin,
@@ -56,6 +65,18 @@ interface Tags {
 
 interface TagsData {
     name: string;
+}
+
+interface OptionDataPersistance {
+    label: string;
+    key: number;
+    value: number;
+}
+
+interface OptionDataRepeat {
+    label: string;
+    key: number;
+    value: string;
 }
 
 interface SpiderCronJobData {
@@ -84,7 +105,13 @@ interface ProjectCronJobListPageState {
     name: string;
     spiders: Spider[];
     cronjobs: SpiderCronJobData[];
-    schedule: string;
+    expression: string;
+    repeat: string;
+    spiderId: string;
+    dataExpireDays: number;
+    dataStatus: string;
+    day: moment.Moment | null;
+    hour: moment.Moment | null;
     schedulesFlag: boolean[];
     loaded: boolean;
     modal: boolean;
@@ -110,8 +137,14 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     state: ProjectCronJobListPageState = {
         name: "",
         spiders: [],
-        schedule: "",
-        schedulesFlag: [false, false, true],
+        expression: "@daily",
+        repeat: "",
+        dataExpireDays: 1,
+        dataStatus: "PENDING",
+        spiderId: "1",
+        day: moment(),
+        hour: moment(),
+        schedulesFlag: [true, false, false],
         args: [],
         envVars: [],
         tags: [],
@@ -131,6 +164,27 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
     countKey = 0;
+    hourFormat = "HH:mm";
+    dateFormat = "MMM D, YYYY";
+
+    dataPeristenceOptions = [
+        { label: "1 day", key: 1, value: 1 },
+        { label: "1 week", key: 2, value: 7 },
+        { label: "1 month", key: 3, value: 30 },
+        { label: "3 months", key: 4, value: 90 },
+        { label: "6 months", key: 5, value: 180 },
+        { label: "1 year", key: 6, value: 365 },
+        { label: "Forever", key: 7, value: 720 },
+    ];
+
+    repeatOptions = [
+        { label: "Hourly", key: 1, value: "@hourly" },
+        { label: "Daily", key: 2, value: "@daily" },
+        { label: "Weekly", key: 3, value: "@weekly" },
+        { label: "Monthly", key: 4, value: "@monthly" },
+        { label: "Yearly", key: 5, value: "@yearly" },
+        { label: "Custom ...", key: 6, value: "custom" },
+    ];
 
     columns = [
         {
@@ -218,6 +272,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             (results) => {
                 const spiders: Spider[] = results.results;
                 this.setState({ spiders: [...spiders] });
+                this.setState({ spiderId: String(results.results[0].sid) });
             },
             (error: unknown) => {
                 console.error(error);
@@ -234,7 +289,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         };
 
         await this.apiService.apiProjectsCronjobs(requestParams).then((response: ProjectCronJob) => {
-            console.log(response.results);
+            // console.log(response.results);
             const data = response.results.map((cronjob: SpiderCronJob, iterator: number) => ({
                 key: iterator,
                 id: { sid: cronjob.spider, cid: cronjob.cjid },
@@ -247,6 +302,34 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             const cronjobs: SpiderCronJobData[] = data;
             this.setState({ cronjobs: [...cronjobs], loaded: true, count: response.count, current: page });
         });
+    };
+
+    handleSubmit = (): void => {
+        const requestData = {
+            cargs: [...this.state.args],
+            cenvVars: [...this.state.envVars],
+            ctags: [...this.state.tags],
+            schedule: this.state.expression,
+            uniqueCollection: true,
+            dataStatus: this.state.dataStatus,
+            dataExpiryDays: `0/${this.state.dataExpireDays}`,
+        };
+        const request: ApiProjectsSpidersCronjobsCreateRequest = {
+            data: requestData,
+            pid: this.projectId,
+            sid: this.state.spiderId,
+        };
+        console.log(request);
+        console.log(this.state);
+        // this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
+        //     (response: SpiderCronJobCreate) => {
+        //         history.push(`/projects/${this.projectId}/spiders/${"1"}/cronjobs/${response.cjid}`);
+        //     },
+        //     (error: unknown) => {
+        //         console.error(error);
+        //         incorrectDataNotification();
+        //     },
+        // );
     };
 
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -281,8 +364,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     onChangeSchedule = (id: number): void => {
         const checked = [false, false, false];
         checked[id] = true;
-        this.setState({ schedulesFlag: checked });
-        // this.setState({ isDataPersistent: !this.state.isDataPersistent });
+        this.setState({ schedulesFlag: checked, repeat: "@hourly" });
+        if (id == 2) {
+            this.setState({ day: moment(), hour: moment() });
+        }
     };
 
     addEnvVar = (): void => {
@@ -329,10 +414,15 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     handleScheduleChange = (value: string): void => {
-        this.setState({ schedule: value });
-        // this.setState({ persistenceChanged: true });
-        // this.setState({ persistenceValue: test });
-        // console.log(value);
+        this.setState({ expression: value });
+    };
+
+    handleRepeatChange = (value: string): void => {
+        this.setState({ repeat: value });
+    };
+
+    handlePersistenceChange = (value: number): void => {
+        this.setState({ dataExpireDays: value });
     };
 
     onPageChange = async (page: number): Promise<void> => {
@@ -340,16 +430,22 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     onChangeExpression = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        // console.log(e.target.value);
-        this.setState({ schedule: e.target.value });
-        // console.log(this.state.schedule);
+        this.setState({ expression: e.target.value });
+    };
+
+    onChangeDate: DatePickerProps["onChange"] = (date, dateString) => {
+        // console.log(date, dateString);
+        this.setState({ day: date, hour: date });
     };
 
     render(): JSX.Element {
         const {
             loaded,
             cronjobs,
-            schedule,
+            expression,
+            repeat,
+            day,
+            hour,
             schedulesFlag,
             spiders,
             modal,
@@ -407,141 +503,94 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                 >
                                                     <Content>
                                                         <Row className="grid sm:grid-cols-2">
-                                                            <Col className="">
+                                                            <Col>
                                                                 <div className="mx-4">
-                                                                    <Form>
-                                                                        <Form.Item>
-                                                                            <p className="my-2 text-base">Spider</p>
-                                                                            <Select
-                                                                                style={{ borderRadius: 16 }}
-                                                                                size="large"
-                                                                                className="w-full"
-                                                                                defaultValue={spiders[0].name}
-                                                                            >
-                                                                                {spiders.map((spider: Spider) => (
-                                                                                    <Option
-                                                                                        key={spider.sid}
-                                                                                        value={spider.name}
-                                                                                    >
-                                                                                        {spider.name}
-                                                                                    </Option>
-                                                                                ))}
-                                                                            </Select>
-                                                                        </Form.Item>
-                                                                        <Form.Item
-                                                                            required
-                                                                            rules={[
-                                                                                {
-                                                                                    required: true,
-                                                                                    message:
-                                                                                        "Please input Data persistence!",
-                                                                                },
-                                                                            ]}
+                                                                    <Content>
+                                                                        <p className="my-2 text-base">Spider</p>
+                                                                        <Select
+                                                                            style={{ borderRadius: 16 }}
+                                                                            size="large"
+                                                                            className="w-full"
+                                                                            defaultValue={spiders[0].name}
                                                                         >
-                                                                            <p className="text-base my-2">
-                                                                                Data persistence
-                                                                            </p>
-                                                                            <Input
-                                                                                size="large"
-                                                                                className="border-estela-blue-full rounded-lg"
-                                                                            />
-                                                                        </Form.Item>
-                                                                        {/* <Form.Item
-                                                                            name="unique_collection"
-                                                                            valuePropName="checked"
-                                                                        >
-                                                                            <Checkbox>Unique Collection</Checkbox>
-                                                                        </Form.Item> */}
-                                                                        <Form.Item>
-                                                                            <p className="text-base my-2">Arguments</p>
-                                                                            <Space direction="vertical">
-                                                                                {args.map((arg: ArgsData, id) => (
-                                                                                    <Tag
-                                                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                                        closable
-                                                                                        key={arg.key}
-                                                                                        onClose={() =>
-                                                                                            this.handleRemoveArg(id)
-                                                                                        }
-                                                                                    >
-                                                                                        {arg.name}: {arg.value}
-                                                                                    </Tag>
-                                                                                ))}
-                                                                                <Space
-                                                                                    direction="horizontal"
-                                                                                    className=""
+                                                                            {spiders.map((spider: Spider) => (
+                                                                                <Option
+                                                                                    onClick={() => {
+                                                                                        this.setState({
+                                                                                            spiderId: String(
+                                                                                                spider.sid,
+                                                                                            ),
+                                                                                        });
+                                                                                    }}
+                                                                                    key={spider.sid}
+                                                                                    value={spider.name}
                                                                                 >
-                                                                                    <Input
-                                                                                        size="large"
-                                                                                        className="border-estela-blue-full rounded-l-lg"
-                                                                                        name="newArgName"
-                                                                                        placeholder="name"
-                                                                                        value={newArgName}
-                                                                                        onChange={
-                                                                                            this.handleInputChange
-                                                                                        }
-                                                                                    />
-                                                                                    <Input
-                                                                                        size="large"
-                                                                                        className="border-estela-blue-full rounded-r-lg"
-                                                                                        name="newArgValue"
-                                                                                        placeholder="value"
-                                                                                        value={newArgValue}
-                                                                                        onChange={
-                                                                                            this.handleInputChange
-                                                                                        }
-                                                                                    />
-                                                                                    <Button
-                                                                                        shape="circle"
-                                                                                        size="small"
-                                                                                        icon={<Add className="p-1" />}
-                                                                                        className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                                        onClick={this.addArgument}
-                                                                                    ></Button>
-                                                                                </Space>
-                                                                            </Space>
-                                                                        </Form.Item>
-                                                                        <Form.Item>
-                                                                            <p className="text-base my-2">
-                                                                                Environment Variables
-                                                                            </p>
-                                                                            <Space
-                                                                                className="mb-2"
-                                                                                direction="horizontal"
-                                                                            >
-                                                                                {envVars.map(
-                                                                                    (envVar: EnvVarsData, id) => (
-                                                                                        <Tag
-                                                                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                                            closable
-                                                                                            key={envVar.key}
-                                                                                            onClose={() =>
-                                                                                                this.handleRemoveEnvVar(
-                                                                                                    id,
-                                                                                                )
-                                                                                            }
-                                                                                        >
-                                                                                            {envVar.name} :
-                                                                                            {envVar.value}
-                                                                                        </Tag>
-                                                                                    ),
-                                                                                )}
-                                                                            </Space>
+                                                                                    {spider.name}
+                                                                                </Option>
+                                                                            ))}
+                                                                        </Select>
+                                                                    </Content>
+                                                                    <Content>
+                                                                        <p className="text-base my-2">
+                                                                            Data persistence
+                                                                        </p>
+                                                                        <Select
+                                                                            onChange={this.handlePersistenceChange}
+                                                                            className="w-full"
+                                                                            size="large"
+                                                                            defaultValue={
+                                                                                this.dataPeristenceOptions[0].value
+                                                                            }
+                                                                        >
+                                                                            {this.dataPeristenceOptions.map(
+                                                                                (option: OptionDataPersistance) => (
+                                                                                    <Option
+                                                                                        className="text-sm"
+                                                                                        key={option.key}
+                                                                                        value={option.value}
+                                                                                    >
+                                                                                        {option.label}
+                                                                                    </Option>
+                                                                                ),
+                                                                            )}
+                                                                        </Select>
+                                                                    </Content>
+                                                                    {/* <Form.Item
+                                                                        name="unique_collection"
+                                                                        valuePropName="checked"
+                                                                    >
+                                                                        <Checkbox>Unique Collection</Checkbox>
+                                                                    </Form.Item> */}
+                                                                    <Content>
+                                                                        <p className="text-base my-2">Arguments</p>
+                                                                        <Space direction="vertical">
+                                                                            {args.map((arg: ArgsData, id) => (
+                                                                                <Tag
+                                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                                                    closable
+                                                                                    key={arg.key}
+                                                                                    onClose={() =>
+                                                                                        this.handleRemoveArg(id)
+                                                                                    }
+                                                                                >
+                                                                                    {arg.name}: {arg.value}
+                                                                                </Tag>
+                                                                            ))}
                                                                             <Space direction="horizontal">
                                                                                 <Input
                                                                                     size="large"
                                                                                     className="border-estela-blue-full rounded-l-lg"
-                                                                                    name="newEnvVarName"
+                                                                                    name="newArgName"
                                                                                     placeholder="name"
-                                                                                    value={newEnvVarName}
+                                                                                    value={newArgName}
                                                                                     onChange={this.handleInputChange}
                                                                                 />
                                                                                 <Input
                                                                                     size="large"
                                                                                     className="border-estela-blue-full rounded-r-lg"
-                                                                                    name="newEnvVarValue"
+                                                                                    name="newArgValue"
                                                                                     placeholder="value"
-                                                                                    value={newEnvVarValue}
+                                                                                    value={newArgValue}
                                                                                     onChange={this.handleInputChange}
                                                                                 />
                                                                                 <Button
@@ -549,45 +598,89 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                                     size="small"
                                                                                     icon={<Add className="p-1" />}
                                                                                     className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                                    onClick={this.addEnvVar}
+                                                                                    onClick={this.addArgument}
                                                                                 ></Button>
                                                                             </Space>
-                                                                        </Form.Item>
-                                                                        <Form.Item>
-                                                                            <p className="text-base my-2">Tags</p>
-                                                                            <Space direction="horizontal">
-                                                                                {newTags.map((tag: Tags, id) => (
-                                                                                    <Tag
-                                                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                                        closable
-                                                                                        key={tag.key}
-                                                                                        onClose={() =>
-                                                                                            this.handleRemoveTag(id)
-                                                                                        }
-                                                                                    >
-                                                                                        {tag.name}
-                                                                                    </Tag>
-                                                                                ))}
-                                                                            </Space>
-                                                                            <Space direction="horizontal">
-                                                                                <Input
-                                                                                    size="large"
-                                                                                    className="border-estela-blue-full rounded-lg"
-                                                                                    name="newTagName"
-                                                                                    placeholder="name"
-                                                                                    value={newTagName}
-                                                                                    onChange={this.handleInputChange}
-                                                                                />
-                                                                                <Button
-                                                                                    shape="circle"
-                                                                                    size="small"
-                                                                                    icon={<Add className="p-1" />}
-                                                                                    className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                                    onClick={this.addTag}
-                                                                                ></Button>
-                                                                            </Space>
-                                                                        </Form.Item>
-                                                                    </Form>
+                                                                        </Space>
+                                                                    </Content>
+                                                                    <Content>
+                                                                        <p className="text-base my-2">
+                                                                            Environment Variables
+                                                                        </p>
+                                                                        <Space className="mb-2" direction="horizontal">
+                                                                            {envVars.map((envVar: EnvVarsData, id) => (
+                                                                                <Tag
+                                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                                                    closable
+                                                                                    key={envVar.key}
+                                                                                    onClose={() =>
+                                                                                        this.handleRemoveEnvVar(id)
+                                                                                    }
+                                                                                >
+                                                                                    {envVar.name} : {envVar.value}
+                                                                                </Tag>
+                                                                            ))}
+                                                                        </Space>
+                                                                        <Space direction="horizontal">
+                                                                            <Input
+                                                                                size="large"
+                                                                                className="border-estela-blue-full rounded-l-lg"
+                                                                                name="newEnvVarName"
+                                                                                placeholder="name"
+                                                                                value={newEnvVarName}
+                                                                                onChange={this.handleInputChange}
+                                                                            />
+                                                                            <Input
+                                                                                size="large"
+                                                                                className="border-estela-blue-full rounded-r-lg"
+                                                                                name="newEnvVarValue"
+                                                                                placeholder="value"
+                                                                                value={newEnvVarValue}
+                                                                                onChange={this.handleInputChange}
+                                                                            />
+                                                                            <Button
+                                                                                shape="circle"
+                                                                                size="small"
+                                                                                icon={<Add className="p-1" />}
+                                                                                className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                                onClick={this.addEnvVar}
+                                                                            ></Button>
+                                                                        </Space>
+                                                                    </Content>
+                                                                    <Content>
+                                                                        <p className="text-base my-2">Tags</p>
+                                                                        <Space direction="horizontal">
+                                                                            {newTags.map((tag: Tags, id) => (
+                                                                                <Tag
+                                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                                                    closable
+                                                                                    key={tag.key}
+                                                                                    onClose={() =>
+                                                                                        this.handleRemoveTag(id)
+                                                                                    }
+                                                                                >
+                                                                                    {tag.name}
+                                                                                </Tag>
+                                                                            ))}
+                                                                        </Space>
+                                                                        <Space direction="horizontal">
+                                                                            <Input
+                                                                                size="large"
+                                                                                className="border-estela-blue-full rounded-lg"
+                                                                                name="newTagName"
+                                                                                placeholder="name"
+                                                                                value={newTagName}
+                                                                                onChange={this.handleInputChange}
+                                                                            />
+                                                                            <Button
+                                                                                shape="circle"
+                                                                                size="small"
+                                                                                icon={<Add className="p-1" />}
+                                                                                className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                                onClick={this.addTag}
+                                                                            ></Button>
+                                                                        </Space>
+                                                                    </Content>
                                                                 </div>
                                                             </Col>
                                                             <Col className="schedule">
@@ -609,7 +702,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                         </Content>
                                                                         {schedulesFlag[0] && (
                                                                             <Content>
-                                                                                <Radio.Group className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:my-6 my-4">
+                                                                                <Radio.Group
+                                                                                    defaultValue={"daily"}
+                                                                                    className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:my-6 my-4"
+                                                                                >
                                                                                     <Radio.Button
                                                                                         value="hourly"
                                                                                         onClick={() => {
@@ -684,11 +780,23 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                                     Expression
                                                                                 </p>
                                                                                 <Input
-                                                                                    value={schedule}
+                                                                                    placeholder="5 4 * * *"
                                                                                     onChange={this.onChangeExpression}
                                                                                     size="large"
-                                                                                    className="border-estela-blue-full rounded-lg"
+                                                                                    className="border-estela-blue-full placeholder:text-sm rounded-lg"
                                                                                 />
+                                                                                <p className="text-sm mt-2">
+                                                                                    More information about cron schedule
+                                                                                    expressions&nbsp;
+                                                                                    <a
+                                                                                        className="text-estela-blue-full"
+                                                                                        href="https://crontab.guru/"
+                                                                                        target="_blank"
+                                                                                        rel="noreferrer"
+                                                                                    >
+                                                                                        here
+                                                                                    </a>
+                                                                                </p>
                                                                             </Form.Item>
                                                                         )}
                                                                     </div>
@@ -712,178 +820,201 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                                             <p className="text-sm">
                                                                                                 Date
                                                                                             </p>
-                                                                                            <Input
+                                                                                            <DatePicker
+                                                                                                // onPanelChange={
+                                                                                                //     this.onChangeDate
+                                                                                                // }
+                                                                                                // onOpenChange={
+                                                                                                //     this.onChangeDate
+                                                                                                // }
+                                                                                                onChange={
+                                                                                                    this.onChangeDate
+                                                                                                }
                                                                                                 size="large"
                                                                                                 className="border-estela-blue-full rounded-lg"
-                                                                                                name="newDate"
-                                                                                                placeholder="name"
-                                                                                                value={newEnvVarName}
-                                                                                                // onChange={this.handleInputChange}
+                                                                                                defaultValue={moment(
+                                                                                                    moment(),
+                                                                                                    this.dateFormat,
+                                                                                                )}
+                                                                                                format={this.dateFormat}
                                                                                             />
+                                                                                            {/* <Input
+                                                                                                size="large"
+                                                                                                className="border-estela-blue-full rounded-lg placeholder:text-sm"
+                                                                                                // name="newDate"
+                                                                                                placeholder="Today"
+                                                                                                value={day}
+                                                                                                // onChange={this.handleInputChange}
+                                                                                            /> */}
                                                                                         </Space>
                                                                                         <Space direction="vertical">
                                                                                             <p className="text-sm">
                                                                                                 Hour
                                                                                             </p>
-                                                                                            <Input
+                                                                                            <TimePicker
+                                                                                                // onChange={
+                                                                                                //     this.onChangeHour
+                                                                                                // }
                                                                                                 size="large"
                                                                                                 className="border-estela-blue-full rounded-lg"
-                                                                                                name="newHour"
-                                                                                                placeholder="value"
-                                                                                                value={newEnvVarValue}
-                                                                                                // onChange={this.handleInputChange}
+                                                                                                defaultValue={moment(
+                                                                                                    moment(),
+                                                                                                    "HH:mm",
+                                                                                                )}
+                                                                                                format={"HH:mm"}
                                                                                             />
                                                                                         </Space>
                                                                                     </Space>
                                                                                 </Content>
                                                                                 <Content>
                                                                                     <p className="text-sm my-4">
-                                                                                        Custom recurrence
+                                                                                        Repeat
                                                                                     </p>
-                                                                                    <Space direction="horizontal">
-                                                                                        <p className="text-sm">Every</p>
-                                                                                        <Input
-                                                                                            size="large"
-                                                                                            className="border-estela-blue-full rounded-lg"
-                                                                                            name="newDay"
-                                                                                            placeholder="value"
-                                                                                            value={newEnvVarValue}
-                                                                                            // onChange={this.handleInputChange}
-                                                                                        />
-                                                                                        <Input
-                                                                                            size="large"
-                                                                                            className="border-estela-blue-full rounded-lg"
-                                                                                            name="newWeek"
-                                                                                            placeholder="value"
-                                                                                            value={newEnvVarValue}
-                                                                                            // onChange={this.handleInputChange}
-                                                                                        />
-                                                                                    </Space>
-                                                                                </Content>
-                                                                                <Content>
-                                                                                    <p className="text-sm my-4">
-                                                                                        Repeat on
-                                                                                    </p>
-                                                                                    <Space direction="horizontal">
-                                                                                        <Radio.Group className="flex gap-1">
-                                                                                            <Radio.Button
-                                                                                                value="sunday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "hourly",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                S
-                                                                                            </Radio.Button>
-                                                                                            <Radio.Button
-                                                                                                value="monday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "daily",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                M
-                                                                                            </Radio.Button>
-                                                                                            <Radio.Button
-                                                                                                value="tuesday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "weekly",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                T
-                                                                                            </Radio.Button>
-                                                                                            <Radio.Button
-                                                                                                value="wednesday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "weekly",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                W
-                                                                                            </Radio.Button>
-                                                                                            <Radio.Button
-                                                                                                value="thursday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "weekly",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                T
-                                                                                            </Radio.Button>
-                                                                                            <Radio.Button
-                                                                                                value="friday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "weekly",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                F
-                                                                                            </Radio.Button>
-                                                                                            <Radio.Button
-                                                                                                value="saturday"
-                                                                                                // onClick={() => {
-                                                                                                //     this.handlePersistenceChange(
-                                                                                                //         "weekly",
-                                                                                                //     );
-                                                                                                // }}
-                                                                                            >
-                                                                                                S
-                                                                                            </Radio.Button>
-                                                                                        </Radio.Group>
-                                                                                    </Space>
-                                                                                </Content>
-                                                                                <Content>
-                                                                                    <p className="text-sm my-3">End</p>
-                                                                                    <Radio.Group
-                                                                                        onChange={() => {
-                                                                                            console.log("change");
-                                                                                        }}
-                                                                                        // value={1}
+                                                                                    <Select
+                                                                                        onChange={
+                                                                                            this.handleRepeatChange
+                                                                                        }
+                                                                                        className="w-full"
+                                                                                        size="large"
+                                                                                        defaultValue={"@hourly"}
                                                                                     >
-                                                                                        <Space direction="vertical">
-                                                                                            <Radio value={1}>
-                                                                                                Never
-                                                                                            </Radio>
-                                                                                            <Space direction="horizontal">
-                                                                                                <Radio value={2}>
-                                                                                                    On
-                                                                                                </Radio>
-                                                                                                <Input
-                                                                                                    size="large"
-                                                                                                    className="border-estela-blue-full rounded-lg"
-                                                                                                    name="newEnvVarValue"
-                                                                                                    placeholder="value"
-                                                                                                    value={
-                                                                                                        newEnvVarValue
-                                                                                                    }
-                                                                                                    // onChange={this.handleInputChange}
-                                                                                                />
-                                                                                            </Space>
-                                                                                            <Space direction="horizontal">
-                                                                                                <Radio value={3}>
-                                                                                                    After
-                                                                                                </Radio>
-                                                                                                <Input
-                                                                                                    size="large"
-                                                                                                    className="border-estela-blue-full rounded-lg"
-                                                                                                    name="newEnvVarValue"
-                                                                                                    placeholder="value"
-                                                                                                    value={
-                                                                                                        newEnvVarValue
-                                                                                                    }
-                                                                                                    // onChange={this.handleInputChange}
-                                                                                                />
-                                                                                            </Space>
-                                                                                        </Space>
-                                                                                    </Radio.Group>
+                                                                                        {this.repeatOptions.map(
+                                                                                            (
+                                                                                                option: OptionDataRepeat,
+                                                                                            ) => (
+                                                                                                <Option
+                                                                                                    className="text-sm"
+                                                                                                    key={option.key}
+                                                                                                    value={option.value}
+                                                                                                >
+                                                                                                    {option.label}
+                                                                                                </Option>
+                                                                                            ),
+                                                                                        )}
+                                                                                    </Select>
                                                                                 </Content>
+                                                                                {repeat === "custom" && (
+                                                                                    <Content>
+                                                                                        <Content>
+                                                                                            <p className="text-sm my-4">
+                                                                                                Custom recurrence
+                                                                                            </p>
+                                                                                            <Space direction="horizontal">
+                                                                                                <p className="text-sm">
+                                                                                                    Every
+                                                                                                </p>
+                                                                                                <Input
+                                                                                                    size="large"
+                                                                                                    className="border-estela-blue-full rounded-lg"
+                                                                                                    name="newDay"
+                                                                                                    placeholder="value"
+                                                                                                    value={
+                                                                                                        newEnvVarValue
+                                                                                                    }
+                                                                                                    // onChange={this.handleInputChange}
+                                                                                                />
+                                                                                                <Input
+                                                                                                    size="large"
+                                                                                                    className="border-estela-blue-full rounded-lg"
+                                                                                                    name="newWeek"
+                                                                                                    placeholder="value"
+                                                                                                    value={
+                                                                                                        newEnvVarValue
+                                                                                                    }
+                                                                                                    // onChange={this.handleInputChange}
+                                                                                                />
+                                                                                            </Space>
+                                                                                        </Content>
+                                                                                        <Content>
+                                                                                            <p className="text-sm my-4">
+                                                                                                Repeat on
+                                                                                            </p>
+                                                                                            <Space direction="horizontal">
+                                                                                                <Radio.Group className="flex gap-1">
+                                                                                                    <Radio.Button
+                                                                                                        value="sunday"
+                                                                                                        // onClick={() => {
+                                                                                                        //     this.handlePersistenceChange(
+                                                                                                        //         "hourly",
+                                                                                                        //     );
+                                                                                                        // }}
+                                                                                                    >
+                                                                                                        S
+                                                                                                    </Radio.Button>
+                                                                                                    <Radio.Button value="monday">
+                                                                                                        M
+                                                                                                    </Radio.Button>
+                                                                                                    <Radio.Button value="tuesday">
+                                                                                                        T
+                                                                                                    </Radio.Button>
+                                                                                                    <Radio.Button value="wednesday">
+                                                                                                        W
+                                                                                                    </Radio.Button>
+                                                                                                    <Radio.Button value="thursday">
+                                                                                                        T
+                                                                                                    </Radio.Button>
+                                                                                                    <Radio.Button value="friday">
+                                                                                                        F
+                                                                                                    </Radio.Button>
+                                                                                                    <Radio.Button value="saturday">
+                                                                                                        S
+                                                                                                    </Radio.Button>
+                                                                                                </Radio.Group>
+                                                                                            </Space>
+                                                                                        </Content>
+                                                                                        <Content>
+                                                                                            <p className="text-sm my-3">
+                                                                                                End
+                                                                                            </p>
+                                                                                            <Radio.Group
+                                                                                                onChange={() => {
+                                                                                                    console.log("c");
+                                                                                                }}
+                                                                                                // value={1}
+                                                                                            >
+                                                                                                <Space direction="vertical">
+                                                                                                    <Radio value={1}>
+                                                                                                        Never
+                                                                                                    </Radio>
+                                                                                                    <Space direction="horizontal">
+                                                                                                        <Radio
+                                                                                                            value={2}
+                                                                                                        >
+                                                                                                            On
+                                                                                                        </Radio>
+                                                                                                        <Input
+                                                                                                            size="large"
+                                                                                                            className="border-estela-blue-full rounded-lg"
+                                                                                                            name="newEnvVarValue"
+                                                                                                            placeholder="value"
+                                                                                                            value={
+                                                                                                                newEnvVarValue
+                                                                                                            }
+                                                                                                            // onChange={this.handleInputChange}
+                                                                                                        />
+                                                                                                    </Space>
+                                                                                                    <Space direction="horizontal">
+                                                                                                        <Radio
+                                                                                                            value={3}
+                                                                                                        >
+                                                                                                            After
+                                                                                                        </Radio>
+                                                                                                        <Input
+                                                                                                            size="large"
+                                                                                                            className="border-estela-blue-full rounded-lg"
+                                                                                                            name="newEnvVarValue"
+                                                                                                            placeholder="value"
+                                                                                                            value={
+                                                                                                                newEnvVarValue
+                                                                                                            }
+                                                                                                            // onChange={this.handleInputChange}
+                                                                                                        />
+                                                                                                    </Space>
+                                                                                                </Space>
+                                                                                            </Radio.Group>
+                                                                                        </Content>
+                                                                                    </Content>
+                                                                                )}
                                                                             </Content>
                                                                         )}
                                                                     </div>
@@ -892,6 +1023,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                         </Row>
                                                         <Row justify="center" className="mt-4">
                                                             <Button
+                                                                onClick={this.handleSubmit}
                                                                 size="large"
                                                                 className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
                                                             >
