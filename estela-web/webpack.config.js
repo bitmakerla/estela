@@ -59,9 +59,7 @@ module.exports = {
     new ModuleFederationPlugin({
       name: "estela-web",
       filename: "remoteEntry.js",
-      remotes: {
-        testModule: "testModule@http://localhost:3005/remoteEntry.js",
-      },
+      remotes: {},
       exposes: {},
       shared: {
         ...deps,
