@@ -6,13 +6,13 @@ import history from "../../history";
 import { AuthService } from "../../services";
 import { NotificationsList } from "../../shared";
 
-import { ReactComponent as User } from "../../assets/icons/user.svg";
-import { ReactComponent as Notification } from "../../assets/icons/notification.svg";
-import { ReactComponent as ArrowDown } from "../../assets/icons/arrowDown.svg";
-import { ReactComponent as Dashboard } from "../../assets/icons/dashboard.svg";
-import { ReactComponent as Settings } from "../../assets/icons/setting.svg";
-import { ReactComponent as Billing } from "../../assets/icons/billing.svg";
-import { ReactComponent as Logout } from "../../assets/icons/logout.svg";
+import User from "../../assets/icons/user.svg";
+import Notification from "../../assets/icons/notification.svg";
+import ArrowDown from "../../assets/icons/arrowDown.svg";
+import Dashboard from "../../assets/icons/dashboard.svg";
+import Settings from "../../assets/icons/setting.svg";
+import Billing from "../../assets/icons/billing.svg";
+import Logout from "../../assets/icons/logout.svg";
 
 const { Header, Content } = Layout;
 
@@ -73,7 +73,7 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                 <Menu>
                                     <Menu.Item key="0" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
-                                            <Dashboard className="mx-1" width={20} />
+                                            <Dashboard className="mx-1 w-6 h-6" />
                                             <Link to={""} className="hover:text-estela">
                                                 Home
                                             </Link>
@@ -81,7 +81,7 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                     </Menu.Item>
                                     <Menu.Item key="1" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
-                                            <Settings className="mx-1" width={20} />
+                                            <Settings className="mx-1 w-6 h-6" />
                                             <Link to={""} className="hover:text-estela">
                                                 Account Settings
                                             </Link>
@@ -89,7 +89,7 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                     </Menu.Item>
                                     <Menu.Item key="2" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
-                                            <Billing className="mx-1" width={20} />
+                                            <Billing className="mx-1 w-6 h-6" />
                                             <Link to={""} className="hover:text-estela">
                                                 Billing
                                             </Link>
@@ -97,7 +97,7 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                     </Menu.Item>
                                     <Menu.Item key="3" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
-                                            <Logout className="mx-1" width={20} />
+                                            <Logout className="mx-1 w-6 h-6" />
                                             <Link to={""} className="hover:text-estela" onClick={this.logout}>
                                                 Logout
                                             </Link>
@@ -108,9 +108,9 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                             trigger={["click"]}
                         >
                             <a className="flex items-center hover:bg-button-hover rounded">
-                                <User className="stroke-estela" width={26} />
+                                <User className="stroke-estela w-8 h-8" />
                                 <div className="mx-2 text-sm font-medium text-estela">{this.getUser()}</div>
-                                <ArrowDown width={15} className="stroke-estela" />
+                                <ArrowDown className="stroke-estela w-6 h-6" />
                             </a>
                         </Dropdown>
                     </Col>

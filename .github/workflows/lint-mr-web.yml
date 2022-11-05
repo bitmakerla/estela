@@ -20,7 +20,7 @@ jobs:
       - name: setup node version
         uses: actions/setup-node@v2
         with:
-          node-version: 17.0.0
+          node-version: 18.0.0
         
       - uses: actions/cache@v2
         id: cache
