@@ -42,22 +42,25 @@ class DeployViewSet(
         responses={status.HTTP_201_CREATED: DeployCreateSerializer()},
     )
     def create(self, request, *args, **kwargs):
+        print("Llegamos")
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         user = request.user
+        print("0000000", request.data)
         serializer = DeployCreateSerializer(data=request.data)
+        print("0.5555555")
         serializer.is_valid(raise_exception=True)
-
+        print("1111")
         project_zip = serializer.validated_data.pop("project_zip", None)
         serializer.save(project=project, user=user)
 
         if not project_zip:
             raise ParseError({"error": "Project zip not found"})
-
+        print("subiendo")
         # Upload project to S3
         error = credentials.upload_project(
             "{}.zip".format(self.kwargs["pid"]), project_zip
         )
-
+        print("subido")
         if error:
             raise APIException({"error": error})
 

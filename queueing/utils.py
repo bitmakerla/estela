@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 
 from kafka import KafkaConsumer, KafkaProducer
 
@@ -19,6 +20,7 @@ def connect_kafka_consumer(topic_name, QUEUE_MAX_TIMEOUT):
     bootstrap_servers = get_bootstrap_servers()
     try:
         max_poll_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
+        print(max_poll_interval_ms)
         _consumer = KafkaConsumer(
             topic_name,
             bootstrap_servers=bootstrap_servers,
@@ -26,7 +28,6 @@ def connect_kafka_consumer(topic_name, QUEUE_MAX_TIMEOUT):
             enable_auto_commit=True,
             auto_commit_interval_ms=1000,
             group_id="group_{}".format(topic_name),
-            api_version=(0, 10),
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
             max_poll_interval_ms=max_poll_interval_ms,
             session_timeout_ms=max_poll_interval_ms,
@@ -47,7 +48,6 @@ def connect_kafka_producer():
         _producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda x: json.dumps(x).encode("utf-8"),
-            api_version=(0, 10),
             acks=1,
             retries=1,
         )

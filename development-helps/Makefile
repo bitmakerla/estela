@@ -4,7 +4,7 @@ QUEUING_DIR = ../queueing
 WEB_DIR = ../estela-web
 INSTALLATION_DIR = ../installation
 
-REGISTRY_HOST = localhost:5000
+REGISTRY_HOST = 094814489188.dkr.ecr.us-east-2.amazonaws.com
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 
@@ -20,7 +20,7 @@ stop:
 
 
 .PHONY: update-api-image
-update-api-image:
+update-api-image: login-ecr
 	-cd $(API_DIR) && \
 	 docker build .. --file docker-conf/Dockerfile-django-api --tag  $(REGISTRY_HOST)/estela-django-api:latest
 	-docker push $(REGISTRY_HOST)/estela-django-api:latest
@@ -52,8 +52,8 @@ update-build-project-image:
 .PHONY: update-consumer-image
 update-consumer-image:
 	-cd $(QUEUING_DIR) && \
-	 docker build .. --file Dockerfile --tag $(REGISTRY_HOST)/estela-consumer:latest
-	-docker push $(REGISTRY_HOST)/estela-consumer:latest
+	 docker build .. --file Dockerfile --tag $(REGISTRY_HOST)/bitmaker-consumer:latest
+	-docker push $(REGISTRY_HOST)/bitmaker-consumer:latest
 
 
 .PHONY: update-all-images
@@ -62,7 +62,8 @@ update-all-images: update-api-image update-celery-image update-redis-image updat
 
 .PHONY: refresh-api
 refresh-api: update-api-image
-	-kubectl rollout restart deployment estela-django-api
+	-kubectl set image deployment/bitmaker-django-api bitmaker-django-api=094814489188.dkr.ecr.us-east-2.amazonaws.com/estela-django-api:latest
+	-kubectl rollout restart deployment bitmaker-django-api
 
 
 .PHONY: refresh-celery
@@ -77,11 +78,13 @@ refresh-redis: update-redis-image
 
 
 .PHONY: refresh-consumers
-refresh-consumers: update-consumer-image
+refresh-consumers: login-ecr update-consumer-image
+	-kubectl set image deployment/kafka-logs-consumer consumer=094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-consumer:latest
+	-kubectl set image deployment/kafka-items-consumer consumer=094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-consumer:latest
+	-kubectl set image deployment/kafka-requests-consumer consumer=094814489188.dkr.ecr.us-east-2.amazonaws.com/bitmaker-consumer:latest
 	-kubectl rollout restart deployment kafka-items-consumer
 	-kubectl rollout restart deployment kafka-logs-consumer
 	-kubectl rollout restart deployment kafka-requests-consumer
-	-kubectl rollout restart deployment kafka-stats-consumer
 
 
 .PHONY: refresh-all
@@ -137,3 +140,8 @@ rollback-release:
 history-release:
 	-cd $(INSTALLATION_DIR) && . ./local/.env && cd helm-chart && \
 	 helm history $${RELEASE_NAME}
+
+.PHONY: login-ecr
+login-ecr:
+	-aws ecr get-login-password --region us-east-2 | docker login \
+	   --username AWS --password-stdin  094814489188.dkr.ecr.us-east-2.amazonaws.com
