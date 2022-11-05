@@ -34,7 +34,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                     <ProfileSettingsSideNav path={"/profile"} />
                     {loaded ? (
                         <Fragment>
-                            <Content className="ml-32 mr-10">
+                            <Content className="mx-32 mr-10">
                                 <Row className="w-full my-4">
                                     <div className="float-left">
                                         <p className="font-sans text-3xl">Profile settings</p>

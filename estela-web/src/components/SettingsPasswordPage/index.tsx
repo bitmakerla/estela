@@ -41,7 +41,7 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                     <ProfileSettingsSideNav path={"/password"} />
                     {loaded ? (
                         <Fragment>
-                            <Content className="ml-32 mr-10">
+                            <Content className="mx-32 mr-10">
                                 <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
                                     <div className="">
                                         <p className="font-sans text-3xl">Change password</p>

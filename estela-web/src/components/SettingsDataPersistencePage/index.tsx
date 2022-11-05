@@ -58,7 +58,7 @@ export class SettingsDataPersistencePage extends Component<unknown, DataPersiste
                     <ProfileSettingsSideNav path={"/dataPersistence"} />
                     {loaded ? (
                         <Fragment>
-                            <Content className="ml-32 mr-10">
+                            <Content className="mx-32 mr-10">
                                 <Space direction="vertical" className="w-full my-4">
                                     <div className="float-left">
                                         <p className="font-sans text-3xl">Data persistence</p>
