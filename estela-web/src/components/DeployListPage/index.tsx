@@ -1,7 +1,7 @@
 import React, { Component, ReactElement } from "react";
 import { Layout, Pagination, Row, Space, Table, Button, Tag } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
-import { ReactComponent as Copy } from "../../assets/icons/copy.svg";
+import Copy from "../../assets/icons/copy.svg";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";

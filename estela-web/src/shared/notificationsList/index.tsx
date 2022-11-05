@@ -3,7 +3,7 @@ import { Layout, Space } from "antd";
 
 import "./styles.scss";
 
-import { ReactComponent as Ellipse } from "../../assets/icons/ellipse.svg";
+import Ellipse from "../../assets/icons/ellipse.svg";
 
 const { Content } = Layout;
 

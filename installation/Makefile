@@ -119,7 +119,7 @@ build-web:
 
 .PHONY: run-web
 run-web:
-	-cd $(WEB_DIR) && yarn dev
+	-cd $(WEB_DIR) && yarn start
 
 
 .PHONY: start
