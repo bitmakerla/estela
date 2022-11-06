@@ -15,6 +15,7 @@ models/InlineResponse2004.ts
 models/InlineResponse2005.ts
 models/Permission.ts
 models/Project.ts
+models/ProjectCronJob.ts
 models/ProjectJob.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts

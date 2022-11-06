@@ -23,7 +23,8 @@ export class ProjectCreatePage extends Component<unknown> {
         const request: ApiProjectsCreateRequest = { data };
         this.apiService.apiProjectsCreate(request).then(
             (response: Project) => {
-                history.push(`/projects/${response.pid}`);
+                history.push(`/projects/${response.pid}/dashboard`);
+                window.location.reload();
             },
             (error: unknown) => {
                 console.error(error);

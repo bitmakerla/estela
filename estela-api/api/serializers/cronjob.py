@@ -159,3 +159,8 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class ProjectCronJobSerializer(serializers.Serializer):
+    results = SpiderCronJobSerializer(many=True, required=True, help_text="Project Cronjobs.")
+    count = serializers.IntegerField(required=True, help_text="Project cronjobs count.")

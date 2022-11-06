@@ -51,6 +51,9 @@ import {
     Project,
     ProjectFromJSON,
     ProjectToJSON,
+    ProjectCronJob,
+    ProjectCronJobFromJSON,
+    ProjectCronJobToJSON,
     ProjectJob,
     ProjectJobFromJSON,
     ProjectJobToJSON,
@@ -102,6 +105,12 @@ export interface ApiAuthRegisterRequest {
 
 export interface ApiProjectsCreateRequest {
     data: Project;
+}
+
+export interface ApiProjectsCronjobsRequest {
+    pid: string;
+    page?: number;
+    pageSize?: number;
 }
 
 export interface ApiProjectsCurrentUsageRequest {
@@ -411,6 +420,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsCreate(requestParameters: ApiProjectsCreateRequest): Promise<Project> {
         const response = await this.apiProjectsCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsCronjobsRaw(requestParameters: ApiProjectsCronjobsRequest): Promise<runtime.ApiResponse<ProjectCronJob>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsCronjobs.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/cronjobs`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectCronJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsCronjobs(requestParameters: ApiProjectsCronjobsRequest): Promise<ProjectCronJob> {
+        const response = await this.apiProjectsCronjobsRaw(requestParameters);
         return await response.value();
     }
 

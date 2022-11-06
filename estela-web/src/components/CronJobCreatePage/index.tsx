@@ -53,7 +53,7 @@ interface CronJobCreatePageState {
     spiderName: string;
     uniqueCollection: boolean;
     isDataPersistent: boolean;
-    days: number;
+    days: number | null;
 }
 
 interface RouteParams {
@@ -198,7 +198,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         this.setState({ isDataPersistent: !this.state.isDataPersistent });
     };
 
-    onChangeDay = (value: number): void => {
+    onChangeDay = (value: number | null): void => {
         this.setState({ days: value });
     };
 
@@ -328,7 +328,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                                                 size="small"
                                                 min={1}
                                                 max={31}
-                                                defaultValue={days}
+                                                defaultValue={days as number | undefined}
                                                 onChange={this.onChangeDay}
                                             />
                                         </Space>
