@@ -58,7 +58,7 @@ export class SettingsDataPersistencePage extends Component<unknown, DataPersiste
                     <ProfileSettingsSideNav path={"/dataPersistence"} />
                     {loaded ? (
                         <Fragment>
-                            <Content className="ml-32 mr-10">
+                            <Content className="mx-32 mr-10">
                                 <Space direction="vertical" className="w-full my-4">
                                     <div className="float-left">
                                         <p className="font-sans text-3xl">Data persistence</p>
@@ -148,7 +148,9 @@ export class SettingsDataPersistencePage extends Component<unknown, DataPersiste
                                         <Button className="border-none ml-4" icon={<Help width={30} />}></Button>
                                     </Space>
                                     <Row className="w-full 2xl:w-9/12 ">
-                                        <Button className="mt-5 btn_data_persistence">Save changes</Button>
+                                        <Button className="mt-5 btn_data_persistence" disabled>
+                                            Save changes
+                                        </Button>
                                     </Row>
                                 </Space>
                             </Content>
