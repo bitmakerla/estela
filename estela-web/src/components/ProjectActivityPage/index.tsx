@@ -1,16 +1,17 @@
 import React, { Component, Fragment } from "react";
-import { Link } from "react-router-dom";
-import { Layout, List, Pagination, Typography, Row, Col, Button } from "antd";
+import { Layout, Space, Table, Row, Col, Button, Popover, Checkbox } from "antd";
+import { FilterOutlined } from "@ant-design/icons";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
-const { Title } = Typography;
 
 interface ProjectActivityPageState {
     loaded: boolean;
+    members: any[];
+    modal: boolean;
 }
 
 interface RouteParams {
@@ -20,10 +21,59 @@ interface RouteParams {
 export class ProjectActivityPage extends Component<RouteComponentProps<RouteParams>, ProjectActivityPageState> {
     state: ProjectActivityPageState = {
         loaded: true,
+        members: [],
+        modal: false,
     };
+
+    columns = [
+        {
+            title: "RUN DATE",
+            dataIndex: "name",
+            key: "name",
+        },
+        {
+            title: "DESCRIPTION",
+            dataIndex: "description",
+            key: "description",
+        },
+        {
+            title: "MEMBER",
+            dataIndex: "member",
+            key: "member",
+        },
+    ];
+
+    options = ["You", "Scrapper1", "Other"];
+    pagination = {
+        current: 1,
+        pageSize: 10,
+    };
+
+    content: JSX.Element = (
+        <>
+            <Checkbox.Group>
+                <Row>
+                    <Col>
+                        <Checkbox value="you">You</Checkbox>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Checkbox value="me">Me</Checkbox>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Checkbox value="others">Others</Checkbox>
+                    </Col>
+                </Row>
+            </Checkbox.Group>
+        </>
+    );
+
     projectId: string = this.props.match.params.projectId;
     render(): JSX.Element {
-        const { loaded } = this.state;
+        const { members, loaded } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -39,6 +89,38 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
                                                 PROJECT ACTIVITY
                                             </p>
                                         </Col>
+                                    </Row>
+                                    <Row className="bg-white rounded-lg">
+                                        <div className="m-4">
+                                            <Space direction="vertical" className="">
+                                                <Row justify="end">
+                                                    <Popover
+                                                        placement="bottomLeft"
+                                                        content={this.content}
+                                                        title="SHOW/HIDE COLUMNS"
+                                                        trigger="click"
+                                                    >
+                                                        <Button
+                                                            shape="round"
+                                                            icon={<FilterOutlined className="mr-2" width={19} />}
+                                                            size="large"
+                                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                        >
+                                                            Filter
+                                                        </Button>
+                                                    </Popover>
+                                                </Row>
+                                                <Table
+                                                    tableLayout="fixed"
+                                                    className="rounded-2xl"
+                                                    columns={this.columns}
+                                                    dataSource={members}
+                                                    pagination={this.pagination}
+                                                    size="middle"
+                                                    locale={{ emptyText: "No activity" }}
+                                                />
+                                            </Space>
+                                        </div>
                                     </Row>
                                 </div>
                             </Content>
