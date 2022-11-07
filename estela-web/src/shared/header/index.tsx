@@ -11,7 +11,6 @@ import Notification from "../../assets/icons/notification.svg";
 import ArrowDown from "../../assets/icons/arrowDown.svg";
 import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
-import Billing from "../../assets/icons/billing.svg";
 import Logout from "../../assets/icons/logout.svg";
 
 const { Header, Content } = Layout;
@@ -87,14 +86,6 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                             <Settings className="mx-1 w-6 h-6" />
                                             <Link to={"/settings/profile"} className="hover:text-estela">
                                                 Account Settings
-                                            </Link>
-                                        </div>
-                                    </Menu.Item>
-                                    <Menu.Item key="2" className="hover:bg-white">
-                                        <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
-                                            <Billing className="mx-1 w-6 h-6" />
-                                            <Link to={""} className="hover:text-estela">
-                                                Billing
                                             </Link>
                                         </div>
                                     </Menu.Item>
