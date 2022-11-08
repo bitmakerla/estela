@@ -10,8 +10,15 @@ import { authNotification, Header, Spin } from "../../shared";
 
 const { Content } = Layout;
 
+interface ProjectList {
+    name: string;
+    pid: string | undefined;
+    role: string;
+    key: number;
+}
+
 interface ProjectsPageState {
-    projects: Project[];
+    projects: ProjectList[];
     username: string;
     loaded: boolean;
     count: number;
@@ -47,8 +54,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             title: "ROLE",
             dataIndex: "role",
             key: "role",
-            render: (): ReactElement => (
-                <Tag className="text-estela border-0 rounded bg-button-hover float-right" key={1}>
+            render: (project: ProjectList): ReactElement => (
+                <Tag className="text-estela border-0 rounded bg-button-hover float-right" key={project.key}>
                     Admin
                 </Tag>
             ),
@@ -60,8 +67,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             authNotification();
         } else {
             const data = await this.getProjects(1);
-            const projects: Project[] = data.data;
-            this.setState({ projects: [...projects], count: data.count, current: data.current, loaded: true });
+            const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
+                return {
+                    name: project.name,
+                    pid: project.pid,
+                    role: "Admin",
+                    key: id,
+                };
+            });
+            this.setState({ projects: [...projectData], count: data.count, current: data.current, loaded: true });
         }
     }
 
@@ -79,9 +93,16 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     onPageChange = async (page: number): Promise<void> => {
         this.setState({ loaded: false });
         const data = await this.getProjects(page);
-        const projects: Project[] = data.data;
+        const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
+            return {
+                name: project.name,
+                pid: project.pid,
+                role: "Admin",
+                key: id,
+            };
+        });
         this.setState({
-            projects: [...projects],
+            projects: [...projectData],
             count: data.count,
             current: data.current,
             loaded: true,
