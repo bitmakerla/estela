@@ -64,7 +64,10 @@ def heartbeat():
 
             for identifier in list(inserters):
                 inserters[identifier].flush("heartbeat")
-                if inserters[identifier].is_inactive():
+                if (
+                    inserters[identifier].is_inactive()
+                    and not inserters[identifier].has_pending_items()
+                ):
                     del inserters[identifier]
 
             logging.debug("Heartbeat: {} alive inserters.".format(len(inserters)))
@@ -98,9 +101,8 @@ def consume_from_kafka(topic_name):
             inserters[identifier] = Inserter(
                 db_client, project, collection_name, unique, topic_name
             )
-        else:
-            inserters[identifier].last_activity = time.time()
 
+        inserters[identifier].add_pending_item()
         item_queue.put({"identifier": identifier, "value": message.value})
 
     item_queue.join()

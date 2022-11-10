@@ -18,7 +18,7 @@ def connect_kafka_consumer(topic_name, QUEUE_MAX_TIMEOUT):
     _consumer = None
     bootstrap_servers = get_bootstrap_servers()
     try:
-        max_poll_interval_ms = (QUEUE_MAX_TIMEOUT + 1) * 1000
+        max_poll_interval_ms = QUEUE_MAX_TIMEOUT * 1500
         _consumer = KafkaConsumer(
             topic_name,
             bootstrap_servers=bootstrap_servers,
