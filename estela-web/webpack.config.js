@@ -1,6 +1,7 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const ESLintPlugin = require('eslint-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
+const path = require('path');
 
 module.exports = {
   entry: './src/index.ts',
@@ -10,6 +11,9 @@ module.exports = {
   },
 
   resolve: {
+    alias: {
+      DropdownComponent: path.resolve(__dirname, 'src/fakeComponents'),
+    },
     extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
   },
 
