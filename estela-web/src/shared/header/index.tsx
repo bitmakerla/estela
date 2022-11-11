@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import history from "../../history";
 import { AuthService } from "../../services";
 import { NotificationsList } from "../../shared";
-import { ExternalDropdownComponent } from "../../ExternalComponets";
+import { ExternalDropdownComponent } from "../../externalComponets";
 
 import User from "../../assets/icons/user.svg";
 import Notification from "../../assets/icons/notification.svg";
