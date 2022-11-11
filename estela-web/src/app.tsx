@@ -1,9 +1,9 @@
 import React, { Component, Fragment, Suspense } from "react";
 import { Switch, Router } from "react-router-dom";
 import { MainRoutes } from "./routes";
-import { ExternalRoutes } from "./ExternalComponets";
 
 import history from "./history";
+import { ExternalRoutes } from "./ExternalComponets";
 
 export class App extends Component<unknown, unknown> {
     render(): JSX.Element {
