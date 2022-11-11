@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import history from "../../history";
 import { AuthService } from "../../services";
 import { NotificationsList } from "../../shared";
+import { ExternalDropdownComponent } from "../../ExternalComponets";
 
 import User from "../../assets/icons/user.svg";
 import Notification from "../../assets/icons/notification.svg";
@@ -12,7 +13,6 @@ import ArrowDown from "../../assets/icons/arrowDown.svg";
 import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
 import Logout from "../../assets/icons/logout.svg";
-
 const { Header, Content } = Layout;
 
 interface HeaderInterface {
@@ -89,6 +89,7 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                             </Link>
                                         </div>
                                     </Menu.Item>
+                                    <ExternalDropdownComponent />
                                     <Menu.Item key="3" className="hover:bg-white">
                                         <div className="flex items-center stroke-black hover:stroke-estela hover:text-estela hover:bg-button-hover rounded">
                                             <Logout className="mx-1 w-6 h-6" />
