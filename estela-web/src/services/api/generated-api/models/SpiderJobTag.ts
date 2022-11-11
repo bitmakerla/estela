@@ -14,7 +14,7 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * Job tags.
+ * Cron job tags.
  * @export
  * @interface SpiderJobTag
  */

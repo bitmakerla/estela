@@ -4,7 +4,7 @@ import { Button, Layout, Pagination, Space, Row, Col, Tag, Table } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ReactComponent as Add } from "../../assets/icons/add.svg";
+import Add from "../../assets/icons/add.svg";
 import { ApiProjectsListRequest, Project } from "../../services/api";
 import { authNotification, Header, Spin } from "../../shared";
 
@@ -141,7 +141,6 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             showSizeChanger={false}
                                         />
                                     </div>
-                                    {/* <div cl/ */}
                                 </Space>
                             </Content>
                         </Fragment>
