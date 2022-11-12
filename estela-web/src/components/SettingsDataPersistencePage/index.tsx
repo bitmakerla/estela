@@ -5,9 +5,9 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { authNotification, ProfileSettingsSideNav, Header, Spin } from "../../shared";
 
-import { ReactComponent as SwitchOFF } from "../../assets/icons/switchOFF.svg";
-import { ReactComponent as SwitchON } from "../../assets/icons/switchON.svg";
-import { ReactComponent as Help } from "../../assets/icons/help.svg";
+import SwitchOFF from "../../assets/icons/switchOFF.svg";
+import SwitchON from "../../assets/icons/switchON.svg";
+import Help from "../../assets/icons/help.svg";
 
 const { Content } = Layout;
 
