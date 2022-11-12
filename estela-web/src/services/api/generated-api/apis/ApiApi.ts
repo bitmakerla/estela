@@ -180,6 +180,12 @@ export interface ApiProjectsSpidersCronjobsCreateRequest {
     data: SpiderCronJobCreate;
 }
 
+export interface ApiProjectsSpidersCronjobsDeleteRequest {
+    cjid: number;
+    pid: string;
+    sid: string;
+}
+
 export interface ApiProjectsSpidersCronjobsListRequest {
     pid: string;
     sid: string;
@@ -936,6 +942,44 @@ export class ApiApi extends runtime.BaseAPI {
     async apiProjectsSpidersCronjobsCreate(requestParameters: ApiProjectsSpidersCronjobsCreateRequest): Promise<SpiderCronJobCreate> {
         const response = await this.apiProjectsSpidersCronjobsCreateRaw(requestParameters);
         return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsDeleteRaw(requestParameters: ApiProjectsSpidersCronjobsDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.cjid === null || requestParameters.cjid === undefined) {
+            throw new runtime.RequiredError('cjid','Required parameter requestParameters.cjid was null or undefined when calling apiProjectsSpidersCronjobsDelete.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsDelete.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersCronjobsDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/cronjobs/{cjid}`.replace(`{${"cjid"}}`, encodeURIComponent(String(requestParameters.cjid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiProjectsSpidersCronjobsDelete(requestParameters: ApiProjectsSpidersCronjobsDeleteRequest): Promise<void> {
+        await this.apiProjectsSpidersCronjobsDeleteRaw(requestParameters);
     }
 
     /**

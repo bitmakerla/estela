@@ -116,6 +116,18 @@ class SpiderCronJobViewSet(
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
+        responses={status.HTTP_204_NO_CONTENT: "Project deleted"},
+    )
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete = True
+        instance.save()
+
+    @swagger_auto_schema(
         methods=["GET"], responses={status.HTTP_200_OK: SpiderCronJobSerializer()}
     )
     @action(methods=["GET"], detail=True)
