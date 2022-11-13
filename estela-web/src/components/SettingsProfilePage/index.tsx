@@ -70,7 +70,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                             <Content className="mx-32 mr-10">
                                 <Row className="w-full my-4">
                                     <div className="float-left">
-                                        <p className="font-sans text-3xl">Profile settings</p>
+                                        <p className="text-3xl">Profile settings</p>
                                     </div>
                                 </Row>
                                 <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">

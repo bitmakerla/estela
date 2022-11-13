@@ -80,7 +80,7 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                             <Content className="mx-32 mr-10">
                                 <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
                                     <div className="">
-                                        <p className="font-sans text-3xl">Change password</p>
+                                        <p className="text-3xl">Change password</p>
                                         <p className="mt-4 text-base text-estela-black-medium">
                                             If you want to reset your password, request a password change sending an
                                             email to {email}. You can change your password every 6 months.

@@ -61,7 +61,7 @@ export class SettingsDataPersistencePage extends Component<unknown, DataPersiste
                             <Content className="mx-32 mr-10">
                                 <Space direction="vertical" className="w-full my-4">
                                     <div className="float-left">
-                                        <p className="font-sans text-3xl">Data persistence</p>
+                                        <p className="text-3xl">Data persistence</p>
                                         <p className="mt-5 text-base text-estela-black-medium">
                                             Here you can select how long you would like to retain data in Bitmaker
                                             Cloud.
