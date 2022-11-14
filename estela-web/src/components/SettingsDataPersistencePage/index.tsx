@@ -132,20 +132,25 @@ export class SettingsDataPersistencePage extends Component<unknown, DataPersiste
                                             </Radio.Group>
                                         </Space>
                                     </Row>
-                                    <Space className="text-base">
+                                    <Space direction="horizontal" className="flex items-center">
                                         {switchValue ? (
                                             <Button
-                                                className="border-none"
-                                                icon={<SwitchON width={30} onClick={this.change} />}
+                                                className="border-none fill-estela"
+                                                icon={
+                                                    <SwitchON className="fill-estela w-8 h-8" onClick={this.change} />
+                                                }
                                             ></Button>
                                         ) : (
                                             <Button
                                                 className="border-none"
-                                                icon={<SwitchOFF width={30} onClick={this.change} />}
+                                                icon={<SwitchOFF className="w-8 h-8" onClick={this.change} />}
                                             ></Button>
                                         )}
-                                        <p className="ml-4">Override per project </p>
-                                        <Button className="border-none ml-4" icon={<Help width={30} />}></Button>
+                                        <p className="ml-4 text-base">Override per project </p>
+                                        <Button
+                                            className="border-none flex justify-center"
+                                            icon={<Help className="w-6 h-6" />}
+                                        ></Button>
                                     </Space>
                                     <Row className="w-full 2xl:w-9/12 ">
                                         <Button className="mt-5 btn_data_persistence" disabled>

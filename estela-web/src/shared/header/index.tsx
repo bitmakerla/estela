@@ -61,11 +61,11 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                         >
                             {this.path === "/notifications/inbox" ? (
                                 <a className="flex justify-center items-center border border-estela stroke-estela rounded-lg bg-estela-blue-low w-10 p-2">
-                                    <Notification className="w-5 h-5" />
+                                    <Notification className="w-6 h-6" />
                                 </a>
                             ) : (
                                 <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-10 p-2">
-                                    <Notification className="w-5 h-5" />
+                                    <Notification className="w-6 h-6" />
                                 </a>
                             )}
                         </Dropdown>
