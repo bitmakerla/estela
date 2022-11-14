@@ -44,30 +44,33 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                             estela
                         </Link>
                     </Col>
-                    <Col flex={0.02} className="">
+                    <Col flex={0.06} className="">
                         <Dropdown
                             overlay={
-                                <Layout className="p-5 w-96">
+                                <Content className=" bg-white rounded-2xl p-3 w-96">
                                     <NotificationsList />
-                                    <Link className="text-estela flex justify-center" to={"/notifications/inbox"}>
+                                    <Link
+                                        className="text-estela font-semibold flex justify-center"
+                                        to={"/notifications/inbox"}
+                                    >
                                         See all
                                     </Link>
-                                </Layout>
+                                </Content>
                             }
                             trigger={["click"]}
                         >
                             {this.path === "/notifications/inbox" ? (
-                                <Content className="items-center border border-estela rounded-lg bg-estela-blue-low flex justify-center w-12 h-12">
-                                    <Notification className="text-estela stroke-estela rounded" />
-                                </Content>
+                                <a className="flex justify-center items-center border border-estela stroke-estela rounded-lg bg-estela-blue-low w-10 p-2">
+                                    <Notification className="w-5 h-5" />
+                                </a>
                             ) : (
-                                <Content className="items-center hover:bg-button-hover rounded-lg flex justify-center w-12 h-12">
-                                    <Notification className=" stroke-black hover:stroke-estela rounded" />
-                                </Content>
+                                <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-10 p-2">
+                                    <Notification className="w-5 h-5" />
+                                </a>
                             )}
                         </Dropdown>
                     </Col>
-                    <Col className="">
+                    <Col>
                         <Dropdown
                             overlay={
                                 <Menu>
@@ -107,10 +110,10 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                             }
                             trigger={["click"]}
                         >
-                            <a className="flex items-center hover:bg-button-hover rounded">
-                                <User className="stroke-estela w-8 h-8" />
+                            <a className="flex items-center hover:bg-button-hover p-2 rounded-lg">
+                                <User className="stroke-estela h-6 w-6" />
                                 <div className="mx-2 text-sm font-medium text-estela">{this.getUser()}</div>
-                                <ArrowDown className="stroke-estela w-6 h-6" />
+                                <ArrowDown className="stroke-estela h-5 w-5" />
                             </a>
                         </Dropdown>
                     </Col>
