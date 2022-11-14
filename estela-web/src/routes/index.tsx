@@ -12,6 +12,7 @@ import { ProjectCreatePage } from "../components/ProjectCreatePage";
 import { ProjectMemberPage } from "../components/ProjectMemberPage";
 import { ProjectJobListPage } from "../components/ProjectJobListPage";
 import { ProjectCronJobListPage } from "../components/ProjectCronJobListPage";
+import { ProjectActivityPage } from "../components/ProjectActivityPage";
 import { DeployListPage } from "../components/DeployListPage";
 import { SpiderListPage } from "../components/SpiderListPage";
 import { SpiderDetailPage } from "../components/SpiderDetailPage";
@@ -25,7 +26,6 @@ import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
 import { SettingsProfilePage } from "../components/SettingsProfilePage";
 import { SettingsPasswordPage } from "../components/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../components/SettingsDataPersistencePage";
-import { ProjectActivityPage } from "../components/ProjectActivityPage";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
