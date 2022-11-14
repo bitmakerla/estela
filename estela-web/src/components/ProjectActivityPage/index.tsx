@@ -8,9 +8,14 @@ import { Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
 
+interface ActivityState {
+    runDate: string;
+    topic: string;
+    member: string;
+}
 interface ProjectActivityPageState {
     loaded: boolean;
-    members: any[];
+    activities: ActivityState[];
     modal: boolean;
 }
 
@@ -21,20 +26,36 @@ interface RouteParams {
 export class ProjectActivityPage extends Component<RouteComponentProps<RouteParams>, ProjectActivityPageState> {
     state: ProjectActivityPageState = {
         loaded: true,
-        members: [],
+        activities: [
+            {
+                runDate: "2020-01-01 00:23:00 UTC",
+                topic: "Scheduled Job for Spiders: MySpider was created",
+                member: "Scraper201222",
+            },
+            {
+                runDate: "2020-01-01 00:23:00 UTC",
+                topic: "Scheduled Job for Spiders: MySpider was created",
+                member: "Scraper201222",
+            },
+            {
+                runDate: "2020-01-01 00:23:00 UTC",
+                topic: "Scheduled Job for Spiders: MySpider was created",
+                member: "Scraper201222",
+            },
+        ],
         modal: false,
     };
 
     columns = [
         {
             title: "RUN DATE",
-            dataIndex: "name",
-            key: "name",
+            dataIndex: "runDate",
+            key: "runDate",
         },
         {
-            title: "DESCRIPTION",
-            dataIndex: "description",
-            key: "description",
+            title: "TOPIC",
+            dataIndex: "topic",
+            key: "topic",
         },
         {
             title: "MEMBER",
@@ -46,34 +67,46 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
     options = ["You", "Scrapper1", "Other"];
     pagination = {
         current: 1,
-        pageSize: 10,
+        pageSize: 2,
     };
 
     content: JSX.Element = (
-        <>
+        <div>
             <Checkbox.Group>
-                <Row>
-                    <Col>
-                        <Checkbox value="you">You</Checkbox>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <Checkbox value="me">Me</Checkbox>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <Checkbox value="others">Others</Checkbox>
-                    </Col>
-                </Row>
+                <div className="gap-x-8">
+                    <Row>
+                        <Col>
+                            <Checkbox value="you">You</Checkbox>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Checkbox value="me">Scraper201222</Checkbox>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Checkbox value="scraper">Scraper</Checkbox>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Checkbox value="others">Others</Checkbox>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Checkbox value="bitmaker scraper">Bitmaker scraper</Checkbox>
+                        </Col>
+                    </Row>
+                </div>
             </Checkbox.Group>
-        </>
+        </div>
     );
 
     projectId: string = this.props.match.params.projectId;
     render(): JSX.Element {
-        const { members, loaded } = this.state;
+        const { activities, loaded } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -112,9 +145,9 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
                                                 </Row>
                                                 <Table
                                                     tableLayout="fixed"
-                                                    className="rounded-2xl"
+                                                    className="rounded-2xl p-[20px]"
                                                     columns={this.columns}
-                                                    dataSource={members}
+                                                    dataSource={activities}
                                                     pagination={this.pagination}
                                                     size="middle"
                                                     locale={{ emptyText: "No activity" }}
