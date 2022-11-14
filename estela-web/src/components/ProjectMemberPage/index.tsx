@@ -38,6 +38,7 @@ interface ProjectMemberPageState {
     name: string;
     user: string;
     users: Permission[];
+    selectedRows: MemberState[];
     loaded: boolean;
     modal: boolean;
     newUser: string;
@@ -54,6 +55,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         name: "",
         user: "",
         modal: false,
+        selectedRows: [],
         users: [],
         loaded: false,
         newUser: "",
@@ -196,6 +198,16 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         console.log(value);
     };
 
+    rowSelection = {
+        onChange: (selectedRowKeys: React.Key[], selectedRows: MemberState[]) => {
+            this.setState({ selectedRows: selectedRows });
+        },
+    };
+
+    handleDeleteRow = (): void => {
+        console.log(this.state.selectedRows);
+    };
+
     render(): JSX.Element {
         const { loaded, members, newUser } = this.state;
         return (
@@ -294,6 +306,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                     className="rounded-2xl"
                                                     rowSelection={{
                                                         type: "checkbox",
+                                                        ...this.rowSelection,
                                                     }}
                                                     columns={this.columns}
                                                     dataSource={members}
@@ -302,6 +315,17 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 />
                                             </Space>
                                         </div>
+                                    </Row>
+                                    <Row>
+                                        <Space direction="horizontal">
+                                            <Button
+                                                // disabled={true}
+                                                onClick={this.handleDeleteRow}
+                                                className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </Space>
                                     </Row>
                                 </div>
                             </Content>
