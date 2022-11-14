@@ -1,0 +1,50 @@
+$estela-black-low: #9BA2A8;
+$estela-black-full: #212529;
+$estela-black-medium: #6C757D;
+$estela-white-medium: #F9F9F9;
+$estela-blue-low: #F6FAFD;
+$estela: #4D47C3;
+
+.btn_data_persistence{
+    background-color: #4D47C3;
+    border-radius: 8px;
+    color: white;
+    padding: 28px 15px;
+    line-height: 0px;
+    width: 100%;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+Button {
+    &:disabled {
+        background-color: $estela-black-low !important;
+        color: white !important;
+    }
+}
+
+.ant-radio-button-wrapper {
+    text-align: center;
+    font-size: 0.95rem;
+    color: $estela-black-medium;
+    border-radius: 16px !important;
+    border: none !important;
+    padding: 18px 12px;
+    line-height: 0;
+    background-color: $estela-white-medium;
+}
+
+.ant-radio-button-wrapper::before, .ant-radio-button-wrapper-checked::before {
+    content: none !important;
+}
+
+.ant-radio-button-wrapper:hover {
+    color: $estela !important;
+    background-color: $estela-blue-low;
+}
+
+.ant-radio-button-wrapper-checked{
+    border: 1px solid $estela !important;
+    background-color: $estela-blue-low;
+    color: $estela !important;
+}
