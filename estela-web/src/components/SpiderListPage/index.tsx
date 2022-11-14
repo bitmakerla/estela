@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Col, Layout, Row, List, Pagination, Typography, Button, Space, Table, Tag } from "antd";
+import { Col, Layout, Row, Button, Space, Table } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { RouteComponentProps } from "react-router-dom";
 
@@ -11,7 +11,6 @@ import { authNotification, resourceNotAllowedNotification, Header, ProjectSidena
 import { ColumnsType } from "antd/lib/table";
 
 const { Content } = Layout;
-const { Title } = Typography;
 
 interface SpiderListPageState {
     spiders: Spider[];
@@ -63,7 +62,11 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
             title: "SPIDER",
             dataIndex: "name",
             key: "name",
-            render: (text: string): ReactElement => <p className="text-sky-400">{text}</p>,
+            render: (name: string, spider: Spider): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${spider.sid}`} className="text-estela-blue-medium">
+                    {name}
+                </Link>
+            ),
         },
         {
             title: "LAST RUN",
@@ -83,7 +86,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     };
 
     render(): JSX.Element {
-        const { loaded, spiders, count, current } = this.state;
+        const { loaded, spiders } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -102,6 +105,9 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                         <Col className="float-right">
                                             <Button
                                                 icon={<PlusOutlined className="mr-2" width={19} />}
+                                                onClick={() =>
+                                                    this.props.history.push(`/projects/${this.projectId}/deploys`)
+                                                }
                                                 size="large"
                                                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                             >
