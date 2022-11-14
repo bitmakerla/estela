@@ -48,7 +48,6 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
             (results) => {
                 const spiders: Spider[] = results.results;
                 this.setState({ spiders: [...spiders], count: results.count, current: page, loaded: true });
-                console.log(spiders);
             },
             (error: unknown) => {
                 console.error(error);
