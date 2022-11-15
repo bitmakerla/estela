@@ -28,6 +28,7 @@ const { Content } = Layout;
 const { Option } = Select;
 
 interface MemberState {
+    key: number;
     username: string | undefined;
     email: string | undefined;
     role: string | undefined;
@@ -85,8 +86,8 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
             title: "STATUS",
             dataIndex: "status",
             key: "status",
-            render: (status: string): ReactElement => (
-                <Tag className="text-estela border-0 rounded bg-button-hover" key={1}>
+            render: (status: string, member: MemberState): ReactElement => (
+                <Tag className="text-estela border-0 rounded bg-button-hover" key={member.key}>
                     {status}
                 </Tag>
             ),
@@ -101,16 +102,16 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                 if (users === undefined) {
                     users = [];
                 }
-                const membersList: MemberState[] = [];
-                users.map((user: Permission) => {
-                    membersList.push({
+                const memberList: MemberState[] = users.map((user: Permission, id: number) => {
+                    return {
+                        key: id,
                         username: user.user?.username,
                         email: user.user?.email,
                         role: user.permission,
                         status: "In Project",
-                    });
+                    };
                 });
-                this.setState({ name: response.name, users: users, members: membersList, loaded: true });
+                this.setState({ name: response.name, users: users, members: memberList, loaded: true });
             },
             (error: unknown) => {
                 console.error(error);
@@ -127,43 +128,15 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         }
     }
 
-    addUser = (): void => {
-        const action = ProjectUpdateActionEnum.Add;
+    userManagement = (email: string, option: boolean): void => {
+        const action = option ? ProjectUpdateActionEnum.Add : ProjectUpdateActionEnum.Remove;
         const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
             ?.email;
         const requestData: ProjectUpdate = {
             user: user_email,
-            email: this.state.newUser,
+            email: email,
             action: action,
             permission: this.state.permission,
-            name: this.state.name,
-        };
-
-        const request: ApiProjectsUpdateRequest = {
-            data: requestData,
-            pid: this.projectId,
-        };
-        this.apiService.apiProjectsUpdate(request).then(
-            (response: ProjectUpdate) => {
-                if (response.email == "User does not exist.") {
-                    nonExistentUserNotification();
-                }
-                this.setState({ newUser: "" });
-                this.updateInfo();
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
-    };
-
-    removeUser = (): void => {
-        const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
-            ?.email;
-        const requestData: ProjectUpdate = {
-            user: user_email,
-            email: this.state.newUser,
-            action: ProjectUpdateActionEnum.Remove,
             name: this.state.name,
         };
         const request: ApiProjectsUpdateRequest = {
@@ -195,7 +168,6 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
 
     handleSelectChange = (value: ProjectUpdatePermissionEnum): void => {
         this.setState({ permission: value });
-        console.log(value);
     };
 
     rowSelection = {
@@ -205,7 +177,9 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     };
 
     handleDeleteRow = (): void => {
-        console.log(this.state.selectedRows);
+        this.state.selectedRows.map((row) => {
+            this.userManagement(String(row.email), false);
+        });
     };
 
     render(): JSX.Element {
@@ -245,7 +219,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                     <Input
                                                         className="border-estela rounded"
                                                         name="newUser"
-                                                        placeholder="Please input your email"
+                                                        placeholder="Please input the email"
                                                         value={newUser}
                                                         onChange={this.handleInputChange}
                                                     />
@@ -256,18 +230,21 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                         onChange={this.handleSelectChange}
                                                     >
                                                         <Option
+                                                            key={1}
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectUpdatePermissionEnum.Admin}
                                                         >
                                                             Admin
                                                         </Option>
                                                         <Option
+                                                            key={2}
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectUpdatePermissionEnum.Developer}
                                                         >
                                                             Developer
                                                         </Option>
                                                         <Option
+                                                            key={3}
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectUpdatePermissionEnum.Viewer}
                                                         >
@@ -280,7 +257,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                             className="mr-2 sm:mr-1 bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
                                                             onClick={() => {
                                                                 this.setState({ modal: false });
-                                                                this.addUser();
+                                                                this.userManagement(this.state.newUser, true);
                                                             }}
                                                         >
                                                             Add
@@ -319,7 +296,6 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                     <Row>
                                         <Space direction="horizontal">
                                             <Button
-                                                // disabled={true}
                                                 onClick={this.handleDeleteRow}
                                                 className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
                                             >
