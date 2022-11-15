@@ -1,5 +1,7 @@
 import React, { Fragment } from "react";
 
-export const ComponentRoutes = (): JSX.Element => {
+const ComponentRoutes = (): JSX.Element => {
     return <Fragment></Fragment>;
 };
+
+export default ComponentRoutes;

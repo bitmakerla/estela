@@ -12,7 +12,7 @@ module.exports = {
 
   resolve: {
     alias: {
-      DropdownComponent: path.resolve(__dirname, 'src/fakeComponents'),
+      DropdownComponent: path.resolve(__dirname, 'src/defaultComponents'),
     },
     extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
   },
