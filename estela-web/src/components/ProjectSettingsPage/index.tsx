@@ -178,7 +178,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                         name="projectname"
                                                     >
                                                         <Input
-                                                            style={{ fontSize: 14 }}
+                                                            style={{ fontSize: 14, borderRadius: 8 }}
                                                             size="large"
                                                             placeholder={this.state.name}
                                                             onChange={this.handleNameChange}
@@ -189,7 +189,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                         <Select
                                                             style={{ fontSize: 14 }}
                                                             size="large"
-                                                            className="rounded-lg border-estela"
+                                                            className="border-estela"
                                                             placeholder="Select ..."
                                                         >
                                                             <Option

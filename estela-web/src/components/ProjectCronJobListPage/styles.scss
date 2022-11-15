@@ -1,18 +1,32 @@
-.deploy-list {
-    max-width: 700px;
-    margin: 40px auto;
+$estela-green-full: #489019;
+$estela-blue-full: #4D47C3;
+
+.ant-table-tbody > tr > td {
+    border: none
 }
 
-.table {
-    margin: 40px auto;
+.ant-switch-checked {
+    background-color: $estela-green-full;
 }
 
-.general-container {
-    min-height: 100vh;
+.schedule {
+    .ant-switch-checked {
+        background-color: $estela-blue-full;
+    }
 }
 
-.create-new-job {
-    margin: 30px auto;
-    display: flex;
-    align-self: auto;
+.ant-select-selector {
+    border-radius: 8px !important;
+}
+
+.ant-radio-checked .ant-radio-inner{
+    border-color: $estela-blue-full;
+}
+  
+.ant-radio-checked .ant-radio-inner:after{
+    background-color: $estela-blue-full;
+}
+  
+.ant-radio:hover .ant-radio-inner {
+    border-color: $estela-blue-full;
 }

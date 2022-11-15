@@ -226,7 +226,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 visible={this.state.modal}
                                                 title={<p className="text-center m-2">ADD NEW MEMBER</p>}
                                                 onCancel={() => this.setState({ modal: false })}
-                                                footer={[<></>]}
+                                                footer={null}
                                             >
                                                 <div className="lg:mx-8 md:mx-8">
                                                     <p className="lg:pb-4 py-2">Email</p>
@@ -287,7 +287,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                     </Row>
                                     <Row className="bg-white rounded-lg">
                                         <div className="m-4">
-                                            <Space direction="vertical" className="">
+                                            <Space direction="vertical">
                                                 <p className="text-silver text-lg font-medium">Members</p>
                                                 <Table
                                                     tableLayout="fixed"
