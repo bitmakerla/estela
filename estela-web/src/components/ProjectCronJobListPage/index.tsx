@@ -128,7 +128,8 @@ interface ProjectCronJobListPageState {
     recurrenceNum: number;
     schedulesFlag: boolean[];
     weekDays: boolean[];
-    loaded: boolean;
+    loadedCronjobs: boolean;
+    loadedSpiders: boolean;
     modal: boolean;
     count: number;
     current: number;
@@ -324,9 +325,11 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const spiders: Spider[] = results.results;
-                this.setState({ spiders: [...spiders] });
-                this.setState({ spiderId: String(results.results[0].sid) });
+                this.setState({
+                    spiders: [...results.results],
+                    spiderId: String(results.results[0].sid),
+                    loadedSpiders: true,
+                });
             },
             (error: unknown) => {
                 console.error(error);
@@ -355,7 +358,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 args: cronjob.cargs,
             }));
             const cronjobs: SpiderCronJobData[] = data;
-            this.setState({ cronjobs: [...cronjobs], loaded: true, count: response.count, current: page });
+            this.setState({ cronjobs: [...cronjobs], loadedCronjobs: true, count: response.count, current: page });
         });
     };
 
@@ -621,7 +624,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
 
     render(): JSX.Element {
         const {
-            loaded,
+            loadedCronjobs,
+            loadedSpiders,
             cronjobs,
             repeat,
             date,
@@ -650,7 +654,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 <Layout className="bg-white">
                     <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
                     <Content className="bg-metal rounded-2xl">
-                        {loaded ? (
+                        {loadedCronjobs && loadedSpiders ? (
                             <Layout className="white-background">
                                 <Content className="bg-metal rounded-2xl">
                                     <div className="lg:m-10 md:mx-6 mx-2">
