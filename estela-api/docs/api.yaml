@@ -1043,6 +1043,7 @@ definitions:
         enum:
           - remove
           - add
+          - update
       permission:
         title: Permission
         description: New permission.

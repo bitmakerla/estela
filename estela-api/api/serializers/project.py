@@ -118,6 +118,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     ACTION_CHOICES = [
         ("remove", "Remove"),
         ("add", "Add"),
+        ("update", "Update"),
     ]
     PERMISSION_CHOICES = [
         ("ADMIN", "Admin"),

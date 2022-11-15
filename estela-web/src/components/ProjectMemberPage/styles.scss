@@ -1,5 +1,14 @@
 $metal: #FBFCFD;
 $estela: #4D47C3;
+$estela-white-medium: #F9F9F9;
+$estela-black-medium: #6C757D;
+
+Button {
+    &:disabled {
+        background-color: $estela-white-medium !important;
+        color: $estela-black-medium !important;
+    }
+}
 
 .ant-checkbox-checked .ant-checkbox-inner {
     background-color: $estela;
@@ -9,10 +18,6 @@ $estela: #4D47C3;
 .ant-modal-header, .ant-modal-content {
     border-radius: 8px;
 }
-
-// .antd-select-item .ant-select-item-option-content .ant-select-item-option-selected {
-//     background-color: red;
-// }
 
 .antd-select-item .ant-select-selection {
     background-color: green;

@@ -93,6 +93,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                         )
                     elif action == "remove":
                         instance.users.remove(user)
+                    elif action == "update":
+                        instance.users.remove(user)
+                        instance.users.add(
+                            user, through_defaults={"permission": permission}
+                        )
                 else:
                     raise ParseError({"error": "Action not supported."})
             else:
