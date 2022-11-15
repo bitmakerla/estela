@@ -26,7 +26,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
-import { ReactComponent as Add } from "../../assets/icons/add.svg";
+import Add from "../../assets/icons/add.svg";
 import {
     ApiProjectsSpidersCronjobsCreateRequest,
     ApiProjectsSpidersCronjobsUpdateRequest,
@@ -571,8 +571,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         await this.getCronJobs(page);
     };
 
-    onChangeRecurrence = (value: number) => {
-        this.setState({ recurrenceNum: value });
+    onChangeRecurrence = (value: number | null) => {
+        this.setState({ recurrenceNum: Number(value) });
     };
 
     onChangeExpression = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
