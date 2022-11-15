@@ -44,7 +44,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             title: "NAME",
             dataIndex: "name",
             key: "name",
-            render: (name: string, project: Project): ReactElement => (
+            render: (name: string, project: ProjectList): ReactElement => (
                 <Link className="text-sm font-medium hover:text-estela" to={`/projects/${project.pid}/dashboard`}>
                     {name}
                 </Link>
@@ -54,9 +54,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             title: "ROLE",
             dataIndex: "role",
             key: "role",
-            render: (project: ProjectList): ReactElement => (
+            render: (role: string, project: ProjectList): ReactElement => (
                 <Tag className="text-estela border-0 rounded bg-button-hover float-right" key={project.key}>
-                    Admin
+                    {role}
                 </Tag>
             ),
         },
@@ -71,7 +71,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 return {
                     name: project.name,
                     pid: project.pid,
-                    role: "Admin",
+                    role:
+                        project.users?.find((user) => user.user?.username === AuthService.getUserUsername())
+                            ?.permission || "Admin",
                     key: id,
                 };
             });
@@ -97,7 +99,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             return {
                 name: project.name,
                 pid: project.pid,
-                role: "Admin",
+                role:
+                    project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
+                    "Admin",
                 key: id,
             };
         });
