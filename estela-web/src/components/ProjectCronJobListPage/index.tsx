@@ -326,11 +326,15 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                this.setState({
-                    spiders: [...results.results],
-                    spiderId: String(results.results[0].sid),
-                    loadedSpiders: true,
-                });
+                if (results.results.length == 0 || results.results == undefined) {
+                    this.setState({ spiders: [], loadedSpiders: true });
+                } else {
+                    this.setState({
+                        spiders: [...results.results],
+                        spiderId: String(results.results[0].sid),
+                        loadedSpiders: true,
+                    });
+                }
             },
             (error: unknown) => {
                 console.error(error);
@@ -670,7 +674,13 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                     icon={<Add className="mr-2" width={19} />}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                    onClick={() => this.setState({ modal: true })}
+                                                    onClick={() => {
+                                                        if (spiders.length > 0) {
+                                                            this.setState({ modal: true });
+                                                        } else {
+                                                            message.error("You don't have any spider.");
+                                                        }
+                                                    }}
                                                 >
                                                     Schedule new job
                                                 </Button>
@@ -698,7 +708,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                     style={{ borderRadius: 16 }}
                                                                     size="large"
                                                                     className="w-full"
-                                                                    defaultValue={spiders[0].name}
+                                                                    defaultValue={spiders[0] ? spiders[0].name : ""}
                                                                 >
                                                                     {spiders.map((spider: Spider) => (
                                                                         <Option
