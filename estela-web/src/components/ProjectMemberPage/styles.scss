@@ -3,11 +3,10 @@ $estela: #4D47C3;
 $estela-white-medium: #F9F9F9;
 $estela-black-medium: #6C757D;
 
-Button {
-    &:disabled {
-        background-color: $estela-white-medium !important;
-        color: $estela-black-medium !important;
-    }
+.ant-btn-default:disabled {
+    background-color: $estela-white-medium !important;
+    color: $estela-black-medium !important;
+    border: none;
 }
 
 .ant-checkbox-checked .ant-checkbox-inner {

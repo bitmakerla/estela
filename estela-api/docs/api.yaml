@@ -573,7 +573,7 @@ paths:
       parameters: []
       responses:
         '204':
-          description: Project deleted
+          description: Cronjob deleted
       tags:
         - api
     parameters:

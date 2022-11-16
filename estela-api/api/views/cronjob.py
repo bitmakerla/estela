@@ -43,6 +43,7 @@ class SpiderCronJobViewSet(
             spider__project__pid=self.kwargs["pid"],
             spider__sid=self.kwargs["sid"],
             spider__deleted=False,
+            deleted=False,
         )
 
     @swagger_auto_schema(
@@ -116,7 +117,7 @@ class SpiderCronJobViewSet(
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        responses={status.HTTP_204_NO_CONTENT: "Project deleted"},
+        responses={status.HTTP_204_NO_CONTENT: "Cronjob deleted"},
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -124,7 +125,7 @@ class SpiderCronJobViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
-        instance.delete = True
+        instance.deleted = True
         instance.save()
 
     @swagger_auto_schema(

@@ -30,6 +30,7 @@ import Add from "../../assets/icons/add.svg";
 import {
     ApiProjectsSpidersCronjobsCreateRequest,
     ApiProjectsSpidersCronjobsUpdateRequest,
+    ApiProjectsSpidersCronjobsDeleteRequest,
     ApiProjectsSpidersCronjobsRunOnceRequest,
     SpiderCronJobUpdateStatusEnum,
     ApiProjectsSpidersListRequest,
@@ -597,6 +598,12 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         });
     };
 
+    deleteRows = (): void => {
+        this.state.selectedRows.map((row) => {
+            this.deleteCronjob(row);
+        });
+    };
+
     goCronjobDetail = (): void => {
         this.editCronjob(this.state.selectedRows[0]);
     };
@@ -614,6 +621,22 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
                 console.log(response.cjid);
+            },
+            (error: unknown) => {
+                console.log(error);
+            },
+        );
+    };
+
+    deleteCronjob = (cronjob: SpiderCronJobData): void => {
+        const requestParams: ApiProjectsSpidersCronjobsDeleteRequest = {
+            pid: this.projectId,
+            sid: String(cronjob.id.sid),
+            cjid: Number(cronjob.id.cid),
+        };
+        this.apiService.apiProjectsSpidersCronjobsDelete(requestParams).then(
+            () => {
+                this.getCronJobs(1);
             },
             (error: unknown) => {
                 console.log(error);
@@ -1087,7 +1110,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                         <Row className="my-2">
                                             <Space direction="horizontal">
                                                 <Button
-                                                    disabled={true}
+                                                    disabled={selectedRows.length === 0}
+                                                    onClick={this.deleteRows}
                                                     className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
                                                 >
                                                     Delete
