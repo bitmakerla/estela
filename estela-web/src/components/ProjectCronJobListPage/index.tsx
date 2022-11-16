@@ -602,6 +602,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         this.state.selectedRows.map((row) => {
             this.deleteCronjob(row);
         });
+        this.setState({ selectedRows: [] });
     };
 
     goCronjobDetail = (): void => {

@@ -188,6 +188,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         this.state.selectedRows.map((row) => {
             this.userManagement(String(row.email), 0);
         });
+        this.setState({ selectedRows: [] });
     };
 
     render(): JSX.Element {
@@ -226,6 +227,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 <div className="mx-3">
                                                     <p className="py-3">Email</p>
                                                     <Input
+                                                        style={{ borderRadius: "8px" }}
                                                         className="border-estela rounded"
                                                         name="newUser"
                                                         placeholder="Please input the email"
@@ -290,10 +292,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 <Table
                                                     tableLayout="fixed"
                                                     className="rounded-2xl"
-                                                    rowSelection={{
-                                                        type: "checkbox",
-                                                        ...this.rowSelection,
-                                                    }}
+                                                    rowSelection={this.rowSelection}
                                                     columns={this.columns}
                                                     dataSource={members}
                                                     pagination={false}
