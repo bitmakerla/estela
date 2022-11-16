@@ -26,7 +26,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
-import { ReactComponent as Add } from "../../assets/icons/add.svg";
+import Add from "../../assets/icons/add.svg";
 import {
     ApiProjectsSpidersCronjobsCreateRequest,
     ApiProjectsSpidersCronjobsUpdateRequest,
@@ -128,7 +128,8 @@ interface ProjectCronJobListPageState {
     recurrenceNum: number;
     schedulesFlag: boolean[];
     weekDays: boolean[];
-    loaded: boolean;
+    loadedCronjobs: boolean;
+    loadedSpiders: boolean;
     modal: boolean;
     count: number;
     current: number;
@@ -175,7 +176,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         newTagName: "",
         cronjobs: [],
         selectedRows: [],
-        loaded: false,
+        loadedCronjobs: false,
+        loadedSpiders: false,
         modal: false,
         count: 0,
         current: 0,
@@ -324,9 +326,15 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const spiders: Spider[] = results.results;
-                this.setState({ spiders: [...spiders] });
-                this.setState({ spiderId: String(results.results[0].sid) });
+                if (results.results.length == 0 || results.results == undefined) {
+                    this.setState({ spiders: [], loadedSpiders: true });
+                } else {
+                    this.setState({
+                        spiders: [...results.results],
+                        spiderId: String(results.results[0].sid),
+                        loadedSpiders: true,
+                    });
+                }
             },
             (error: unknown) => {
                 console.error(error);
@@ -355,7 +363,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 args: cronjob.cargs,
             }));
             const cronjobs: SpiderCronJobData[] = data;
-            this.setState({ cronjobs: [...cronjobs], loaded: true, count: response.count, current: page });
+            this.setState({ cronjobs: [...cronjobs], loadedCronjobs: true, count: response.count, current: page });
         });
     };
 
@@ -571,8 +579,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         await this.getCronJobs(page);
     };
 
-    onChangeRecurrence = (value: number) => {
-        this.setState({ recurrenceNum: value });
+    onChangeRecurrence = (value: number | null) => {
+        this.setState({ recurrenceNum: Number(value) });
     };
 
     onChangeExpression = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -621,7 +629,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
 
     render(): JSX.Element {
         const {
-            loaded,
+            loadedCronjobs,
+            loadedSpiders,
             cronjobs,
             repeat,
             date,
@@ -650,7 +659,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 <Layout className="bg-white">
                     <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
                     <Content className="bg-metal rounded-2xl">
-                        {loaded ? (
+                        {loadedCronjobs && loadedSpiders ? (
                             <Layout className="white-background">
                                 <Content className="bg-metal rounded-2xl">
                                     <div className="lg:m-10 md:mx-6 mx-2">
@@ -665,7 +674,13 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                     icon={<Add className="mr-2" width={19} />}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                    onClick={() => this.setState({ modal: true })}
+                                                    onClick={() => {
+                                                        if (spiders.length > 0) {
+                                                            this.setState({ modal: true });
+                                                        } else {
+                                                            message.error("You don't have any spider.");
+                                                        }
+                                                    }}
                                                 >
                                                     Schedule new job
                                                 </Button>
@@ -693,7 +708,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                     style={{ borderRadius: 16 }}
                                                                     size="large"
                                                                     className="w-full"
-                                                                    defaultValue={spiders[0].name}
+                                                                    defaultValue={spiders[0] ? spiders[0].name : ""}
                                                                 >
                                                                     {spiders.map((spider: Spider) => (
                                                                         <Option
