@@ -7,6 +7,8 @@ grand_parent: estela
 
 # estela Micro-Frontends Guide
 
+The main goal of micro frontends in estela-web is to be able to use external components. This allows the use of custom components.
+
 estela allows the use of Micro-Frontends only in the user dropdown. This is achieved with the use of [Module Federation](https://webpack.js.org/concepts/module-federation/).
 
 ## Requirements
