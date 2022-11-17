@@ -19,16 +19,24 @@ architectures (soon).
 
 ## Requirements
 
-- Docker v20.10.x with *docker-compose*
-- Kubectl >= v1.23.x
-- Helm >= v3.9.x
-- yarn v1.22.x
-- node v14.x
+We advise you to use Linux based system to run all the commands, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) on windows systems.
+- Docker v20.10.x with *docker-compose*.  
+*Note:* Is recommended to use docker-engine instead of docker-desktop for performance purposes check the following resources for installation: [docker-engine installation](https://docs.docker.com/engine/install/){:target="_blank"}, [docker-desktop installation](https://docs.docker.com/desktop/){:target="_blank"}.
+- Kubectl >= v1.23.x  
+*Note:* Kubectl comes with Minikube so is not mandatory to install it apart of Minikube, also to avoid incompatibilities, to learn more check this resource: [minikube+kubectl installation](https://minikube.sigs.k8s.io/docs/start/){:target="_blank"}.
+- Helm >= v3.9.x  
+*Note:* Check the official documentation for its installation: [helm installation](https://helm.sh/docs/intro/install/){:target="_blank"}.
+- yarn v1.22.x  
+*Note:* Yarn can be installed with npm, check this: [yarn installation](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable){:target="_blank"}.
+- node v14.x  
+*Note:* There are various tutorials for installing Node, you can check these: [node installation method 1](https://nodejs.org/en/blog/release/v14.17.3/){:target="_blank"}, [node installation method 2](https://computingforgeeks.com/install-node-js-14-on-ubuntu-debian-linux/){:target="_blank"}.
 
 Extra requirements needed for local installation:
 
-- Python v3.6.x
-- Minikube >= v1.25.0
+- Python v3.6.x  
+*Note:* Is recommended to install a python environment manager such as [pyenv](https://github.com/pyenv/pyenv){:target="_blank"} or [virtualenv](https://virtualenv.pypa.io/en/latest/){:target="_blank"}, check this resources: [pyenv installation](https://github.com/pyenv/pyenv#automatic-installer){:target="_blank"}, [virtualenv installation](https://virtualenv.pypa.io/en/latest/installation.html){:target="_blank"}.
+- Minikube >= v1.25.0  
+*Note:* As we mention the installation of Minikube comes with Kubectl, check this out: [minikube+kubectl installation](https://minikube.sigs.k8s.io/docs/start/){:target="_blank"}.
 
 For the rest of the installation, open a terminal in the _installation_ folder
 of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="_blank"}.

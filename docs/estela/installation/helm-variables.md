@@ -13,7 +13,7 @@ and rename it to `values.yaml`. If you do not need to define an optional
 variable, fill its value with an empty string `""`. Now, complete the following fields:
 
 _Note_: The values that should be used if the resources have been deployed locally are
-commented in the `values.yaml.example` file.
+commented in the `values.yaml.example` file, _do not change the commented values_, you can check this [`values.yaml`]({% link estela/installation/values-yaml-example.md %}){:target="_blank"} completed file example to guide yourself.
 
 ## Chart variables
 
@@ -32,7 +32,7 @@ of estela.
 
 * _registryHost_ (Required): The registry host where the images of the estela modules are 
   located. If a local registry is being used, this host is equal to the above variable
-  _hostIp_.
+  _hostIp_, remember to add the port where the local images are located `<hostIp>:5000`.
 
 * _nodeSelector_ (Optional): The name of the node on which estela will be installed in case
   the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROLE_NAME }`.
@@ -71,10 +71,10 @@ you have a deep understanding of estela.
 * _<SPIDERDATA\_DB\_ENGINE>_ (Required): Document oriented database where the data produced 
   by the spiders is stored. Currently, estela supports the _mongodb_ engine.
 
-* _<SPIDERDATA\_DB\_CONNECTION>_ (Required): The connection URL to your database instance.
+* _<SPIDERDATA\_DB\_CONNECTION>_ (Required): The connection URL to your database instance, for easy instantiation you can use [MongoDB Atlas](https://www.mongodb.com/free-cloud-database){:target="_blank"}..
 
 * _<SPIDERDATA\_DB\_CERTIFICATE\_PATH>_ (Required): Path where the database certificate is
-  located. This value will be taken into account if your connection requires a certificate.
+  located. This value will be taken into account if your connection requires a certificate, go to [`values.yaml`]({% link estela/installation/values-yaml-example.md %}){:target="_blank"} file example if you don't understand this field.
   
 #### Kafka
 

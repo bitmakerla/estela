@@ -38,7 +38,20 @@ Successful login. API Token stored in ~/.estela.yaml.
 ```
 
 This will save your estela API key to the file `~/.estela.yaml`, and it is
-needed to access projects associated with your account.
+needed to access projects associated with your account.  
+
+**_Note:_** If you have installed Estela locally run the following command to get the _EXTERNAL-IP_ for the django-api:
+```bash
+$ kubectl get all
+```
+and paste in the `Host` option the _EXTERNAL-IP_ value of the _service/estela-django-api-service_ service, here is an example:  
+```bash
+$ estela login
+Host [http://localhost]: http://<EXTERNAL_IP>
+Username: admin
+Password:
+Successful login. API Token stored in ~/.estela.yaml.
+```
 
 ### Creating a project
 
