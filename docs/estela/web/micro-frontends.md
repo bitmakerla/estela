@@ -1,11 +1,11 @@
 ---
 layout: page
 title: Micro-Frontends Guide
-parent: Installation
+parent: Web
 grand_parent: estela
 ---
 
-# estela Micro-Frontends Guide (Optional)
+# estela Micro-Frontends Guide
 
 estela allows the use of Micro-Frontends only in the user dropdown. This is achieved with the use of [Module Federation](https://webpack.js.org/concepts/module-federation/).
 
