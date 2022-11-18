@@ -1,9 +1,30 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Typography, Row, Space, Tag, Pagination, Table, Switch, Button, InputNumber } from "antd";
+import {
+    Layout,
+    Typography,
+    Row,
+    Col,
+    Card,
+    Space,
+    Tabs,
+    Tag,
+    Pagination,
+    Table,
+    Switch,
+    Button,
+    InputNumber,
+    Radio,
+    Checkbox,
+} from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
+import Copy from "../../assets/icons/copy.svg";
+import Run from "../../assets/icons/play.svg";
+import Edit from "../../assets/icons/edit.svg";
+import Filter from "../../assets/icons/filter.svg";
+import Setting from "../../assets/icons/setting.svg";
 import {
     ApiProjectsSpidersCronjobsUpdateRequest,
     ApiProjectsSpidersCronjobsReadRequest,
@@ -27,7 +48,7 @@ import {
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface ArgsData {
     name: string;
@@ -101,6 +122,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
     cronjobId: number = parseInt(this.props.match.params.cronjobId);
+
     columns = [
         {
             title: "Job ID",
@@ -133,6 +155,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             key: "status",
             dataIndex: "status",
         },
+    ];
+
+    items = [
+        { key: "Sche-Job ID", value: "1" },
+        { key: "Sche-Job ID", value: "1" },
     ];
 
     async componentDidMount(): Promise<void> {
@@ -332,6 +359,190 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         );
     };
 
+    overview = (
+        <>
+            <Content className="grid lg:grid-cols-2 grid-cols-1 gap-4 items-start w-full">
+                <Card style={{ width: 400, borderRadius: "8px" }} bordered={false}>
+                    <Space direction="horizontal" className="flow-root items-center mx-4 w-full">
+                        <Text className="float-left py-2 text-estela-black-medium font-medium text-base">PERIOD</Text>
+                        <Button
+                            icon={<Edit className="flex h-6 w-6" />}
+                            size="large"
+                            className="float-right stroke-estela-blue-full border-none"
+                        ></Button>
+                    </Space>
+                    <Space direction="vertical" className="mx-4">
+                        <Text>Launch date</Text>
+                        <Text>01/01/2023, 11:30 PM</Text>
+                        <Text>Repeat every</Text>
+                        <Text className="text-sm">Weekly on Saturday, Monday, Wednesday</Text>
+                        <Text>Next launch: 01/02/2023, 11:30 PM</Text>
+                    </Space>
+                </Card>
+                <Card className="bg-yellow-100" style={{ borderRadius: "8px" }} bordered={false}>
+                    <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">DETAILS</Text>
+                    <Row className="grid grid-cols-3 py-1 px-4">
+                        <Col>Sche-Job ID</Col>
+                        <Col>01</Col>
+                    </Row>
+                    <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                        <Col>Spider</Col>
+                        <Col>My Spider</Col>
+                    </Row>
+                    <Row className="grid grid-cols-3 py-1 px-4">
+                        <Col className="col-span-1">Project ID</Col>
+                        <Col className="col-span-2">d6d92510-9d5d-4add-b803-b896c5e21f55</Col>
+                    </Row>
+                    <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                        <Col>Creation date</Col>
+                        <Col>16:23:00 09-13-2022</Col>
+                    </Row>
+                    <Row className="grid grid-cols-3 py-1 px-4">
+                        <Col>Tags</Col>
+                        <Col>scraping, my_tag</Col>
+                    </Row>
+                    <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                        <Col>Environment variables</Col>
+                        <Col>API_KEY=412dea23</Col>
+                    </Row>
+                    <Row className="grid grid-cols-3 py-1 px-4">
+                        <Col>Arguments</Col>
+                        <Col>job_type=products</Col>
+                    </Row>
+                </Card>
+            </Content>
+            <Content className="my-4">
+                <Row className="flow-root">
+                    <Text className="float-left text-estela-black-full font-medium text-2xl">Associated jobs</Text>
+                    <a className="float-right py-1 px-2 text-estela-blue-full text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg">
+                        See all
+                    </a>
+                </Row>
+                <Content className="m-2 flex items-start w-full">
+                    <Col className="float-left px-4 mx-2 bg-green-100 w-full">
+                        <Space className="flow-root">
+                            <Text className="text-estela-black-medium float-left py-1 font-medium text-lg">
+                                In queue
+                            </Text>
+                            <Content className="float-right flex">
+                                <Button
+                                    disabled={true}
+                                    icon={<Filter className="h-6 w-6 mr-2" />}
+                                    size="large"
+                                    className="flex items-center stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Filter
+                                </Button>
+                                <Button
+                                    icon={<Setting className="h-6 w-6" />}
+                                    size="large"
+                                    className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                ></Button>
+                            </Content>
+                        </Space>
+                    </Col>
+                    <Col className="float-right bg-red-100 rounded-lg w-48">
+                        <Content className="my-2 mx-3">
+                            <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
+                            <Content className="my-2">
+                                <Checkbox defaultChecked={false}>In queue</Checkbox>
+                                <br />
+                                <Checkbox defaultChecked>Running</Checkbox>
+                                <br />
+                                <Checkbox defaultChecked>Completed</Checkbox>
+                            </Content>
+                        </Content>
+                    </Col>
+                </Content>
+            </Content>
+        </>
+    );
+
+    dataPersistence = (
+        <>
+            <Content>
+                <Row className="bg-white rounded-lg">
+                    <div className="lg:m-8 md:mx-6 m-4">
+                        <p className="text-2xl text-black">Data persistence</p>
+                        <p className="text-sm my-2 text-estela-black-medium">
+                            Data persistence will be applied to all jobs creadted from this schedue job by default.
+                        </p>
+                        <Content>
+                            <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
+                                <Radio.Button
+                                    value="1 day"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("1 day");
+                                    // }}
+                                >
+                                    1 day
+                                </Radio.Button>
+                                <Radio.Button
+                                    value="1 week"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("1 week");
+                                    // }}
+                                >
+                                    1 week
+                                </Radio.Button>
+                                <Radio.Button
+                                    value="1 month"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("1 month");
+                                    // }}
+                                >
+                                    1&nbsp;month
+                                </Radio.Button>
+                                <Radio.Button
+                                    value="3 months"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("3 months");
+                                    // }}
+                                >
+                                    3&nbsp;months
+                                </Radio.Button>
+                                <Radio.Button
+                                    value="6 months"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("6 months");
+                                    // }}
+                                >
+                                    6&nbsp;months
+                                </Radio.Button>
+                                <Radio.Button
+                                    value="1 year"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("1 year");
+                                    // }}
+                                >
+                                    1 year
+                                </Radio.Button>
+                                <Radio.Button
+                                    value="forever"
+                                    // onClick={() => {
+                                    //     this.handlePersistenceChange("forever");
+                                    // }}
+                                >
+                                    Forever
+                                </Radio.Button>
+                            </Radio.Group>
+                        </Content>
+                        <div className="h-12 w-72">
+                            <Button
+                                block
+                                // disabled={!persistenceChanged}
+                                htmlType="submit"
+                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                            >
+                                Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </Row>
+            </Content>
+        </>
+    );
+
     render(): JSX.Element {
         const {
             loaded,
@@ -352,15 +563,53 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         return (
             <Layout className="general-container">
                 <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={""} />
-                    <Content className="content-padding">
+                <Layout className="bg-white">
+                    <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
+                    <Content>
                         {loaded ? (
-                            <Layout className="white-background">
-                                <Content>
-                                    <Title level={5} className="text-center">
-                                        CronJob {this.cronjobId}
-                                    </Title>
+                            <Layout className="bg-white">
+                                <Content className="bg-metal rounded-2xl">
+                                    <Row className="flow-root lg:mx-10 mx-6 mb-6">
+                                        <Col className="float-left">
+                                            <Text className="text-estela-black-medium font-medium text-xl">
+                                                Sche-Job-{this.cronjobId}
+                                            </Text>
+                                        </Col>
+                                        <Col className="float-right flex">
+                                            <Button
+                                                icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
+                                                size="large"
+                                                className="flex items-center mr-2 stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                            >
+                                                Clone
+                                            </Button>
+                                            <Button
+                                                icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                                size="large"
+                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                            >
+                                                Run once
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                    <Row className="lg:mx-10 mx-6">
+                                        <Tabs
+                                            size="middle"
+                                            defaultActiveKey={"1"}
+                                            items={[
+                                                {
+                                                    label: "Overview",
+                                                    key: "1",
+                                                    children: this.overview,
+                                                },
+                                                {
+                                                    label: "Data persistence",
+                                                    key: "2",
+                                                    children: this.dataPersistence,
+                                                },
+                                            ]}
+                                        />
+                                    </Row>
                                     <Row justify="center" className="cronjob-data">
                                         <Space direction="vertical" size="large">
                                             <Text>

@@ -658,12 +658,12 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 <Header />
                 <Layout className="bg-white">
                     <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
-                    <Content className="bg-metal rounded-2xl">
+                    <Content>
                         {loadedCronjobs && loadedSpiders ? (
-                            <Layout className="white-background">
+                            <Layout className="bg-white">
                                 <Content className="bg-metal rounded-2xl">
-                                    <div className="lg:m-10 md:mx-6 mx-2">
-                                        <Row className="flow-root my-6">
+                                    <div className="lg:m-10 m-6">
+                                        <Row className="flow-root">
                                             <Col className="float-left">
                                                 <p className="text-xl font-medium text-silver float-left">
                                                     PROJECT MEMBERS
