@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import APIException
 
 from config.job_manager import spiderdata_db_client
-from core.models import Permission, Project, SpiderJob, UsageRecord
+from core.models import Permission, Project, SpiderJob, UsageRecord, Notification
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -152,3 +152,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("pid", "name", "users", "user", "email", "action", "permission")
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ("message", "user", "redirectto")
