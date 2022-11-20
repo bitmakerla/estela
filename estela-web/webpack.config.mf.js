@@ -1,7 +1,8 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 const ESLintPlugin = require('eslint-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
-const path = require('path');
+const deps = require("./package.json").dependencies;
 
 module.exports = {
   entry: './src/index.ts',
@@ -11,9 +12,6 @@ module.exports = {
   },
 
   resolve: {
-    alias: {
-      DropdownComponent: path.resolve(__dirname, 'src/defaultComponents'),
-    },
     extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
   },
 
@@ -59,6 +57,25 @@ module.exports = {
   },
 
   plugins: [
+    new ModuleFederationPlugin({
+      name: "estela-web",
+      filename: "remoteEntry.js",
+      remotes: {
+        DropdownComponent: "testModule@http://localhost:3005/remoteEntry.js",
+      },
+      exposes: {},
+      shared: {
+        ...deps,
+        react: {
+          singleton: true,
+          requiredVersion: deps.react,
+        },
+        "react-dom": {
+          singleton: true,
+          requiredVersion: deps["react-dom"],
+        },
+      },
+    }),
     new HtmlWebPackPlugin({
       template: "./public/index.html",
       favicon: "./public/favicon.ico",
