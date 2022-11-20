@@ -1,11 +1,11 @@
 import React, { Component, ReactElement } from "react";
-import { Button, Layout, Pagination, Typography, Row, Space, Table, Col, Menu } from "antd";
-import type { MenuProps } from "antd";
-import { PlusOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { Button, Layout, Pagination, Typography, Row, Space, Table, Col, Tabs, Radio } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
+import Add from "../../assets/icons/add.svg";
+import Play from "../../assets/icons/play.svg";
 import {
     ApiProjectsSpidersReadRequest,
     ApiProjectsSpidersJobsListRequest,
@@ -32,7 +32,7 @@ interface SpiderDetailPageState {
     loaded: boolean;
     count: number;
     current: number;
-    pageTab: string;
+    optionTab: string;
 }
 
 interface RouteParams {
@@ -48,7 +48,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         loaded: false,
         count: 0,
         current: 0,
-        pageTab: "overview",
+        optionTab: "settings",
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -87,17 +87,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         },
     ];
 
-    itemsDetailMenu: MenuProps["items"] = [
-        {
-            label: <Text className="text-[#6C757D]">Overview</Text>,
-            key: "overview",
-        },
-        {
-            label: <Text className="text-[#6C757D]">Settings</Text>,
-            key: "settings",
-        },
-    ];
-
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
             authNotification();
@@ -123,9 +112,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         }
     }
 
-    onDetailMenuTabChange: MenuProps["onClick"] = (e) => {
+    onDetailMenuTabChange = (option: string) => {
         this.setState({
-            pageTab: e.key,
+            optionTab: option,
         });
     };
 
@@ -161,94 +150,160 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     };
 
     render(): JSX.Element {
-        const { loaded, name, jobs, count, current, pageTab } = this.state;
+        const { loaded, name, jobs, count, current, optionTab } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
-                    <Content className="content-padding">
+                    <Content className="bg-metal rounded-2xl">
                         {loaded ? (
                             <Layout className="white-background">
-                                <Content>
-                                    <Row>
-                                        <Col span={4}>
-                                            <Text className="text-[#6C757D]">My Spider</Text>
-                                        </Col>
-                                        <Col span={4} offset={11}>
-                                            <Button
-                                                className="
-                                                hover:bg-indigo-600 hover:text-white 
-                                                text-white bg-indigo-600 rounded-md
-                                                py-5 alignment-button-icon"
-                                                icon={<PlusOutlined />}
-                                                size="middle"
-                                            >
-                                                <Text className="text-white">Schedule new job</Text>
-                                            </Button>
-                                        </Col>
-                                        <Col span={4} offset={1}>
-                                            <Button
-                                                className="                                                hover:bg-indigo-600 hover:text-white 
-                                                text-white bg-indigo-600 rounded-md
-                                                py-5 alignment-button-icon"
-                                                icon={<PlayCircleOutlined />}
-                                                size="middle"
-                                            >
-                                                <Text className="text-white">Run new job</Text>
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                    <Menu
-                                        onClick={this.onDetailMenuTabChange}
-                                        selectedKeys={[this.state.pageTab]}
-                                        mode="horizontal"
-                                        items={this.itemsDetailMenu}
-                                    />
-                                    {pageTab === "overview" && (
-                                        <Content>
-                                            <Title level={4} className="text-center">
-                                                {name}
-                                            </Title>
-                                            <Row justify="center" className="spider-data">
-                                                <Space direction="vertical" size="large">
-                                                    <Text>
-                                                        <b>Spider ID:</b>&nbsp; {this.spiderId}
-                                                    </Text>
-                                                    <Text>
-                                                        <b>Project ID:</b>
-                                                        <Link to={`/projects/${this.projectId}`}>
-                                                            &nbsp; {this.projectId}
-                                                        </Link>
-                                                    </Text>
-                                                    <Table
-                                                        columns={this.columns}
-                                                        dataSource={jobs}
-                                                        pagination={false}
-                                                        size="middle"
+                                <Content className="bg-metal rounded-2xl">
+                                    <div className="lg:m-10 md:mx-6 mx-2">
+                                        <Row className="flow-root my-6 space-x-4">
+                                            <Col className="float-left">
+                                                <Text className="text-[#6C757D] text-xl">My Spider</Text>
+                                            </Col>
+                                            <Col className="float-right">
+                                                <Button
+                                                    icon={<Add className="mr-2" width={19} />}
+                                                    size="large"
+                                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                >
+                                                    Schedule new job
+                                                </Button>
+                                            </Col>
+                                            <Col className="float-right">
+                                                <Button
+                                                    icon={<Play className="mr-2" width={19} />}
+                                                    size="large"
+                                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                >
+                                                    Run new job
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                        <Tabs
+                                            defaultActiveKey={this.state.optionTab}
+                                            onChange={this.onDetailMenuTabChange}
+                                            items={[
+                                                {
+                                                    label: "Overview",
+                                                    key: "overview",
+                                                },
+                                                {
+                                                    label: "Settings",
+                                                    key: "settings",
+                                                },
+                                            ]}
+                                        />
+                                        {optionTab === "overview" && (
+                                            <Row justify="center" className="bg-white rounded-lg">
+                                                <Content>
+                                                    <Title level={4} className="text-center">
+                                                        {name}
+                                                    </Title>
+                                                    <Row justify="center" className="spider-data">
+                                                        <Space direction="vertical" size="large">
+                                                            <Text>
+                                                                <b>Spider ID:</b>&nbsp; {this.spiderId}
+                                                            </Text>
+                                                            <Text>
+                                                                <b>Project ID:</b>
+                                                                <Link to={`/projects/${this.projectId}`}>
+                                                                    &nbsp; {this.projectId}
+                                                                </Link>
+                                                            </Text>
+                                                            <Table
+                                                                columns={this.columns}
+                                                                dataSource={jobs}
+                                                                pagination={false}
+                                                                size="middle"
+                                                            />
+                                                        </Space>
+                                                    </Row>
+                                                    <Pagination
+                                                        className="pagination"
+                                                        defaultCurrent={1}
+                                                        total={count}
+                                                        current={current}
+                                                        pageSize={this.PAGE_SIZE}
+                                                        onChange={this.onPageChange}
+                                                        showSizeChanger={false}
                                                     />
-                                                </Space>
+                                                    <Link
+                                                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/create`}
+                                                    >
+                                                        <Button className="create-new-job">Create New Job</Button>
+                                                    </Link>
+                                                    <Link
+                                                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs`}
+                                                    >
+                                                        <Button className="create-new-job">Go to Cronjobs</Button>
+                                                    </Link>
+                                                </Content>
                                             </Row>
-                                            <Pagination
-                                                className="pagination"
-                                                defaultCurrent={1}
-                                                total={count}
-                                                current={current}
-                                                pageSize={this.PAGE_SIZE}
-                                                onChange={this.onPageChange}
-                                                showSizeChanger={false}
-                                            />
-                                            <Link
-                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/create`}
-                                            >
-                                                <Button className="create-new-job">Create New Job</Button>
-                                            </Link>
-                                            <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs`}>
-                                                <Button className="create-new-job">Go to Cronjobs</Button>
-                                            </Link>
-                                        </Content>
-                                    )}
-                                    {pageTab === "settings" && <Content>Settings</Content>}
+                                        )}
+                                        {optionTab === "settings" && (
+                                            <Row justify="center" className="bg-white rounded-lg">
+                                                <Content className="content-padding">
+                                                    <Row className="bg-white rounded-lg my-4">
+                                                        <div className="lg:m-8 md:mx-6 m-4">
+                                                            <p className="text-2xl text-black">Data persistence</p>
+                                                            <p className="text-sm my-2 text-estela-black-medium">
+                                                                Data persistence will be applied to all jobs and
+                                                                scheduled jobs by default.
+                                                            </p>
+                                                            <Content>
+                                                                <Row align="middle">
+                                                                    <Col span={6}>
+                                                                        <p className="text-sm my-2 text-[#212529]">
+                                                                            General Data Persistent
+                                                                        </p>
+                                                                    </Col>
+                                                                    <Col span={18}>
+                                                                        <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
+                                                                            <Radio.Button value="1 day">
+                                                                                1 day
+                                                                            </Radio.Button>
+                                                                            <Radio.Button value="1 week">
+                                                                                1 week
+                                                                            </Radio.Button>
+                                                                            <Radio.Button value="1 month">
+                                                                                1&nbsp;month
+                                                                            </Radio.Button>
+                                                                            <Radio.Button value="3 months">
+                                                                                3&nbsp;months
+                                                                            </Radio.Button>
+                                                                            <Radio.Button value="6 months">
+                                                                                6&nbsp;months
+                                                                            </Radio.Button>
+                                                                            <Radio.Button value="1 year">
+                                                                                1 year
+                                                                            </Radio.Button>
+                                                                            <Radio.Button value="forever">
+                                                                                Forever
+                                                                            </Radio.Button>
+                                                                        </Radio.Group>
+                                                                    </Col>
+                                                                </Row>
+                                                            </Content>
+                                                            <div className="h-12 w-80">
+                                                                <Button
+                                                                    block
+                                                                    htmlType="submit"
+                                                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                                                >
+                                                                    Save Changes
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </Row>
+                                                </Content>
+                                            </Row>
+                                        )}
+                                    </div>
                                 </Content>
                             </Layout>
                         ) : (
