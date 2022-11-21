@@ -289,11 +289,11 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                     </Col>
                                                                 </Row>
                                                             </Content>
-                                                            <div className="h-12 w-80">
+                                                            <div className="h-12 w-4/6">
                                                                 <Button
                                                                     block
                                                                     htmlType="submit"
-                                                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base min-h-full"
                                                                 >
                                                                     Save Changes
                                                                 </Button>
