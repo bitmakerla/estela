@@ -5,7 +5,7 @@ nav_order: 6
 ---
 
 # estela's Frequently Asked Questions  
-Below you will find answers to the questions we get asked the most about different estela topics (e.g.**[Installation], etc**)
+Below you will find answers to the questions we get asked the most about different estela topics.  
 
 ## estela Installation
 ### Q: How to start again installation process if I had mistakes in the [*resources guide*]({% link estela/installation/resources.md %}){:target="_blank"}?  

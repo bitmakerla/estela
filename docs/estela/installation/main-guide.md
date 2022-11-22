@@ -19,7 +19,7 @@ architectures (soon).
 
 ## Requirements
 
-estela runs on Linux based systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
+estela runs on Linux-based and Unix-like operating systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
 
 - [Docker v20.10.x with *docker-compose*](https://docs.docker.com/get-docker/){:target="_blank"} 
 - [Kubectl >= v1.23.x](https://kubernetes.io/docs/tasks/tools/#kubectl){:target="_blank"}  

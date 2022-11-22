@@ -99,4 +99,4 @@ to be configured, just use the Google services and your Gmail account credential
 
 ## Issues during the process
 
-In case you encounter some issues during the installation process, check out the **estela Installation** section in our [FAQ]({% link FAQ/index.md %}){:target="_blank"}.
+In case you encounter some issues during the installation process, check out the **estela Installation** section in our [FAQ]({% link FAQ/index.md %}#estela-installation).
