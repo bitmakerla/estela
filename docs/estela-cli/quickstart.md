@@ -40,9 +40,9 @@ Successful login. API Token stored in ~/.estela.yaml.
 This will save your estela API key to the file `~/.estela.yaml`, and it is
 needed to access projects associated with your account.  
 
-**_Note:_** If you have installed estela locally run the following command to get the host of the estela api, do not forget to add `http://` at the beginning:
+**_Note:_** If you have installed estela locally run the following command to get the host of the estela api, copy the _EXTERNAL-IP_ value and do not forget to add `http://` at the beginning:
 ```bash
-$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+$ kubectl get service estela-django-api-service -o custom-columns=EXTERNAL-IP:status.loadBalancer.ingress[0].ip
 ```
 
 ### Creating a project

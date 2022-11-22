@@ -8,28 +8,10 @@ nav_order: 6
 Below you will find answers to the questions we get asked the most about different estela topics.  
 
 ## estela Installation
-### Q: How to start again installation process if I had mistakes in the [*resources guide*]({% link estela/installation/resources.md %}){:target="_blank"}?  
-**Answer:** If you had some mistakes, such as the ones listed in this section, during the installation process and want to start again you can use this command `$minikube delete --all --purge` to clean all the corrupted images generated and start again the process, this applies also If you have had troubles after [*variables guide*]({% link estela/installation/helm-variables.md %}){:target="_blank"}.
-
-### Q: How to solve the following error during `make resources` step?  
+### Q: How do I restart the installation process?  
+**Answer:** You may face some problems if the installation guides are not followed in order. If you think you missed a critical step and want to start over, you should remove all the deployed resources.
+If you are working with local resources, you can remove them by running the following commands:  
+```bash
+$ minikube delete --all --purge
 ```
-E1109 18:46:36.969158    6835 logs.go:192] command /bin/bash -c "sudo /var/lib/minikube/
-binaries/v1.25.3/kubectl describe nodes --kubeconfig=/var/lib/minikube/kubeconfig" failed
- with error: /bin/bash -c "sudo /var/lib/minikube/binaries/v1.25.3/kubectl describe nodes
-  --kubeconfig=/var/lib/minikube/kubeconfig": Process exited with status 1
-stdout:
-stderr:
-The connection to the server localhost:8443 was refused - did you specify the right host or port?
- output: "\n** stderr ** \nThe connection to the server localhost:8443 was refused - did you specify the right host or port?\n\n** /stderr **"
-❗  unable to fetch logs for: describe nodes
-```
-**Answer:** In some systems the following option `--feature-gates="TTLAfterFinished=true"`  on the `installation/Makefile` document gives an error, we will fix it soon, just delete the selected line.
-```
-28    -. ./local/.env && minikube start \
-29	           --feature-gates="TTLAfterFinished=true" \  <-- delete this line
-30		   --insecure-registry=$${HOST_REGISTRY} \
-31		   --cpus="2" \
-32                   --memory="2500mb" \
-33		   --disk-size="20000mb"
-34	-minikube addons enable metrics-server
-```
+Look for the local docker images and delete them. If you already passed the [Helm deployment step]({% link estela/installation/helm-variables.md %}){:target="_blank"}, some docker volumes were created, delete them too.
