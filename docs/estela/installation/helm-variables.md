@@ -32,7 +32,7 @@ of estela.
 
 * _registryHost_ (Required): The registry host where the images of the estela modules are 
   located. If a local registry is being used, this host is equal to the above variable
-  _hostIp_.
+  _hostIp_, remember to add the port if you are using a local registry host: `<hostIp>:5000`.
 
 * _nodeSelector_ (Optional): The name of the node on which estela will be installed in case
   the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROLE_NAME }`.

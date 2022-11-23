@@ -26,12 +26,17 @@ resources:
 	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml up ${RESOURCES} -d
 	-minikube delete
 	-. ./local/.env && minikube start \
-	           --feature-gates="TTLAfterFinished=true" \
 		   --insecure-registry=$${HOST_REGISTRY} \
 		   --cpus="2" \
                    --memory="2500mb" \
 		   --disk-size="20000mb"
 	-minikube addons enable metrics-server
+
+
+.PHONY: delete-resources
+delete-resources:
+	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml down
+	-minikube delete --all --purge
 
 
 .PHONY: build-all-images

@@ -92,7 +92,11 @@ $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 ```
 
 The MongoDB database can be deployed on MongoDB Atlas for
-[free](https://www.mongodb.com/free-cloud-database){:target="_blank"}.
+[free](https://www.mongodb.com/free-cloud-database){:target="_blank"}, please refer to this [guide](https://www.mongodb.com/basics/mongodb-atlas-tutorial) to create one.
 To use a public SMTP server, please read the following
 [guide](https://kinsta.com/blog/gmail-smtp-server/){:target="_blank"}, nothing needs 
-to be configured, just use the Google services and your Gmail account credentials.
+to be configured, just use the Google services and your Gmail account credentials.  
+
+## Issues during the process
+
+In case you encounter some issues during the installation process, check out the **estela Installation** section in our [FAQ]({% link FAQ/index.md %}#estela-installation).

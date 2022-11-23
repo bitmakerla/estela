@@ -19,16 +19,18 @@ architectures (soon).
 
 ## Requirements
 
-- Docker v20.10.x with *docker-compose*
-- Kubectl >= v1.23.x
-- Helm >= v3.9.x
-- yarn v1.22.x
-- node v14.x
+estela runs on Linux-based and Unix-like operating systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
+
+- [Docker v20.10.x with *docker-compose*](https://docs.docker.com/get-docker/){:target="_blank"} 
+- [Kubectl >= v1.23.x](https://kubernetes.io/docs/tasks/tools/#kubectl){:target="_blank"}  
+- [Helm >= v3.9.x](https://helm.sh/docs/intro/install/){:target="_blank"}  
+- [yarn v1.22.x](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable){:target="_blank"}  
+- [node v14.x](https://nodejs.org/){:target="_blank"}  
 
 Extra requirements needed for local installation:
 
-- Python v3.6.x
-- Minikube >= v1.25.0
+- Python v3.6.x  
+- [Minikube >= v1.25.0](https://minikube.sigs.k8s.io/docs/start/){:target="_blank"}  
 
 For the rest of the installation, open a terminal in the _installation_ folder
 of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="_blank"}.
