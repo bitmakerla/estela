@@ -1,4 +1,5 @@
 import React, { Component, ReactElement } from "react";
+import moment from "moment";
 import {
     Layout,
     Typography,
@@ -8,14 +9,21 @@ import {
     Space,
     Tabs,
     Tag,
-    Pagination,
+    Modal,
     Table,
     Switch,
     Button,
     InputNumber,
+    DatePicker,
+    TimePicker,
+    Select,
     Radio,
     Checkbox,
+    Form,
+    Input,
 } from "antd";
+import type { DatePickerProps } from "antd";
+import cronstrue from "cronstrue";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -47,6 +55,7 @@ import {
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 
+const { Option } = Select;
 const { Content } = Layout;
 const { Text } = Typography;
 
@@ -66,10 +75,25 @@ interface TagsData {
 
 interface SpiderJobData {
     id: number | undefined;
+    sid: number | undefined;
     key: number | undefined;
     date: string;
     status: string | undefined;
     cronjob: number | null | undefined;
+    tags: TagsData[] | undefined;
+    args: ArgsData[] | undefined;
+}
+
+interface OptionDataRepeat {
+    label: string;
+    key: number;
+    value: string;
+}
+
+interface OptionDataPersistance {
+    label: string;
+    key: number;
+    value: number;
 }
 
 interface CronJobDetailPageState {
@@ -80,8 +104,23 @@ interface CronJobDetailPageState {
     tags: TagsData[];
     status: string | undefined;
     jobs: SpiderJobData[];
+    created: string;
+    currentDay: number;
+    modalVisible: boolean;
+    date: moment.Moment;
+    repeat: string;
+    expression: string;
+    recurrence: string;
+    recurrenceNum: number;
+    schedulesFlag: boolean[];
+    weekDays: boolean[];
+    queueJobs: SpiderJobData[];
+    runningJobs: SpiderJobData[];
+    completedJobs: SpiderJobData[];
+    errorJobs: SpiderJobData[];
     count: number;
     current: number;
+    tableStatus: boolean[];
     schedule: string | undefined;
     unique_collection: boolean | undefined;
     new_schedule: string | undefined;
@@ -107,6 +146,21 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         envVars: [],
         tags: [],
         jobs: [],
+        currentDay: 1,
+        date: moment(),
+        expression: "",
+        repeat: "hourly",
+        created: "",
+        queueJobs: [],
+        runningJobs: [],
+        completedJobs: [],
+        errorJobs: [],
+        recurrence: "weeks",
+        recurrenceNum: 1,
+        schedulesFlag: [true, false],
+        weekDays: new Array<boolean>(7).fill(false),
+        modalVisible: true,
+        tableStatus: new Array<boolean>(4).fill(true),
         status: "",
         schedule: "",
         unique_collection: false,
@@ -122,23 +176,48 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
     cronjobId: number = parseInt(this.props.match.params.cronjobId);
+    hourFormat = "HH:mm";
+    dateFormat = "MMM D, YYYY";
+
+    dataPeristenceOptions = [
+        { label: "1 day", key: 1, value: 1 },
+        { label: "1 week", key: 2, value: 7 },
+        { label: "1 month", key: 3, value: 30 },
+        { label: "3 months", key: 4, value: 90 },
+        { label: "6 months", key: 5, value: 180 },
+        { label: "1 year", key: 6, value: 365 },
+        { label: "Forever", key: 7, value: 720 },
+    ];
+
+    repeatOptions = [
+        { label: "Hourly", key: 1, value: "hourly" },
+        { label: "Daily", key: 2, value: "daily" },
+        { label: "Weekly", key: 3, value: "weekly" },
+        { label: "Monthly", key: 4, value: "monthly" },
+        { label: "Yearly", key: 5, value: "yearly" },
+        { label: "Custom ...", key: 6, value: "custom" },
+    ];
+
+    recurrenceOptions = [
+        { label: "Days", key: 1, value: "days" },
+        { label: "Weeks", key: 2, value: "weeks" },
+        { label: "Months", key: 3, value: "months" },
+        { label: "Years", key: 4, value: "years" },
+    ];
+
+    weekOptions = [
+        { label: "S", key: 0, value: 0 },
+        { label: "M", key: 1, value: 1 },
+        { label: "T", key: 2, value: 2 },
+        { label: "W", key: 3, value: 3 },
+        { label: "T", key: 4, value: 4 },
+        { label: "F", key: 5, value: 5 },
+        { label: "S", key: 6, value: 6 },
+    ];
 
     columns = [
         {
-            title: "Job ID",
-            dataIndex: "id",
-            key: "id",
-            render: (jobID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}>{jobID}</Link>
-            ),
-        },
-        {
-            title: "Date",
-            dataIndex: "date",
-            key: "date",
-        },
-        {
-            title: "Cronjob",
+            title: "SCHEDULED JOB",
             key: "cronjob",
             dataIndex: "cronjob",
             render: (cronjob: number): ReactElement =>
@@ -151,15 +230,54 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 ),
         },
         {
-            title: "Status",
-            key: "status",
-            dataIndex: "status",
+            title: "SPIDER",
+            dataIndex: "sid",
+            key: "sid",
+            render: (spiderID: number): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{spiderID}</Link>
+            ),
         },
-    ];
-
-    items = [
-        { key: "Sche-Job ID", value: "1" },
-        { key: "Sche-Job ID", value: "1" },
+        {
+            title: "JOB",
+            dataIndex: "id",
+            key: "id",
+            render: (jobID: number): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}>{jobID}</Link>
+            ),
+        },
+        {
+            title: "LAUNCH DATE",
+            dataIndex: "date",
+            key: "date",
+        },
+        {
+            title: "ARGUMENTS",
+            dataIndex: "args",
+            key: "args",
+            render: (args: ArgsData[]): ReactElement => (
+                <Content>
+                    {args.map((arg: ArgsData, id: number) => (
+                        <Tag key={id} className="text-xs text-estela border-estela rounded bg-button-hover">
+                            {arg.name}: {arg.value}
+                        </Tag>
+                    ))}
+                </Content>
+            ),
+        },
+        {
+            title: "TAGS",
+            dataIndex: "tags",
+            key: "tags",
+            render: (tags: TagsData[]): ReactElement => (
+                <Content>
+                    {tags.map((tag: TagsData, id) => (
+                        <Tag key={id} className="text-estela border-estela rounded bg-button-hover">
+                            {tag.name}
+                        </Tag>
+                    ))}
+                </Content>
+            ),
+        },
     ];
 
     async componentDidMount(): Promise<void> {
@@ -187,6 +305,26 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     }
                     this.initial_schedule = response.schedule || "";
                     const data = await this.getJobs(1);
+                    const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
+                    const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
+                    const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
+                    const queueJobs = data.data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
+                    const tableStatus = new Array<boolean>(4).fill(true);
+                    if (queueJobs.length === 0) {
+                        tableStatus[0] = false;
+                    }
+                    if (runningJobs.length === 0) {
+                        tableStatus[1] = false;
+                    }
+                    if (completedJobs.length === 0) {
+                        tableStatus[2] = false;
+                    }
+                    if (errorJobs.length === 0) {
+                        tableStatus[3] = false;
+                    }
+                    const weekDays = this.state.weekDays;
+                    weekDays[moment().day() % 7] = true;
+                    // checked or not depend of amount of jobs
                     const jobs: SpiderJobData[] = data.data;
                     this.setState({
                         name: response.name,
@@ -195,6 +333,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         tags: [...tags],
                         status: response.status,
                         schedule: response.schedule,
+                        created: convertDateToString(response.created),
                         unique_collection: response.uniqueCollection,
                         jobs: [...jobs],
                         count: data.count,
@@ -202,6 +341,13 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         dataStatus: response.dataStatus,
                         dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                         loaded: true,
+                        errorJobs: [...errorJobs],
+                        completedJobs: [...completedJobs],
+                        runningJobs: [...runningJobs],
+                        queueJobs: [...queueJobs],
+                        tableStatus: [...tableStatus],
+                        currentDay: moment().day(),
+                        weekDays: weekDays,
                     });
                 },
                 (error: unknown) => {
@@ -281,12 +427,14 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         const data = response.results.map((job: SpiderJob, iterator: number) => ({
             key: iterator,
             id: job.jid,
+            sid: job.spider,
             args: job.args,
             date: convertDateToString(job.created),
             status: job.jobStatus,
+            tags: job.tags,
             cronjob: job.cronjob,
         }));
-        return { data, count: response.count, current: page };
+        return { data: data, count: response.count, current: page };
     };
 
     onPageChange = async (page: number): Promise<void> => {
@@ -311,6 +459,14 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
 
     onChangeDay = (value: number | null): void => {
         this.setState({ dataExpiryDays: value, modified: true });
+    };
+
+    onChangeStatus = (index: number, count: number) => {
+        if (count === 0) {
+            const tableStatus = this.state.tableStatus;
+            tableStatus[index] = !tableStatus[index];
+            this.setState({ tableStatus: tableStatus });
+        }
     };
 
     runOnce = (): void => {
@@ -359,104 +515,616 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         );
     };
 
-    overview = (
-        <>
-            <Content className="grid lg:grid-cols-2 grid-cols-1 gap-4 items-start w-full">
-                <Card style={{ width: 400, borderRadius: "8px" }} bordered={false}>
-                    <Space direction="horizontal" className="flow-root items-center mx-4 w-full">
-                        <Text className="float-left py-2 text-estela-black-medium font-medium text-base">PERIOD</Text>
-                        <Button
-                            icon={<Edit className="flex h-6 w-6" />}
-                            size="large"
-                            className="float-right stroke-estela-blue-full border-none"
-                        ></Button>
-                    </Space>
-                    <Space direction="vertical" className="mx-4">
-                        <Text>Launch date</Text>
-                        <Text>01/01/2023, 11:30 PM</Text>
-                        <Text>Repeat every</Text>
-                        <Text className="text-sm">Weekly on Saturday, Monday, Wednesday</Text>
-                        <Text>Next launch: 01/02/2023, 11:30 PM</Text>
-                    </Space>
-                </Card>
-                <Card className="bg-yellow-100" style={{ borderRadius: "8px" }} bordered={false}>
-                    <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">DETAILS</Text>
-                    <Row className="grid grid-cols-3 py-1 px-4">
-                        <Col>Sche-Job ID</Col>
-                        <Col>01</Col>
-                    </Row>
-                    <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
-                        <Col>Spider</Col>
-                        <Col>My Spider</Col>
-                    </Row>
-                    <Row className="grid grid-cols-3 py-1 px-4">
-                        <Col className="col-span-1">Project ID</Col>
-                        <Col className="col-span-2">d6d92510-9d5d-4add-b803-b896c5e21f55</Col>
-                    </Row>
-                    <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
-                        <Col>Creation date</Col>
-                        <Col>16:23:00 09-13-2022</Col>
-                    </Row>
-                    <Row className="grid grid-cols-3 py-1 px-4">
-                        <Col>Tags</Col>
-                        <Col>scraping, my_tag</Col>
-                    </Row>
-                    <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
-                        <Col>Environment variables</Col>
-                        <Col>API_KEY=412dea23</Col>
-                    </Row>
-                    <Row className="grid grid-cols-3 py-1 px-4">
-                        <Col>Arguments</Col>
-                        <Col>job_type=products</Col>
-                    </Row>
-                </Card>
-            </Content>
-            <Content className="my-4">
-                <Row className="flow-root">
-                    <Text className="float-left text-estela-black-full font-medium text-2xl">Associated jobs</Text>
-                    <a className="float-right py-1 px-2 text-estela-blue-full text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg">
-                        See all
-                    </a>
-                </Row>
-                <Content className="m-2 flex items-start w-full">
-                    <Col className="float-left px-4 mx-2 bg-green-100 w-full">
-                        <Space className="flow-root">
-                            <Text className="text-estela-black-medium float-left py-1 font-medium text-lg">
-                                In queue
+    onChangeSchedule = (id: number): void => {
+        const checked = [false, false];
+        checked[id] = true;
+        this.setState({ schedulesFlag: checked, repeat: "hourly" });
+        if (id == 1) {
+            this.setState({ date: moment() });
+        }
+    };
+
+    onChangeExpression = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        this.setState({ expression: e.target.value });
+    };
+
+    onChangeDate: DatePickerProps["onChange"] = (date) => {
+        this.setState({ date: moment(date) });
+    };
+
+    handleRepeatChange = (value: string): void => {
+        this.setState({ repeat: value });
+    };
+
+    onChangeRecurrence = (value: number | null) => {
+        this.setState({ recurrenceNum: Number(value) });
+    };
+
+    handleRecurrenceChange = (value: string): void => {
+        this.setState({ recurrence: value });
+    };
+
+    handleWeekChange = (value: number): void => {
+        if (value % 7 != this.state.currentDay) {
+            const weekDays = [...this.state.weekDays];
+            weekDays[value] = !weekDays[value];
+            this.setState({ weekDays: weekDays });
+        }
+    };
+
+    overview = (): React.ReactNode => {
+        const {
+            args,
+            date,
+            envVars,
+            tags,
+            repeat,
+            schedule,
+            created,
+            weekDays,
+            unique_collection,
+            recurrenceNum,
+            recurrence,
+            schedulesFlag,
+            modalVisible,
+            tableStatus,
+            errorJobs,
+            completedJobs,
+            runningJobs,
+            queueJobs,
+        } = this.state;
+        return (
+            <>
+                <Content className="grid lg:grid-cols-3 grid-cols-1 gap-4 items-start lg:w-full">
+                    <Card className="w-fit col-span-1" style={{ borderRadius: "8px" }} bordered={false}>
+                        <Space direction="horizontal" className="flow-root items-center mx-4 w-full">
+                            <Text className="float-left py-2 text-estela-black-medium font-medium text-base">
+                                PERIOD
                             </Text>
-                            <Content className="float-right flex">
-                                <Button
-                                    disabled={true}
-                                    icon={<Filter className="h-6 w-6 mr-2" />}
-                                    size="large"
-                                    className="flex items-center stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Filter
-                                </Button>
-                                <Button
-                                    icon={<Setting className="h-6 w-6" />}
-                                    size="large"
-                                    className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                ></Button>
-                            </Content>
+                            <Button
+                                icon={<Edit className="flex h-6 w-6" />}
+                                onClick={() => this.setState({ modalVisible: true })}
+                                size="large"
+                                className="float-right stroke-estela-blue-full border-none"
+                            ></Button>
+                            <Modal
+                                style={{
+                                    overflow: "hidden",
+                                    padding: 0,
+                                }}
+                                centered
+                                width={400}
+                                visible={modalVisible}
+                                title={<Text className="text-xl ml-16 text-center font-normal">NEW SCHEDULED JOB</Text>}
+                                onCancel={() => this.setState({ modalVisible: false })}
+                                footer={null}
+                            >
+                                <Col className="schedule">
+                                    <Text className="text-base">Select a period</Text>
+                                    <Content className="">
+                                        <Content className="flex items-center">
+                                            <Switch
+                                                className="bg-estela-white-low"
+                                                size="small"
+                                                checked={schedulesFlag[0]}
+                                                onChange={() => this.onChangeSchedule(0)}
+                                            />
+                                            <Text className="text-sm my-4">&nbsp;By cron schedule expression</Text>
+                                        </Content>
+                                        {schedulesFlag[0] && (
+                                            <Form.Item>
+                                                <Text className="text-sm my-4">Expression</Text>
+                                                <Input
+                                                    placeholder="5 4 * * *"
+                                                    onChange={this.onChangeExpression}
+                                                    size="large"
+                                                    className="my-4 border-estela-blue-full placeholder:text-sm rounded-lg"
+                                                />
+                                                <p className="text-sm">
+                                                    More information about cron schedule expressions&nbsp;
+                                                    <a
+                                                        className="text-estela-blue-full"
+                                                        href="https://crontab.guru/"
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        here
+                                                    </a>
+                                                </p>
+                                            </Form.Item>
+                                        )}
+                                    </Content>
+                                    <Content className="my-3">
+                                        <Content className="flex items-center">
+                                            <Switch
+                                                className="bg-estela-white-low"
+                                                size="small"
+                                                checked={schedulesFlag[1]}
+                                                onChange={() => this.onChangeSchedule(1)}
+                                            />
+                                            <Text className="text-sm mb-2">&nbsp;Advanced</Text>
+                                        </Content>
+                                        {schedulesFlag[1] && (
+                                            <Content>
+                                                <Content className="my-3">
+                                                    <Space direction="horizontal">
+                                                        <Space direction="vertical">
+                                                            <p className="text-sm">Date</p>
+                                                            <DatePicker
+                                                                onChange={this.onChangeDate}
+                                                                size="large"
+                                                                className="border-estela-blue-full rounded-lg"
+                                                                defaultValue={date}
+                                                                format={this.dateFormat}
+                                                            />
+                                                        </Space>
+                                                        <Space direction="vertical">
+                                                            <p className="text-sm">Hour</p>
+                                                            <TimePicker
+                                                                onChange={this.onChangeDate}
+                                                                size="large"
+                                                                className="border-estela-blue-full rounded-lg"
+                                                                defaultValue={date}
+                                                                format={this.hourFormat}
+                                                            />
+                                                        </Space>
+                                                    </Space>
+                                                </Content>
+                                                <Content>
+                                                    <p className="text-sm my-4">Repeat</p>
+                                                    <Select
+                                                        onChange={this.handleRepeatChange}
+                                                        className="w-full"
+                                                        size="large"
+                                                        defaultValue={"hourly"}
+                                                    >
+                                                        {this.repeatOptions.map((option: OptionDataRepeat) => (
+                                                            <Option
+                                                                className="text-sm"
+                                                                key={option.key}
+                                                                value={option.value}
+                                                            >
+                                                                {option.label}
+                                                            </Option>
+                                                        ))}
+                                                    </Select>
+                                                </Content>
+                                                {repeat === "custom" && (
+                                                    <Content className="my-4">
+                                                        <Text className="text-sm my-4">Custom recurrence</Text>
+                                                        <Space direction="horizontal" className="my-4">
+                                                            <p className="text-sm">Every</p>
+                                                            <InputNumber
+                                                                onChange={this.onChangeRecurrence}
+                                                                min={1}
+                                                                max={12}
+                                                                size="large"
+                                                                className="border-estela-blue-full rounded-lg"
+                                                                value={recurrenceNum}
+                                                            />
+                                                            <Select
+                                                                onChange={this.handleRecurrenceChange}
+                                                                className="w-full"
+                                                                size="large"
+                                                                defaultValue={recurrence}
+                                                            >
+                                                                {this.recurrenceOptions.map(
+                                                                    (option: OptionDataRepeat) => (
+                                                                        <Option
+                                                                            className="text-sm"
+                                                                            key={option.key}
+                                                                            value={option.value}
+                                                                        >
+                                                                            {option.label}
+                                                                        </Option>
+                                                                    ),
+                                                                )}
+                                                            </Select>
+                                                        </Space>
+                                                        {recurrence === "weeks" && (
+                                                            <Content>
+                                                                <Text className="text-sm">Repeat on</Text>
+                                                                <Space
+                                                                    className="grid grid-cols-7 mb-6 mt-4"
+                                                                    direction="horizontal"
+                                                                >
+                                                                    {this.weekOptions.map(
+                                                                        (option: OptionDataPersistance) => (
+                                                                            <Checkbox
+                                                                                key={option.key}
+                                                                                onChange={() => {
+                                                                                    this.handleWeekChange(option.value);
+                                                                                }}
+                                                                                checked={weekDays[option.key]}
+                                                                            >
+                                                                                {option.label}
+                                                                            </Checkbox>
+                                                                        ),
+                                                                    )}
+                                                                </Space>
+                                                            </Content>
+                                                        )}
+                                                    </Content>
+                                                )}
+                                            </Content>
+                                        )}
+                                    </Content>
+                                    <Row justify="center" className="mt-4 gap-4">
+                                        <Button
+                                            // onClick={this.handleSubmit}
+                                            size="large"
+                                            className="h-12 w-40 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                        >
+                                            Save changes
+                                        </Button>
+                                        <Button
+                                            size="large"
+                                            className="h-12 w-40 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                            onClick={() => this.setState({ modalVisible: false })}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </Row>
+                                </Col>
+                            </Modal>
                         </Space>
-                    </Col>
-                    <Col className="float-right bg-red-100 rounded-lg w-48">
-                        <Content className="my-2 mx-3">
-                            <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
-                            <Content className="my-2">
-                                <Checkbox defaultChecked={false}>In queue</Checkbox>
-                                <br />
-                                <Checkbox defaultChecked>Running</Checkbox>
-                                <br />
-                                <Checkbox defaultChecked>Completed</Checkbox>
-                            </Content>
-                        </Content>
-                    </Col>
+                        <Space direction="vertical" className="mx-4">
+                            <Text className="text-estela-black-full font-medium">Launch date</Text>
+                            <Text className="text-estela-black-medium leading-5">{created}</Text>
+                            <Text className="text-estela-black-full font-medium">Repeat every</Text>
+                            <Text className="text-estela-black-medium leading-5">{cronstrue.toString(schedule)}</Text>
+                        </Space>
+                    </Card>
+                    <Card className="w-full col-span-2" style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">DETAILS</Text>
+                        <Row className="grid grid-cols-3 py-1 px-4 mt-4">
+                            <Col>Sche-Job ID</Col>
+                            <Col>{this.cronjobId}</Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Spider</Col>
+                            <Col>
+                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{this.spiderId}</Link>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4">
+                            <Col className="col-span-1">Project ID</Col>
+                            <Col className="col-span-2">
+                                <Link to={`/projects/${this.projectId}`}>{this.projectId}</Link>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Creation date</Col>
+                            <Col>{created}</Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4 rounded-lg">
+                            <Col>Unique collection</Col>
+                            <Col>
+                                {unique_collection ? (
+                                    <Tag
+                                        className="border-estela-green-full bg-estela-blue-low text-estela-green-full rounded-md"
+                                        key={"true"}
+                                    >
+                                        Yes
+                                    </Tag>
+                                ) : (
+                                    <Tag
+                                        className="border-estela-black-medium bg-estela-white-low text-estela-black-medium rounded-md"
+                                        key={"false"}
+                                    >
+                                        No
+                                    </Tag>
+                                )}
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4">
+                            <Col>Tags</Col>
+                            <Col>
+                                <Space direction="horizontal">
+                                    {tags.map((tag: TagsData, id) => (
+                                        <Tag
+                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                            key={id}
+                                        >
+                                            {tag.name}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4 rounded-lg">
+                            <Col>Environment variables</Col>
+                            <Col>
+                                <Space direction="vertical">
+                                    {envVars.map((envVar: EnvVarsData, id) => (
+                                        <Tag
+                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                            key={id}
+                                        >
+                                            {envVar.name}: {envVar.value}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4">
+                            <Col>Arguments</Col>
+                            <Col>
+                                <Space direction="horizontal">
+                                    {args.map((arg: ArgsData, id) => (
+                                        <Tag
+                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                            key={id}
+                                        >
+                                            {arg.name}: {arg.value}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </Col>
+                        </Row>
+                    </Card>
                 </Content>
-            </Content>
-        </>
-    );
+                <Content className="my-4">
+                    <Row className="flow-root lg:my-6 my-4">
+                        <Text className="float-left text-estela-black-full font-medium text-2xl">Associated jobs</Text>
+                        <a className="float-right py-1 px-3 text-estela-blue-full text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg">
+                            See all
+                        </a>
+                    </Row>
+                    <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
+                        <Col className="float-left col-span-4">
+                            {tableStatus[0] && (
+                                <Row className="my-2 rounded-lg bg-white">
+                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                        <Col className="float-left py-1">
+                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                In queue
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {queueJobs.length}
+                                            </Tag>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled={true}
+                                                icon={<Filter className="h-6 w-6 mr-2" />}
+                                                size="large"
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Filter
+                                            </Button>
+                                            <Button
+                                                icon={<Setting className="h-6 w-6" />}
+                                                size="large"
+                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                            ></Button>
+                                        </Col>
+                                    </Content>
+                                    <Content className="mx-4 my-1">
+                                        <Table
+                                            scroll={{}}
+                                            size="small"
+                                            rowSelection={{
+                                                type: "checkbox",
+                                            }}
+                                            columns={this.columns}
+                                            dataSource={queueJobs}
+                                            pagination={false}
+                                        />
+                                    </Content>
+                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                    <Space direction="horizontal" className="my-2 mx-4">
+                                        <Button className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl">
+                                            Cancel
+                                        </Button>
+                                        <Button className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl">
+                                            Edit
+                                        </Button>
+                                    </Space>
+                                </Row>
+                            )}
+                            {tableStatus[1] && (
+                                <Row className="my-2 rounded-lg bg-white">
+                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                        <Col className="float-left py-1">
+                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                Running
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {runningJobs.length}
+                                            </Tag>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled={true}
+                                                icon={<Filter className="h-6 w-6 mr-2" />}
+                                                size="large"
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Filter
+                                            </Button>
+                                            <Button
+                                                icon={<Setting className="h-6 w-6" />}
+                                                size="large"
+                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                            ></Button>
+                                        </Col>
+                                    </Content>
+                                    <Content className="mx-4 my-1">
+                                        <Table
+                                            size="small"
+                                            rowSelection={{
+                                                type: "checkbox",
+                                            }}
+                                            columns={this.columns}
+                                            dataSource={runningJobs}
+                                            pagination={false}
+                                        />
+                                    </Content>
+                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                    <Space direction="horizontal" className="my-2 mx-4">
+                                        <Button className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl">
+                                            Cancel
+                                        </Button>
+                                    </Space>
+                                </Row>
+                            )}
+                            {tableStatus[2] && (
+                                <Row className="my-2 rounded-lg bg-white">
+                                    <Row className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                        <Col className="float-left py-1">
+                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                Completed
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {completedJobs.length}
+                                            </Tag>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled={true}
+                                                icon={<Filter className="h-6 w-6 mr-2" />}
+                                                size="large"
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Filter
+                                            </Button>
+                                            <Button
+                                                icon={<Setting className="h-6 w-6" />}
+                                                size="large"
+                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                            ></Button>
+                                        </Col>
+                                    </Row>
+                                    <Content className="mx-4 my-1">
+                                        <Table
+                                            size="small"
+                                            rowSelection={{
+                                                type: "checkbox",
+                                            }}
+                                            columns={this.columns}
+                                            dataSource={completedJobs}
+                                            pagination={false}
+                                        />
+                                    </Content>
+                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                    <Space direction="horizontal" className="my-2 mx-4">
+                                        <Button className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl">
+                                            Run again
+                                        </Button>
+                                    </Space>
+                                </Row>
+                            )}
+                            {tableStatus[3] && (
+                                <Row className="my-2 rounded-lg bg-white">
+                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                        <Col className="float-left py-1">
+                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                Error
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {errorJobs.length}
+                                            </Tag>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled={true}
+                                                icon={<Filter className="h-6 w-6 mr-2" />}
+                                                size="large"
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Filter
+                                            </Button>
+                                            <Button
+                                                icon={<Setting className="h-6 w-6" />}
+                                                size="large"
+                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                            ></Button>
+                                        </Col>
+                                    </Content>
+                                    <Content className="mx-4 my-1">
+                                        <Table
+                                            size="small"
+                                            rowSelection={{
+                                                type: "checkbox",
+                                            }}
+                                            columns={this.columns}
+                                            dataSource={errorJobs}
+                                            pagination={false}
+                                        />
+                                    </Content>
+                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                    <Space direction="horizontal" className="my-2 mx-4">
+                                        <Button className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl">
+                                            Run again
+                                        </Button>
+                                    </Space>
+                                </Row>
+                            )}
+                        </Col>
+                        <Col className="float-right my-2 col-span-1 rounded-lg w-48 bg-white">
+                            <Content className="my-2 mx-3">
+                                <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
+                                <Content className="my-2">
+                                    <Checkbox
+                                        checked={queueJobs.length == 0 ? tableStatus[0] : true}
+                                        onChange={() => this.onChangeStatus(0, queueJobs.length)}
+                                    >
+                                        <Space direction="horizontal">
+                                            <Text className="text-estela-black-medium font-medium text-sm">Queue</Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {queueJobs.length}
+                                            </Tag>
+                                        </Space>
+                                    </Checkbox>
+                                    <br />
+                                    <Checkbox
+                                        checked={runningJobs.length == 0 ? tableStatus[1] : true}
+                                        onChange={() => this.onChangeStatus(1, runningJobs.length)}
+                                    >
+                                        <Space direction="horizontal">
+                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                Running
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {runningJobs.length}
+                                            </Tag>
+                                        </Space>
+                                    </Checkbox>
+                                    <br />
+                                    <Checkbox
+                                        checked={completedJobs.length == 0 ? tableStatus[2] : true}
+                                        onChange={() => this.onChangeStatus(2, completedJobs.length)}
+                                    >
+                                        <Space direction="horizontal">
+                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                Completed
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {completedJobs.length}
+                                            </Tag>
+                                        </Space>
+                                    </Checkbox>
+                                    <br />
+                                    <Checkbox
+                                        checked={errorJobs.length == 0 ? tableStatus[3] : true}
+                                        onChange={() => this.onChangeStatus(3, errorJobs.length)}
+                                    >
+                                        <Space direction="horizontal">
+                                            <Text className="text-estela-black-medium font-medium text-sm">Error</Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {errorJobs.length}
+                                            </Tag>
+                                        </Space>
+                                    </Checkbox>
+                                </Content>
+                            </Content>
+                        </Col>
+                    </Content>
+                </Content>
+            </>
+        );
+    };
 
     dataPersistence = (
         <>
@@ -546,15 +1214,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     render(): JSX.Element {
         const {
             loaded,
-            args,
-            envVars,
-            tags,
             status,
-            count,
-            current,
-            jobs,
+            // count,
+            // current,
+            // jobs,
             schedule,
-            unique_collection,
+            // unique_collection,
             dataStatus,
             dataExpiryDays,
             loading_status,
@@ -569,7 +1234,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         {loaded ? (
                             <Layout className="bg-white">
                                 <Content className="bg-metal rounded-2xl">
-                                    <Row className="flow-root lg:mx-10 mx-6 mb-6">
+                                    <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
                                         <Col className="float-left">
                                             <Text className="text-estela-black-medium font-medium text-xl">
                                                 Sche-Job-{this.cronjobId}
@@ -577,6 +1242,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                         </Col>
                                         <Col className="float-right flex">
                                             <Button
+                                                disabled={true}
                                                 icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
                                                 size="large"
                                                 className="flex items-center mr-2 stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
@@ -584,6 +1250,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 Clone
                                             </Button>
                                             <Button
+                                                onClick={this.runOnce}
                                                 icon={<Run className="h-6 w-6 mr-2 text-sm" />}
                                                 size="large"
                                                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
@@ -600,7 +1267,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 {
                                                     label: "Overview",
                                                     key: "1",
-                                                    children: this.overview,
+                                                    children: this.overview(),
                                                 },
                                                 {
                                                     label: "Data persistence",
@@ -612,19 +1279,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Row>
                                     <Row justify="center" className="cronjob-data">
                                         <Space direction="vertical" size="large">
-                                            <Text>
-                                                <b>CronJob ID:</b>&nbsp; {this.cronjobId}
-                                            </Text>
-                                            <Text>
-                                                <b>Spider ID:</b>&nbsp;
-                                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>
-                                                    {this.spiderId}
-                                                </Link>
-                                            </Text>
-                                            <Text>
-                                                <b>Project ID:</b>
-                                                <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
-                                            </Text>
                                             <Text>
                                                 <b>Active:</b>&nbsp;
                                                 <Switch
@@ -685,11 +1339,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                     )}
                                                 </Space>
                                             </Text>
-                                            <Text>
+                                            {/* <Text>
                                                 <b>Unique Collection:</b>&nbsp;
                                                 {unique_collection ? "Yes" : "No"}
-                                            </Text>
-                                            <Space direction="vertical">
+                                            </Text> */}
+                                            {/* <Space direction="vertical">
                                                 <b>Arguments</b>
                                                 {args.map((arg: ArgsData, id) => (
                                                     <Tag key={id}>
@@ -712,26 +1366,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                         <Tag key={id}>{tag.name}</Tag>
                                                     ))}
                                                 </Space>
-                                            </Space>
-                                            <Button type="primary" className="go-to-spiders" onClick={this.runOnce}>
+                                            </Space> */}
+                                            {/* <Button type="primary" className="go-to-spiders" onClick={this.runOnce}>
                                                 Run once
-                                            </Button>
+                                            </Button> */}
                                         </Space>
                                     </Row>
-                                    <Row justify="center" className="cronjob-data">
-                                        <Space direction="vertical" size="large">
-                                            <Table columns={this.columns} dataSource={jobs} pagination={false} />
-                                        </Space>
-                                    </Row>
-                                    <Pagination
-                                        className="pagination"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
-                                    />
                                 </Content>
                             </Layout>
                         ) : (

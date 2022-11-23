@@ -498,7 +498,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     onChangeSchedule = (id: number): void => {
         const checked = [false, false];
         checked[id] = true;
-        this.setState({ schedulesFlag: checked, repeat: "@hourly" });
+        this.setState({ schedulesFlag: checked, repeat: "hourly" });
         if (id == 1) {
             this.setState({ date: moment() });
         }
