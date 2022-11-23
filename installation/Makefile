@@ -33,6 +33,12 @@ resources:
 	-minikube addons enable metrics-server
 
 
+.PHONY: delete-resources
+delete-resources:
+	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml down
+	-minikube delete --all --purge
+
+
 .PHONY: build-all-images
 build-all-images:
 	-. ./local/.env && cd $(API_DIR) && \
