@@ -77,7 +77,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         if name:
             instance.name = name
-        if user_email:
+        if user_email and user_email != user_permision:
             user = User.objects.filter(email=user_email)
             user_instance = User.objects.filter(email=user_permision)
             if user:

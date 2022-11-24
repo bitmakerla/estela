@@ -182,6 +182,9 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         onChange: (selectedRowKeys: React.Key[], selectedRows: MemberState[]) => {
             this.setState({ selectedRows: selectedRows });
         },
+        getCheckboxProps: (record: MemberState) => ({
+            disabled: record.username === AuthService.getUserUsername(),
+        }),
     };
 
     handleDeleteRow = (): void => {
