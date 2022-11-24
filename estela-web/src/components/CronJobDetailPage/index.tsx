@@ -16,13 +16,14 @@ import {
     InputNumber,
     DatePicker,
     TimePicker,
+    Pagination,
     Select,
     Radio,
     Checkbox,
-    Form,
     Input,
+    message,
 } from "antd";
-import type { DatePickerProps } from "antd";
+import type { DatePickerProps, RadioChangeEvent } from "antd";
 import cronstrue from "cronstrue";
 import { Link, RouteComponentProps } from "react-router-dom";
 
@@ -33,6 +34,7 @@ import Run from "../../assets/icons/play.svg";
 import Edit from "../../assets/icons/edit.svg";
 import Filter from "../../assets/icons/filter.svg";
 import Setting from "../../assets/icons/setting.svg";
+import Pause from "../../assets/icons/pause.svg";
 import {
     ApiProjectsSpidersCronjobsUpdateRequest,
     ApiProjectsSpidersCronjobsReadRequest,
@@ -124,7 +126,7 @@ interface CronJobDetailPageState {
     schedule: string | undefined;
     unique_collection: boolean | undefined;
     new_schedule: string | undefined;
-    dataStatus: string | undefined;
+    dataStatus: SpiderCronJobUpdateDataStatusEnum | SpiderCronJobDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
     loading_status: boolean;
     modified: boolean;
@@ -159,7 +161,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         recurrenceNum: 1,
         schedulesFlag: [true, false],
         weekDays: new Array<boolean>(7).fill(false),
-        modalVisible: true,
+        modalVisible: false,
         tableStatus: new Array<boolean>(4).fill(true),
         status: "",
         schedule: "",
@@ -167,7 +169,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         new_schedule: "",
         count: 0,
         current: 0,
-        dataStatus: "",
+        dataStatus: undefined,
         dataExpiryDays: 0,
         loading_status: false,
         modified: false,
@@ -179,7 +181,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     hourFormat = "HH:mm";
     dateFormat = "MMM D, YYYY";
 
-    dataPeristenceOptions = [
+    dataPersistenceOptions = [
         { label: "1 day", key: 1, value: 1 },
         { label: "1 week", key: 2, value: 7 },
         { label: "1 month", key: 3, value: 30 },
@@ -324,7 +326,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     }
                     const weekDays = this.state.weekDays;
                     weekDays[moment().day() % 7] = true;
-                    // checked or not depend of amount of jobs
                     const jobs: SpiderJobData[] = data.data;
                     this.setState({
                         name: response.name,
@@ -376,6 +377,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
             (response: SpiderCronJobUpdate) => {
                 this.setState({ schedule: response.schedule });
+                message.success("Schedule updated successfully");
             },
             (error: unknown) => {
                 console.log(error);
@@ -387,10 +389,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     updateDataExpiry = (): void => {
         this.setState({ loading_status: true });
         const requestData: SpiderCronJobUpdate = {
-            dataStatus:
-                this.state.dataStatus == SpiderCronJobUpdateDataStatusEnum.Persistent
-                    ? this.state.dataStatus
-                    : SpiderCronJobUpdateDataStatusEnum.Pending,
+            dataStatus: this.state.dataStatus,
             dataExpiryDays: this.state.dataExpiryDays,
         };
         const request: ApiProjectsSpidersCronjobsUpdateRequest = {
@@ -407,6 +406,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     modified: false,
                     loading_status: false,
                 });
+                console.log(response);
             },
             (error: unknown) => {
                 console.log(error);
@@ -449,16 +449,16 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         });
     };
 
-    onChangeData = (): void => {
-        const _dataStatus =
-            this.state.dataStatus == SpiderCronJobUpdateDataStatusEnum.Persistent
-                ? SpiderCronJobUpdateDataStatusEnum.Pending
-                : SpiderCronJobUpdateDataStatusEnum.Persistent;
-        this.setState({ dataStatus: _dataStatus, modified: true });
-    };
-
-    onChangeDay = (value: number | null): void => {
-        this.setState({ dataExpiryDays: value, modified: true });
+    onChangeDataPersistence = ({ target: { value } }: RadioChangeEvent): void => {
+        if (value === 720) {
+            this.setState({ dataStatus: SpiderCronJobUpdateDataStatusEnum.Persistent, modified: true });
+        } else {
+            this.setState({
+                dataExpiryDays: value,
+                dataStatus: SpiderCronJobUpdateDataStatusEnum.Pending,
+                modified: true,
+            });
+        }
     };
 
     onChangeStatus = (index: number, count: number) => {
@@ -488,12 +488,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         );
     };
 
-    updateStatus = (): void => {
+    updateStatus = (_status: SpiderCronJobUpdateStatusEnum): void => {
         this.setState({ loading_status: true });
-        const _status =
-            this.state.status == SpiderCronJobUpdateStatusEnum.Disabled
-                ? SpiderCronJobUpdateStatusEnum.Active
-                : SpiderCronJobUpdateStatusEnum.Disabled;
         const request: ApiProjectsSpidersCronjobsUpdateRequest = {
             cjid: this.cronjobId,
             sid: this.spiderId,
@@ -552,16 +548,71 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         }
     };
 
+    getCustomExpression = (): string => {
+        const { date, recurrence, recurrenceNum, weekDays } = this.state;
+        let days = "";
+        weekDays.map((day, index) => {
+            if (day) {
+                days += index + ",";
+            }
+        });
+
+        switch (recurrence) {
+            case "days":
+                return `${date.minutes()} ${date.hours()} */${recurrenceNum} * *`;
+            case "weeks":
+                return `${date.minutes()} ${date.hours()} * * ${days.slice(0, -1)}`;
+            case "months":
+                return `${date.minutes()} ${date.hours()} ${date.date()} */${recurrenceNum} *`;
+            case "years":
+                return `${date.minutes()} ${date.hours()} ${date.date()} ${date.month() + 1}/${recurrenceNum * 12} *`;
+            default:
+                return `${date.minutes()} ${date.hours()} * ${recurrenceNum * 7} * ${days.slice(0, -1)}`;
+        }
+    };
+
+    getExpression = (): string => {
+        const { repeat, date } = this.state;
+        switch (repeat) {
+            case "hourly":
+                return `${date.minutes()} * * * *`;
+            case "daily":
+                return `${date.minutes()} ${date.hours()} * * *`;
+            case "weekly":
+                return `${date.minutes()} ${date.hours()} * * ${date.day()}`;
+            case "monthly":
+                return `${date.minutes()} ${date.hours()} ${date.date()} * *`;
+            case "yearly":
+                return `${date.minutes()} ${date.hours()} ${date.date()} ${date.month() + 1} *`;
+            default:
+                return this.getCustomExpression();
+        }
+    };
+
+    handleSubmit = (): void => {
+        let expression = "";
+        if (this.state.schedulesFlag[0]) {
+            expression = this.state.expression;
+        } else {
+            expression = this.getExpression();
+        }
+        this.updateSchedule(expression);
+        this.setState({ modalVisible: false });
+    };
+
     overview = (): React.ReactNode => {
         const {
             args,
             date,
             envVars,
+            count,
+            current,
             tags,
             repeat,
             schedule,
             created,
             weekDays,
+            expression,
             unique_collection,
             recurrenceNum,
             recurrence,
@@ -593,7 +644,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     padding: 0,
                                 }}
                                 centered
-                                width={400}
+                                width={380}
                                 visible={modalVisible}
                                 title={<Text className="text-xl ml-16 text-center font-normal">NEW SCHEDULED JOB</Text>}
                                 onCancel={() => this.setState({ modalVisible: false })}
@@ -601,40 +652,48 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             >
                                 <Col className="schedule">
                                     <Text className="text-base">Select a period</Text>
-                                    <Content className="">
-                                        <Content className="flex items-center">
+                                    <Content>
+                                        <Content className="flex items-center my-2">
                                             <Switch
                                                 className="bg-estela-white-low"
                                                 size="small"
                                                 checked={schedulesFlag[0]}
                                                 onChange={() => this.onChangeSchedule(0)}
                                             />
-                                            <Text className="text-sm my-4">&nbsp;By cron schedule expression</Text>
+                                            <Text className="text-sm">&nbsp;By cron schedule expression</Text>
                                         </Content>
                                         {schedulesFlag[0] && (
-                                            <Form.Item>
-                                                <Text className="text-sm my-4">Expression</Text>
+                                            <Content className="my-3">
+                                                <Text className="text-sm">Expression</Text>
                                                 <Input
                                                     placeholder="5 4 * * *"
                                                     onChange={this.onChangeExpression}
                                                     size="large"
-                                                    className="my-4 border-estela-blue-full placeholder:text-sm rounded-lg"
+                                                    className="my-2 border-estela-blue-full placeholder:text-sm rounded-lg"
                                                 />
-                                                <p className="text-sm">
+                                                {expression.length == 0 && (
+                                                    <Content>
+                                                        <Text className="text-xs text-red-500 mb-2">
+                                                            This field is mandatory
+                                                        </Text>
+                                                        <br />
+                                                    </Content>
+                                                )}
+                                                <Text className="text-xs">
                                                     More information about cron schedule expressions&nbsp;
-                                                    <a
-                                                        className="text-estela-blue-full"
-                                                        href="https://crontab.guru/"
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                    >
-                                                        here
-                                                    </a>
-                                                </p>
-                                            </Form.Item>
+                                                </Text>
+                                                <a
+                                                    className="text-estela-blue-full text-xs font-medium"
+                                                    href="https://crontab.guru/"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    here
+                                                </a>
+                                            </Content>
                                         )}
                                     </Content>
-                                    <Content className="my-3">
+                                    <Content className="mt-2 mb-4">
                                         <Content className="flex items-center">
                                             <Switch
                                                 className="bg-estela-white-low"
@@ -642,10 +701,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 checked={schedulesFlag[1]}
                                                 onChange={() => this.onChangeSchedule(1)}
                                             />
-                                            <Text className="text-sm mb-2">&nbsp;Advanced</Text>
+                                            <Text className="text-sm">&nbsp;Advanced</Text>
                                         </Content>
                                         {schedulesFlag[1] && (
-                                            <Content>
+                                            <Content className="my-2">
                                                 <Content className="my-3">
                                                     <Space direction="horizontal">
                                                         <Space direction="vertical">
@@ -670,8 +729,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                         </Space>
                                                     </Space>
                                                 </Content>
-                                                <Content>
-                                                    <p className="text-sm my-4">Repeat</p>
+                                                <Content className="my-3">
+                                                    <p className="text-sm my-3">Repeat</p>
                                                     <Select
                                                         onChange={this.handleRepeatChange}
                                                         className="w-full"
@@ -690,9 +749,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                     </Select>
                                                 </Content>
                                                 {repeat === "custom" && (
-                                                    <Content className="my-4">
+                                                    <Content className="my-3">
                                                         <Text className="text-sm my-4">Custom recurrence</Text>
-                                                        <Space direction="horizontal" className="my-4">
+                                                        <Space direction="horizontal" className="my-3">
                                                             <p className="text-sm">Every</p>
                                                             <InputNumber
                                                                 onChange={this.onChangeRecurrence}
@@ -725,7 +784,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                             <Content>
                                                                 <Text className="text-sm">Repeat on</Text>
                                                                 <Space
-                                                                    className="grid grid-cols-7 mb-6 mt-4"
+                                                                    className="grid grid-cols-7 mb-6 mt-2 mx-2"
                                                                     direction="horizontal"
                                                                 >
                                                                     {this.weekOptions.map(
@@ -749,17 +808,18 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                             </Content>
                                         )}
                                     </Content>
-                                    <Row justify="center" className="mt-4 gap-4">
+                                    <Row className="grid grid-cols-2 gap-1">
                                         <Button
-                                            // onClick={this.handleSubmit}
+                                            disabled={expression.length == 0 && !schedulesFlag[1]}
+                                            onClick={this.handleSubmit}
                                             size="large"
-                                            className="h-12 w-40 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                            className="h-12 bg-estela-blue-full border-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
                                         >
                                             Save changes
                                         </Button>
                                         <Button
                                             size="large"
-                                            className="h-12 w-40 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                            className="h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
                                             onClick={() => this.setState({ modalVisible: false })}
                                         >
                                             Cancel
@@ -867,9 +927,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 <Content className="my-4">
                     <Row className="flow-root lg:my-6 my-4">
                         <Text className="float-left text-estela-black-full font-medium text-2xl">Associated jobs</Text>
-                        <a className="float-right py-1 px-3 text-estela-blue-full text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg">
+                        <Button
+                            onClick={() => this.setState({ tableStatus: Array(4).fill(true) })}
+                            className="float-right py-1 px-3 text-estela-blue-full border-none text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                        >
                             See all
-                        </a>
+                        </Button>
                     </Row>
                     <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
                         <Col className="float-left col-span-4">
@@ -914,10 +977,16 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Content>
                                     <Row className="w-full h-6 bg-estela-white-low"></Row>
                                     <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl">
+                                        <Button
+                                            disabled
+                                            className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                        >
                                             Cancel
                                         </Button>
-                                        <Button className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl">
+                                        <Button
+                                            disabled
+                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                        >
                                             Edit
                                         </Button>
                                     </Space>
@@ -963,7 +1032,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Content>
                                     <Row className="w-full h-6 bg-estela-white-low"></Row>
                                     <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl">
+                                        <Button
+                                            disabled
+                                            className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                        >
                                             Cancel
                                         </Button>
                                     </Space>
@@ -1009,7 +1081,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Content>
                                     <Row className="w-full h-6 bg-estela-white-low"></Row>
                                     <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl">
+                                        <Button
+                                            disabled
+                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                        >
                                             Run again
                                         </Button>
                                     </Space>
@@ -1055,12 +1130,26 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Content>
                                     <Row className="w-full h-6 bg-estela-white-low"></Row>
                                     <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl">
+                                        <Button
+                                            disabled
+                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                        >
                                             Run again
                                         </Button>
                                     </Space>
                                 </Row>
                             )}
+                            <Row>
+                                <Pagination
+                                    className="pagination"
+                                    defaultCurrent={1}
+                                    total={count}
+                                    current={current}
+                                    pageSize={this.PAGE_SIZE}
+                                    onChange={this.onPageChange}
+                                    showSizeChanger={false}
+                                />
+                            </Row>
                         </Col>
                         <Col className="float-right my-2 col-span-1 rounded-lg w-48 bg-white">
                             <Content className="my-2 mx-3">
@@ -1126,105 +1215,55 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         );
     };
 
-    dataPersistence = (
-        <>
-            <Content>
-                <Row className="bg-white rounded-lg">
-                    <div className="lg:m-8 md:mx-6 m-4">
-                        <p className="text-2xl text-black">Data persistence</p>
-                        <p className="text-sm my-2 text-estela-black-medium">
-                            Data persistence will be applied to all jobs creadted from this schedue job by default.
-                        </p>
-                        <Content>
-                            <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
-                                <Radio.Button
-                                    value="1 day"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("1 day");
-                                    // }}
+    dataPersistence = (): React.ReactNode => {
+        const { dataExpiryDays, modified } = this.state;
+        return (
+            <>
+                <Content>
+                    <Row className="bg-white py-6 px-8 rounded-lg">
+                        <Space direction="vertical" className="w-full">
+                            <Text className="text-2xl text-black">Data persistence</Text>
+                            <p className="text-sm text-estela-black-medium">
+                                Data persistence will be applied to all jobs creadted from this schedue job by default.
+                            </p>
+                            <Space direction="horizontal">
+                                <Text className="text-estela-black-full text-sm mr-2">
+                                    Schedule jobs data persistence
+                                </Text>
+                                <Radio.Group
+                                    className="my-2 grid lg:grid-cols-7 md:grid-cols-3 sm:grid-cols-2 gap-2"
+                                    defaultValue={dataExpiryDays}
                                 >
-                                    1 day
-                                </Radio.Button>
-                                <Radio.Button
-                                    value="1 week"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("1 week");
-                                    // }}
-                                >
-                                    1 week
-                                </Radio.Button>
-                                <Radio.Button
-                                    value="1 month"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("1 month");
-                                    // }}
-                                >
-                                    1&nbsp;month
-                                </Radio.Button>
-                                <Radio.Button
-                                    value="3 months"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("3 months");
-                                    // }}
-                                >
-                                    3&nbsp;months
-                                </Radio.Button>
-                                <Radio.Button
-                                    value="6 months"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("6 months");
-                                    // }}
-                                >
-                                    6&nbsp;months
-                                </Radio.Button>
-                                <Radio.Button
-                                    value="1 year"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("1 year");
-                                    // }}
-                                >
-                                    1 year
-                                </Radio.Button>
-                                <Radio.Button
-                                    value="forever"
-                                    // onClick={() => {
-                                    //     this.handlePersistenceChange("forever");
-                                    // }}
-                                >
-                                    Forever
-                                </Radio.Button>
-                            </Radio.Group>
-                        </Content>
-                        <div className="h-12 w-72">
+                                    {this.dataPersistenceOptions.map((option: OptionDataPersistance) => (
+                                        <Radio.Button
+                                            onChange={this.onChangeDataPersistence}
+                                            className="w-24 h-8 rounded-2xl text-estela-black-medium text-sm"
+                                            key={option.key}
+                                            value={option.value}
+                                        >
+                                            &nbsp;{option.label}
+                                        </Radio.Button>
+                                    ))}
+                                </Radio.Group>
+                            </Space>
                             <Button
-                                block
-                                // disabled={!persistenceChanged}
+                                size="large"
+                                disabled={!modified}
+                                onClick={this.updateDataExpiry}
                                 htmlType="submit"
-                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                className="border-estela h-12 md:w-96 sm:w-80 bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base"
                             >
                                 Save Changes
                             </Button>
-                        </div>
-                    </div>
-                </Row>
-            </Content>
-        </>
-    );
+                        </Space>
+                    </Row>
+                </Content>
+            </>
+        );
+    };
 
     render(): JSX.Element {
-        const {
-            loaded,
-            status,
-            // count,
-            // current,
-            // jobs,
-            schedule,
-            // unique_collection,
-            dataStatus,
-            dataExpiryDays,
-            loading_status,
-            modified,
-        } = this.state;
+        const { loaded, status } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
@@ -1240,12 +1279,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 Sche-Job-{this.cronjobId}
                                             </Text>
                                         </Col>
-                                        <Col className="float-right flex">
+                                        <Col className="float-right flex gap-1">
                                             <Button
                                                 disabled={true}
                                                 icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
                                                 size="large"
-                                                className="flex items-center mr-2 stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                             >
                                                 Clone
                                             </Button>
@@ -1257,6 +1296,29 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                             >
                                                 Run once
                                             </Button>
+                                            {status == SpiderCronJobUpdateStatusEnum.Active ? (
+                                                <Button
+                                                    onClick={() =>
+                                                        this.updateStatus(SpiderCronJobUpdateStatusEnum.Disabled)
+                                                    }
+                                                    icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
+                                                    size="large"
+                                                    className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                                >
+                                                    Disable
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    onClick={() =>
+                                                        this.updateStatus(SpiderCronJobUpdateStatusEnum.Active)
+                                                    }
+                                                    icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                                    size="large"
+                                                    className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                                >
+                                                    Enable
+                                                </Button>
+                                            )}
                                         </Col>
                                     </Row>
                                     <Row className="lg:mx-10 mx-6">
@@ -1272,32 +1334,32 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 {
                                                     label: "Data persistence",
                                                     key: "2",
-                                                    children: this.dataPersistence,
+                                                    children: this.dataPersistence(),
                                                 },
                                             ]}
                                         />
                                     </Row>
                                     <Row justify="center" className="cronjob-data">
                                         <Space direction="vertical" size="large">
-                                            <Text>
+                                            {/* <Text>
                                                 <b>Active:</b>&nbsp;
                                                 <Switch
                                                     loading={loading_status}
                                                     defaultChecked={status == SpiderCronJobUpdateStatusEnum.Active}
                                                     onChange={this.updateStatus}
                                                 />
-                                            </Text>
-                                            <Text
+                                            </Text> */}
+                                            {/* <Text
                                                 editable={{
                                                     tooltip: "click to edit text",
                                                     onChange: this.handleInputChange,
                                                 }}
                                             >
                                                 <b>Schedule:</b>&nbsp; {schedule}
-                                            </Text>
+                                            </Text> */}
                                             <Text>
                                                 <Space direction="vertical">
-                                                    <Space direction="horizontal">
+                                                    {/* <Space direction="horizontal">
                                                         <b>Data Persistent:</b>
                                                         <Switch
                                                             loading={loading_status}
@@ -1306,8 +1368,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                             }
                                                             onChange={this.onChangeData}
                                                         />
-                                                    </Space>
-                                                    <Space direction="horizontal">
+                                                    </Space> */}
+                                                    {/* <Space direction="horizontal">
                                                         <Text
                                                             disabled={
                                                                 dataStatus == SpiderCronJobDataStatusEnum.Persistent
@@ -1326,8 +1388,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                                 onChange={this.onChangeDay}
                                                             />
                                                         </Text>
-                                                    </Space>
-                                                    {modified && (
+                                                    </Space> */}
+                                                    {/* {modified && (
                                                         <Button
                                                             type="primary"
                                                             onClick={this.updateDataExpiry}
@@ -1336,7 +1398,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                         >
                                                             Save
                                                         </Button>
-                                                    )}
+                                                    )} */}
                                                 </Space>
                                             </Text>
                                             {/* <Text>

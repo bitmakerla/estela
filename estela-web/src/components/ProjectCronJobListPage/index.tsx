@@ -189,7 +189,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     hourFormat = "HH:mm";
     dateFormat = "MMM D, YYYY";
 
-    dataPeristenceOptions = [
+    dataPersistenceOptions = [
         { label: "1 day", key: 1, value: 1 },
         { label: "1 week", key: 2, value: 7 },
         { label: "1 month", key: 3, value: 30 },
@@ -731,9 +731,9 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                     onChange={this.handlePersistenceChange}
                                                                     className="w-full"
                                                                     size="large"
-                                                                    defaultValue={this.dataPeristenceOptions[0].value}
+                                                                    defaultValue={this.dataPersistenceOptions[0].value}
                                                                 >
-                                                                    {this.dataPeristenceOptions.map(
+                                                                    {this.dataPersistenceOptions.map(
                                                                         (option: OptionDataPersistance) => (
                                                                             <Option
                                                                                 className="text-sm"
