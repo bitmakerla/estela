@@ -292,6 +292,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                     <Button
                                                                         block
                                                                         htmlType="submit"
+                                                                        disabled
                                                                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base min-h-full"
                                                                     >
                                                                         Save Changes
