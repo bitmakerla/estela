@@ -249,20 +249,20 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             <Row justify="center" className="bg-white rounded-lg">
                                                 <Content className="content-padding">
                                                     <Row className="bg-white rounded-lg my-4">
-                                                        <div className="lg:m-8 md:mx-6 m-4">
-                                                            <p className="text-2xl text-black">Data persistence</p>
-                                                            <p className="text-sm my-2 text-estela-black-medium">
-                                                                Data persistence will be applied to all jobs and
-                                                                scheduled jobs by default.
-                                                            </p>
-                                                            <Content>
+                                                        <Col span={24}>
+                                                            <div className="lg:m-8 md:mx-6 m-4">
+                                                                <p className="text-2xl text-black">Data persistence</p>
+                                                                <p className="text-sm my-2 text-estela-black-medium">
+                                                                    Data persistence will be applied to all jobs and
+                                                                    scheduled jobs by default.
+                                                                </p>
                                                                 <Row align="middle">
-                                                                    <Col span={6}>
+                                                                    <Col xs={24} sm={24} md={24} lg={5}>
                                                                         <p className="text-sm my-2 text-[#212529]">
                                                                             General Data Persistent
                                                                         </p>
                                                                     </Col>
-                                                                    <Col span={18}>
+                                                                    <Col xs={24} sm={24} md={24} lg={19}>
                                                                         <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
                                                                             <Radio.Button value="1 day">
                                                                                 1 day
@@ -288,17 +288,17 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                         </Radio.Group>
                                                                     </Col>
                                                                 </Row>
-                                                            </Content>
-                                                            <div className="h-12 w-4/6">
-                                                                <Button
-                                                                    block
-                                                                    htmlType="submit"
-                                                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base min-h-full"
-                                                                >
-                                                                    Save Changes
-                                                                </Button>
+                                                                <div className="h-12 w-3/5">
+                                                                    <Button
+                                                                        block
+                                                                        htmlType="submit"
+                                                                        className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base min-h-full"
+                                                                    >
+                                                                        Save Changes
+                                                                    </Button>
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                        </Col>
                                                     </Row>
                                                 </Content>
                                             </Row>
