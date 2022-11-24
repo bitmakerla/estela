@@ -6,16 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0020_auto_20220917_2217'),
+        ("core", "0020_auto_20220917_2217"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='spidercronjob',
-            name='deleted',
+            model_name="spidercronjob",
+            name="deleted",
             field=models.BooleanField(
-                default=False,
-                help_text='Whether the Cronjob has been deleted.'
+                default=False, help_text="Whether the Cronjob has been deleted."
             ),
         ),
     ]

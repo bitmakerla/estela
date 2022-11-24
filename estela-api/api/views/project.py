@@ -10,7 +10,15 @@ from api.serializers.project import (
     ProjectUsageSerializer,
     UsageRecordSerializer,
 )
-from core.models import Permission, Project, Spider, SpiderJob, SpiderCronJob, UsageRecord, User
+from core.models import (
+    Permission,
+    Project,
+    Spider,
+    SpiderJob,
+    SpiderCronJob,
+    UsageRecord,
+    User,
+)
 from django.core.paginator import Paginator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
