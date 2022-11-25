@@ -25,8 +25,10 @@ class Inserter:
         self.__client = client
         self.__items = []
         self.__lock = threading.Lock()
+        self.__op_lock = threading.Lock()
         self.__last_activity = time.time()
         self.__last_insertion = time.time()
+        self.__pending_items_count = 0
 
         logging.info("New Inserter created for {}.".format(self.identifier))
 
@@ -57,10 +59,17 @@ class Inserter:
             )
         else:
             self.__handle_insertion_error(response, self.__items)
-        self.__items = []
+        del self.__items[:]
 
     def is_inactive(self):
         return time.time() - self.__last_activity > ACTIVITY_TIME_THRESHOLD
+
+    def add_pending_item(self):
+        with self.__op_lock:
+            self.__pending_items_count += 1
+
+    def has_pending_items(self):
+        return self.__pending_items_count > 0
 
     def insert(self, item):
         if self.unique or item.get("need_upsert"):
@@ -81,6 +90,8 @@ class Inserter:
 
         self.__last_insertion = time.time()
         self.__last_activity = time.time()
+        with self.__op_lock:
+            self.__pending_items_count -= 1
 
     def flush(self, reason):
         if not self.unique:
