@@ -311,19 +311,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
                     const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
                     const queueJobs = data.data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
-                    const tableStatus = new Array<boolean>(4).fill(true);
-                    if (queueJobs.length === 0) {
-                        tableStatus[0] = false;
-                    }
-                    if (runningJobs.length === 0) {
-                        tableStatus[1] = false;
-                    }
-                    if (completedJobs.length === 0) {
-                        tableStatus[2] = false;
-                    }
-                    if (errorJobs.length === 0) {
-                        tableStatus[3] = false;
-                    }
+                    const tableStatus = [
+                        queueJobs.length === 0 ? false : true,
+                        runningJobs.length === 0 ? false : true,
+                        completedJobs.length === 0 ? false : true,
+                        errorJobs.length === 0 ? false : true,
+                    ];
                     const weekDays = this.state.weekDays;
                     weekDays[moment().day() % 7] = true;
                     const jobs: SpiderJobData[] = data.data;
@@ -1338,101 +1331,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                                 },
                                             ]}
                                         />
-                                    </Row>
-                                    <Row justify="center" className="cronjob-data">
-                                        <Space direction="vertical" size="large">
-                                            {/* <Text>
-                                                <b>Active:</b>&nbsp;
-                                                <Switch
-                                                    loading={loading_status}
-                                                    defaultChecked={status == SpiderCronJobUpdateStatusEnum.Active}
-                                                    onChange={this.updateStatus}
-                                                />
-                                            </Text> */}
-                                            {/* <Text
-                                                editable={{
-                                                    tooltip: "click to edit text",
-                                                    onChange: this.handleInputChange,
-                                                }}
-                                            >
-                                                <b>Schedule:</b>&nbsp; {schedule}
-                                            </Text> */}
-                                            <Text>
-                                                <Space direction="vertical">
-                                                    {/* <Space direction="horizontal">
-                                                        <b>Data Persistent:</b>
-                                                        <Switch
-                                                            loading={loading_status}
-                                                            defaultChecked={
-                                                                dataStatus == SpiderCronJobDataStatusEnum.Persistent
-                                                            }
-                                                            onChange={this.onChangeData}
-                                                        />
-                                                    </Space> */}
-                                                    {/* <Space direction="horizontal">
-                                                        <Text
-                                                            disabled={
-                                                                dataStatus == SpiderCronJobDataStatusEnum.Persistent
-                                                            }
-                                                        >
-                                                            <b>Days :</b>&nbsp;
-                                                            <InputNumber
-                                                                size="small"
-                                                                min={1}
-                                                                max={720}
-                                                                defaultValue={dataExpiryDays}
-                                                                style={{ width: "62px" }}
-                                                                disabled={
-                                                                    dataStatus == SpiderCronJobDataStatusEnum.Persistent
-                                                                }
-                                                                onChange={this.onChangeDay}
-                                                            />
-                                                        </Text>
-                                                    </Space> */}
-                                                    {/* {modified && (
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={this.updateDataExpiry}
-                                                            size="small"
-                                                            loading={loading_status}
-                                                        >
-                                                            Save
-                                                        </Button>
-                                                    )} */}
-                                                </Space>
-                                            </Text>
-                                            {/* <Text>
-                                                <b>Unique Collection:</b>&nbsp;
-                                                {unique_collection ? "Yes" : "No"}
-                                            </Text> */}
-                                            {/* <Space direction="vertical">
-                                                <b>Arguments</b>
-                                                {args.map((arg: ArgsData, id) => (
-                                                    <Tag key={id}>
-                                                        {arg.name}: {arg.value}
-                                                    </Tag>
-                                                ))}
-                                            </Space>
-                                            <Space direction="vertical">
-                                                <b>Environment variables</b>
-                                                {envVars.map((envVar: EnvVarsData, id) => (
-                                                    <Tag key={id}>
-                                                        {envVar.name}: {envVar.value}
-                                                    </Tag>
-                                                ))}
-                                            </Space>
-                                            <Space direction="vertical">
-                                                <b>Tags</b>
-                                                <Space direction="horizontal">
-                                                    {tags.map((tag: TagsData, id) => (
-                                                        <Tag key={id}>{tag.name}</Tag>
-                                                    ))}
-                                                </Space>
-                                            </Space> */}
-                                            {/* <Button type="primary" className="go-to-spiders" onClick={this.runOnce}>
-                                                Run once
-                                            </Button> */}
-                                        </Space>
                                     </Row>
                                 </Content>
                             </Layout>
