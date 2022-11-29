@@ -640,7 +640,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 this.getCronJobs(1);
             },
             (error: unknown) => {
-                console.log(error);
+                message.error(`Failed action: ${error}`);
             },
         );
     };

@@ -14,7 +14,7 @@ from api.serializers.cronjob import (
     SpiderCronJobSerializer,
     SpiderCronJobUpdateSerializer,
 )
-from core.cronjob import create_cronjob, delete_cronjob, run_cronjob_once
+from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
 from core.models import Spider, SpiderCronJob
 
 
@@ -126,7 +126,7 @@ class SpiderCronJobViewSet(
 
     def perform_destroy(self, instance):
         instance.status = SpiderCronJob.DISABLED_STATUS
-        delete_cronjob(instance.name)
+        disable_cronjob(instance.name)
         instance.deleted = True
         instance.save()
 
