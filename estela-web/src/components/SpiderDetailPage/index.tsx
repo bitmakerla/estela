@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Button, Layout, Pagination, Typography, Row, Space, Table, Col, Tabs, Radio } from "antd";
+import { Button, Layout, Pagination, Typography, Row, Space, Table, Col, Tabs, Radio, Checkbox } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
@@ -48,7 +48,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         loaded: false,
         count: 0,
         current: 0,
-        optionTab: "settings",
+        optionTab: "overview",
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -199,51 +199,139 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             ]}
                                         />
                                         {optionTab === "overview" && (
-                                            <Row justify="center" className="bg-white rounded-lg">
-                                                <Content>
-                                                    <Title level={4} className="text-center">
-                                                        {name}
-                                                    </Title>
-                                                    <Row justify="center" className="spider-data">
-                                                        <Space direction="vertical" size="large">
-                                                            <Text>
-                                                                <b>Spider ID:</b>&nbsp; {this.spiderId}
-                                                            </Text>
-                                                            <Text>
-                                                                <b>Project ID:</b>
-                                                                <Link to={`/projects/${this.projectId}`}>
-                                                                    &nbsp; {this.projectId}
-                                                                </Link>
-                                                            </Text>
-                                                            <Table
-                                                                columns={this.columns}
-                                                                dataSource={jobs}
-                                                                pagination={false}
-                                                                size="middle"
-                                                            />
-                                                        </Space>
-                                                    </Row>
-                                                    <Pagination
-                                                        className="pagination"
-                                                        defaultCurrent={1}
-                                                        total={count}
-                                                        current={current}
-                                                        pageSize={this.PAGE_SIZE}
-                                                        onChange={this.onPageChange}
-                                                        showSizeChanger={false}
-                                                    />
-                                                    <Link
-                                                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/create`}
-                                                    >
-                                                        <Button className="create-new-job">Create New Job</Button>
-                                                    </Link>
-                                                    <Link
-                                                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs`}
-                                                    >
-                                                        <Button className="create-new-job">Go to Cronjobs</Button>
-                                                    </Link>
-                                                </Content>
-                                            </Row>
+                                            <>
+                                                <Row className="my-6 grid grid-cols-4 text-base h-full">
+                                                    <Layout className="bg-metal col-span-1 h-44">
+                                                        <Content className="white-background mr-5 p-3 rounded-lg">
+                                                            <p className="text-base text-silver p-2">SCHEDULED JOBS</p>
+                                                            <p className="text-xl font-bold p-2 leading-8">2</p>
+                                                        </Content>
+                                                    </Layout>
+                                                    <Layout className="bg-metal col-span-1 h-44">
+                                                        <Content className="white-background mr-5 p-3 rounded-lg">
+                                                            <p className="text-base text-silver p-2">JOBS</p>
+                                                            <p className="text-xl font-bold p-2 leading-8">2</p>
+                                                        </Content>
+                                                    </Layout>
+                                                    <Layout className="bg-metal col-span-2 h-44">
+                                                        <Content className="white-background mr-5 p-3 rounded-lg">
+                                                            <p className="text-base text-silver p-2">DETAILS</p>
+                                                            <div className="grid grid-cols-3 p-2 rounded-lg">
+                                                                <div className="col-span-1">
+                                                                    <p className="text-sm font-bold">Spider ID</p>
+                                                                </div>
+                                                                <div className="col-span-2">
+                                                                    <p className="text-sm text-silver">01</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="grid grid-cols-3 p-2 bg-[#F6FAFD] rounded-lg">
+                                                                <div className="col-span-1">
+                                                                    <p className="text-sm font-bold">Project ID</p>
+                                                                </div>
+                                                                <div className="col-span-2">
+                                                                    <p className="text-sm text-silver">
+                                                                        e0cfa47f-2cfe-4070-bedf-78d2e45287f0
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="grid grid-cols-3 p-2 rounded-lg">
+                                                                <div className="col-span-1">
+                                                                    <p className="text-sm font-bold">Creation date</p>
+                                                                </div>
+                                                                <div className="col-span-2">
+                                                                    <p className="text-sm text-silver">
+                                                                        16:23:00 09-13-2022
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </Content>
+                                                    </Layout>
+                                                </Row>
+                                                <Row className="my-6 grid grid-cols-9 text-base h-full">
+                                                    <Layout className="bg-metal col-span-7 h-44">
+                                                        <Content className="white-background mr-5 p-3 rounded-lg">
+                                                            <p className="text-base text-silver p-2">STATUS</p>
+                                                            <p className="text-xl font-bold p-2 leading-8">2</p>
+                                                        </Content>
+                                                    </Layout>
+                                                    <Layout className="bg-metal col-span-2 h-44">
+                                                        <Content className="white-background mr-5 p-3 rounded-lg">
+                                                            <p className="text-xs text-silver p-2">STATUS</p>
+                                                            <div className="grid grid-cols-3">
+                                                                <div className="col-span-2">
+                                                                    <Checkbox>
+                                                                        <p className="text-sm">In queue</p>
+                                                                    </Checkbox>
+                                                                </div>
+                                                                <div className="col-span-1">
+                                                                    <p className="text-xs text-[#9BA2A8]">10</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="grid grid-cols-3">
+                                                                <div className="col-span-2">
+                                                                    <Checkbox>Running</Checkbox>
+                                                                </div>
+                                                                <div className="col-span-1">
+                                                                    <p>10</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="grid grid-cols-3">
+                                                                <div className="col-span-2">
+                                                                    <Checkbox>Completed</Checkbox>
+                                                                </div>
+                                                                <div className="col-span-1">
+                                                                    <p>10</p>
+                                                                </div>
+                                                            </div>
+                                                        </Content>
+                                                    </Layout>
+                                                </Row>
+                                                <Row justify="center" className="bg-white rounded-lg">
+                                                    <Content>
+                                                        <Title level={4} className="text-center">
+                                                            {name}
+                                                        </Title>
+                                                        <Row justify="center" className="spider-data">
+                                                            <Space direction="vertical" size="large">
+                                                                <Text>
+                                                                    <b>Spider ID:</b>&nbsp; {this.spiderId}
+                                                                </Text>
+                                                                <Text>
+                                                                    <b>Project ID:</b>
+                                                                    <Link to={`/projects/${this.projectId}`}>
+                                                                        &nbsp; {this.projectId}
+                                                                    </Link>
+                                                                </Text>
+                                                                <Table
+                                                                    columns={this.columns}
+                                                                    dataSource={jobs}
+                                                                    pagination={false}
+                                                                    size="middle"
+                                                                />
+                                                            </Space>
+                                                        </Row>
+                                                        <Pagination
+                                                            className="pagination"
+                                                            defaultCurrent={1}
+                                                            total={count}
+                                                            current={current}
+                                                            pageSize={this.PAGE_SIZE}
+                                                            onChange={this.onPageChange}
+                                                            showSizeChanger={false}
+                                                        />
+                                                        <Link
+                                                            to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/create`}
+                                                        >
+                                                            <Button className="create-new-job">Create New Job</Button>
+                                                        </Link>
+                                                        <Link
+                                                            to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs`}
+                                                        >
+                                                            <Button className="create-new-job">Go to Cronjobs</Button>
+                                                        </Link>
+                                                    </Content>
+                                                </Row>
+                                            </>
                                         )}
                                         {optionTab === "settings" && (
                                             <Row justify="center" className="bg-white rounded-lg">
