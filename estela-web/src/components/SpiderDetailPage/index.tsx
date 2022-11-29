@@ -72,7 +72,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         runningJobs: [],
         completedJobs: [],
         lastDeployDate: "",
-        tableStatus: new Array<boolean>(3).fill(true),
+        tableStatus: new Array<boolean>(4).fill(true),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
