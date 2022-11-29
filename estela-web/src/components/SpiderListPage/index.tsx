@@ -1,7 +1,7 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { Col, Layout, Row, Button, Space, Table } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import Add from "../../assets/icons/add.svg";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -103,7 +103,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                         </Col>
                                         <Col className="float-right">
                                             <Button
-                                                icon={<PlusOutlined className="mr-2" width={19} />}
+                                                icon={<Add className="mr-2" width={19} />}
                                                 onClick={() =>
                                                     this.props.history.push(`/projects/${this.projectId}/deploys`)
                                                 }

@@ -37,16 +37,6 @@ export interface Spider {
      * @memberof Spider
      */
     project: string;
-    /**
-     * Last run time.
-     * @type {string}
-     * @memberof Spider
-     */
-    lastRun?: string;
-    /**
-     * Number of jobs
-     */
-    jobs?: number;
 }
 
 export function SpiderFromJSON(json: any): Spider {
