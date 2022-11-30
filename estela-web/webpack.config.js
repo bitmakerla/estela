@@ -66,7 +66,7 @@ module.exports = (env) => {
             }),
             new Dotenv(
             {
-                path: `.env.${env}`,
+                path: env.production ?'.env.production' : '.env.development',
             }
             ),
             new ESLintPlugin({
