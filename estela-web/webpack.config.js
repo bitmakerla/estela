@@ -7,9 +7,7 @@ module.exports = (env) => {
     return {
         entry: './src/index.ts',
         devtool: 'inline-source-map',
-        output: {
-            publicPath: "http://localhost:3000/",
-        },
+        output: {},
 
         resolve: {
             alias: {
