@@ -10,7 +10,15 @@ from api.serializers.project import (
     ProjectUsageSerializer,
     UsageRecordSerializer,
 )
-from core.models import Permission, Project, Spider, SpiderJob, SpiderCronJob, UsageRecord, User
+from core.models import (
+    Permission,
+    Project,
+    Spider,
+    SpiderJob,
+    SpiderCronJob,
+    UsageRecord,
+    User,
+)
 from django.core.paginator import Paginator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -77,7 +85,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         if name:
             instance.name = name
-        if user_email:
+        if user_email and user_email != user_permision:
             user = User.objects.filter(email=user_email)
             user_instance = User.objects.filter(email=user_permision)
             if user:
@@ -93,6 +101,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                         )
                     elif action == "remove":
                         instance.users.remove(user)
+                    elif action == "update":
+                        instance.users.remove(user)
+                        instance.users.add(
+                            user, through_defaults={"permission": permission}
+                        )
                 else:
                     raise ParseError({"error": "Action not supported."})
             else:
@@ -182,7 +195,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         spider_set = Spider.objects.filter(project=kwargs["pid"])
         sid_set = spider_set.values_list("pk", flat=True)
-        cronjobs_set = SpiderCronJob.objects.filter(spider__in=sid_set)
+        cronjobs_set = SpiderCronJob.objects.filter(spider__in=sid_set, deleted=False)
         paginator_result = Paginator(cronjobs_set, page_size)
         page_result = paginator_result.page(page)
         results = SpiderCronJobSerializer(page_result, many=True)

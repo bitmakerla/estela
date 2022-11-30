@@ -14,7 +14,7 @@ from api.serializers.cronjob import (
     SpiderCronJobSerializer,
     SpiderCronJobUpdateSerializer,
 )
-from core.cronjob import create_cronjob, run_cronjob_once
+from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
 from core.models import Spider, SpiderCronJob
 
 
@@ -43,6 +43,7 @@ class SpiderCronJobViewSet(
             spider__project__pid=self.kwargs["pid"],
             spider__sid=self.kwargs["sid"],
             spider__deleted=False,
+            deleted=False,
         )
 
     @swagger_auto_schema(
@@ -114,6 +115,20 @@ class SpiderCronJobViewSet(
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_204_NO_CONTENT: "Cronjob deleted"},
+    )
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.status = SpiderCronJob.DISABLED_STATUS
+        disable_cronjob(instance.name)
+        instance.deleted = True
+        instance.save()
 
     @swagger_auto_schema(
         methods=["GET"], responses={status.HTTP_200_OK: SpiderCronJobSerializer()}

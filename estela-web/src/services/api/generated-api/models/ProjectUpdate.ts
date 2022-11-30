@@ -76,7 +76,8 @@ export interface ProjectUpdate {
 */
 export enum ProjectUpdateActionEnum {
     Remove = 'remove',
-    Add = 'add'
+    Add = 'add',
+    Update = 'update'
 }/**
 * @export
 * @enum {string}

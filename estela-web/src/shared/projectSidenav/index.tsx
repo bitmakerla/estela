@@ -79,7 +79,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     <Menu.Item key={"/activity"} className="">
                         <div className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Activity className="mr-1 w-8 h-8" />
-                            <Link to={`/projects/${this.projectId}`}>Activity</Link>
+                            <Link to={`/projects/${this.projectId}/dashboard`}>Activity</Link>
                         </div>
                     </Menu.Item>
                     <Menu.Item key={"/members"} className="">

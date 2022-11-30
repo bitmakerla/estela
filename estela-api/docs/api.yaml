@@ -567,6 +567,15 @@ paths:
             $ref: '#/definitions/SpiderCronJob'
       tags:
         - api
+    delete:
+      operationId: api_projects_spiders_cronjobs_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: Cronjob deleted
+      tags:
+        - api
     parameters:
       - name: cjid
         in: path
@@ -1034,6 +1043,7 @@ definitions:
         enum:
           - remove
           - add
+          - update
       permission:
         title: Permission
         description: New permission.

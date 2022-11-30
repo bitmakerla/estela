@@ -1,5 +1,5 @@
 import React, { Component, Fragment, ReactElement } from "react";
-import { Button, Layout, Space, Table, Row, Col, Tag, Modal, Input, Select } from "antd";
+import { Button, Layout, Space, Table, Row, Col, Tag, Modal, Input, Select, Typography } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -26,8 +26,10 @@ import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
 const { Option } = Select;
+const { Text } = Typography;
 
 interface MemberState {
+    key: number;
     username: string | undefined;
     email: string | undefined;
     role: string | undefined;
@@ -38,8 +40,10 @@ interface ProjectMemberPageState {
     name: string;
     user: string;
     users: Permission[];
+    selectedRows: MemberState[];
     loaded: boolean;
-    modal: boolean;
+    modalAddMember: boolean;
+    modalUpdateMember: boolean;
     newUser: string;
     members: MemberState[];
     permission: ProjectUpdatePermissionEnum;
@@ -53,7 +57,9 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     state: ProjectMemberPageState = {
         name: "",
         user: "",
-        modal: false,
+        modalAddMember: false,
+        modalUpdateMember: false,
+        selectedRows: [],
         users: [],
         loaded: false,
         newUser: "",
@@ -83,8 +89,8 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
             title: "STATUS",
             dataIndex: "status",
             key: "status",
-            render: (status: string): ReactElement => (
-                <Tag className="text-estela border-0 rounded bg-button-hover" key={1}>
+            render: (status: string, member: MemberState): ReactElement => (
+                <Tag className="text-estela border-0 rounded bg-button-hover" key={member.key}>
                     {status}
                 </Tag>
             ),
@@ -99,16 +105,16 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                 if (users === undefined) {
                     users = [];
                 }
-                const membersList: MemberState[] = [];
-                users.map((user: Permission) => {
-                    membersList.push({
+                const memberList: MemberState[] = users.map((user: Permission, id: number) => {
+                    return {
+                        key: id,
                         username: user.user?.username,
                         email: user.user?.email,
                         role: user.permission,
                         status: "In Project",
-                    });
+                    };
                 });
-                this.setState({ name: response.name, users: users, members: membersList, loaded: true });
+                this.setState({ name: response.name, users: users, members: memberList, loaded: true });
             },
             (error: unknown) => {
                 console.error(error);
@@ -125,43 +131,20 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         }
     }
 
-    addUser = (): void => {
-        const action = ProjectUpdateActionEnum.Add;
+    userManagement = (email: string, option: number): void => {
+        const action =
+            option == 0
+                ? ProjectUpdateActionEnum.Remove
+                : option == 1
+                ? ProjectUpdateActionEnum.Add
+                : ProjectUpdateActionEnum.Update;
         const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
             ?.email;
         const requestData: ProjectUpdate = {
             user: user_email,
-            email: this.state.newUser,
+            email: email,
             action: action,
             permission: this.state.permission,
-            name: this.state.name,
-        };
-
-        const request: ApiProjectsUpdateRequest = {
-            data: requestData,
-            pid: this.projectId,
-        };
-        this.apiService.apiProjectsUpdate(request).then(
-            (response: ProjectUpdate) => {
-                if (response.email == "User does not exist.") {
-                    nonExistentUserNotification();
-                }
-                this.setState({ newUser: "" });
-                this.updateInfo();
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
-    };
-
-    removeUser = (): void => {
-        const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
-            ?.email;
-        const requestData: ProjectUpdate = {
-            user: user_email,
-            email: this.state.newUser,
-            action: ProjectUpdateActionEnum.Remove,
             name: this.state.name,
         };
         const request: ApiProjectsUpdateRequest = {
@@ -193,11 +176,26 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
 
     handleSelectChange = (value: ProjectUpdatePermissionEnum): void => {
         this.setState({ permission: value });
-        console.log(value);
+    };
+
+    rowSelection = {
+        onChange: (selectedRowKeys: React.Key[], selectedRows: MemberState[]) => {
+            this.setState({ selectedRows: selectedRows });
+        },
+        getCheckboxProps: (record: MemberState) => ({
+            disabled: record.username === AuthService.getUserUsername(),
+        }),
+    };
+
+    handleDeleteRow = (): void => {
+        this.state.selectedRows.map((row) => {
+            this.userManagement(String(row.email), 0);
+        });
+        this.setState({ selectedRows: [] });
     };
 
     render(): JSX.Element {
-        const { loaded, members, newUser } = this.state;
+        const { loaded, members, newUser, selectedRows, modalAddMember, modalUpdateMember } = this.state;
         return (
             <Layout>
                 <Header />
@@ -218,44 +216,49 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 icon={<User className="mr-2" width={19} />}
                                                 size="large"
                                                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                onClick={() => this.setState({ modal: true })}
+                                                onClick={() => this.setState({ modalAddMember: true })}
                                             >
                                                 Add new member
                                             </Button>
                                             <Modal
-                                                visible={this.state.modal}
-                                                title={<p className="text-center m-2">ADD NEW MEMBER</p>}
-                                                onCancel={() => this.setState({ modal: false })}
+                                                visible={modalAddMember}
+                                                width={400}
+                                                title={<p className="text-center">ADD NEW MEMBER</p>}
+                                                onCancel={() => this.setState({ modalAddMember: false })}
                                                 footer={null}
                                             >
-                                                <div className="lg:mx-8 md:mx-8">
-                                                    <p className="lg:pb-4 py-2">Email</p>
+                                                <div className="mx-3">
+                                                    <p className="py-3">Email</p>
                                                     <Input
+                                                        style={{ borderRadius: "8px" }}
                                                         className="border-estela rounded"
                                                         name="newUser"
-                                                        placeholder="Please input your email"
+                                                        placeholder="Please input the email"
                                                         value={newUser}
                                                         onChange={this.handleInputChange}
                                                     />
-                                                    <p className="lg:py-4 py-2">Role</p>
+                                                    <p className="py-3">Role</p>
                                                     <Select
                                                         className="w-full"
                                                         defaultValue={ProjectUpdatePermissionEnum.Viewer}
                                                         onChange={this.handleSelectChange}
                                                     >
                                                         <Option
+                                                            key={1}
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectUpdatePermissionEnum.Admin}
                                                         >
                                                             Admin
                                                         </Option>
                                                         <Option
+                                                            key={2}
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectUpdatePermissionEnum.Developer}
                                                         >
                                                             Developer
                                                         </Option>
                                                         <Option
+                                                            key={3}
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectUpdatePermissionEnum.Viewer}
                                                         >
@@ -267,8 +270,8 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                             size="large"
                                                             className="mr-2 sm:mr-1 bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
                                                             onClick={() => {
-                                                                this.setState({ modal: false });
-                                                                this.addUser();
+                                                                this.setState({ modalAddMember: false });
+                                                                this.userManagement(newUser, 1);
                                                             }}
                                                         >
                                                             Add
@@ -276,7 +279,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                         <Button
                                                             size="large"
                                                             className="ml-2 sm:ml-1 border-estela hover:border-estela text-estela hover:text-estela"
-                                                            onClick={() => this.setState({ modal: false })}
+                                                            onClick={() => this.setState({ modalAddMember: false })}
                                                         >
                                                             Cancel
                                                         </Button>
@@ -292,9 +295,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 <Table
                                                     tableLayout="fixed"
                                                     className="rounded-2xl"
-                                                    rowSelection={{
-                                                        type: "checkbox",
-                                                    }}
+                                                    rowSelection={this.rowSelection}
                                                     columns={this.columns}
                                                     dataSource={members}
                                                     pagination={false}
@@ -302,6 +303,90 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 />
                                             </Space>
                                         </div>
+                                    </Row>
+                                    <Row>
+                                        <Space direction="horizontal">
+                                            <Button
+                                                disabled={selectedRows.length === 0}
+                                                onClick={this.handleDeleteRow}
+                                                className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                            >
+                                                Delete
+                                            </Button>
+                                            <Button
+                                                disabled={selectedRows.length !== 1}
+                                                onClick={() => {
+                                                    this.setState({
+                                                        modalUpdateMember: true,
+                                                        newUser: String(selectedRows[0].email),
+                                                    });
+                                                }}
+                                                className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                            >
+                                                Change role
+                                            </Button>
+                                            <Modal
+                                                visible={modalUpdateMember}
+                                                width={400}
+                                                title={<p className="text-center">UPDATE MEMBER</p>}
+                                                onCancel={() => this.setState({ modalUpdateMember: false })}
+                                                footer={null}
+                                            >
+                                                <div className="mx-3">
+                                                    <p className="py-3">Email</p>
+                                                    <Text className="bg-estela-blue-low p-1 text-base text-estela-blue-full rounded">
+                                                        {newUser}
+                                                    </Text>
+                                                    <p className="py-3">Role</p>
+                                                    <Select
+                                                        className="w-full"
+                                                        defaultValue={ProjectUpdatePermissionEnum.Viewer}
+                                                        onChange={this.handleSelectChange}
+                                                    >
+                                                        <Option
+                                                            key={1}
+                                                            className="hover:bg-button-hover hover:text-estela"
+                                                            value={ProjectUpdatePermissionEnum.Admin}
+                                                        >
+                                                            Admin
+                                                        </Option>
+                                                        <Option
+                                                            key={2}
+                                                            className="hover:bg-button-hover hover:text-estela"
+                                                            value={ProjectUpdatePermissionEnum.Developer}
+                                                        >
+                                                            Developer
+                                                        </Option>
+                                                        <Option
+                                                            key={3}
+                                                            className="hover:bg-button-hover hover:text-estela"
+                                                            value={ProjectUpdatePermissionEnum.Viewer}
+                                                        >
+                                                            Viewer
+                                                        </Option>
+                                                    </Select>
+                                                    <Row className="mt-6 w-full grid grid-cols-2" justify="center">
+                                                        <Button
+                                                            size="large"
+                                                            className="mr-2 sm:mr-1 bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
+                                                            onClick={() => {
+                                                                this.setState({ modalUpdateMember: false });
+                                                                this.userManagement(newUser, 2);
+                                                            }}
+                                                        >
+                                                            Update
+                                                        </Button>
+                                                        <Button
+                                                            size="large"
+                                                            className="ml-2 sm:ml-1 border-estela hover:border-estela text-estela hover:text-estela"
+                                                            onClick={() => this.setState({ modalUpdateMember: false })}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </Row>
+                                                </div>
+                                            </Modal>
+                                        </Space>
                                     </Row>
                                 </div>
                             </Content>
