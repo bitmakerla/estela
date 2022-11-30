@@ -190,7 +190,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     hourFormat = "HH:mm";
     dateFormat = "MMM D, YYYY";
 
-    dataPeristenceOptions = [
+    dataPersistenceOptions = [
         { label: "1 day", key: 1, value: 1 },
         { label: "1 week", key: 2, value: 7 },
         { label: "1 month", key: 3, value: 30 },
@@ -499,7 +499,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     onChangeSchedule = (id: number): void => {
         const checked = [false, false];
         checked[id] = true;
-        this.setState({ schedulesFlag: checked, repeat: "@hourly" });
+        this.setState({ schedulesFlag: checked, repeat: "hourly" });
         if (id == 1) {
             this.setState({ date: moment() });
         }
@@ -682,12 +682,12 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 <Header />
                 <Layout className="bg-white">
                     <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
-                    <Content className="bg-metal rounded-2xl">
+                    <Content>
                         {loadedCronjobs && loadedSpiders ? (
-                            <Layout className="white-background">
+                            <Layout className="bg-white">
                                 <Content className="bg-metal rounded-2xl">
-                                    <div className="lg:m-10 md:mx-6 mx-2">
-                                        <Row className="flow-root my-6">
+                                    <div className="lg:m-10 m-6">
+                                        <Row className="flow-root">
                                             <Col className="float-left">
                                                 <p className="text-xl font-medium text-silver float-left">
                                                     PROJECT MEMBERS
@@ -755,9 +755,9 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                     onChange={this.handlePersistenceChange}
                                                                     className="w-full"
                                                                     size="large"
-                                                                    defaultValue={this.dataPeristenceOptions[0].value}
+                                                                    defaultValue={this.dataPersistenceOptions[0].value}
                                                                 >
-                                                                    {this.dataPeristenceOptions.map(
+                                                                    {this.dataPersistenceOptions.map(
                                                                         (option: OptionDataPersistance) => (
                                                                             <Option
                                                                                 className="text-sm"

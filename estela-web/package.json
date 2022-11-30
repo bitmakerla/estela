@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "antd": "^4.23.6",
+    "cronstrue": "^2.19.0",
     "follow-redirects": "^1.14.8",
     "hosted-git-info": "^2.8.9",
     "node-fetch": "^2.6.7",

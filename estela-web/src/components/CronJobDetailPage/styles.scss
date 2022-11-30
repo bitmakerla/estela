@@ -1,10 +1,27 @@
-.cronjob-data {
-    width: 800px;
-    margin: 30px auto;
+$estela-blue-full: #4D47C3;
+$estela-white-medium: #F9F9F9;
+$estela-black-medium: #6C757D;
+
+.ant-btn-default:disabled {
+    background-color: $estela-white-medium !important;
+    color: $estela-black-medium !important;
+    border: none;
+    stroke: $estela-black-medium;
 }
 
-.create-new-job {
-    margin: 30px auto;
-    display: flex;
-    align-self: auto;
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: $estela-blue-full !important;
+    
+}
+
+.ant-tabs-tab-btn:hover, .ant-tabs-tab:hover {
+    color: $estela-blue-full !important;
+}
+
+.ant-tabs-ink-bar, .ant-tabs-ink-bar-animated {
+    background-color: $estela-blue-full !important;
+}
+
+.ant-tabs-nav::before {
+    border-bottom: none !important;
 }
