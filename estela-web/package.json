@@ -17,12 +17,11 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "build": "webpack --mode production --config webpack.config.js",
+    "build": "webpack --env production --mode production --config webpack.config.js",
     "build:start": "cd dist && PORT=3000 npx serve",
-    "start": "webpack serve --open --mode development",
-    "start:live": "webpack serve --open --mode development --live-reload --hot",
-    "mf:build": "webpack --mode production --config webpack.config.mf.js",
-    "mf:start": "webpack serve --open --mode development --config webpack.config.mf.js",
+    "start": "webpack serve --open --env development --mode development",
+    "mf:build": "webpack --env production --mode production --config webpack.config.mf.js",
+    "mf:start": "webpack serve --open --env development --mode development --config webpack.config.mf.js",
     "lint": "node_modules/.bin/eslint --ext js '*/**/*.{js,ts,tsx}'",
     "generate-api": "rimraf src/services/api/generated-api && openapi-generator-cli generate"
   },

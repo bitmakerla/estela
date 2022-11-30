@@ -118,7 +118,7 @@ setup: update-api-ip makemigrations migrate restart-celery-beat create-minio-sup
 .PHONY: build-web
 build-web:
 	-. ./local/.env && cd $(WEB_DIR) && \
-	 echo "REACT_APP_API_BASE_URL=http://$(API_IP)" > .env.local
+	 echo "REACT_APP_API_BASE_URL=http://$(API_IP)" > .env.development
 	-cd $(WEB_DIR) && yarn install
 
 
