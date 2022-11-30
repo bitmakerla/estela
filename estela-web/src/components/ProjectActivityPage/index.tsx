@@ -1,9 +1,12 @@
 import React, { Component, Fragment } from "react";
 import { Layout, Space, Table, Row, Col, Button, Popover, Checkbox } from "antd";
-import { FilterOutlined } from "@ant-design/icons";
+import type { PaginationProps } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
+import Filter from "../../assets/icons/filter.svg";
+import DoubleRight from "../../assets/icons/doubleRight.svg";
+import DoubleLeft from "../../assets/icons/doubleLeft.svg";
 import { Header, ProjectSidenav, Spin } from "../../shared";
 
 const { Content } = Layout;
@@ -22,6 +25,28 @@ interface ProjectActivityPageState {
 interface RouteParams {
     projectId: string;
 }
+
+const itemRender: PaginationProps["itemRender"] = (_, type, originalElement) => {
+    if (type === "prev") {
+        return (
+            <a className="flex items-center mx-3 gap-2">
+                <DoubleLeft />
+                <p>First</p>
+            </a>
+        );
+    }
+    if (type === "next") {
+        return (
+            <a className="flex items-center mx-3 gap-2">
+                <p>Last</p>
+                <DoubleRight />
+            </a>
+        );
+    }
+    if (type === "page") {
+        return <a className="text-[#4D47C3]">{originalElement}</a>;
+    }
+};
 
 export class ProjectActivityPage extends Component<RouteComponentProps<RouteParams>, ProjectActivityPageState> {
     state: ProjectActivityPageState = {
@@ -68,6 +93,7 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
     pagination = {
         current: 1,
         pageSize: 2,
+        itemRender: itemRender,
     };
 
     content: JSX.Element = (
@@ -134,10 +160,9 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
                                                         trigger="click"
                                                     >
                                                         <Button
-                                                            shape="round"
-                                                            icon={<FilterOutlined className="mr-2" width={19} />}
+                                                            icon={<Filter className="h-6 w-6 mr-2" />}
                                                             size="large"
-                                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                            className="flex items-center mr-2 stroke-estela text-estela border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                                         >
                                                             Filter
                                                         </Button>
