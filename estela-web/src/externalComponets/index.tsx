@@ -1,11 +1,9 @@
-import React, { Fragment, Suspense } from "react";
-import { Header } from "../shared";
+import React, { Suspense } from "react";
 
 export const ExternalRoutes = (): JSX.Element => {
     const ComponentRoutes = React.lazy(() => import("DropdownComponent/ComponentRoutes"));
     return (
         <>
-            <Header />
             <ComponentRoutes />
         </>
     );
