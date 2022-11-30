@@ -6,11 +6,16 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import Play from "../../assets/icons/play.svg";
+import Setting from "../../assets/icons/setting.svg";
+import Filter from "../../assets/icons/filter.svg";
+
 import {
     ApiProjectsSpidersReadRequest,
     ApiProjectsSpidersJobsListRequest,
     Spider,
     SpiderJob,
+    SpiderJobArg,
+    SpiderJobTag,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
@@ -24,6 +29,8 @@ interface SpiderJobData {
     date: string;
     status: string | undefined;
     cronjob: number | null | undefined;
+    args: SpiderJobArg[] | undefined;
+    tags: SpiderJobTag[] | undefined;
 }
 
 interface SpiderDetailPageState {
@@ -87,6 +94,40 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         },
     ];
 
+    columnsNextJobs = [
+        {
+            title: "SCHEDULED JOB",
+            dataIndex: "next_job",
+            key: "next_job",
+            render: (nextJobID: number): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${nextJobID}`}>{nextJobID}</Link>
+            ),
+        },
+        {
+            title: "SPIDER",
+            dataIndex: "next_spider",
+            key: "next_spider",
+            render: (spiderName: string): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${spiderName}`}>{spiderName}</Link>
+            ),
+        },
+        {
+            title: "LAUNCH DATE",
+            dataIndex: "next_launch_date",
+            key: "next_launch_date",
+        },
+        {
+            title: "ARGUMENTS",
+            dataIndex: "next_arguments",
+            key: "next_arguments",
+        },
+        {
+            title: "TAGS",
+            dataIndex: "next_tags",
+            key: "next_tags",
+        },
+    ];
+
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
             authNotification();
@@ -130,6 +171,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             key: iterator,
             id: job.jid,
             args: job.args,
+            tags: job.tags,
             date: convertDateToString(job.created),
             status: job.jobStatus,
             cronjob: job.cronjob,
@@ -249,38 +291,93 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                 </Row>
                                                 <Row className="my-6 grid grid-cols-9 text-base h-full">
                                                     <Layout className="bg-metal col-span-7 h-44">
-                                                        <Content className="white-background mr-5 p-3 rounded-lg">
-                                                            <p className="text-base text-silver p-2">STATUS</p>
-                                                            <p className="text-xl font-bold p-2 leading-8">2</p>
-                                                        </Content>
+                                                        <Space direction="vertical">
+                                                            <Content className="white-background mr-5 p-3 rounded-lg">
+                                                                <Row
+                                                                    className="flow-root my-6 space-x-4"
+                                                                    align="middle"
+                                                                >
+                                                                    <Col className="float-left">
+                                                                        <Text className="text-base text-silver align-middle">
+                                                                            Next Job
+                                                                        </Text>
+                                                                    </Col>
+                                                                    <Col className="float-left">
+                                                                        <div className="bg-[#F9F9F9] text-[#9BA2A8] px-2 rounded-full">
+                                                                            <span className="text-xs align-middle">
+                                                                                10
+                                                                            </span>
+                                                                        </div>
+                                                                    </Col>
+                                                                    <Col className="float-right">
+                                                                        <button className="align-middle">
+                                                                            <Setting
+                                                                                className="mr-2 w-5 h-5"
+                                                                                width={19}
+                                                                                stroke="#6C757D"
+                                                                            />
+                                                                        </button>
+                                                                    </Col>
+                                                                    <Col className="float-right">
+                                                                        <Button
+                                                                            icon={
+                                                                                <Filter
+                                                                                    className="mr-2 stroke-[#4D47C3]"
+                                                                                    width={19}
+                                                                                    stroke="#4D47C3"
+                                                                                />
+                                                                            }
+                                                                            className="flex items-center border-[#F6FAFD] bg-[#F6FAFD] text-[#4D47C3] hover:text-estela text-sm hover:border-estela rounded-3xl"
+                                                                        >
+                                                                            <span className="align-middle">Filter</span>
+                                                                        </Button>
+                                                                    </Col>
+                                                                </Row>
+                                                            </Content>
+                                                            <Table
+                                                                tableLayout="fixed"
+                                                                className="rounded-2xl"
+                                                                rowSelection={{
+                                                                    type: "checkbox",
+                                                                }}
+                                                                columns={this.columnsNextJobs}
+                                                                dataSource={[]}
+                                                                pagination={false}
+                                                                size="middle"
+                                                            />
+                                                        </Space>
                                                     </Layout>
                                                     <Layout className="bg-metal col-span-2 h-44">
                                                         <Content className="white-background mr-5 p-3 rounded-lg">
-                                                            <p className="text-xs text-silver p-2">STATUS</p>
-                                                            <div className="grid grid-cols-3">
+                                                            <p className="text-xs text-silver">STATUS</p>
+                                                            <Row align="middle" className="grid grid-cols-3">
+                                                                <Col className="col-span-2">
+                                                                    <Checkbox>
+                                                                        <span className="text-xs">In queue</span>
+                                                                    </Checkbox>
+                                                                </Col>
+                                                                <Col className="col-span-1">
+                                                                    <span className="text-xs text-[#9BA2A8]">10</span>
+                                                                </Col>
+                                                            </Row>
+                                                            <Row align="middle" className="grid grid-cols-3">
                                                                 <div className="col-span-2">
                                                                     <Checkbox>
-                                                                        <p className="text-sm">In queue</p>
+                                                                        <span className="text-xs">Running</span>
                                                                     </Checkbox>
                                                                 </div>
                                                                 <div className="col-span-1">
-                                                                    <p className="text-xs text-[#9BA2A8]">10</p>
+                                                                    <span className="text-xs text-[#9BA2A8]">10</span>
                                                                 </div>
-                                                            </div>
+                                                            </Row>
                                                             <div className="grid grid-cols-3">
                                                                 <div className="col-span-2">
-                                                                    <Checkbox>Running</Checkbox>
+                                                                    <Checkbox>
+                                                                        <span className="text-xs">Completed</span>
+                                                                    </Checkbox>
                                                                 </div>
                                                                 <div className="col-span-1">
-                                                                    <p>10</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-3">
-                                                                <div className="col-span-2">
-                                                                    <Checkbox>Completed</Checkbox>
-                                                                </div>
-                                                                <div className="col-span-1">
-                                                                    <p>10</p>
+                                                                    <span className="text-xs text-[#9BA2A8]">10</span>
                                                                 </div>
                                                             </div>
                                                         </Content>
