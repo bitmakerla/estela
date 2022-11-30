@@ -20,4 +20,8 @@ yarn-error.log*
 api.yaml
 
 # Webpack config with module federation
-webpack.config.mfe.js
+webpack.config.mf.js
+
+# ENV
+.env.development
+.env.production
