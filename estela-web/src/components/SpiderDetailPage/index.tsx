@@ -148,6 +148,40 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         },
     ];
 
+    columnsNextJobs = [
+        {
+            title: "SCHEDULED JOB",
+            dataIndex: "next_job",
+            key: "next_job",
+            render: (nextJobID: number): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${nextJobID}`}>{nextJobID}</Link>
+            ),
+        },
+        {
+            title: "SPIDER",
+            dataIndex: "next_spider",
+            key: "next_spider",
+            render: (spiderName: string): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${spiderName}`}>{spiderName}</Link>
+            ),
+        },
+        {
+            title: "LAUNCH DATE",
+            dataIndex: "next_launch_date",
+            key: "next_launch_date",
+        },
+        {
+            title: "ARGUMENTS",
+            dataIndex: "next_arguments",
+            key: "next_arguments",
+        },
+        {
+            title: "TAGS",
+            dataIndex: "next_tags",
+            key: "next_tags",
+        },
+    ];
+
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
             authNotification();
