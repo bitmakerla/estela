@@ -51,6 +51,7 @@ interface SpiderDetailPageState {
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
     lastDeployDate: string;
+    errorJobs: SpiderJobData[];
 }
 
 interface RouteParams {
@@ -71,6 +72,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
+        errorJobs: [],
         lastDeployDate: "",
         tableStatus: new Array<boolean>(4).fill(true),
     };
