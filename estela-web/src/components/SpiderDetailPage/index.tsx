@@ -20,7 +20,7 @@ import {
     SpiderJobTag,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
-import { convertDateToString } from "../../utils";
+// import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -145,40 +145,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 ) : (
                     <div></div>
                 ),
-        },
-    ];
-
-    columnsNextJobs = [
-        {
-            title: "SCHEDULED JOB",
-            dataIndex: "next_job",
-            key: "next_job",
-            render: (nextJobID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${nextJobID}`}>{nextJobID}</Link>
-            ),
-        },
-        {
-            title: "SPIDER",
-            dataIndex: "next_spider",
-            key: "next_spider",
-            render: (spiderName: string): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${spiderName}`}>{spiderName}</Link>
-            ),
-        },
-        {
-            title: "LAUNCH DATE",
-            dataIndex: "next_launch_date",
-            key: "next_launch_date",
-        },
-        {
-            title: "ARGUMENTS",
-            dataIndex: "next_arguments",
-            key: "next_arguments",
-        },
-        {
-            title: "TAGS",
-            dataIndex: "next_tags",
-            key: "next_tags",
         },
     ];
 
@@ -596,8 +562,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     };
 
     render(): JSX.Element {
-        const { loaded, name, jobs, optionTab } = this.state;
-        console.log("Jobs: ", jobs);
+        const { loaded, name, jobs, count, current, optionTab } = this.state;
+        console.log(jobs);
         return (
             <Layout className="general-container">
                 <Header />
