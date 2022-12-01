@@ -9,19 +9,57 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('core', '0020_auto_20220917_2217'),
+        ("core", "0020_auto_20220917_2217"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('nid', models.AutoField(help_text='A unique integer value identifying each notification', primary_key=True, serialize=False)),
-                ('message', models.CharField(help_text='Notifications message.', max_length=1000)),
-                ('redirectto', models.CharField(help_text='The direction where the notification will redirect.', max_length=100)),
-                ('seen', models.BooleanField(default=False, help_text='Whether the notification was seen.')),
-                ('created', models.DateTimeField(auto_now_add=True, help_text='Notification send date.')),
-                ('user', models.ForeignKey(help_text='User whose this notification belongs to.', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "nid",
+                    models.AutoField(
+                        help_text="A unique integer value identifying each notification",
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "message",
+                    models.CharField(
+                        help_text="Notifications message.", max_length=1000
+                    ),
+                ),
+                (
+                    "redirectto",
+                    models.CharField(
+                        help_text="The direction where the notification will redirect.",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "seen",
+                    models.BooleanField(
+                        default=False, help_text="Whether the notification was seen."
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, help_text="Notification send date."
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        help_text="User whose this notification belongs to.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
+            options={
+                "ordering": ["-created_at"],
+            },
         ),
     ]

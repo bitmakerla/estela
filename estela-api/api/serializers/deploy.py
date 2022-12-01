@@ -68,4 +68,5 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
                     spider = project.spiders.filter(name=spider_name).get()
                     instance.spiders.add(spider)
             instance.save()
+        # update deploy notifications
         return instance

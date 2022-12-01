@@ -7,7 +7,13 @@ from api.serializers.job_specific import (
     SpiderJobTagSerializer,
 )
 from config.job_manager import job_manager
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
+from core.models import (
+    SpiderJob,
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    SpiderJobTag,
+    Notification,
+)
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -119,6 +125,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         status = validated_data.get("status", instance.status)
         data_status = validated_data.get("data_status", "")
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
+        modified_fields = []
         if status != instance.status:
             if instance.status == SpiderJob.STOPPED_STATUS:
                 raise serializers.ValidationError({"error": "Job is stopped"})
@@ -135,6 +142,13 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                     )
                 else:
                     job_manager.delete_job(instance.name)
+                    for user_ in instance.spider.project.users.all():
+                        noti = Notification(
+                            message=f"A job from spider {instance.spider.name} was deleted.",
+                            user=user_,
+                            redirectto=f"/projects/{spider.project.pid}/jobs",
+                        )
+                        noti.save()
             instance.status = status
 
         for field in [
@@ -146,6 +160,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             if not getattr(instance, field):
                 new_value = validated_data.get(field, getattr(instance, field))
                 setattr(instance, field, new_value)
+                modified_fields.append(field)
 
         if (
             "data_status" in validated_data
@@ -153,6 +168,14 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         ):
             if data_status == SpiderJob.PERSISTENT_STATUS:
                 instance.data_status = SpiderJob.PERSISTENT_STATUS
+                for user_ in instance.spider.project.users.all():
+                    noti = Notification(
+                        message=f"The job status is PERSISTENT now in a {instance.spider.name}'s job.",
+                        user=user_,
+                        redirectto=f"/projects/{spider.project.pid}/jobs/{instance.jid}",
+                    )
+                    noti.save()
+
             elif data_status == SpiderJob.PENDING_STATUS:
                 instance.data_status = SpiderJob.PENDING_STATUS
                 if data_expiry_days < 1:
@@ -161,10 +184,26 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                     )
                 else:
                     instance.data_expiry_days = data_expiry_days
+                    for user_ in instance.spider.project.users.all():
+                        noti = Notification(
+                            message=f"The job status is PENDING now in a {instance.spider.name}'s job.",
+                            user=user_,
+                            redirectto=f"/projects/{spider.project.pid}/jobs/{instance.jid}",
+                        )
+                        noti.save()
+
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 
         instance.save()
+        if modified_fields:
+            for user_ in instance.spider.project.users.all():
+                noti = Notification(
+                    message=f"{', '.join(modified_fields)} fields were modified in a {instance.spider.name}'s job.",
+                    user=user_,
+                    redirectto=f"/projects/{spider.project.pid}/jobs/{instance.jid}",
+                )
+                noti.save()
         return instance
 
 

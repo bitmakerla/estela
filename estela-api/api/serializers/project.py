@@ -5,6 +5,7 @@ from rest_framework.exceptions import APIException
 
 from config.job_manager import spiderdata_db_client
 from core.models import Permission, Project, SpiderJob, UsageRecord, Notification
+import time
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -114,6 +115,12 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
         return spiderdata_db_client.get_database_size(str(project.pid), datatype)
 
 
+class ProjectCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("pid", "name", "users", "user", "email", "action", "permission")
+
+
 class ProjectUpdateSerializer(serializers.ModelSerializer):
     ACTION_CHOICES = [
         ("remove", "Remove"),
@@ -157,4 +164,4 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ("message", "user", "redirectto")
+        fields = ("nid", "message", "user", "redirectto", "seen", "created_at")

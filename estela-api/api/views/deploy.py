@@ -12,7 +12,7 @@ from api.serializers.deploy import (
 )
 
 from api import errors
-from core.models import Deploy, Project
+from core.models import Deploy, Project, Notification
 from core.views import launch_deploy_job
 from config.job_manager import credentials
 
@@ -65,6 +65,13 @@ class DeployViewSet(
         launch_deploy_job(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
+        # for user_ in project.users.all():
+        #     noti = Notification(
+        #         message=f"New deployment for Spider in Project",
+        #         user=user_,
+        #         redirectto=f"/projects/{project.pid}/deploys",
+        #     )
+        #     noti.save()
 
         headers = self.get_success_headers(serializer.data)
         return Response(

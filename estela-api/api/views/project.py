@@ -5,6 +5,7 @@ from api.mixins import BaseViewSet
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.project import (
+    NotificationSerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
     ProjectUsageSerializer,
@@ -13,6 +14,7 @@ from api.serializers.project import (
 from core.models import (
     Permission,
     Project,
+    Notification,
     Spider,
     SpiderJob,
     SpiderCronJob,
@@ -48,6 +50,17 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     def get_queryset(self):
         return self.request.user.project_set.filter(deleted=False)
 
+    def create_notifications(self, message, instance, user, redirectto, alt_message=""):
+        for user_ in instance.users.all():
+            if user == user_:
+                noti = Notification(message=message, user=user_, redirectto=redirectto)
+            else:
+                noti = Notification(
+                    message=alt_message, user=user_, redirectto=redirectto
+                )
+            noti.save()
+        return
+
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.users.add(
@@ -63,6 +76,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             items_data_size=0,
             requests_data_size=0,
             logs_data_size=0,
+        )
+        self.create_notifications(
+            f"You created a new Project: {instance.name}",
+            instance,
+            self.request.user,
+            f"/projects/{instance.pid}/dashboard",
         )
 
     @swagger_auto_schema(
@@ -85,6 +104,13 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         if name:
             instance.name = name
+            self.create_notifications(
+                f"You changed the name of the Project: {name}",
+                instance,
+                self.request.user,
+                f"/projects/{instance.pid}/dashboard",
+                alt_message=f"{self.request.user} has changed the name of {name} Project",
+            )
         if user_email and user_email != user_permision:
             user = User.objects.filter(email=user_email)
             user_instance = User.objects.filter(email=user_permision)
@@ -99,13 +125,26 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                         instance.users.add(
                             user, through_defaults={"permission": permission}
                         )
+                        self.create_notifications(
+                            f"You added {user.get_username()} as a new member of {instance.name} project, as {permission}.",
+                            instance,
+                            self.request.user,
+                            f"/projects/{instance.pid}/dashboard",
+                            alt_message=f"{self.request.user.get_username()} added {user.get_username()} as a new member of MyProject project, as {permission}.",
+                        )
                     elif action == "remove":
                         instance.users.remove(user)
+                        self.create_notifications(
+                            f"You removed {user.get_username()} from {instance.name} project.",
+                            instance,
+                            self.request.user,
+                            f"/projects/{instance.pid}/dashboard",
+                            alt_message=f"{self.request.user.get_username()} has removed {user.get_username()} from {instance.name} project.",
+                        )
                     elif action == "update":
                         instance.users.remove(user)
                         instance.users.add(
                             user, through_defaults={"permission": permission}
-                        )
                 else:
                     raise ParseError({"error": "Action not supported."})
             else:
@@ -121,6 +160,13 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
+        self.create_notifications(
+            f"You deleted {instance.name} project.",
+            instance,
+            self.request.user,
+            f"/projects/",
+            alt_message=f"{self.request.user.get_username()} has deleted {instance.name} project.",
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
@@ -253,4 +299,21 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
+        )
+
+
+class NotificationViewSet(BaseViewSet, viewsets.ModelViewSet):
+    model_class = Notification
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if self.request is None:
+            return Notification.objects.none()
+        return (
+            super(NotificationViewSet, self)
+            .get_queryset()
+            .filter(
+                user__id=self.kwargs["uid"],
+            )
         )

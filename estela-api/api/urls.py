@@ -42,6 +42,12 @@ router.register(
     basename="cronjob",
 )
 
+router.register(
+    prefix=r"notifications/(?P<uid>[0-9a-z-]+)",
+    viewset=project_views.NotificationViewSet,
+    basename="project",
+)
+
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 
 urlpatterns = router.urls

@@ -2,7 +2,13 @@ from croniter import croniter
 from rest_framework import serializers
 from api import errors
 
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
+from core.models import (
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    SpiderCronJob,
+    SpiderJobTag,
+    Notification,
+)
 
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
@@ -101,7 +107,7 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
             cronjob.ctags.add(tag)
 
         cronjob.save()
-
+        # cronjob creation
         return cronjob
 
 
@@ -158,6 +164,7 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 
         instance.save()
+        # update cronjob
         return instance
 
 

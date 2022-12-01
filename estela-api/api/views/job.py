@@ -61,6 +61,17 @@ class SpiderJobViewSet(
             )
         )
 
+    def create_notifications(self, message, instance, user, redirectto, alt_message=""):
+        for user_ in instance.users.all():
+            if user == user_:
+                noti = Notification(message=message, user=user_, redirectto=redirectto)
+            else:
+                noti = Notification(
+                    message=alt_message, user=user_, redirectto=redirectto
+                )
+            noti.save()
+        return
+
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
@@ -144,6 +155,13 @@ class SpiderJobViewSet(
                 data_expiry_days=data_expiry_days,
             )
 
+        self.create_notifications(
+            f"You scheduled a new scheduled job at {spider.name} spider.",
+            spider.project,
+            self.request.user,
+            f"/projects/{spider.project.pid}/jobs/{job.jid}",
+            alt_message=f"{self.request.user.get_username()} has scheduled a new scheduled job at {spider.name} spider.",
+        )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers

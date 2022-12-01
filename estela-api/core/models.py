@@ -384,7 +384,9 @@ class Notification(models.Model):
         help_text="A unique integer value identifying each notification",
     )
     message = models.CharField(max_length=1000, help_text="Notifications message.")
-    redirectto = models.CharField(max_length=100, help_text="The direction where the notification will redirect.")
+    redirectto = models.CharField(
+        max_length=100, help_text="The direction where the notification will redirect."
+    )
     seen = models.BooleanField(
         default=False, help_text="Whether the notification was seen."
     )
@@ -393,8 +395,9 @@ class Notification(models.Model):
         on_delete=models.CASCADE,
         help_text="User whose this notification belongs to.",
     )
-    created = models.DateTimeField(
+    created_at = models.DateTimeField(
         auto_now_add=True, editable=False, help_text="Notification send date."
     )
+
     class Meta:
         ordering = ["-created_at"]
