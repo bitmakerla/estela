@@ -18,16 +18,16 @@ import {
     SpiderJobTag,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
-import { convertDateToString } from "../../utils";
+// import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface SpiderJobData {
-    id: number | undefined;
-    key: number | undefined;
-    date: string;
-    status: string | undefined;
+    id: number | null | undefined;
+    key: number | null | undefined;
+    spider: number | null | undefined;
+    jobStatus: string | null | undefined;
     cronjob: number | null | undefined;
     args: SpiderJobArg[] | undefined;
     tags: SpiderJobTag[] | undefined;
@@ -49,6 +49,7 @@ interface RouteParams {
 
 export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>, SpiderDetailPageState> {
     PAGE_SIZE = 10;
+    center = "center";
     state: SpiderDetailPageState = {
         name: "",
         jobs: [],
@@ -60,71 +61,74 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
     spiderId: string = this.props.match.params.spiderId;
+
     columns = [
         {
-            title: "Job ID",
+            title: "JOB",
             dataIndex: "id",
             key: "id",
             render: (jobID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}>{jobID}</Link>
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}>Job-{jobID}</Link>
             ),
         },
         {
-            title: "Date",
-            dataIndex: "date",
-            key: "date",
+            title: "SPIDER",
+            dataIndex: "spider",
+            key: "spider",
+            render: (spiderID: number): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>Spider-{spiderID}</Link>
+            ),
         },
         {
-            title: "Cronjob",
-            key: "cronjob",
+            title: "SCHEDULED JOB",
             dataIndex: "cronjob",
+            key: "cronjob",
             render: (cronjob: number): ReactElement =>
                 cronjob ? (
                     <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}>
                         {cronjob}
                     </Link>
                 ) : (
+                    <span className="text-xs text-[#6C757D]">Not associated</span>
+                ),
+        },
+        {
+            title: "ARGUMENTS",
+            dataIndex: "args",
+            key: "args",
+            render: (args: SpiderJobArg[]): ReactElement =>
+                args.length !== 0 ? (
+                    <>
+                        {args.map((arg, index) => {
+                            return (
+                                <span key={index} className="text-xs text-[#6C757D]">
+                                    {arg.name}={arg.value}
+                                </span>
+                            );
+                        })}
+                    </>
+                ) : (
                     <div></div>
                 ),
         },
         {
-            title: "Status",
-            key: "status",
-            dataIndex: "status",
-        },
-    ];
-
-    columnsNextJobs = [
-        {
-            title: "SCHEDULED JOB",
-            dataIndex: "next_job",
-            key: "next_job",
-            render: (nextJobID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${nextJobID}`}>{nextJobID}</Link>
-            ),
-        },
-        {
-            title: "SPIDER",
-            dataIndex: "next_spider",
-            key: "next_spider",
-            render: (spiderName: string): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${spiderName}`}>{spiderName}</Link>
-            ),
-        },
-        {
-            title: "LAUNCH DATE",
-            dataIndex: "next_launch_date",
-            key: "next_launch_date",
-        },
-        {
-            title: "ARGUMENTS",
-            dataIndex: "next_arguments",
-            key: "next_arguments",
-        },
-        {
             title: "TAGS",
-            dataIndex: "next_tags",
-            key: "next_tags",
+            dataIndex: "tags",
+            key: "tags",
+            render: (tags: SpiderJobTag[]): ReactElement =>
+                tags.length !== 0 ? (
+                    <>
+                        {tags.map((tag, index) => {
+                            return (
+                                <span key={index} className="text-xs text-[#6C757D]">
+                                    {tag.name}
+                                </span>
+                            );
+                        })}
+                    </>
+                ) : (
+                    <div></div>
+                ),
         },
     ];
 
@@ -170,10 +174,10 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const data = response.results.map((job: SpiderJob, iterator: number) => ({
             key: iterator,
             id: job.jid,
+            spider: job.spider,
             args: job.args,
             tags: job.tags,
-            date: convertDateToString(job.created),
-            status: job.jobStatus,
+            jobStatus: job.jobStatus,
             cronjob: job.cronjob,
         }));
         return { data, count: response.count, current: page };
@@ -193,6 +197,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
 
     render(): JSX.Element {
         const { loaded, name, jobs, count, current, optionTab } = this.state;
+        console.log(jobs);
         return (
             <Layout className="general-container">
                 <Header />
@@ -205,7 +210,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     <div className="lg:m-10 md:mx-6 mx-2">
                                         <Row className="flow-root my-6 space-x-4">
                                             <Col className="float-left">
-                                                <Text className="text-[#6C757D] text-xl">My Spider</Text>
+                                                <Text className="text-[#6C757D] text-xl">{name}</Text>
                                             </Col>
                                             <Col className="float-right">
                                                 <Button
@@ -227,7 +232,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             </Col>
                                         </Row>
                                         <Tabs
-                                            defaultActiveKey={this.state.optionTab}
+                                            defaultActiveKey={optionTab}
                                             onChange={this.onDetailMenuTabChange}
                                             items={[
                                                 {
@@ -252,7 +257,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                     <Layout className="bg-metal col-span-1 h-44">
                                                         <Content className="white-background mr-5 p-3 rounded-lg">
                                                             <p className="text-base text-silver p-2">JOBS</p>
-                                                            <p className="text-xl font-bold p-2 leading-8">2</p>
+                                                            <p className="text-xl font-bold p-2 leading-8">
+                                                                {jobs.length}
+                                                            </p>
                                                         </Content>
                                                     </Layout>
                                                     <Layout className="bg-metal col-span-2 h-44">
@@ -263,7 +270,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                     <p className="text-sm font-bold">Spider ID</p>
                                                                 </div>
                                                                 <div className="col-span-2">
-                                                                    <p className="text-sm text-silver">01</p>
+                                                                    <p className="text-sm text-silver">
+                                                                        {this.spiderId}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                             <div className="grid grid-cols-3 p-2 bg-[#F6FAFD] rounded-lg">
@@ -272,7 +281,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                 </div>
                                                                 <div className="col-span-2">
                                                                     <p className="text-sm text-silver">
-                                                                        e0cfa47f-2cfe-4070-bedf-78d2e45287f0
+                                                                        {this.projectId}
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -299,13 +308,13 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                 >
                                                                     <Col className="float-left">
                                                                         <Text className="text-base text-silver align-middle">
-                                                                            Next Job
+                                                                            Running
                                                                         </Text>
                                                                     </Col>
                                                                     <Col className="float-left">
                                                                         <div className="bg-[#F9F9F9] text-[#9BA2A8] px-2 rounded-full">
                                                                             <span className="text-xs align-middle">
-                                                                                10
+                                                                                100
                                                                             </span>
                                                                         </div>
                                                                     </Col>
@@ -333,18 +342,19 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                         </Button>
                                                                     </Col>
                                                                 </Row>
+                                                                <Table
+                                                                    tableLayout="fixed"
+                                                                    className="rounded-2xl"
+                                                                    rowSelection={{
+                                                                        type: "checkbox",
+                                                                    }}
+                                                                    columns={this.columns}
+                                                                    dataSource={jobs}
+                                                                    pagination={false}
+                                                                    size="middle"
+                                                                    scroll={{ x: "max-content" }}
+                                                                />
                                                             </Content>
-                                                            <Table
-                                                                tableLayout="fixed"
-                                                                className="rounded-2xl"
-                                                                rowSelection={{
-                                                                    type: "checkbox",
-                                                                }}
-                                                                columns={this.columnsNextJobs}
-                                                                dataSource={[]}
-                                                                pagination={false}
-                                                                size="middle"
-                                                            />
                                                         </Space>
                                                     </Layout>
                                                     <Layout className="bg-metal col-span-2 h-44">
@@ -385,28 +395,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                 </Row>
                                                 <Row justify="center" className="bg-white rounded-lg">
                                                     <Content>
-                                                        <Title level={4} className="text-center">
-                                                            {name}
-                                                        </Title>
-                                                        <Row justify="center" className="spider-data">
-                                                            <Space direction="vertical" size="large">
-                                                                <Text>
-                                                                    <b>Spider ID:</b>&nbsp; {this.spiderId}
-                                                                </Text>
-                                                                <Text>
-                                                                    <b>Project ID:</b>
-                                                                    <Link to={`/projects/${this.projectId}`}>
-                                                                        &nbsp; {this.projectId}
-                                                                    </Link>
-                                                                </Text>
-                                                                <Table
-                                                                    columns={this.columns}
-                                                                    dataSource={jobs}
-                                                                    pagination={false}
-                                                                    size="middle"
-                                                                />
-                                                            </Space>
-                                                        </Row>
                                                         <Pagination
                                                             className="pagination"
                                                             defaultCurrent={1}
