@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Button, Layout, Pagination, Typography, Row, Space, Table, Col, Tabs, Radio, Checkbox } from "antd";
+import { Button, Layout, Pagination, Typography, Row, Table, Col, Tabs, Radio, Checkbox, Space, Tag } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
@@ -40,6 +40,11 @@ interface SpiderDetailPageState {
     count: number;
     current: number;
     optionTab: string;
+    tableStatus: boolean[];
+    queueJobs: SpiderJobData[];
+    runningJobs: SpiderJobData[];
+    completedJobs: SpiderJobData[];
+    errorJobs: SpiderJobData[];
 }
 
 interface RouteParams {
@@ -57,6 +62,11 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         count: 0,
         current: 0,
         optionTab: "overview",
+        queueJobs: [],
+        runningJobs: [],
+        completedJobs: [],
+        errorJobs: [],
+        tableStatus: new Array<boolean>(4).fill(true),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -247,60 +257,185 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                         />
                                         {optionTab === "overview" && (
                                             <>
-                                                <Row className="my-6 grid grid-cols-4 text-base h-full">
-                                                    <Layout className="bg-metal col-span-1 h-44">
-                                                        <Content className="white-background mr-5 p-3 rounded-lg">
-                                                            <p className="text-base text-silver p-2">SCHEDULED JOBS</p>
-                                                            <p className="text-xl font-bold p-2 leading-8">2</p>
-                                                        </Content>
-                                                    </Layout>
-                                                    <Layout className="bg-metal col-span-1 h-44">
-                                                        <Content className="white-background mr-5 p-3 rounded-lg">
-                                                            <p className="text-base text-silver p-2">JOBS</p>
-                                                            <p className="text-xl font-bold p-2 leading-8">
-                                                                {jobs.length}
-                                                            </p>
-                                                        </Content>
-                                                    </Layout>
-                                                    <Layout className="bg-metal col-span-2 h-44">
-                                                        <Content className="white-background mr-5 p-3 rounded-lg">
-                                                            <p className="text-base text-silver p-2">DETAILS</p>
-                                                            <div className="grid grid-cols-3 p-2 rounded-lg">
-                                                                <div className="col-span-1">
-                                                                    <p className="text-sm font-bold">Spider ID</p>
+                                                <Content className="my-4">
+                                                    <Row className="my-6 grid grid-cols-4 text-base h-full">
+                                                        <Layout className="bg-metal col-span-1 h-44">
+                                                            <Content className="white-background mr-5 p-3 rounded-lg">
+                                                                <p className="text-base text-silver p-2">
+                                                                    SCHEDULED JOBS
+                                                                </p>
+                                                                <p className="text-xl font-bold p-2 leading-8">2</p>
+                                                            </Content>
+                                                        </Layout>
+                                                        <Layout className="bg-metal col-span-1 h-44">
+                                                            <Content className="white-background mr-5 p-3 rounded-lg">
+                                                                <p className="text-base text-silver p-2">JOBS</p>
+                                                                <p className="text-xl font-bold p-2 leading-8">
+                                                                    {jobs.length}
+                                                                </p>
+                                                            </Content>
+                                                        </Layout>
+                                                        <Layout className="bg-metal col-span-2 h-44">
+                                                            <Content className="white-background mr-5 p-3 rounded-lg">
+                                                                <p className="text-base text-silver p-2">DETAILS</p>
+                                                                <div className="grid grid-cols-3 p-2 rounded-lg">
+                                                                    <div className="col-span-1">
+                                                                        <p className="text-sm font-bold">Spider ID</p>
+                                                                    </div>
+                                                                    <div className="col-span-2">
+                                                                        <p className="text-sm text-silver">
+                                                                            {this.spiderId}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="col-span-2">
-                                                                    <p className="text-sm text-silver">
-                                                                        {this.spiderId}
-                                                                    </p>
+                                                                <div className="grid grid-cols-3 p-2 bg-[#F6FAFD] rounded-lg">
+                                                                    <div className="col-span-1">
+                                                                        <p className="text-sm font-bold">Project ID</p>
+                                                                    </div>
+                                                                    <div className="col-span-2">
+                                                                        <p className="text-sm text-silver">
+                                                                            {this.projectId}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-3 p-2 bg-[#F6FAFD] rounded-lg">
-                                                                <div className="col-span-1">
-                                                                    <p className="text-sm font-bold">Project ID</p>
+                                                                <div className="grid grid-cols-3 p-2 rounded-lg">
+                                                                    <div className="col-span-1">
+                                                                        <p className="text-sm font-bold">
+                                                                            Creation date
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="col-span-2">
+                                                                        <p className="text-sm text-silver">
+                                                                            16:23:00 09-13-2022
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="col-span-2">
-                                                                    <p className="text-sm text-silver">
-                                                                        {this.projectId}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-3 p-2 rounded-lg">
-                                                                <div className="col-span-1">
-                                                                    <p className="text-sm font-bold">Creation date</p>
-                                                                </div>
-                                                                <div className="col-span-2">
-                                                                    <p className="text-sm text-silver">
-                                                                        16:23:00 09-13-2022
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </Content>
-                                                    </Layout>
-                                                </Row>
-                                                <Row className="my-6 grid grid-cols-9 text-base h-full">
-                                                    <Layout className="bg-metal col-span-7 h-44">
-                                                        <Space direction="vertical">
+                                                            </Content>
+                                                        </Layout>
+                                                    </Row>
+                                                    <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
+                                                        <Col className="float-left col-span-4">
+                                                            <Row className="my-2 rounded-lg bg-white">
+                                                                <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                                                    <Col className="float-left py-1">
+                                                                        <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                                            In queue
+                                                                        </Text>
+                                                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                                            10
+                                                                        </Tag>
+                                                                    </Col>
+                                                                    <Col className="flex float-right">
+                                                                        <Button
+                                                                            disabled={true}
+                                                                            icon={<Filter className="h-6 w-6 mr-2" />}
+                                                                            size="large"
+                                                                            className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                                                        >
+                                                                            Filter
+                                                                        </Button>
+                                                                        <Button
+                                                                            icon={<Setting className="h-6 w-6" />}
+                                                                            size="large"
+                                                                            className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                                                        ></Button>
+                                                                    </Col>
+                                                                </Content>
+                                                                <Content className="mx-4 my-1">
+                                                                    <Table
+                                                                        scroll={{}}
+                                                                        size="small"
+                                                                        rowSelection={{
+                                                                            type: "checkbox",
+                                                                        }}
+                                                                        columns={this.columns}
+                                                                        dataSource={[]}
+                                                                        pagination={false}
+                                                                    />
+                                                                </Content>
+                                                                <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                                                <Space direction="horizontal" className="my-2 mx-4">
+                                                                    <Button
+                                                                        disabled
+                                                                        className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                                                    >
+                                                                        Cancel
+                                                                    </Button>
+                                                                    <Button
+                                                                        disabled
+                                                                        className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                                                    >
+                                                                        Edit
+                                                                    </Button>
+                                                                </Space>
+                                                            </Row>
+                                                            <Row>
+                                                                <Pagination
+                                                                    className="pagination"
+                                                                    defaultCurrent={1}
+                                                                    total={count}
+                                                                    current={current}
+                                                                    pageSize={this.PAGE_SIZE}
+                                                                    onChange={this.onPageChange}
+                                                                    showSizeChanger={false}
+                                                                />
+                                                            </Row>
+                                                        </Col>
+                                                        <Col className="float-right my-2 col-span-1 rounded-lg w-48 bg-white">
+                                                            <Content className="my-2 mx-3">
+                                                                <Text className="text-estela-black-medium font-medium text-xs">
+                                                                    STATUS
+                                                                </Text>
+                                                                <Content className="my-2">
+                                                                    <Checkbox checked={true}>
+                                                                        <Space direction="horizontal">
+                                                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                                                Queue
+                                                                            </Text>
+                                                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                                                10
+                                                                            </Tag>
+                                                                        </Space>
+                                                                    </Checkbox>
+                                                                    <br />
+                                                                    <Checkbox checked={true}>
+                                                                        <Space direction="horizontal">
+                                                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                                                Running
+                                                                            </Text>
+                                                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                                                10
+                                                                            </Tag>
+                                                                        </Space>
+                                                                    </Checkbox>
+                                                                    <br />
+                                                                    <Checkbox checked={true}>
+                                                                        <Space direction="horizontal">
+                                                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                                                Completed
+                                                                            </Text>
+                                                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                                                10
+                                                                            </Tag>
+                                                                        </Space>
+                                                                    </Checkbox>
+                                                                    <br />
+                                                                    <Checkbox checked={true}>
+                                                                        <Space direction="horizontal">
+                                                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                                                Error
+                                                                            </Text>
+                                                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                                                100
+                                                                            </Tag>
+                                                                        </Space>
+                                                                    </Checkbox>
+                                                                </Content>
+                                                            </Content>
+                                                        </Col>
+                                                    </Content>
+                                                    <Row className="my-6 grid grid-cols-9 text-base h-full">
+                                                        <Layout className="bg-metal col-span-7 h-44">
                                                             <Content className="white-background mr-5 p-3 rounded-lg">
                                                                 <Row
                                                                     className="flow-root my-6 space-x-4"
@@ -355,44 +490,50 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                                     scroll={{ x: "max-content" }}
                                                                 />
                                                             </Content>
-                                                        </Space>
-                                                    </Layout>
-                                                    <Layout className="bg-metal col-span-2 h-44">
-                                                        <Content className="white-background mr-5 p-3 rounded-lg">
-                                                            <p className="text-xs text-silver">STATUS</p>
-                                                            <Row align="middle" className="grid grid-cols-3">
-                                                                <Col className="col-span-2">
-                                                                    <Checkbox>
-                                                                        <span className="text-xs">In queue</span>
-                                                                    </Checkbox>
-                                                                </Col>
-                                                                <Col className="col-span-1">
-                                                                    <span className="text-xs text-[#9BA2A8]">10</span>
-                                                                </Col>
-                                                            </Row>
-                                                            <Row align="middle" className="grid grid-cols-3">
-                                                                <div className="col-span-2">
-                                                                    <Checkbox>
-                                                                        <span className="text-xs">Running</span>
-                                                                    </Checkbox>
+                                                        </Layout>
+                                                        <Layout className="bg-metal col-span-2 h-44">
+                                                            <Content className="white-background mr-5 p-3 rounded-lg">
+                                                                <p className="text-xs text-silver">STATUS</p>
+                                                                <Row align="middle" className="grid grid-cols-3">
+                                                                    <Col className="col-span-2">
+                                                                        <Checkbox>
+                                                                            <span className="text-xs">In queue</span>
+                                                                        </Checkbox>
+                                                                    </Col>
+                                                                    <Col className="col-span-1">
+                                                                        <span className="text-xs text-[#9BA2A8]">
+                                                                            10
+                                                                        </span>
+                                                                    </Col>
+                                                                </Row>
+                                                                <Row align="middle" className="grid grid-cols-3">
+                                                                    <div className="col-span-2">
+                                                                        <Checkbox>
+                                                                            <span className="text-xs">Running</span>
+                                                                        </Checkbox>
+                                                                    </div>
+                                                                    <div className="col-span-1">
+                                                                        <span className="text-xs text-[#9BA2A8]">
+                                                                            10
+                                                                        </span>
+                                                                    </div>
+                                                                </Row>
+                                                                <div className="grid grid-cols-3">
+                                                                    <div className="col-span-2">
+                                                                        <Checkbox>
+                                                                            <span className="text-xs">Completed</span>
+                                                                        </Checkbox>
+                                                                    </div>
+                                                                    <div className="col-span-1">
+                                                                        <span className="text-xs text-[#9BA2A8]">
+                                                                            10
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="col-span-1">
-                                                                    <span className="text-xs text-[#9BA2A8]">10</span>
-                                                                </div>
-                                                            </Row>
-                                                            <div className="grid grid-cols-3">
-                                                                <div className="col-span-2">
-                                                                    <Checkbox>
-                                                                        <span className="text-xs">Completed</span>
-                                                                    </Checkbox>
-                                                                </div>
-                                                                <div className="col-span-1">
-                                                                    <span className="text-xs text-[#9BA2A8]">10</span>
-                                                                </div>
-                                                            </div>
-                                                        </Content>
-                                                    </Layout>
-                                                </Row>
+                                                            </Content>
+                                                        </Layout>
+                                                    </Row>
+                                                </Content>
                                                 <Row justify="center" className="bg-white rounded-lg">
                                                     <Content>
                                                         <Pagination
