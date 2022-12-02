@@ -20,7 +20,6 @@ import {
     SpiderJobTag,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
-// import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -50,8 +49,8 @@ interface SpiderDetailPageState {
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
-    lastDeployDate: string;
     errorJobs: SpiderJobData[];
+    lastDeployDate: string;
 }
 
 interface RouteParams {
@@ -564,8 +563,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     };
 
     render(): JSX.Element {
-        const { loaded, name, jobs, count, current, optionTab } = this.state;
-        console.log(jobs);
+        const { loaded, name, jobs, optionTab } = this.state;
+        console.log("Jobs: ", jobs);
         return (
             <Layout className="general-container">
                 <Header />
