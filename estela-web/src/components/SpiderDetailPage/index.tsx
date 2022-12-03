@@ -12,12 +12,15 @@ import Filter from "../../assets/icons/filter.svg";
 import {
     ApiProjectsSpidersReadRequest,
     ApiProjectsSpidersJobsListRequest,
+    ApiProjectsDeploysListRequest,
+    Deploy,
     Spider,
     SpiderJob,
     SpiderJobArg,
     SpiderJobTag,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -47,6 +50,7 @@ interface SpiderDetailPageState {
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
+    lastDeployDate: string;
 }
 
 interface RouteParams {
@@ -67,6 +71,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
+        lastDeployDate: "",
         tableStatus: new Array<boolean>(3).fill(true),
     };
     apiService = ApiService();
@@ -177,6 +182,24 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     resourceNotAllowedNotification();
                 },
             );
+            const requestParamsDeploys: ApiProjectsDeploysListRequest = { pid: this.projectId };
+            this.apiService.apiProjectsDeploysList(requestParamsDeploys).then(
+                (results) => {
+                    const deploys: Deploy[] = results.results;
+                    const lastDeployDate: Date =
+                        deploys.reduce((d1, d2) => {
+                            const date1: Date = d1?.created || new Date();
+                            const date2: Date = d2?.created || new Date();
+                            return date1 > date2 ? d1 : d2;
+                        })?.created || new Date();
+
+                    this.setState({ lastDeployDate: convertDateToString(lastDeployDate) });
+                },
+                (error: unknown) => {
+                    console.error(error);
+                    resourceNotAllowedNotification();
+                },
+            );
         }
     }
 
@@ -227,7 +250,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     };
 
     overview = (): React.ReactNode => {
-        const { tableStatus, jobs, count, current, queueJobs, runningJobs, completedJobs } = this.state;
+        const { tableStatus, jobs, count, current, queueJobs, runningJobs, completedJobs, lastDeployDate } = this.state;
         return (
             <Content className="my-4">
                 <Row className="my-6 grid grid-cols-4 text-base h-full">
@@ -267,7 +290,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     <p className="text-sm font-bold">Creation date</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-sm text-silver">{/*To implement*/}</p>
+                                    <p className="text-sm text-silver">{lastDeployDate}</p>
                                 </div>
                             </div>
                         </Content>
