@@ -19,6 +19,7 @@ module.exports = {
         'back-code': '#33525F',
         'estela-blue-full': '#4D47C3',
         'estela-blue-low': '#F6FAFD',
+        'estela-blue-medium': '#3C7BC6',
         'estela-black-low': '#9BA2A8',
         'estela-black-medium': '#6C757D',
         'estela-black-full': '#212529',
