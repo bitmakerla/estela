@@ -186,14 +186,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             this.apiService.apiProjectsDeploysList(requestParamsDeploys).then(
                 (results) => {
                     const deploys: Deploy[] = results.results;
-                    const lastDeployDate: Date =
-                        deploys.reduce((d1, d2) => {
+                    const deploysAssociated = deploys.filter((deploy: Deploy) => {
+                        const spiders: Spider[] = deploy.spiders || [];
+                        return spiders.some((spider: Spider) => spider.sid?.toString() === this.spiderId);
+                    });
+                    const oldestDeployDate: Date =
+                        deploysAssociated.reduce((d1, d2) => {
                             const date1: Date = d1?.created || new Date();
                             const date2: Date = d2?.created || new Date();
-                            return date1 > date2 ? d1 : d2;
+                            return date1 < date2 ? d1 : d2;
                         })?.created || new Date();
 
-                    this.setState({ lastDeployDate: convertDateToString(lastDeployDate) });
+                    this.setState({ lastDeployDate: convertDateToString(oldestDeployDate) });
                 },
                 (error: unknown) => {
                     console.error(error);
