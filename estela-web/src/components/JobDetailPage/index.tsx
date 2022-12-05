@@ -1,11 +1,28 @@
 import React, { Component } from "react";
 import moment from "moment";
-import { Layout, Typography, Collapse, Row, Space, Tag, Button, Switch, DatePicker, DatePickerProps } from "antd";
+import {
+    Layout,
+    Typography,
+    Collapse,
+    Row,
+    Col,
+    Space,
+    Tag,
+    Button,
+    Switch,
+    DatePicker,
+    DatePickerProps,
+    Tabs,
+    Card,
+} from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
+import Copy from "../../assets/icons/copy.svg";
+import Run from "../../assets/icons/play.svg";
+import Pause from "../../assets/icons/pause.svg";
 import {
     ApiProjectsSpidersJobsReadRequest,
     SpiderJobUpdateStatusEnum,
@@ -118,18 +135,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             };
             this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
                 async (response: SpiderJob) => {
-                    let args = response.args;
-                    if (args === undefined) {
-                        args = [];
-                    }
-                    let envVars = response.envVars;
-                    if (envVars === undefined) {
-                        envVars = [];
-                    }
-                    let tags = response.tags;
-                    if (tags === undefined) {
-                        tags = [];
-                    }
+                    const args = response.args || [];
+                    const envVars = response.envVars || [];
+                    const tags = response.tags || [];
                     this.setState({
                         name: response.name,
                         lifespan: response.lifespan,
@@ -253,6 +261,95 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
+    overview = (): React.ReactNode => {
+        const { tags, envVars, args, date } = this.state;
+        return (
+            <>
+                <Content className="grid lg:grid-cols-3 grid-cols-3 gap-4 items-start lg:w-full">
+                    <Card className="w-fit col-span-1" style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">FIELDS</Text>
+                        <Row className="grid grid-cols-2 py-1 px-4 mt-4">
+                            <Col>Field 01</Col>
+                            <Col>text</Col>
+                        </Row>
+                        <Row className="grid grid-cols-2 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Field 01</Col>
+                            <Col>text</Col>
+                        </Row>
+                    </Card>
+                    <Card className="w-full col-span-2" style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">DETAILS</Text>
+                        <Row className="grid grid-cols-3 py-1 px-4 mt-4">
+                            <Col>Spider ID</Col>
+                            <Col>
+                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{this.spiderId}</Link>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Project ID</Col>
+                            <Col>
+                                <Link to={`/projects/${this.projectId}`}>{this.projectId}</Link>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4">
+                            <Col className="col-span-1">Creation date</Col>
+                            <Col className="col-span-2">{date}</Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Tags</Col>
+                            <Col>
+                                <Space direction="horizontal">
+                                    {tags.map((tag: TagsData, id) => (
+                                        <Tag
+                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                            key={id}
+                                        >
+                                            {tag.name}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4">
+                            <Col>Environment variables</Col>
+                            <Col>
+                                <Space direction="vertical">
+                                    {envVars.map((envVar: EnvVarsData, id) => (
+                                        <Tag
+                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                            key={id}
+                                        >
+                                            {envVar.name}: {envVar.value}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Arguments</Col>
+                            <Col>
+                                <Space direction="horizontal">
+                                    {args.map((arg: ArgsData, id) => (
+                                        <Tag
+                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                            key={id}
+                                        >
+                                            {arg.name}: {arg.value}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4">
+                            <Col>Spider</Col>
+                            <Col>My Spider</Col>
+                        </Row>
+                    </Card>
+                </Content>
+            </>
+        );
+    };
+
     render(): JSX.Element {
         const {
             loaded,
@@ -279,6 +376,71 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     <Content className="content-padding">
                         {loaded ? (
                             <Layout className="white-background">
+                                <Content className="bg-metal rounded-2xl">
+                                    <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
+                                        <Col className="float-left">
+                                            <Text className="text-estela-black-medium font-medium text-xl">
+                                                Job-{this.jobId}
+                                            </Text>
+                                        </Col>
+                                        <Col className="float-right flex gap-1">
+                                            <Button
+                                                disabled
+                                                icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
+                                                size="large"
+                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                            >
+                                                Clone this job
+                                            </Button>
+                                            {status == SpiderJobUpdateStatusEnum.Running ? (
+                                                <Button
+                                                    icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
+                                                    size="large"
+                                                    className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                                >
+                                                    Stop this job
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                                    size="large"
+                                                    className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                                >
+                                                    Run this job
+                                                </Button>
+                                            )}
+                                        </Col>
+                                    </Row>
+                                    <Row className="lg:mx-10 mx-6">
+                                        <Tabs
+                                            size="middle"
+                                            defaultActiveKey={"1"}
+                                            items={[
+                                                {
+                                                    label: "Overview",
+                                                    key: "1",
+                                                    children: this.overview(),
+                                                },
+                                                {
+                                                    label: "Items", // (show the quantity of items, to implement)
+                                                    key: "2",
+                                                },
+                                                {
+                                                    label: "Requests",
+                                                    key: "3",
+                                                },
+                                                {
+                                                    label: "Log",
+                                                    key: "4",
+                                                },
+                                                {
+                                                    label: "Stats",
+                                                    key: "5",
+                                                },
+                                            ]}
+                                        />
+                                    </Row>
+                                </Content>
                                 <Content>
                                     <Title level={5} className="text-center">
                                         Job {this.jobId}
