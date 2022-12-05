@@ -28,6 +28,7 @@ const { Text } = Typography;
 const queued = 0;
 const running = 1;
 const completed = 2;
+const withError = 3;
 
 interface SpiderJobData {
     id: number | null | undefined;
@@ -41,17 +42,18 @@ interface SpiderJobData {
 
 interface SpiderDetailPageState {
     name: string;
-    jobs: SpiderJobData[];
     loaded: boolean;
     count: number;
     current: number;
     optionTab: string;
     tableStatus: boolean[];
+    jobs: SpiderJobData[];
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
     errorJobs: SpiderJobData[];
-    lastDeployDate: string;
+    scheduledJobsCount: number;
+    spiderCreationDate: string;
 }
 
 interface RouteParams {
@@ -73,7 +75,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         runningJobs: [],
         completedJobs: [],
         errorJobs: [],
-        lastDeployDate: "",
+        spiderCreationDate: "",
+        scheduledJobsCount: 0,
         tableStatus: new Array<boolean>(4).fill(true),
     };
     apiService = ApiService();
@@ -86,7 +89,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             dataIndex: "id",
             key: "id",
             render: (jobID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}>Job-{jobID}</Link>
+                <Link
+                    to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}
+                    className="text-estela-blue-medium"
+                >
+                    Job-{jobID}
+                </Link>
             ),
         },
         {
@@ -94,7 +102,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             dataIndex: "spider",
             key: "spider",
             render: (spiderID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>Spider-{spiderID}</Link>
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`} className="text-estela-blue-medium">
+                    Spider-{spiderID}
+                </Link>
             ),
         },
         {
@@ -103,11 +113,14 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             key: "cronjob",
             render: (cronjob: number): ReactElement =>
                 cronjob ? (
-                    <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}>
-                        {cronjob}
+                    <Link
+                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}
+                        className="text-estela-blue-medium"
+                    >
+                        Sche-Job-{cronjob}
                     </Link>
                 ) : (
-                    <span className="text-xs text-[#6C757D]">Not associated</span>
+                    <span className="text-xs text-estela-black-medium">Not associated</span>
                 ),
         },
         {
@@ -119,7 +132,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     <>
                         {args.map((arg, index) => {
                             return (
-                                <span key={index} className="text-xs text-[#6C757D]">
+                                <span key={index} className="text-xs text-estela-black-medium">
                                     {arg.name}={arg.value}
                                 </span>
                             );
@@ -138,7 +151,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     <>
                         {tags.map((tag, index) => {
                             return (
-                                <span key={index} className="text-xs text-[#6C757D]">
+                                <span key={index} className="text-xs text-estela-black-medium">
                                     {tag.name}
                                 </span>
                             );
@@ -161,10 +174,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
                     const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
                     const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
+                    const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
+                    const scheduledJobsCount = data.data
+                        .filter((job: SpiderJobData) => job.cronjob !== null && job.cronjob !== undefined)
+                        .map((job: SpiderJobData) => job.cronjob)
+                        .filter((cronjob, index, self) => {
+                            return self.indexOf(cronjob) === index;
+                        }).length;
                     const tableStatus = [
                         !(queueJobs.length === 0),
                         !(runningJobs.length === 0),
                         !(completedJobs.length === 0),
+                        !(errorJobs.length === 0),
                     ];
                     const jobs: SpiderJobData[] = data.data;
                     this.setState({
@@ -177,6 +198,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                         queueJobs: [...queueJobs],
                         runningJobs: [...runningJobs],
                         completedJobs: [...completedJobs],
+                        errorJobs: [...errorJobs],
+                        scheduledJobsCount: scheduledJobsCount,
                     });
                 },
                 (error: unknown) => {
@@ -199,7 +222,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                             return date1 < date2 ? d1 : d2;
                         })?.created || new Date();
 
-                    this.setState({ lastDeployDate: convertDateToString(oldestDeployDate) });
+                    this.setState({ spiderCreationDate: convertDateToString(oldestDeployDate) });
                 },
                 (error: unknown) => {
                     console.error(error);
@@ -256,14 +279,25 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     };
 
     overview = (): React.ReactNode => {
-        const { tableStatus, jobs, count, current, queueJobs, runningJobs, completedJobs, lastDeployDate } = this.state;
+        const {
+            tableStatus,
+            jobs,
+            count,
+            current,
+            queueJobs,
+            runningJobs,
+            completedJobs,
+            errorJobs,
+            spiderCreationDate,
+            scheduledJobsCount,
+        } = this.state;
         return (
             <Content className="my-4">
                 <Row className="my-6 grid grid-cols-4 text-base h-full">
                     <Layout className="bg-metal col-span-1 h-44">
                         <Content className="white-background mr-5 p-3 rounded-lg">
                             <p className="text-base text-silver p-2">SCHEDULED JOBS</p>
-                            <p className="text-xl font-bold p-2 leading-8">{/*To implement*/}</p>
+                            <p className="text-xl font-bold p-2 leading-8">{scheduledJobsCount}</p>
                         </Content>
                     </Layout>
                     <Layout className="bg-metal col-span-1 h-44">
@@ -296,7 +330,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     <p className="text-sm font-bold">Creation date</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-sm text-silver">{lastDeployDate}</p>
+                                    <p className="text-sm text-silver">{spiderCreationDate}</p>
                                 </div>
                             </div>
                         </Content>
@@ -317,7 +351,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     </Col>
                                     <Col className="flex float-right">
                                         <Button
-                                            disabled={true}
+                                            disabled
                                             icon={<Filter className="h-6 w-6 mr-2" />}
                                             size="large"
                                             className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
@@ -325,6 +359,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             Filter
                                         </Button>
                                         <Button
+                                            disabled
                                             icon={<Setting className="h-6 w-6" />}
                                             size="large"
                                             className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
@@ -373,7 +408,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     </Col>
                                     <Col className="flex float-right">
                                         <Button
-                                            disabled={true}
+                                            disabled
                                             icon={<Filter className="h-6 w-6 mr-2" />}
                                             size="large"
                                             className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
@@ -381,6 +416,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             Filter
                                         </Button>
                                         <Button
+                                            disabled
                                             icon={<Setting className="h-6 w-6" />}
                                             size="large"
                                             className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
@@ -423,7 +459,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     </Col>
                                     <Col className="flex float-right">
                                         <Button
-                                            disabled={true}
+                                            disabled
                                             icon={<Filter className="h-6 w-6 mr-2" />}
                                             size="large"
                                             className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
@@ -431,6 +467,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             Filter
                                         </Button>
                                         <Button
+                                            disabled
                                             icon={<Setting className="h-6 w-6" />}
                                             size="large"
                                             className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
@@ -445,6 +482,54 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                         }}
                                         columns={this.columns}
                                         dataSource={completedJobs}
+                                        pagination={false}
+                                    />
+                                </Content>
+                                <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                <Space direction="horizontal" className="my-2 mx-4">
+                                    <Button
+                                        disabled
+                                        className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                    >
+                                        Run again
+                                    </Button>
+                                </Space>
+                            </Row>
+                        )}
+                        {tableStatus[withError] && (
+                            <Row className="my-2 rounded-lg bg-white">
+                                <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                    <Col className="float-left py-1">
+                                        <Text className="mr-2 text-estela-black-medium font-medium text-lg">Error</Text>
+                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                            {errorJobs.length}
+                                        </Tag>
+                                    </Col>
+                                    <Col className="flex float-right">
+                                        <Button
+                                            disabled
+                                            icon={<Filter className="h-6 w-6 mr-2" />}
+                                            size="large"
+                                            className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        >
+                                            Filter
+                                        </Button>
+                                        <Button
+                                            disabled
+                                            icon={<Setting className="h-6 w-6" />}
+                                            size="large"
+                                            className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                        ></Button>
+                                    </Col>
+                                </Content>
+                                <Content className="mx-4 my-1">
+                                    <Table
+                                        size="small"
+                                        rowSelection={{
+                                            type: "checkbox",
+                                        }}
+                                        columns={this.columns}
+                                        dataSource={errorJobs}
                                         pagination={false}
                                     />
                                 </Content>
@@ -510,6 +595,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                         </Tag>
                                     </Space>
                                 </Checkbox>
+                                <br />
+                                <Checkbox
+                                    checked={errorJobs.length == 0 ? tableStatus[withError] : true}
+                                    onChange={() => this.onChangeStatus(withError, errorJobs.length)}
+                                >
+                                    <Space direction="horizontal">
+                                        <Text className="text-estela-black-medium font-medium text-sm">Error</Text>
+                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                            {errorJobs.length}
+                                        </Tag>
+                                    </Space>
+                                </Checkbox>
                             </Content>
                         </Content>
                     </Col>
@@ -531,7 +628,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                 </p>
                                 <Row align="middle">
                                     <Col xs={24} sm={24} md={24} lg={5}>
-                                        <p className="text-sm my-2 text-[#212529]">General Data Persistent</p>
+                                        <p className="text-sm my-2 text-estela-black-full">General Data Persistent</p>
                                     </Col>
                                     <Col xs={24} sm={24} md={24} lg={19}>
                                         <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
@@ -582,6 +679,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             </Col>
                                             <Col className="float-right">
                                                 <Button
+                                                    disabled
                                                     icon={<Add className="mr-2" width={19} />}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
@@ -591,6 +689,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             </Col>
                                             <Col className="float-right">
                                                 <Button
+                                                    disabled
                                                     icon={<Play className="mr-2" width={19} />}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
