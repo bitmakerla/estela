@@ -661,8 +661,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     };
 
     render(): JSX.Element {
-        const { loaded, name, jobs, optionTab } = this.state;
-        console.log("Jobs: ", jobs);
+        const { loaded, name, optionTab } = this.state;
         return (
             <Layout className="general-container">
                 <Header />
