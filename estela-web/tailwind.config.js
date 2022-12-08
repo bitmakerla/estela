@@ -26,6 +26,7 @@ module.exports = {
         'estela-white-low': '#F1F1F1',
         'estela-green': '#32C3A4',
         'estela-green-full': '#489019',
+        'estela-states-green-medium': '#7DC932',
         'estela-yellow': '#D1A34F',
         'estela-red-full' : '#E34A46',
         'estela-red-low' : '#FFF5F2',
