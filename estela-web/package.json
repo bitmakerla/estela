@@ -20,8 +20,8 @@
     "build": "webpack --env production --mode production --config webpack.config.js",
     "build:start": "cd dist && PORT=3000 npx serve",
     "start": "webpack serve --open --env development --mode development",
-    "mf:build": "webpack --env production --mode production --config webpack.config.mf.js",
-    "mf:start": "webpack serve --open --env development --mode development --config webpack.config.mf.js",
+    "mf:build": "webpack --env production --mode production --config webpack.mf.config",
+    "mf:start": "webpack serve --open --env development --mode development --config webpack.mf.config",
     "lint": "node_modules/.bin/eslint --ext js '*/**/*.{js,ts,tsx}'",
     "generate-api": "rimraf src/services/api/generated-api && openapi-generator-cli generate"
   },

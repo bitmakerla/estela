@@ -19,9 +19,6 @@ yarn-error.log*
 # Api swagger generated file
 api.yaml
 
-# Webpack config with module federation
-webpack.config.mf.js
-
 # ENV
 .env.development
 .env.production
