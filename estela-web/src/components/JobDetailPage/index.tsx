@@ -22,6 +22,7 @@ import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
+import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Run from "../../assets/icons/play.svg";
@@ -31,10 +32,12 @@ import Add from "../../assets/icons/add.svg";
 import {
     ApiProjectsSpidersJobsReadRequest,
     SpiderJobUpdateStatusEnum,
+    ApiProjectsSpidersJobsCreateRequest,
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersListRequest,
     SpiderJob,
+    SpiderJobCreate,
     SpiderJobUpdate,
     SpiderJobUpdateDataStatusEnum,
     Spider,
@@ -65,15 +68,15 @@ interface OptionDataPersistence {
     value: number;
 }
 
-// interface OptionDataRepeat {
-//     label: string;
-//     key: number;
-//     value: string;
-// }
-
 interface ArgsData {
     name: string;
     value: string;
+}
+
+interface Args {
+    name: string;
+    value: string;
+    key: number;
 }
 
 interface EnvVarsData {
@@ -81,13 +84,19 @@ interface EnvVarsData {
     value: string;
 }
 
-interface Tags {
+interface EnvVars {
     name: string;
+    value: string;
     key: number;
 }
 
 interface TagsData {
     name: string;
+}
+
+interface Tags {
+    name: string;
+    key: number;
 }
 
 interface JobDetailPageState {
@@ -98,10 +107,6 @@ interface JobDetailPageState {
     args: ArgsData[];
     envVars: EnvVarsData[];
     tags: TagsData[];
-    newArgName: string;
-    newArgValue: string;
-    newEnvVarName: string;
-    newEnvVarValue: string;
     date: string;
     created: string | undefined;
     status: string | undefined;
@@ -124,7 +129,12 @@ interface JobDetailPageState {
     newDataStatus: string;
     newTags: Tags[];
     newTagName: string;
-    newArgs: ArgsData[];
+    newArgs: Args[];
+    newArgName: string;
+    newArgValue: string;
+    newEnvVars: EnvVars[];
+    newEnvVarName: string;
+    newEnvVarValue: string;
 }
 
 interface RouteParams {
@@ -165,12 +175,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         spiderName: "",
         newSpiderId: "",
         newDataExpireDays: 1,
-        newDataStatus: "",
-        newTagName: "",
+        newDataStatus: "PENDING",
         newTags: [],
+        newTagName: "",
         newArgs: [],
         newArgName: "",
         newArgValue: "",
+        newEnvVars: [],
         newEnvVarName: "",
         newEnvVarValue: "",
     };
@@ -205,10 +216,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     const args = response.args || [];
                     const envVars = response.envVars || [];
                     const tags = response.tags || [];
-                    const newTags: Tags[] = tags.map((jobTag: TagsData, index: number) => ({
-                        name: jobTag.name,
-                        key: index,
-                    }));
+
                     this.setState({
                         name: response.name,
                         lifespan: response.lifespan,
@@ -223,7 +231,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         loaded: true,
                         dataStatus: response.dataStatus,
                         dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
-                        newTags: [...newTags],
                     });
                 },
                 (error: unknown) => {
@@ -274,6 +281,18 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ newTags: [...newTags] });
     };
 
+    handleRemoveArg = (id: number): void => {
+        const newArgs = [...this.state.newArgs];
+        newArgs.splice(id, 1);
+        this.setState({ newArgs: [...newArgs] });
+    };
+
+    handleRemoveEnvVar = (id: number): void => {
+        const newEnvVars = [...this.state.newEnvVars];
+        newEnvVars.splice(id, 1);
+        this.setState({ newEnvVars: [...newEnvVars] });
+    };
+
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         const {
             target: { value, name },
@@ -291,17 +310,32 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
-    // addEnvVar = (): void => {
-    //     const envVars = [...this.state.envVars];
-    //     const newEnvVarName = this.state.newEnvVarName.trim();
-    //     const newEnvVarValue = this.state.newEnvVarValue.trim();
-    //     if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-    //         envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
-    //         this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
-    //     } else {
-    //         invalidDataNotification("Invalid environment variable name/value pair.");
-    //     }
-    // };
+    handleSubmit = (): void => {
+        const futureDate: Date = new Date();
+        futureDate.setDate(futureDate.getDate() + this.state.newDataExpireDays);
+        const requestData = {
+            args: [...this.state.newArgs],
+            envVars: [...this.state.newEnvVars],
+            tags: [...this.state.newTags],
+            dataStatus: this.state.newDataStatus,
+            dataExpiryDays: `${futureDate.getUTCFullYear()}-${futureDate.getUTCMonth() + 1}-${futureDate.getUTCDate()}`,
+        };
+        const request: ApiProjectsSpidersJobsCreateRequest = {
+            data: requestData,
+            pid: this.projectId,
+            sid: this.state.newSpiderId,
+        };
+        this.apiService.apiProjectsSpidersJobsCreate(request).then(
+            (response: SpiderJobCreate) => {
+                history.push(`/projects/${this.projectId}/spiders/${this.state.newSpiderId}/jobs/${response.jid}`);
+                location.reload();
+            },
+            (error: unknown) => {
+                console.error(error);
+                incorrectDataNotification();
+            },
+        );
+    };
 
     addTag = (): void => {
         const newTags = [...this.state.newTags];
@@ -311,6 +345,30 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             this.setState({ newTags: [...newTags], newTagName: "" });
         } else {
             invalidDataNotification("Invalid tag name.");
+        }
+    };
+
+    addArgument = (): void => {
+        const newArgs = [...this.state.newArgs];
+        const newArgName = this.state.newArgName.trim();
+        const newArgValue = this.state.newArgValue.trim();
+        if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
+            newArgs.push({ name: newArgName, value: newArgValue, key: this.countKey++ });
+            this.setState({ newArgs: [...newArgs], newArgName: "", newArgValue: "" });
+        } else {
+            invalidDataNotification("Invalid argument name/value pair.");
+        }
+    };
+
+    addEnvVar = (): void => {
+        const newEnvVars = [...this.state.newEnvVars];
+        const newEnvVarName = this.state.newEnvVarName.trim();
+        const newEnvVarValue = this.state.newEnvVarValue.trim();
+        if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
+            newEnvVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
+            this.setState({ newEnvVars: [...newEnvVars], newEnvVarName: "", newEnvVarValue: "" });
+        } else {
+            invalidDataNotification("Invalid environment variable name/value pair.");
         }
     };
 
@@ -592,6 +650,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             spiders,
             loadedSpiders,
             newTags,
+            newArgs,
+            newArgName,
+            newArgValue,
+            newEnvVars,
+            newEnvVarName,
+            newEnvVarValue,
         } = this.state;
         return (
             <Layout className="general-container">
@@ -617,7 +681,26 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                             key: id,
                                                         }),
                                                     );
-                                                    this.setState({ modalClone: true, newTags: [...newTags] });
+                                                    const newArgs: Args[] = [...this.state.args].map(
+                                                        (arg: ArgsData, id: number) => ({
+                                                            name: arg.name,
+                                                            value: arg.value,
+                                                            key: id,
+                                                        }),
+                                                    );
+                                                    const newEnvVars: EnvVars[] = [...this.state.envVars].map(
+                                                        (tag: EnvVarsData, id: number) => ({
+                                                            name: tag.name,
+                                                            value: tag.value,
+                                                            key: id,
+                                                        }),
+                                                    );
+                                                    this.setState({
+                                                        modalClone: true,
+                                                        newTags: [...newTags],
+                                                        newArgs: [...newArgs],
+                                                        newEnvVars: [...newEnvVars],
+                                                    });
                                                 }}
                                                 icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
                                                 size="large"
@@ -779,10 +862,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     ></Button>
                                                                 </Space>
                                                             </Content>
-                                                            {/* <Content>
+                                                            <Content>
                                                                 <p className="text-base my-2">Arguments</p>
                                                                 <Space direction="vertical">
-                                                                    {args.map((arg: ArgsData, id) => (
+                                                                    {newArgs.map((arg: Args, id) => (
                                                                         <Tag
                                                                             className="text-estela-blue-full border-0 bg-estela-blue-low"
                                                                             closable
@@ -818,12 +901,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                         ></Button>
                                                                     </Space>
                                                                 </Space>
-                                                            </Content> */}
-                                                            {/*
+                                                            </Content>
                                                             <Content>
                                                                 <p className="text-base my-2">Environment Variables</p>
                                                                 <Space className="mb-2" direction="horizontal">
-                                                                    {envVars.map((envVar: EnvVarsData, id: number) => (
+                                                                    {newEnvVars.map((envVar: EnvVars, id: number) => (
                                                                         <Tag
                                                                             className="text-estela-blue-full border-0 bg-estela-blue-low"
                                                                             closable
@@ -859,11 +941,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                         onClick={this.addEnvVar}
                                                                     ></Button>
                                                                 </Space>
-                                                            </Content> */}
+                                                            </Content>
                                                         </Col>
                                                     </Row>
                                                     <Row justify="center" className="mt-4">
                                                         <Button
+                                                            onClick={this.handleSubmit}
                                                             size="large"
                                                             className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
                                                         >
