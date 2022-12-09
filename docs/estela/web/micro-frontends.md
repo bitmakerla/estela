@@ -46,25 +46,14 @@ estela allows the use of Micro-Frontends only in the user dropdown. This is achi
     ```
 
 ## estela configuration
-* Create a webpack.config.mf.js file using estela-web/webpack.config.mf.js.example.txt file.
-    - On  `DropdownComponent: "<<name_module>>@<<http://url>>/remoteEntry.js`, replace with the name of the micro-frontend and add the location of the remoteEntry.
-    ```json
-        plugins: [
-        new ModuleFederationPlugin({
-        name: "estela-web",
-        filename: "remoteEntry.js",
-        remotes: {
-            DropdownComponent: "testMF@localhost:5000/remoteEntry.js",
-        },
-        ...
-        }),
-    ```
-* Finally, use scripts to build and run estela-web.
-    ```json
-        "scripts": {
-            ...
-            "mf:build": "webpack --mode production --config webpack.config.mf.js",
-            "mfe:start": "webpack serve --open --mode development --config webpack.config.mf.js",
-            ...
-        },
-    ```
+* To use Micro-frontend configuration, you need to run the command
+
+    `yarn mr:start --env remoteURL=url`
+
+    Where remoteURL is the location of the micro-frontend. Example:
+
+    `yarn mr:start --env remoteURL=http://localhost:3006 `
+* For production, you need to run the command
+
+    `yarn mr:build --env remoteURL=url `
+
