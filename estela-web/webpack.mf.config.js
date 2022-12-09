@@ -59,12 +59,14 @@ module.exports = (env) => {
 
         plugins: [
             new ModuleFederationPlugin({
-            name: "estela-web",
+            name: "estela_web",
             filename: "remoteEntry.js",
             remotes: {
-                DropdownComponent: `${env.remoteURL}/remoteEntry.js`,
+                DropdownComponent: `user_dropdown_module@${env.remoteURL}/remoteEntry.js`,
             },
-            exposes: {},
+            exposes: {
+                "./header": "./src/shared/header/index.tsx",
+            },
             shared: {
                 ...deps,
                 react: {
@@ -78,11 +80,11 @@ module.exports = (env) => {
             },
             }),
             new HtmlWebPackPlugin({
-            template: "./public/index.html",
-            favicon: "./public/favicon.ico",
-            }),
-            new Dotenv(
-            {
+                template: "./public/index.html",
+                favicon: "./public/favicon.ico",
+            }
+            ),
+            new Dotenv({
                 path: env.production ? ".env.production" : ".env.development",
             }
             ),
