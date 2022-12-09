@@ -25,7 +25,7 @@ estela runs on Linux-based and Unix-like operating systems, but you can also use
 - [Kubectl >= v1.23.x](https://kubernetes.io/docs/tasks/tools/#kubectl){:target="_blank"}  
 - [Helm >= v3.9.x](https://helm.sh/docs/intro/install/){:target="_blank"}  
 - [yarn v1.22.x](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable){:target="_blank"}  
-- [node v14.x](https://nodejs.org/){:target="_blank"}  
+- [node v18.x](https://nodejs.org/){:target="_blank"}  
 
 Extra requirements needed for local installation:
 
