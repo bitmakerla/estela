@@ -48,12 +48,12 @@ estela allows the use of Micro-Frontends only in the user dropdown. This is achi
 ## estela configuration
 * To use Micro-frontend configuration, you need to run the command
 
-    `yarn mr:start --env remoteURL=url`
+    ```yarn mr:start --env remoteURL=<MICRO-FRONTEND-URL> ```
 
-    Where remoteURL is the location of the micro-frontend. Example:
+    Where `<MICRO-FRONTEND-URL>` is the location of the micro-frontend. Example:
 
-    `yarn mr:start --env remoteURL=http://localhost:3006 `
+    ```yarn mr:start --env remoteURL=http://localhost:3006 ```
 * For production, you need to run the command
 
-    `yarn mr:build --env remoteURL=url `
+    ```yarn mr:build --env remoteURL=<MICRO-FRONTEND-URL> ```
 
