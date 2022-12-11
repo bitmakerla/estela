@@ -3,14 +3,11 @@ import moment from "moment";
 import {
     Layout,
     Typography,
-    Collapse,
     Row,
     Col,
     Space,
     Tag,
     Button,
-    Switch,
-    DatePicker,
     DatePickerProps,
     Tabs,
     Card,
@@ -54,8 +51,7 @@ import {
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
-const { Text, Title } = Typography;
-const { Panel } = Collapse;
+const { Text } = Typography;
 const { Option } = Select;
 
 interface Dictionary {
@@ -663,12 +659,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
 
         return (
             <>
-                <Content className="grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
+                <Content className="grid lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
                     <Card className="w-full col-span-5 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Storage</Text>
+                        <Text className="py-2 text-estela-black-medium font-medium text-base">Storage</Text>
                         <div className="grid w-full h-1/2 place-content-center">
                             <div className="flex items-center justify-center">
-                                {/* ellipse here */}
                                 <svg className="transform -rotate-90 w-72 h-72">
                                     <circle
                                         cx="144"
@@ -701,34 +696,41 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </div>
                     </Card>
                     <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">DETAILS</Text>
-                        <Row className="grid grid-cols-3 py-1 px-4 mt-4">
+                        <Text className="py-2 text-estela-black-medium font-medium text-base">DETAILS</Text>
+                        <Row className="grid grid-cols-3 py-1 px-2 mt-4">
                             <Col>
                                 <Text className="font-bold">Spider ID</Text>
                             </Col>
                             <Col>
-                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{this.spiderId}</Link>
+                                <Link
+                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
+                                    className="text-estela-blue-medium px-2"
+                                >
+                                    {this.spiderId}
+                                </Link>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col className="col-span-1">
                                 <Text className="font-bold">Project ID</Text>
                             </Col>
                             <Col className="col-span-2">
-                                <Link to={`/projects/${this.projectId}`}>{this.projectId}</Link>
+                                <Link to={`/projects/${this.projectId}`} className="text-estela-blue-medium px-2">
+                                    {this.projectId}
+                                </Link>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-4">
-                            <Col>
+                        <Row className="grid grid-cols-3 py-1 px-2">
+                            <Col className="col-span-1">
                                 <Text className="font-bold">Creation date</Text>
                             </Col>
-                            <Col>{date}</Col>
+                            <Col className="col-span-2 px-2">{date}</Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Tags</Text>
                             </Col>
-                            <Col>
+                            <Col className="px-2">
                                 <Space direction="horizontal">
                                     {tags.map((tag: TagsData, id) => (
                                         <Tag
@@ -741,11 +743,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-4">
+                        <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Environment variables</Text>
                             </Col>
-                            <Col>
+                            <Col className="px-2">
                                 <Space direction="vertical">
                                     {envVars.map((envVar: EnvVarsData, id) => (
                                         <Tag
@@ -758,11 +760,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Arguments</Text>
                             </Col>
-                            <Col>
+                            <Col className="px-2">
                                 <Space direction="horizontal">
                                     {args.map((arg: ArgsData, id) => (
                                         <Tag
@@ -775,20 +777,25 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-4">
+                        <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Spider</Text>
                             </Col>
                             <Col>
-                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{spiderName}</Link>
+                                <Link
+                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
+                                    className="text-estela-blue-medium px-2"
+                                >
+                                    {spiderName}
+                                </Link>
                             </Col>
                         </Row>
                     </Card>
                 </Content>
-                <Content className="my-3 grid lg:grid-cols-12 grid-cols-12 gap-1 items-stretch lg:w-full">
+                <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
                     <Card className="w-full col-span-2 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-0 m-2 text-estela-black-medium font-medium text-base">Bandwidth</Text>
-                        <Row className="grid grid-cols-1 py-1 px-4 mt-3">
+                        <Text className="py-0 text-estela-black-medium font-medium text-base">Bandwidth</Text>
+                        <Row className="grid grid-cols-1 py-1 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">
                                     {requestCountDecimalPercentage.toFixed(2)}
@@ -796,7 +803,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="text-estela-black-full text-base">/1GB</Text>
                             </Col>
                             <Col>
-                                <Text className="text-estela-black-medium text-xs">of project</Text>
+                                <Text className="text-estela-black-medium text-xs">of project (disabled)</Text>
                             </Col>
                             <Col>
                                 <div className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
@@ -810,7 +817,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     </Card>
                     <Card className="w-full col-span-3 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">Processing Time</Text>
-                        <Row className="grid grid-cols-1 py-1 px-4 mt-3">
+                        <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">
                                     {(lifespan ?? 0).toFixed(2)}
@@ -862,21 +869,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     render(): JSX.Element {
         const {
             loaded,
-            args,
-            envVars,
-            tags,
             newTagName,
-            date,
             status,
-            lifespan,
-            totalResponseBytes,
-            created,
-            cronjob,
-            stats,
-            dataStatus,
-            dataExpiryDays,
-            loading_status,
-            modified,
             modalStop,
             modalClone,
             spiders,
@@ -1229,168 +1223,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 },
                                             ]}
                                         />
-                                    </Row>
-                                </Content>
-                                <Content>
-                                    <Title level={5} className="text-center">
-                                        Job {this.jobId}
-                                    </Title>
-                                    <Row justify="center" className="spider-data">
-                                        <Space direction="vertical" size="large">
-                                            <Text>
-                                                <b>Job ID:</b>&nbsp; {this.jobId}
-                                            </Text>
-                                            <Text>
-                                                <b>Spider ID:</b>&nbsp;
-                                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>
-                                                    {this.spiderId}
-                                                </Link>
-                                            </Text>
-                                            <Text>
-                                                <b>Project ID:</b>
-                                                <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
-                                            </Text>
-                                            <Text>
-                                                <b>Cronjob:</b>
-                                                <Link
-                                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}
-                                                >
-                                                    &nbsp; {cronjob}
-                                                </Link>
-                                            </Text>
-                                            <Text>
-                                                <b>Date:</b>&nbsp; {date}
-                                            </Text>
-                                            <Text>
-                                                <b>Status:</b>&nbsp; {status}
-                                            </Text>
-                                            <Text>
-                                                <b>Lifespan:</b>&nbsp; {lifespan}
-                                            </Text>
-                                            <Text>
-                                                <b>Total response bytes:</b>&nbsp; {totalResponseBytes}
-                                            </Text>
-                                            <Text>
-                                                <Space direction="vertical">
-                                                    <Space direction="horizontal">
-                                                        <Text
-                                                            disabled={
-                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
-                                                            }
-                                                        >
-                                                            <b>Data Persistent:</b>&nbsp;
-                                                            <Switch
-                                                                loading={loading_status}
-                                                                defaultChecked={
-                                                                    dataStatus ==
-                                                                    SpiderJobUpdateDataStatusEnum.Persistent
-                                                                }
-                                                                onChange={this.onChangeData}
-                                                                disabled={
-                                                                    dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
-                                                                }
-                                                            />
-                                                        </Text>
-                                                    </Space>
-                                                    <Space direction="horizontal">
-                                                        <Text
-                                                            disabled={
-                                                                dataStatus ==
-                                                                    SpiderJobUpdateDataStatusEnum.Persistent ||
-                                                                dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
-                                                            }
-                                                        >
-                                                            <b>Date </b>&nbsp;
-                                                            <DatePicker
-                                                                format="YYYY-MM-DD"
-                                                                onChange={this.onChangeDate}
-                                                                disabledDate={this.disabledDate}
-                                                                defaultValue={moment(created, "llll").add(
-                                                                    dataExpiryDays,
-                                                                    "days",
-                                                                )}
-                                                                disabled={
-                                                                    dataStatus ==
-                                                                        SpiderJobUpdateDataStatusEnum.Persistent ||
-                                                                    dataStatus == SpiderJobUpdateDataStatusEnum.Deleted
-                                                                }
-                                                            />
-                                                        </Text>
-                                                    </Space>
-                                                    {modified && (
-                                                        <Button
-                                                            type="primary"
-                                                            onClick={this.updateDataExpiry}
-                                                            size="small"
-                                                            loading={loading_status}
-                                                        >
-                                                            Save
-                                                        </Button>
-                                                    )}
-                                                </Space>
-                                            </Text>
-                                            <Space direction="vertical">
-                                                <b>Arguments</b>
-                                                {args.map((arg: ArgsData, id) => (
-                                                    <Tag key={id}>
-                                                        {arg.name}: {arg.value}
-                                                    </Tag>
-                                                ))}
-                                            </Space>
-                                            <Space direction="vertical">
-                                                <b>Environment variables</b>
-                                                {envVars.map((envVar: EnvVarsData, id) => (
-                                                    <Tag key={id}>
-                                                        {envVar.name}: {envVar.value}
-                                                    </Tag>
-                                                ))}
-                                            </Space>
-                                            <Space direction="vertical">
-                                                <b>Tags</b>
-                                                <Space direction="horizontal">
-                                                    {tags.map((tag: TagsData, id) => (
-                                                        <Tag key={id}>{tag.name}</Tag>
-                                                    ))}
-                                                </Space>
-                                            </Space>
-                                            <Link
-                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataItems}`}
-                                            >
-                                                <Button type="primary" className="go-to-job-data">
-                                                    Go to spider job items data
-                                                </Button>
-                                            </Link>
-                                            <Link
-                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataRequests}`}
-                                            >
-                                                <Button type="primary" className="go-to-job-data">
-                                                    Go to spider job request data
-                                                </Button>
-                                            </Link>
-                                            <Link
-                                                to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/data/${this.dataLogs}`}
-                                            >
-                                                <Button type="primary" className="go-to-job-data">
-                                                    Go to spider job logs data
-                                                </Button>
-                                            </Link>
-                                            <Button danger className="stop-job" onClick={this.stopJob}>
-                                                <div>Stop Job</div>
-                                            </Button>
-                                            <Collapse onChange={this.getStats}>
-                                                <Panel header="Scrapy Stats" key="1">
-                                                    <Text>
-                                                        {Object.keys(stats).map((key, idx) => {
-                                                            return (
-                                                                <div key={idx}>
-                                                                    <b>{key.replace(/\\u002e/g, ".")}</b>: {stats[key]}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </Text>
-                                                </Panel>
-                                            </Collapse>
-                                        </Space>
                                     </Row>
                                 </Content>
                             </Layout>
