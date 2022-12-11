@@ -104,6 +104,7 @@ interface JobDetailPageState {
     name: string | undefined;
     lifespan: number | undefined;
     totalResponseBytes: number | undefined;
+    requestCount: number | undefined;
     args: ArgsData[];
     envVars: EnvVarsData[];
     tags: TagsData[];
@@ -112,6 +113,9 @@ interface JobDetailPageState {
     status: string | undefined;
     cronjob: number | undefined | null;
     stats: Dictionary;
+    loadedStats: boolean;
+    items: Dictionary[];
+    loadedItems: boolean;
     logs: string[];
     count: number;
     current: number;
@@ -143,6 +147,84 @@ interface RouteParams {
     jobId: string;
 }
 
+type ItemsMetadataProps = {
+    item: Dictionary;
+};
+
+interface MetadataField {
+    field: string;
+    type: string;
+}
+
+class ItemsMetadata extends Component<ItemsMetadataProps> {
+    item = this.props.item;
+    metadata: MetadataField[] = [];
+
+    isValidHttpUrl = (str: string): boolean => {
+        let url;
+        try {
+            url = new URL(str);
+        } catch (_) {
+            return false;
+        }
+        return url.protocol === "http:" || url.protocol === "https:";
+    };
+
+    typeDefinition = (field: string, value: string): MetadataField => {
+        const meta: MetadataField = {
+            field: field,
+            type: "text",
+        };
+        if (this.isValidHttpUrl(value)) {
+            meta.type = "url";
+        }
+        return meta;
+    };
+
+    parseMetadata = (): void => {
+        this.metadata.splice(0, this.metadata.length);
+        for (const key in this.item) {
+            this.metadata.push(this.typeDefinition(key, this.item[key]));
+        }
+        console.log(this.metadata);
+    };
+
+    render(): React.ReactNode {
+        this.parseMetadata();
+        return (
+            <>
+                {this.metadata.map((item: MetadataField, index: number) => {
+                    if (index & 1) {
+                        return (
+                            <Row
+                                key={`metadata-${index}`}
+                                className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg"
+                            >
+                                <Col className="col-span-1">
+                                    <Text className="font-bold">{item.field}</Text>
+                                </Col>
+                                <Col className="col-span-2">
+                                    <Text className="text-estela-black-medium">{item.type}</Text>
+                                </Col>
+                            </Row>
+                        );
+                    }
+                    return (
+                        <Row key={`metadata-${index}`} className="grid grid-cols-3 py-1 px-4 mt-4">
+                            <Col className="col-span-1">
+                                <Text className="font-bold">{item.field}</Text>
+                            </Col>
+                            <Col className="col-span-2">
+                                <Text className="text-estela-black-medium">{item.type}</Text>
+                            </Col>
+                        </Row>
+                    );
+                })}
+            </>
+        );
+    }
+}
+
 export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, JobDetailPageState> {
     PAGE_SIZE = 10;
     dataRequests = "requests";
@@ -153,6 +235,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         name: "",
         lifespan: 0,
         totalResponseBytes: 0,
+        requestCount: 0,
         args: [],
         envVars: [],
         tags: [],
@@ -161,6 +244,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         status: "",
         cronjob: null,
         stats: {},
+        loadedStats: false,
+        items: [],
+        loadedItems: false,
         logs: [],
         count: 0,
         current: 0,
@@ -216,10 +302,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     const args = response.args || [];
                     const envVars = response.envVars || [];
                     const tags = response.tags || [];
-
+                    const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
+                    const lifespan: number =
+                        lifeSpanArr.length !== 3 ? 0 : +lifeSpanArr[0] * 3600 + +lifeSpanArr[1] * 60 + +lifeSpanArr[2];
                     this.setState({
                         name: response.name,
-                        lifespan: response.lifespan,
+                        lifespan: lifespan,
                         totalResponseBytes: response.totalResponseBytes,
                         args: [...args],
                         envVars: [...envVars],
@@ -228,6 +316,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         created: `${response.created}`,
                         status: response.jobStatus,
                         cronjob: response.cronjob,
+                        requestCount: response.requestCount,
                         loaded: true,
                         dataStatus: response.dataStatus,
                         dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
@@ -239,11 +328,42 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 },
             );
             this.getProjectSpiders();
+            this.getItems(1, 1);
+            // this.getStats("1");
         }
     }
 
     getProjectSpiders = async (): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId };
+        this.apiService.apiProjectsSpidersList(requestParams).then(
+            (results) => {
+                if (results.results.length == 0 || results.results == undefined) {
+                    this.setState({ spiders: [], loadedSpiders: true });
+                } else {
+                    const spiderName = results.results.find(
+                        (spider: Spider) => String(spider?.sid) === this.spiderId,
+                    )?.name;
+                    this.setState({
+                        spiders: [...results.results],
+                        spiderName: spiderName || "",
+                        newSpiderId: String(results.results[0].sid),
+                        loadedSpiders: true,
+                    });
+                }
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+
+    getData = async (): Promise<void> => {
+        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: `${this.jobId}`,
+        };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
                 if (results.results.length == 0 || results.results == undefined) {
@@ -424,6 +544,28 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
+    updateStatus = (_status: SpiderJobUpdateStatusEnum): void => {
+        this.setState({ loading_status: true });
+        const request: ApiProjectsSpidersJobsUpdateRequest = {
+            jid: this.jobId,
+            sid: this.spiderId,
+            pid: this.projectId,
+            data: {
+                status: _status,
+            },
+        };
+        this.apiService.apiProjectsSpidersJobsUpdate(request).then(
+            (response) => {
+                this.setState({ status: response.status, loading_status: false });
+                console.log("Everything is gona be okay");
+            },
+            (error: unknown) => {
+                console.log(error);
+                incorrectDataNotification();
+            },
+        );
+    };
+
     onChangeData = (): void => {
         const _dataStatus =
             this.state.dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
@@ -461,7 +603,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data[0] as Dictionary;
-                    this.setState({ stats: data });
+                    this.setState({ stats: data, loadedStats: true });
                 }
             },
             (error: unknown) => {
@@ -471,15 +613,58 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
+    getItems = (page: number, pageSize: number): void => {
+        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.newJobId,
+            type: "items",
+            page: page,
+            pageSize: pageSize,
+        };
+        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
+            (response) => {
+                let data: Dictionary[] = [];
+                if (response.results?.length) {
+                    const safe_data: unknown[] = response.results ?? [];
+                    data = safe_data as Dictionary[];
+                    console.log(data);
+                    this.setState({ items: data, loadedItems: true });
+                }
+                this.setState({ loadedItems: true });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+
     overview = (): React.ReactNode => {
-        const { tags, envVars, args, date, spiderName, totalResponseBytes } = this.state;
+        const {
+            tags,
+            lifespan,
+            loadedItems,
+            envVars,
+            args,
+            date,
+            dataStatus,
+            spiderName,
+            totalResponseBytes,
+            requestCount,
+            items,
+        } = this.state;
         const radius = 100;
         const circunference: number = ((2 * 22) / 7) * radius;
-        const storagePercentage = (totalResponseBytes || 0) * 1e-9;
+        const storageDecimalPercentage = dataStatus !== "DELETED" ? (totalResponseBytes || 0) * 1e-9 : 0;
+        const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
+        const requestCountPercentage: number = 100 * (requestCount || 0) * 1e-9;
+        const lifespanPercentage: number = 100 * ((lifespan ?? 0) / 120);
+
         return (
             <>
-                <Content className="grid lg:grid-cols-10 grid-cols-8 gap-2 items-start lg:w-full">
-                    <Card className="w-full col-span-4 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                <Content className="grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
+                    <Card className="w-full col-span-5 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Storage</Text>
                         <div className="grid w-full h-1/2 place-content-center">
                             <div className="flex items-center justify-center">
@@ -503,19 +688,19 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         strokeWidth="5"
                                         fill="transparent"
                                         strokeDasharray={circunference}
-                                        strokeDashoffset={circunference - storagePercentage * circunference}
+                                        strokeDashoffset={circunference - storageDecimalPercentage * circunference}
                                         className="text-estela-states-green-medium"
                                     />
                                 </svg>
                                 <div className="absolute items-center justify-center">
-                                    <span className="text-3xl text-center">{storagePercentage.toFixed(2)}</span>
+                                    <span className="text-3xl text-center">{storageDecimalPercentage.toFixed(2)}</span>
                                     <br />
                                     <span className="text-lg text-center">of 1GB</span>
                                 </div>
                             </div>
                         </div>
                     </Card>
-                    <Card className="w-full col-span-6 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                    <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">DETAILS</Text>
                         <Row className="grid grid-cols-3 py-1 px-4 mt-4">
                             <Col>
@@ -600,28 +785,75 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </Row>
                     </Card>
                 </Content>
-                <Content className="my-4 grid lg:grid-cols-10 grid-cols-8 gap-2 items-start lg:w-full">
+                <Content className="my-3 grid lg:grid-cols-12 grid-cols-12 gap-1 items-stretch lg:w-full">
                     <Card className="w-full col-span-2 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Bandwidth</Text>
+                        <Text className="py-0 m-2 text-estela-black-medium font-medium text-base">Bandwidth</Text>
+                        <Row className="grid grid-cols-1 py-1 px-4 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-lg">
+                                    {requestCountDecimalPercentage.toFixed(2)}
+                                </Text>
+                                <Text className="text-estela-black-full text-base">/1GB</Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">of project</Text>
+                            </Col>
+                            <Col>
+                                <div className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
+                                    <div
+                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                        style={{ width: `${Math.round(requestCountPercentage)}%` }}
+                                    ></div>
+                                </div>
+                            </Col>
+                        </Row>
                     </Card>
-                    <Card className="w-full col-span-2 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Processing Time</Text>
+                    <Card className="w-full col-span-3 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">Processing Time</Text>
+                        <Row className="grid grid-cols-1 py-1 px-4 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-lg">
+                                    {(lifespan ?? 0).toFixed(2)}
+                                </Text>
+                                <Text className="text-estela-black-full text-base"> seg</Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">this job</Text>
+                            </Col>
+                            <Col>
+                                <div className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
+                                    <div
+                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                        style={{ width: `${Math.round(lifespanPercentage)}%` }}
+                                    ></div>
+                                </div>
+                            </Col>
+                        </Row>
                     </Card>
-                    <Card className="w-full col-span-6 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Fields</Text>
+                    <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                        <Row className="flow-root lg:my-6 my-4">
+                            <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Fields</Text>
+                            <Button
+                                disabled
+                                className="float-right py-1 px-3 text-estela-blue-full border-none text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                            >
+                                See items
+                            </Button>
+                        </Row>
+                        {loadedItems ? (
+                            !items.length ? (
+                                <Row className="grid grid-cols-3 py-1 px-4 mt-4">
+                                    <Col className="text-center col-span-3">
+                                        <Text className="font-bold text-estela-black-medium col-span-3">No data</Text>
+                                    </Col>
+                                </Row>
+                            ) : (
+                                <ItemsMetadata item={items[0]} />
+                            )
+                        ) : (
+                            <Spin />
+                        )}
                     </Card>
-                </Content>
-                <Content className="my-4">
-                    <Row className="flow-root lg:my-6 my-4">
-                        <Text className="float-left text-estela-black-full font-medium text-2xl">Items Preview</Text>
-                        <Button
-                            disabled
-                            className="float-right py-1 px-3 text-estela-blue-full border-none text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                        >
-                            See all
-                        </Button>
-                    </Row>
-                    <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full"></Content>
                 </Content>
             </>
         );
@@ -708,7 +940,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             >
                                                 Clone this job
                                             </Button>
-                                            {status != SpiderJobUpdateStatusEnum.Running ? (
+                                            {status == SpiderJobUpdateStatusEnum.Running ? (
                                                 <Button
                                                     icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
                                                     onClick={() => {
@@ -722,6 +954,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             ) : (
                                                 <Button
                                                     icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                                    onClick={() => this.updateStatus(SpiderJobUpdateStatusEnum.Running)}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
                                                 >
@@ -754,6 +987,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                         <Button
                                                             size="large"
                                                             className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                                            onClick={() => {
+                                                                this.updateStatus(SpiderJobUpdateStatusEnum.Stopped);
+                                                                this.setState({ modalStop: false });
+                                                            }}
                                                         >
                                                             Confirm
                                                         </Button>
