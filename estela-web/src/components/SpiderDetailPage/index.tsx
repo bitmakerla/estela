@@ -236,7 +236,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const requestParams: ApiProjectsSpidersJobsListRequest = {
             pid: this.projectId,
             sid: this.spiderId,
-            page,
+            page: page,
             pageSize: this.PAGE_SIZE,
         };
         const response = await this.apiService.apiProjectsSpidersJobsList(requestParams);
@@ -262,11 +262,26 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         this.setState({ loaded: false });
         const data = await this.getSpiderJobs(page);
         const jobs: SpiderJobData[] = data.data;
+        const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
+        const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
+        const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
+        const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
+        const tableStatus = [
+            !(queueJobs.length === 0),
+            !(runningJobs.length === 0),
+            !(completedJobs.length === 0),
+            !(errorJobs.length === 0),
+        ];
         this.setState({
             jobs: [...jobs],
             count: data.count,
             current: data.current,
             loaded: true,
+            tableStatus: [...tableStatus],
+            queueJobs: [...queueJobs],
+            runningJobs: [...runningJobs],
+            completedJobs: [...completedJobs],
+            errorJobs: [...errorJobs],
         });
     };
 
