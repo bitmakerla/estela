@@ -6,7 +6,7 @@ import "./styles.scss";
 
 import Ellipse from "../../assets/icons/ellipse.svg";
 import { ApiService, AuthService } from "../../services";
-import { ApiNotificationsListRequest, Notification } from "../../services/api";
+import { ApiNotificationsListRequest, ApiNotificationsUpdateRequest, Notification } from "../../services/api";
 import { authNotification } from "../../shared";
 
 const { Content } = Layout;
@@ -33,6 +33,38 @@ export class NotificationsList extends Component<NotificationlistPropsInterface,
     state: NotificationsData = {
         notifications: [],
     };
+    notificationData = {
+        message: "",
+        user: 7,
+        redirectto: "",
+    };
+    markNotificationAsSeen = (nid: number | undefined): void => {
+        if (!nid) {
+            nid = 1;
+        }
+        console.log(nid);
+        const request: ApiNotificationsUpdateRequest = {
+            uid: "7",
+            nid: nid,
+            data: {
+                seen: true,
+                message: this.notificationData.message,
+                user: this.notificationData.user,
+                redirectto: this.notificationData.redirectto,
+            },
+        };
+        this.apiService.apiNotificationsUpdate(request).then(
+            (response: Notification) => {
+                console.log(12312321312);
+
+                console.log(response.seen);
+            },
+            (error: unknown) => {
+                console.error(error);
+            },
+        );
+    };
+
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
             authNotification();
@@ -59,7 +91,6 @@ export class NotificationsList extends Component<NotificationlistPropsInterface,
         }
     }
     async getProjects(page: number): Promise<{ data: Notification[]; count: number; current: number }> {
-        console.log(this.props.page_size);
         if (this.props.page_size) {
             this.PAGE_SIZE = this.props.page_size;
         }
@@ -75,7 +106,17 @@ export class NotificationsList extends Component<NotificationlistPropsInterface,
                     return (
                         <div key={notification.nid}>
                             <Layout className="bg-white p-2 overflow-hidden hover:text-estela hover:bg-estela-blue-low rounded-md">
-                                <Link to={notification.redirectto}>
+                                <Link
+                                    to={notification.redirectto}
+                                    onClick={() => {
+                                        this.notificationData.message = notification.message;
+                                        this.notificationData.user = notification.user;
+                                        this.notificationData.redirectto = notification.redirectto;
+                                        if (!notification.seen) {
+                                            this.markNotificationAsSeen(notification.nid);
+                                        }
+                                    }}
+                                >
                                     <Space className="flex items-center" align="end">
                                         {!notification.seen ? (
                                             <Ellipse className="mx-1 fill-current text-estela" width={20} height={20} />
