@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.14.9",
     "antd": "^4.23.6",
     "cronstrue": "^2.19.0",
     "follow-redirects": "^1.14.8",

@@ -3,6 +3,7 @@ import { Button, Layout, Pagination, Typography, Row, Table, Col, Tabs, Radio, C
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
+import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import Play from "../../assets/icons/play.svg";
@@ -678,7 +679,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             </Col>
                                             <Col className="float-right">
                                                 <Button
-                                                    disabled
+                                                    onClick={() => {
+                                                        history.push(`/projects/${this.projectId}/cronjobs`);
+                                                    }}
                                                     icon={<Add className="mr-2" width={19} />}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
@@ -688,7 +691,11 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             </Col>
                                             <Col className="float-right">
                                                 <Button
-                                                    disabled
+                                                    onClick={() => {
+                                                        history.push(
+                                                            `/projects/${this.projectId}/spiders/${this.spiderId}/jobs/create`,
+                                                        );
+                                                    }}
                                                     icon={<Play className="mr-2" width={19} />}
                                                     size="large"
                                                     className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
