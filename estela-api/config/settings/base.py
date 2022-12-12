@@ -65,7 +65,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = False
 
 DJANGO_API_HOST = env("DJANGO_API_HOST")
-ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
+ALLOWED_HOSTS = ["*"]  # env("DJANGO_ALLOWED_HOSTS").split(",")
 
 
 # Application definition

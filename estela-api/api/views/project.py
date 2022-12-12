@@ -130,7 +130,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                             instance,
                             self.request.user,
                             f"/projects/{instance.pid}/dashboard",
-                            alt_message=f"{self.request.user.get_username()} added {user.get_username()} as a new member of MyProject project, as {permission}.",
+                            alt_message=f"{self.request.user.get_username()} added {user.get_username()} as a new member of {instance.name} project, as {permission}.",
                         )
                     elif action == "remove":
                         instance.users.remove(user)
@@ -145,6 +145,14 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                         instance.users.remove(user)
                         instance.users.add(
                             user, through_defaults={"permission": permission}
+                        )
+                        self.create_notifications(
+                            f"You changed {user.get_username()}'s role of {instance.name} project, to {permission}.",
+                            instance,
+                            self.request.user,
+                            f"/projects/{instance.pid}/dashboard",
+                            alt_message=f"{self.request.user.get_username()} has changed the role of  {user.get_username()} of {instance.name} project to {permission}.",
+                        )
                 else:
                     raise ParseError({"error": "Action not supported."})
             else:

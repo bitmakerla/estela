@@ -201,7 +201,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                 noti = Notification(
                     message=f"{', '.join(modified_fields)} fields were modified in a {instance.spider.name}'s job.",
                     user=user_,
-                    redirectto=f"/projects/{spider.project.pid}/jobs/{instance.jid}",
+                    redirectto=f"/projects/{instance.spider.project.pid}/jobs/{instance.jid}",
                 )
                 noti.save()
         return instance

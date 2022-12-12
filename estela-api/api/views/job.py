@@ -15,7 +15,7 @@ from api.serializers.job import (
     SpiderJobUpdateSerializer,
 )
 from config.job_manager import job_manager
-from core.models import Spider, SpiderJob
+from core.models import Spider, SpiderJob, Notification
 
 
 class SpiderJobViewSet(
