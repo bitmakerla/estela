@@ -15,7 +15,7 @@ from api.serializers.cronjob import (
     SpiderCronJobUpdateSerializer,
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
-from core.models import Spider, SpiderCronJob
+from core.models import Spider, SpiderCronJob, Notification
 
 
 class SpiderCronJobViewSet(
@@ -93,6 +93,18 @@ class SpiderCronJobViewSet(
             cronjob.schedule,
             data_expiry_days=data_expiry_days,
         )
+        for user_ in spider.project.users.all():
+            message = (
+                f"{request.user.get_username()} has scheduled a new job at {spider.name} spider"
+                if user_ != request.user
+                else f"You scheduled a new job at {spider.name} spider"
+            )
+            noti = Notification(
+                message=message,
+                user=user_,
+                redirectto=f"/projects/{spider.project.pid}/cronjobs",
+            )
+            noti.save()
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -109,7 +121,44 @@ class SpiderCronJobViewSet(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
+        status_changed = (
+            False
+            if not "status" in request.data or instance.status == request.data["status"]
+            else True
+        )
+        schedule_changed = (
+            False
+            if not "schedule" in request.data
+            or instance.schedule != request.data["schedule"]
+            else True
+        )
         self.perform_update(serializer)
+        if status_changed:
+            for user_ in instance.spider.project.users.all():
+                message = (
+                    f"{request.user.get_username()} has updated the status of a cronjob at {instance.spider.name} spider: {request.data['status']}"
+                    if user_ != request.user
+                    else f"You updated the status of a cronjob at {instance.spider.name} spider: {request.data['status']}"
+                )
+                noti = Notification(
+                    message=message,
+                    user=user_,
+                    redirectto=f"/projects/{instance.spider.project.pid}/spiders/{instance.spider.sid}/cronjobs/{instance.cjid}",
+                )
+                noti.save()
+        if schedule_changed:
+            for user_ in instance.spider.project.users.all():
+                message = (
+                    f"{request.user.get_username()} has updated the schedule of a cronjob at {instance.spider.name} spider: {request.data['schedule']}"
+                    if user_ != request.user
+                    else f"You updated the schedule of a cronjob at {instance.spider.name} spider: {request.data['schedule']}"
+                )
+                noti = Notification(
+                    message=message,
+                    user=user_,
+                    redirectto=f"/projects/{instance.spider.project.pid}/spiders/{instance.spider.sid}/cronjobs/{instance.cjid}",
+                )
+                noti.save()
 
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}

@@ -23,8 +23,12 @@ interface NotificationsData {
     notifications: NotificationList[];
 }
 
-export class NotificationsList extends Component<unknown, unknown> {
-    PAGE_SIZE = 10;
+interface NotificationlistPropsInterface {
+    page_size?: number;
+}
+
+export class NotificationsList extends Component<NotificationlistPropsInterface, unknown> {
+    PAGE_SIZE = 5;
     apiService = ApiService();
     state: NotificationsData = {
         notifications: [],
@@ -45,6 +49,7 @@ export class NotificationsList extends Component<unknown, unknown> {
                 };
             });
             console.log(notificationsData);
+            console.log(AuthService.getUserUsername());
             this.setState({
                 notifications: [...notificationsData],
                 count: data.count,
@@ -54,6 +59,10 @@ export class NotificationsList extends Component<unknown, unknown> {
         }
     }
     async getProjects(page: number): Promise<{ data: Notification[]; count: number; current: number }> {
+        console.log(this.props.page_size);
+        if (this.props.page_size) {
+            this.PAGE_SIZE = this.props.page_size;
+        }
         const requestParams: ApiNotificationsListRequest = { page, pageSize: this.PAGE_SIZE, uid: "7" };
         const data = await this.apiService.apiNotificationsList(requestParams);
         return { data: data.results, count: data.count, current: page };

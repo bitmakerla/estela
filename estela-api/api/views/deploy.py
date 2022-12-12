@@ -65,13 +65,18 @@ class DeployViewSet(
         launch_deploy_job(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
-        # for user_ in project.users.all():
-        #     noti = Notification(
-        #         message=f"New deployment for Spider in Project",
-        #         user=user_,
-        #         redirectto=f"/projects/{project.pid}/deploys",
-        #     )
-        #     noti.save()
+        for user_ in project.users.all():
+            message = (
+                f"You made a new deployment for {project.name} Project"
+                if user_ == user
+                else f"{request.user}has made a new deployment for {project.name} Project."
+            )
+            noti = Notification(
+                message=message,
+                user=user_,
+                redirectto=f"/projects/{project.pid}/deploys",
+            )
+            noti.save()
 
         headers = self.get_success_headers(serializer.data)
         return Response(
