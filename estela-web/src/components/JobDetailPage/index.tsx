@@ -22,7 +22,6 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
-import Run from "../../assets/icons/play.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
 
@@ -840,17 +839,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 </Content>
                 <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
                     <Card
-                        className="opacity-60 cursor-not-allowed w-full col-span-2 flex flex-col"
+                        className="opacity-40 cursor-not-allowed w-full col-span-2 flex flex-col"
                         style={{ borderRadius: "8px" }}
                         bordered={false}
                     >
                         <Text className="py-0 text-estela-black-medium font-medium text-base">Bandwidth</Text>
                         <Row className="grid grid-cols-1 py-1 mt-3">
                             <Col>
-                                <Text className="font-bold text-estela-black-full text-lg">
-                                    {requestCountDecimalPercentage.toFixed(2)}
-                                </Text>
-                                <Text className="text-estela-black-full text-base">/1GB</Text>
+                                <Text className="font-bold text-estela-black-full text-lg">-/-</Text>
                             </Col>
                             <Col>
                                 <Text className="text-estela-black-medium text-xs">of project</Text>
@@ -984,27 +980,18 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             >
                                                 Clone this job
                                             </Button>
-                                            {status == SpiderJobUpdateStatusEnum.Running ? (
-                                                <Button
-                                                    icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
-                                                    onClick={() => {
-                                                        this.setState({ modalStop: true });
-                                                    }}
-                                                    size="large"
-                                                    className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                                >
-                                                    Stop this job
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    icon={<Run className="h-6 w-6 mr-2 text-sm" />}
-                                                    onClick={() => this.updateStatus(SpiderJobUpdateStatusEnum.Running)}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                                >
-                                                    Run this job
-                                                </Button>
-                                            )}
+                                            <Button
+                                                disabled={!(status == SpiderJobUpdateStatusEnum.Running)}
+                                                icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
+                                                onClick={() => {
+                                                    this.setState({ modalStop: true });
+                                                }}
+                                                size="large"
+                                                className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                            >
+                                                Stop this job
+                                            </Button>
+
                                             {modalStop && (
                                                 <Modal
                                                     style={{
