@@ -152,6 +152,11 @@ interface MetadataField {
     type: string;
 }
 
+interface StorageMetric {
+    quantity: number;
+    type: string;
+}
+
 class ItemsMetadata extends Component<ItemsMetadataProps> {
     item = this.props.item;
     metadata: MetadataField[] = [];
@@ -325,7 +330,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             );
             this.getProjectSpiders();
             this.getItems(1, 1);
-            // this.getStats("1");
         }
     }
 
@@ -636,6 +640,38 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
+    formatBytes = (bytes: number): StorageMetric => {
+        if (!+bytes) {
+            return {
+                quantity: 0,
+                type: "Bytes",
+            };
+        } else {
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            const ans: StorageMetric = {
+                quantity: 0,
+                type: "",
+            };
+            switch (i) {
+                case 0:
+                    ans.quantity = parseFloat(bytes.toFixed(2));
+                    break;
+                case 1:
+                    ans.quantity = parseFloat((bytes / 1e3).toFixed(2));
+                    break;
+                case 2:
+                    ans.quantity = parseFloat((bytes / 1e6).toFixed(2));
+                    break;
+                default:
+                    ans.quantity = parseFloat((bytes / 1e9).toFixed(2));
+                    break;
+            }
+            ans["type"] = `${sizes[i > sizes.length - 1 ? 3 : i]}`;
+            return ans;
+        }
+    };
+
     overview = (): React.ReactNode => {
         const {
             tags,
@@ -652,18 +688,34 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } = this.state;
         const radius = 100;
         const circunference: number = ((2 * 22) / 7) * radius;
-        const storageDecimalPercentage = dataStatus !== "DELETED" ? (totalResponseBytes || 0) * 1e-9 : 0;
+        const storage: StorageMetric = this.formatBytes(dataStatus !== "DELETED" ? totalResponseBytes || 0 : 0);
+        let storagePercentage = 0;
+        let storageCaption = <span className="text-lg text-center">of 1GB</span>;
         const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
-        const requestCountPercentage: number = 100 * (requestCount || 0) * 1e-9;
+        const requestCountPercentage: number = 100 * requestCountDecimalPercentage;
         const lifespanPercentage: number = 100 * ((lifespan ?? 0) / 120);
+        if (storage.type === "KB") {
+            storagePercentage = storage.quantity / 1e3;
+            storageCaption = <span className="text-lg text-center">of 1MB</span>;
+        } else if (storage.type === "MB") {
+            storagePercentage = storage.quantity < 300 ? storage.quantity / 300 : storage.quantity / 1e3;
+            storageCaption =
+                storage.quantity < 300 ? (
+                    <span className="text-lg text-center">of 300MBs</span>
+                ) : (
+                    <span className="text-lg text-center">of 1GB</span>
+                );
+        } else {
+            storagePercentage = storage.quantity / 10;
+        }
 
         return (
             <>
                 <Content className="grid lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
                     <Card className="w-full col-span-5 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 text-estela-black-medium font-medium text-base">Storage</Text>
-                        <div className="grid w-full h-1/2 place-content-center">
-                            <div className="flex items-center justify-center">
+                        <Content className="grid w-full h-1/2 place-content-center">
+                            <Content className="flex items-center justify-center">
                                 <svg className="transform -rotate-90 w-72 h-72">
                                     <circle
                                         cx="144"
@@ -683,17 +735,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         strokeWidth="5"
                                         fill="transparent"
                                         strokeDasharray={circunference}
-                                        strokeDashoffset={circunference - storageDecimalPercentage * circunference}
+                                        strokeDashoffset={circunference - storagePercentage * circunference}
                                         className="text-estela-states-green-medium"
                                     />
                                 </svg>
-                                <div className="absolute items-center justify-center">
-                                    <span className="text-3xl text-center">{storageDecimalPercentage.toFixed(2)}</span>
+                                <Content className="absolute items-center justify-center">
+                                    <span className="text-3xl text-center">{storage.quantity}</span>
                                     <br />
-                                    <span className="text-lg text-center">of 1GB</span>
-                                </div>
-                            </div>
-                        </div>
+                                    {storageCaption}
+                                </Content>
+                            </Content>
+                        </Content>
                     </Card>
                     <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 text-estela-black-medium font-medium text-base">DETAILS</Text>
@@ -793,7 +845,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     </Card>
                 </Content>
                 <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
-                    <Card className="w-full col-span-2 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                    <Card
+                        className="opacity-75 cursor-not-allowed w-full col-span-2 flex flex-col"
+                        style={{ borderRadius: "8px" }}
+                        bordered={false}
+                    >
                         <Text className="py-0 text-estela-black-medium font-medium text-base">Bandwidth</Text>
                         <Row className="grid grid-cols-1 py-1 mt-3">
                             <Col>
@@ -803,15 +859,15 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="text-estela-black-full text-base">/1GB</Text>
                             </Col>
                             <Col>
-                                <Text className="text-estela-black-medium text-xs">of project (disabled)</Text>
+                                <Text className="text-estela-black-medium text-xs">of project</Text>
                             </Col>
                             <Col>
-                                <div className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
                                         style={{ width: `${Math.round(requestCountPercentage)}%` }}
                                     ></div>
-                                </div>
+                                </Content>
                             </Col>
                         </Row>
                     </Card>
@@ -828,12 +884,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="text-estela-black-medium text-xs">this job</Text>
                             </Col>
                             <Col>
-                                <div className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
                                         style={{ width: `${Math.round(lifespanPercentage)}%` }}
                                     ></div>
-                                </div>
+                                </Content>
                             </Col>
                         </Row>
                     </Card>
@@ -1206,7 +1262,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     children: this.overview(),
                                                 },
                                                 {
-                                                    label: "Items", // (show the quantity of items, to implement)
+                                                    label: "Items",
                                                     key: "2",
                                                 },
                                                 {
