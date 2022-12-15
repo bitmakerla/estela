@@ -672,6 +672,15 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
+    percentageStorage = (storage: StorageMetric): number => {
+        if (storage.type === "Bytes" || storage.type === "KB") {
+            return storage.quantity / 1e3;
+        } else if (storage.type === "MB") {
+            return storage.quantity < 300 ? storage.quantity / 300 : storage.quantity / 1e3;
+        }
+        return storage.quantity / 10;
+    };
+
     overview = (): React.ReactNode => {
         const {
             tags,
@@ -689,25 +698,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         const radius = 100;
         const circunference: number = ((2 * 22) / 7) * radius;
         const storage: StorageMetric = this.formatBytes(dataStatus !== "DELETED" ? totalResponseBytes || 0 : 0);
-        let storagePercentage = 0;
-        let storageCaption = <span className="text-lg text-center">of 1GB</span>;
+        const storagePercentage = this.percentageStorage(storage);
         const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
         const requestCountPercentage: number = 100 * requestCountDecimalPercentage;
         const lifespanPercentage: number = 100 * ((lifespan ?? 0) / 120);
-        if (storage.type === "KB") {
-            storagePercentage = storage.quantity / 1e3;
-            storageCaption = <span className="text-lg text-center">of 1MB</span>;
-        } else if (storage.type === "MB") {
-            storagePercentage = storage.quantity < 300 ? storage.quantity / 300 : storage.quantity / 1e3;
-            storageCaption =
-                storage.quantity < 300 ? (
-                    <span className="text-lg text-center">of 300MBs</span>
-                ) : (
-                    <span className="text-lg text-center">of 1GB</span>
-                );
-        } else {
-            storagePercentage = storage.quantity / 10;
-        }
 
         return (
             <>
@@ -724,7 +718,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         stroke="currentColor"
                                         strokeWidth="5"
                                         fill="transparent"
-                                        className="text-white"
+                                        className="text-estela-white-low"
                                     />
 
                                     <circle
@@ -740,9 +734,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     />
                                 </svg>
                                 <Content className="absolute items-center justify-center">
-                                    <span className="text-3xl text-center">{storage.quantity}</span>
+                                    <span className="text-3xl text-center">{`${storage.quantity}${storage.type}`}</span>
                                     <br />
-                                    {storageCaption}
+                                    <span className="text-lg text-center mx-5">of 1GB</span>
                                 </Content>
                             </Content>
                         </Content>
@@ -846,7 +840,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 </Content>
                 <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
                     <Card
-                        className="opacity-75 cursor-not-allowed w-full col-span-2 flex flex-col"
+                        className="opacity-60 cursor-not-allowed w-full col-span-2 flex flex-col"
                         style={{ borderRadius: "8px" }}
                         bordered={false}
                     >
