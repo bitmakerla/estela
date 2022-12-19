@@ -71,6 +71,10 @@ you have a deep understanding of estela.
 * _<SPIDERDATA\_DB\_ENGINE>_ (Required): Document oriented database where the data produced 
   by the spiders is stored. Currently, estela supports the _mongodb_ engine.
 
+  > **NOTE:**
+  >  For dev a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can be used to set a database, as mentioned on [Estela Resources Guide](./resources.md).
+  >  Or a mongodb can be setup on a local cluster on a docker image.
+
 * _<SPIDERDATA\_DB\_CONNECTION>_ (Required): The connection URL to your database instance.
 
 * _<SPIDERDATA\_DB\_CERTIFICATE\_PATH>_ (Required): Path where the database certificate is
@@ -100,7 +104,7 @@ you have a deep understanding of estela.
 #### Registry
 
 * _<REGISTRY\_HOST>_ (Required): Address of the registry used to store the estela projects.
-  This value can be equal to the variable _registryHost_.
+  This value can be equal to the variable **_registryHost_**.
 
 * _<REGISTRY\_ID>_: (Optional) Fill this values if you registry has an associated ID.
 
@@ -138,6 +142,8 @@ you have a deep understanding of estela.
 * _<CELERY\_RESULT\_BACKEND>_ (Required): Url to send the results from the API module tasks.
 
 #### Mailing
+
+  > **Note:** The mailing configuration is used to send email regarding users creation on the estela system.
 
 * _<EMAIL\_HOST>_ (Required): Host of the SMTP email server.
 

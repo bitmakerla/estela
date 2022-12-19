@@ -1,15 +1,15 @@
 #################### CHART VARIABLES ####################
 
 local: true
-hostIp: ""
-registryHost: ""
+hostIp: "" # on local dev deploy the value from `$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'` can be used
+registryHost: "" # hostIp:5000
 nodeSelector: ""
 
 #################### CLOUD VARIABLES ####################
 
 ######## AWS ########
 
-AWS_ACCESS_KEY_ID: ""
+AWS_ACCESS_KEY_ID: "" # values need from a AWS account
 AWS_SECRET_ACCESS_KEY: ""
 AWS_DEFAULT_REGION: ""
 
@@ -22,7 +22,7 @@ imagePullSecrets: ""
 
 # Database
 SPIDERDATA_DB_ENGINE: mongodb
-SPIDERDATA_DB_CONNECTION: ""
+SPIDERDATA_DB_CONNECTION: "" # [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) can be used to set a database
 SPIDERDATA_DB_CERTIFICATE_PATH: config/ca-certificate.crt
 
 # Kafka
@@ -39,13 +39,13 @@ DB_USER: "" # django-api
 DB_PASSWORD: "" # estela12345
 
 # Registry
-REGISTRY_HOST: ""
+REGISTRY_HOST: "" # same value as registryHost
 REGISTRY_ID: ""
 REPOSITORY_NAME: "" # estela-projects
 BUCKET_NAME_PROJECTS: "" # estela-api-projects
 
 # Settings
-SECRET_KEY: ""
+SECRET_KEY: "" # it can generate one on https://djecrety.ir/ To avoid reading conflicts, enclose the value in quotes.
 DJANGO_SETTINGS_MODULE: "" # config.settings.local
 ENGINE: "" # kubernetes
 CREDENTIALS: "" # local
