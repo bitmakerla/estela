@@ -143,7 +143,9 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                         <Space direction="vertical" size="large">
                                             <Text>
                                                 <b>Project ID:</b>
-                                                <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
+                                                <Link to={`/projects/${this.projectId}/dashboard`}>
+                                                    &nbsp; {this.projectId}
+                                                </Link>
                                             </Text>
                                             <Table
                                                 columns={this.columns}

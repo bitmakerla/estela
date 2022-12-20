@@ -159,10 +159,10 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             </p>
                                             <Link
                                                 id="id_project"
-                                                className="text-estela text-base font-normal"
-                                                to={`/projects/${this.projectId}`}
+                                                className="text-estela-blue-medium text-base font-normal"
+                                                to={`/projects/${this.projectId}/dashboard`}
                                             >
-                                                &emsp;{this.projectId}
+                                                {this.projectId}
                                             </Link>
                                             <Button
                                                 icon={<Copy width={24} />}

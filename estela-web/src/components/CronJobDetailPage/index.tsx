@@ -843,7 +843,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         <Row className="grid grid-cols-3 py-1 px-4">
                             <Col className="col-span-1">Project ID</Col>
                             <Col className="col-span-2">
-                                <Link to={`/projects/${this.projectId}`}>{this.projectId}</Link>
+                                <Link
+                                    to={`/projects/${this.projectId}/dashboard`}
+                                    className="hover:text-estela-blue-medium"
+                                >
+                                    {this.projectId}
+                                </Link>
                             </Col>
                         </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">

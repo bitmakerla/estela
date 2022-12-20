@@ -760,7 +760,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="font-bold">Project ID</Text>
                             </Col>
                             <Col className="col-span-2">
-                                <Link to={`/projects/${this.projectId}`} className="text-estela-blue-medium px-2">
+                                <Link
+                                    to={`/projects/${this.projectId}/dashboard`}
+                                    className="text-estela-blue-medium px-2"
+                                >
                                     {this.projectId}
                                 </Link>
                             </Col>
