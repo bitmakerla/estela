@@ -681,8 +681,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             <Layout>
                 <Header />
                 <Layout className="bg-white">
-                    <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
-                    <Content>
+                    <ProjectSidenav projectId={this.projectId} path={"cronjobs"} />
+                    <Content className="bg-metal rounded-2xl">
                         {loadedCronjobs && loadedSpiders ? (
                             <Layout className="bg-white">
                                 <Content className="bg-metal rounded-2xl">
@@ -715,7 +715,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                     }}
                                                     centered
                                                     width={900}
-                                                    visible={modal}
+                                                    open={modal}
                                                     title={
                                                         <p className="text-xl text-center mt-2 font-normal">
                                                             NEW SCHEDULED JOB

@@ -1,5 +1,6 @@
 const TOKEN_ITEM_NAME = "authToken";
 const USERNAME_ITEM_NAME = "username";
+const USERNAME_ROLE = "Admin";
 
 export const AuthService = {
     getAuthToken(): string | null {
@@ -26,5 +27,14 @@ export const AuthService = {
     },
     setUserUsername(username: string): void {
         localStorage.setItem(USERNAME_ITEM_NAME, username);
+    },
+    getUserRole(): string | null {
+        return localStorage.getItem(USERNAME_ROLE);
+    },
+    removeUserRole(): void {
+        localStorage.removeItem(USERNAME_ROLE);
+    },
+    setUserRole(role: string): void {
+        localStorage.setItem(USERNAME_ROLE, role);
     },
 };

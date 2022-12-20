@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Col, Layout, Row, Button, Space, Table } from "antd";
+import { Col, Layout, Row, Button, Space, Typography, Table } from "antd";
 import Add from "../../assets/icons/add.svg";
 import { RouteComponentProps } from "react-router-dom";
 
@@ -11,9 +11,16 @@ import { authNotification, resourceNotAllowedNotification, Header, ProjectSidena
 import { ColumnsType } from "antd/lib/table";
 
 const { Content } = Layout;
+const { Text } = Typography;
+
+interface SpiderList {
+    key: number;
+    name: string;
+    sid: number | undefined;
+}
 
 interface SpiderListPageState {
-    spiders: Spider[];
+    spiders: SpiderList[];
     current: number;
     count: number;
     loaded: boolean;
@@ -46,7 +53,14 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const spiders: Spider[] = results.results;
+                // const spiders: Spider[] = results.results;
+                const spiders: SpiderList[] = results.results.map((spider: Spider, index: number) => {
+                    return {
+                        key: index,
+                        name: spider.name,
+                        sid: spider.sid,
+                    };
+                });
                 this.setState({ spiders: [...spiders], count: results.count, current: page, loaded: true });
             },
             (error: unknown) => {
@@ -56,13 +70,17 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         );
     }
 
-    columns: ColumnsType<Spider> = [
+    columns: ColumnsType<SpiderList> = [
         {
             title: "SPIDER",
             dataIndex: "name",
             key: "name",
-            render: (name: string, spider: Spider): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${spider.sid}`} className="text-estela-blue-medium">
+            render: (name: string, spider: SpiderList): ReactElement => (
+                <Link
+                    key={spider.key}
+                    to={`/projects/${this.projectId}/spiders/${spider.sid}`}
+                    className="text-estela-blue-medium"
+                >
                     {name}
                 </Link>
             ),
@@ -71,11 +89,13 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
             title: "LAST RUN",
             dataIndex: "lastRun",
             key: "lastRun",
+            render: (): ReactElement => <Text className="text-estela-black-medium text-xs">Not available</Text>,
         },
         {
             title: "JOBS",
             dataIndex: "jobs",
             key: "jobs",
+            render: (): ReactElement => <Text className="text-estela-black-medium text-xs">-/-</Text>,
         },
     ];
 
@@ -92,7 +112,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                 <Layout className="bg-white">
                     {loaded ? (
                         <Fragment>
-                            <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
+                            <ProjectSidenav projectId={this.projectId} path={"spiders"} />
                             <Content className="bg-metal rounded-2xl">
                                 <div className="lg:m-10 md:mx-6 mx-2">
                                     <Row className="flow-root my-6">

@@ -202,7 +202,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                 <Layout className="bg-white">
                     {loaded ? (
                         <Fragment>
-                            <ProjectSidenav projectId={this.projectId} path={"/members"} />
+                            <ProjectSidenav projectId={this.projectId} path={"members"} />
                             <Content className="bg-metal rounded-2xl">
                                 <div className="lg:m-10 md:mx-6 mx-2">
                                     <Row className="flow-root my-6">
@@ -221,9 +221,8 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 Add new member
                                             </Button>
                                             <Modal
-                                                visible={modalAddMember}
-                                                width={400}
-                                                title={<p className="text-center">ADD NEW MEMBER</p>}
+                                                open={modalAddMember}
+                                                title={<p className="text-center m-2">ADD NEW MEMBER</p>}
                                                 onCancel={() => this.setState({ modalAddMember: false })}
                                                 footer={null}
                                             >
@@ -326,7 +325,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 Change role
                                             </Button>
                                             <Modal
-                                                visible={modalUpdateMember}
+                                                open={modalUpdateMember}
                                                 width={400}
                                                 title={<p className="text-center">UPDATE MEMBER</p>}
                                                 onCancel={() => this.setState({ modalUpdateMember: false })}

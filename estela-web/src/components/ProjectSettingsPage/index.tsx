@@ -156,7 +156,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
             <Layout>
                 <Header />
                 <Layout className="bg-white">
-                    <ProjectSidenav projectId={this.projectId} path={"/settings"} />
+                    <ProjectSidenav projectId={this.projectId} path={"settings"} />
                     <Content className="bg-metal rounded-2xl">
                         <div className="lg:m-10 md:mx-6 m-6">
                             <Row className="font-medium my-6">
@@ -256,14 +256,17 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 </div>
                             </Row>
                             <Row className="bg-white rounded-lg my-4">
-                                <div className="lg:m-8 md:mx-6 m-4">
+                                <Content className="lg:m-6 md:mx-6 m-4 opacity-30 cursor-not-allowed">
                                     <p className="text-2xl text-black">Data persistence</p>
                                     <p className="text-sm my-2 text-estela-black-medium">
                                         New projects you create will have this data persistence by default to retain
                                         data in Bitmaker Cloud
                                     </p>
                                     <Content>
-                                        <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
+                                        <Radio.Group
+                                            disabled={true}
+                                            className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4"
+                                        >
                                             <Radio.Button
                                                 value="1 day"
                                                 onClick={() => {
@@ -332,7 +335,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                             Save Changes
                                         </Button>
                                     </div>
-                                </div>
+                                </Content>
                             </Row>
                             <Row className="bg-white rounded-lg">
                                 <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">

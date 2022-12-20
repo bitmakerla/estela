@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.14.9",
-    "antd": "^4.23.6",
+    "antd": "^4.24.0",
     "cronstrue": "^2.19.0",
     "follow-redirects": "^1.14.8",
     "hosted-git-info": "^2.8.9",

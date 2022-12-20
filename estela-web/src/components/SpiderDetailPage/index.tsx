@@ -682,7 +682,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
+                    <ProjectSidenav projectId={this.projectId} path={"spiders"} />
                     <Content className="bg-metal rounded-2xl">
                         {loaded ? (
                             <Layout className="white-background">

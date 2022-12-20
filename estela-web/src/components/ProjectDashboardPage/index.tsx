@@ -171,8 +171,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             <Layout>
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/dashboard"} />
-                    <Layout className="bg-metal rounded-t-2xl">
+                    <ProjectSidenav projectId={this.projectId} path={"dashboard"} />
+                    <Layout className="bg-metal rounded-t-2xl h-screen">
                         {loaded ? (
                             <Fragment>
                                 <Row className="flow-root lg:m-8 m-4">

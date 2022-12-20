@@ -21,7 +21,7 @@ export class NotificationsSettingsPage extends Component<unknown, unknown> {
             <Layout className="">
                 <Header />
                 <Layout className="bg-metal pt-16 pl-16">
-                    <NotificationsSidenav path={"/notifications/settings"} />
+                    <NotificationsSidenav path={"notifications/settings"} />
                     <Layout className="bg-white pl-16">
                         <p className="text-2xl py-5 text-black">Notifications settings</p>
                         <Layout className="bg-white w-4/5 flex">

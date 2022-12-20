@@ -638,7 +638,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 }}
                                 centered
                                 width={380}
-                                visible={modalVisible}
+                                open={modalVisible}
                                 title={<Text className="text-xl ml-16 text-center font-normal">NEW SCHEDULED JOB</Text>}
                                 onCancel={() => this.setState({ modalVisible: false })}
                                 footer={null}
@@ -1261,8 +1261,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             <Layout className="general-container">
                 <Header />
                 <Layout className="bg-white">
-                    <ProjectSidenav projectId={this.projectId} path={"/cronjobs"} />
-                    <Content>
+                    <ProjectSidenav projectId={this.projectId} path={"cronjobs"} />
+                    <Content className="content-padding">
                         {loaded ? (
                             <Layout className="bg-white">
                                 <Content className="bg-metal rounded-2xl">
