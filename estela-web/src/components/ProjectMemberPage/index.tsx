@@ -222,23 +222,26 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                             </Button>
                                             <Modal
                                                 open={modalAddMember}
-                                                title={<p className="text-center m-2">ADD NEW MEMBER</p>}
+                                                width={400}
+                                                title={<h2 className="text-center">ADD NEW MEMBER</h2>}
                                                 onCancel={() => this.setState({ modalAddMember: false })}
                                                 footer={null}
                                             >
-                                                <div className="mx-3">
-                                                    <p className="py-3">Email</p>
+                                                <Content>
+                                                    <Text>Email</Text>
                                                     <Input
+                                                        size="large"
                                                         style={{ borderRadius: "8px" }}
-                                                        className="border-estela rounded"
+                                                        className="border-estela rounded my-2"
                                                         name="newUser"
                                                         placeholder="Please input the email"
                                                         value={newUser}
                                                         onChange={this.handleInputChange}
                                                     />
-                                                    <p className="py-3">Role</p>
+                                                    <Text>Role</Text>
                                                     <Select
-                                                        className="w-full"
+                                                        size="large"
+                                                        className="w-full my-2"
                                                         defaultValue={ProjectUpdatePermissionEnum.Viewer}
                                                         onChange={this.handleSelectChange}
                                                     >
@@ -264,7 +267,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                             Viewer
                                                         </Option>
                                                     </Select>
-                                                    <Row className="mt-6 w-full grid grid-cols-2" justify="center">
+                                                    <Row className="mt-4 w-full grid grid-cols-2" justify="center">
                                                         <Button
                                                             size="large"
                                                             className="mr-2 sm:mr-1 bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
@@ -277,18 +280,18 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                         </Button>
                                                         <Button
                                                             size="large"
-                                                            className="ml-2 sm:ml-1 border-estela hover:border-estela text-estela hover:text-estela"
+                                                            className="ml-2 sm:ml-1 border-estela hover:border-estela text-estela hover:text-estela rounded"
                                                             onClick={() => this.setState({ modalAddMember: false })}
                                                         >
                                                             Cancel
                                                         </Button>
                                                     </Row>
-                                                </div>
+                                                </Content>
                                             </Modal>
                                         </Col>
                                     </Row>
                                     <Row className="bg-white rounded-lg">
-                                        <div className="m-4">
+                                        <Content className="m-4">
                                             <Space direction="vertical">
                                                 <p className="text-silver text-lg font-medium">Members</p>
                                                 <Table
@@ -301,7 +304,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                     size="middle"
                                                 />
                                             </Space>
-                                        </div>
+                                        </Content>
                                     </Row>
                                     <Row>
                                         <Space direction="horizontal">
@@ -331,13 +334,14 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                 onCancel={() => this.setState({ modalUpdateMember: false })}
                                                 footer={null}
                                             >
-                                                <div className="mx-3">
+                                                <Content className="mx-3">
                                                     <p className="py-3">Email</p>
                                                     <Text className="bg-estela-blue-low p-1 text-base text-estela-blue-full rounded">
                                                         {newUser}
                                                     </Text>
                                                     <p className="py-3">Role</p>
                                                     <Select
+                                                        size="large"
                                                         className="w-full"
                                                         defaultValue={ProjectUpdatePermissionEnum.Viewer}
                                                         onChange={this.handleSelectChange}
@@ -383,7 +387,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                                             Cancel
                                                         </Button>
                                                     </Row>
-                                                </div>
+                                                </Content>
                                             </Modal>
                                         </Space>
                                     </Row>
