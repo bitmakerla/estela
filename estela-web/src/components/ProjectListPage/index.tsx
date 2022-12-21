@@ -45,7 +45,11 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             dataIndex: "name",
             key: "name",
             render: (name: string, project: ProjectList): ReactElement => (
-                <Link className="text-sm font-medium hover:text-estela" to={`/projects/${project.pid}/dashboard`}>
+                <Link
+                    className="text-sm font-medium hover:text-estela"
+                    to={`/projects/${project.pid}/dashboard`}
+                    onClick={() => this.setUserRole(project.role)}
+                >
                     {name}
                 </Link>
             ),
@@ -80,6 +84,10 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             this.setState({ projects: [...projectData], count: data.count, current: data.current, loaded: true });
         }
     }
+
+    setUserRole = (role: string): void => {
+        AuthService.setUserRole(role);
+    };
 
     getUser = (): string => {
         return String(AuthService.getUserUsername());

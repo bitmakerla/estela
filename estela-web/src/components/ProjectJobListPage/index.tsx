@@ -131,7 +131,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
+                    <ProjectSidenav projectId={this.projectId} path={"jobs"} />
                     <Content className="content-padding">
                         {loaded ? (
                             <Layout className="white-background">
@@ -143,7 +143,9 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                         <Space direction="vertical" size="large">
                                             <Text>
                                                 <b>Project ID:</b>
-                                                <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
+                                                <Link to={`/projects/${this.projectId}/dashboard`}>
+                                                    &nbsp; {this.projectId}
+                                                </Link>
                                             </Text>
                                             <Table
                                                 columns={this.columns}

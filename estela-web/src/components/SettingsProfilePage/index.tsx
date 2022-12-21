@@ -64,7 +64,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
             <Layout className="h-screen">
                 <Header />
                 <Layout className="bg-metal p-6">
-                    <ProfileSettingsSideNav path={"/profile"} />
+                    <ProfileSettingsSideNav path={"profile"} />
                     {loaded ? (
                         <Fragment>
                             <Content className="mx-32 mr-10">

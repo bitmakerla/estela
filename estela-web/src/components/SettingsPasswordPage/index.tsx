@@ -74,7 +74,7 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
             <Layout className="h-screen">
                 <Header />
                 <Layout className="bg-metal p-6">
-                    <ProfileSettingsSideNav path={"/password"} />
+                    <ProfileSettingsSideNav path={"password"} />
                     {loaded ? (
                         <Fragment>
                             <Content className="mx-32 mr-10">

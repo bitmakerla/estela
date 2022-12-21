@@ -40,7 +40,7 @@ export class NotificationsList extends Component<unknown, unknown> {
             <Layout className="flex sm:w-5/5 w-5/5 bg-white">
                 {notis.map((notification) => {
                     return (
-                        <div key={notification.id}>
+                        <Content key={notification.id}>
                             <Layout className="bg-white p-2 overflow-hidden hover:text-estela hover:bg-estela-blue-low rounded-md">
                                 <Space className="flex items-center" align="end">
                                     {!notification.seen ? (
@@ -54,7 +54,7 @@ export class NotificationsList extends Component<unknown, unknown> {
                                     </Content>
                                 </Space>
                             </Layout>
-                        </div>
+                        </Content>
                     );
                 })}
             </Layout>

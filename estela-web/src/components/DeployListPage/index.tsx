@@ -5,7 +5,7 @@ import Copy from "../../assets/icons/copy.svg";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../services/api";
+import { ApiProjectsDeploysListRequest, Deploy, Spider, UserDetail } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
@@ -37,32 +37,49 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
         {
             title: "DEPLOY ID",
             dataIndex: "did",
-            key: "id",
+            key: "did",
         },
         {
             title: "MEMBER",
-            key: "user",
             dataIndex: "user",
-            render: (user: UserDetail): ReactElement => <div>{user.username}</div>,
+            key: "user",
+            render: (user: UserDetail, deploy: Deploy): ReactElement => (
+                <Content key={deploy.did}>{user.username}</Content>
+            ),
         },
         {
             title: "DEPLOYMENT DATE",
             dataIndex: "created",
-            key: "date",
-            render: (date: Date): ReactElement => <div>{convertDateToString(date)}</div>,
+            key: "created",
+            render: (created: Date): ReactElement => <Content>{convertDateToString(created)}</Content>,
         },
         {
             title: "SPIDER",
-            key: "user",
-            dataIndex: "user",
-            render: (): ReactElement => <div className="text-estela">My Spider</div>,
+            key: "spiders",
+            dataIndex: "spiders",
+            render: (spiders: Spider[]): ReactElement => (
+                <>
+                    {spiders.length === 0 ? (
+                        "-/-"
+                    ) : spiders.length > 1 ? (
+                        <>
+                            <span className="text-estela-blue-full font-medium">{spiders[0].name}&nbsp;</span>
+                            <Tag className="bg-estela-blue-low rounded-lg border-estela-blue-full text-estela">+1</Tag>
+                        </>
+                    ) : (
+                        <>
+                            <span className="text-estela-blue-full font-medium">{spiders[0].name}</span>
+                        </>
+                    )}
+                </>
+            ),
         },
         {
             title: "STATUS",
             key: "status",
             dataIndex: "status",
             render: (state: string): ReactElement => (
-                <div>
+                <Content>
                     {state === "BUILDING" ? (
                         <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-yellow">Waiting</Tag>
                     ) : state === "SUCCESS" ? (
@@ -74,7 +91,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                             Failure
                         </Tag>
                     )}
-                </div>
+                </Content>
             ),
         },
     ];
@@ -86,6 +103,10 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             await this.getProjectDeploys(1);
         }
     }
+
+    onPageChange = async (page: number): Promise<void> => {
+        await this.getProjectDeploys(page);
+    };
 
     copy = () => {
         const node = document.getElementById("id_project");
@@ -101,7 +122,12 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
         const requestParams: ApiProjectsDeploysListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsDeploysList(requestParams).then(
             (results) => {
-                const deploys: Deploy[] = results.results;
+                const deploys: Deploy[] = results.results.map((deploy: Deploy, id: number) => {
+                    return {
+                        key: id,
+                        ...deploy,
+                    };
+                });
                 this.setState({ deploys: [...deploys], count: results.count, current: page, loaded: true });
             },
             (error: unknown) => {
@@ -117,10 +143,10 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             <Layout>
                 <Header />
                 <Layout>
-                    <ProjectSidenav projectId={this.projectId} path={"/deploys"} />
+                    <ProjectSidenav projectId={this.projectId} path={"deploys"} />
                     <Content className="bg-white">
                         {loaded ? (
-                            <Layout className="bg-metal rounded-2xl">
+                            <Layout className="bg-metal rounded-2xl w-full">
                                 <Content className="lg:m-10 md:mx-6 mx-2">
                                     <p className="font-medium text-xl text-silver">SPIDER OVERVIEW</p>
                                     <Row justify="center">
@@ -133,10 +159,10 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             </p>
                                             <Link
                                                 id="id_project"
-                                                className="text-estela text-base font-normal"
-                                                to={`/projects/${this.projectId}`}
+                                                className="text-estela-blue-medium text-base font-normal"
+                                                to={`/projects/${this.projectId}/dashboard`}
                                             >
-                                                &emsp;{this.projectId}
+                                                {this.projectId}
                                             </Link>
                                             <Button
                                                 icon={<Copy width={24} />}
@@ -183,14 +209,16 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 </div>
                                             </div>
                                         </Row>
-                                        <Table
-                                            tableLayout="fixed"
-                                            columns={this.columns}
-                                            dataSource={deploys}
-                                            pagination={false}
-                                            size="middle"
-                                            className="my-4"
-                                        />
+                                        <Row>
+                                            <Table
+                                                tableLayout="fixed"
+                                                columns={this.columns}
+                                                dataSource={deploys}
+                                                pagination={false}
+                                                size="middle"
+                                                className="my-4"
+                                            />
+                                        </Row>
                                     </Row>
                                     <Pagination
                                         className="pagination"
@@ -198,6 +226,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         total={count}
                                         current={current}
                                         pageSize={this.PAGE_SIZE}
+                                        onChange={this.onPageChange}
                                         showSizeChanger={false}
                                     />
                                 </Content>

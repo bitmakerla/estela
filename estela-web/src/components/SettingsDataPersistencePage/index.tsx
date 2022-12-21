@@ -55,7 +55,7 @@ export class SettingsDataPersistencePage extends Component<unknown, DataPersiste
             <Layout className="h-screen">
                 <Header />
                 <Layout className="bg-metal p-6">
-                    <ProfileSettingsSideNav path={"/dataPersistence"} />
+                    <ProfileSettingsSideNav path={"dataPersistence"} />
                     {loaded ? (
                         <Fragment>
                             <Content className="mx-32 mr-10">

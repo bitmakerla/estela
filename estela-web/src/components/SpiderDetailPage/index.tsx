@@ -99,12 +99,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             ),
         },
         {
-            title: "SPIDER",
+            title: "SPIDER ID",
             dataIndex: "spider",
             key: "spider",
             render: (spiderID: number): ReactElement => (
                 <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`} className="text-estela-blue-medium">
-                    Spider-{spiderID}
+                    {spiderID}
                 </Link>
             ),
         },
@@ -140,7 +140,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                         })}
                     </>
                 ) : (
-                    <div></div>
+                    <></>
                 ),
         },
         {
@@ -159,7 +159,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                         })}
                     </>
                 ) : (
-                    <div></div>
+                    <></>
                 ),
         },
     ];
@@ -333,7 +333,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     <p className="text-sm text-silver">{this.spiderId}</p>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-3 p-2 bg-[#F6FAFD] rounded-lg">
+                            <div className="grid grid-cols-3 p-2 bg-estela-blue-low rounded-lg">
                                 <div className="col-span-1">
                                     <p className="text-sm font-bold">Project ID</p>
                                 </div>
@@ -682,15 +682,15 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/spiders"} />
+                    <ProjectSidenav projectId={this.projectId} path={"spiders"} />
                     <Content className="bg-metal rounded-2xl">
                         {loaded ? (
                             <Layout className="white-background">
                                 <Content className="bg-metal rounded-2xl">
-                                    <div className="lg:m-10 md:mx-6 mx-2">
+                                    <Content className="lg:m-10 md:mx-6 mx-2">
                                         <Row className="flow-root my-6 space-x-4">
                                             <Col className="float-left">
-                                                <Text className="text-[#6C757D] text-xl">{name}</Text>
+                                                <Text className="text-estela-black-medium text-xl">{name}</Text>
                                             </Col>
                                             <Col className="float-right">
                                                 <Button
@@ -735,7 +735,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                                 },
                                             ]}
                                         />
-                                    </div>
+                                    </Content>
                                 </Content>
                             </Layout>
                         ) : (
