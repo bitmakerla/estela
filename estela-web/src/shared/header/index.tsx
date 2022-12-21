@@ -55,14 +55,13 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
         {
             key: "2",
             label: (
-                <Content className="stroke-estela-black-low hover:bg-button-hover rounded">
+                <Content className="stroke-black hover:stroke-estela-blue-full hover:bg-button-hover rounded">
                     <Link to={"/settings/profile"} className="flex items-center hover:text-estela-blue-full">
                         <Settings className="mx-1 w-6 h-6" />
                         Account Settings
                     </Link>
                 </Content>
             ),
-            disabled: true,
             style: { backgroundColor: "white" },
         },
         {
@@ -85,8 +84,15 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
             label: (
                 <Content className="bg-white w-96">
                     <NotificationsList />
+                </Content>
+            ),
+            style: { backgroundColor: "white" },
+        },
+        {
+            key: "2",
+            label: (
+                <Content className="bg-white w-96">
                     <Link
-                        style={{ pointerEvents: "none" }}
                         className="text-estela-blue-full opacity-40 h-8 items-center text-center rounded-md hover:text-estela-blue-full hover:bg-estela-blue-low font-semibold flex justify-center"
                         to={"/notifications/inbox"}
                     >
@@ -94,7 +100,8 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                     </Link>
                 </Content>
             ),
-            style: { backgroundColor: "white", paddingLeft: "8px", paddingRight: "8px" },
+            disabled: true,
+            style: { backgroundColor: "white" },
         },
     ];
 
