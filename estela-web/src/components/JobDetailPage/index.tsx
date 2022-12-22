@@ -1535,7 +1535,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
+                    <ProjectSidenav projectId={this.projectId} path={"jobs"} />
                     <Content className="content-padding">
                         {loaded && loadedSpiders ? (
                             <Layout className="white-background">
