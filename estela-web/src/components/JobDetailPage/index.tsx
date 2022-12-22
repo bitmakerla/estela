@@ -186,7 +186,6 @@ class ItemsMetadata extends Component<ItemsMetadataProps> {
         for (const key in this.item) {
             this.metadata.push(this.typeDefinition(key, this.item[key]));
         }
-        console.log(this.metadata);
     };
 
     render(): React.ReactNode {
@@ -586,22 +585,22 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ dataExpiryDays: days, modified: true });
     };
 
-    getStats = (key: string | string[]): void => {
-        if (key.length === 0) {
-            return;
-        }
+    getStats = (): void => {
         const requestParams: ApiProjectsSpidersJobsDataListRequest = {
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.newJobId,
             type: "stats",
         };
+        console.log("getting stats");
+
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
                 let data: Dictionary = {};
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data[0] as Dictionary;
+                    console.log(data);
                     this.setState({ stats: data, loadedStats: true });
                 }
             },
@@ -627,7 +626,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data as Dictionary[];
-                    console.log(data);
                     this.setState({ items: data, loadedItems: true });
                 }
                 this.setState({ loadedItems: true });
@@ -912,6 +910,50 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     </Card>
                 </Content>
             </>
+        );
+    };
+
+    stats = (): React.ReactNode => {
+        const { loadedStats, stats } = this.state;
+
+        return (
+            <Content className="bg-white content-padding">
+                {loadedStats ? (
+                    <Row justify="center">
+                        {Object.entries(stats).map(([statKey, stat], index: number) => {
+                            let statRow: React.ReactElement = (
+                                <Row className="grid grid-cols-2 py-1 px-2 mt-4">
+                                    <Col>
+                                        <Text className="font-bold">{statKey}</Text>
+                                    </Col>
+                                    <Col>
+                                        <Text className="text-estela-black-full px-4">{stat}</Text>
+                                    </Col>
+                                </Row>
+                            );
+                            if (index % 2) {
+                                statRow = (
+                                    <Row className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg">
+                                        <Col>
+                                            <Text className="font-bold">{statKey}</Text>
+                                        </Col>
+                                        <Col>
+                                            <Text className="text-estela-black-full px-4">{stat}</Text>
+                                        </Col>
+                                    </Row>
+                                );
+                            }
+                            return (
+                                <Col key={index} span={24}>
+                                    {statRow}
+                                </Col>
+                            );
+                        })}
+                    </Row>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     };
 
@@ -1238,6 +1280,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Row className="lg:mx-10 mx-6">
                                         <Tabs
                                             size="middle"
+                                            onChange={(activeKey: string) => {
+                                                if (activeKey === "5" && !this.state.loadedStats) {
+                                                    this.getStats();
+                                                }
+                                                console.log(activeKey);
+                                            }}
+                                            className="w-full"
                                             defaultActiveKey={"1"}
                                             items={[
                                                 {
@@ -1248,18 +1297,22 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 {
                                                     label: "Items",
                                                     key: "2",
+                                                    children: <></>,
                                                 },
                                                 {
                                                     label: "Requests",
                                                     key: "3",
+                                                    children: <></>,
                                                 },
                                                 {
                                                     label: "Log",
                                                     key: "4",
+                                                    children: <></>,
                                                 },
                                                 {
                                                     label: "Stats",
                                                     key: "5",
+                                                    children: this.stats(),
                                                 },
                                             ]}
                                         />
