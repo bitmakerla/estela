@@ -108,6 +108,7 @@ interface JobDetailPageState {
     envVars: EnvVarsData[];
     tags: TagsData[];
     date: string;
+    activeKey: string;
     created: string | undefined;
     status: string | undefined;
     cronjob: number | undefined | null;
@@ -251,6 +252,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         envVars: [],
         tags: [],
         date: "",
+        activeKey: "1",
         created: "",
         status: "",
         cronjob: null,
@@ -557,7 +559,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 });
             },
             (error: unknown) => {
-                console.log(error);
+                console.error(error);
                 incorrectDataNotification();
             },
         );
@@ -576,10 +578,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.apiService.apiProjectsSpidersJobsUpdate(request).then(
             (response) => {
                 this.setState({ status: response.status, loading_status: false });
-                console.log("Everything is gona be okay");
             },
             (error: unknown) => {
-                console.log(error);
+                console.error(error);
                 incorrectDataNotification();
             },
         );
@@ -937,7 +938,34 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Job Status</Text>
                             </Col>
-                            <Col className="col-span-2 px-2">{status}</Col>
+                            {status == "COMPLETED" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-blue-low text-estela-blue-full border-estela-blue-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "RUNNING" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-blue-low text-estela-green-full border-estela-green-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "ERROR" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "INCOMPLETED" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
@@ -997,8 +1025,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         <Row className="flow-root lg:my-6 my-4">
                             <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Fields</Text>
                             <Button
-                                disabled
-                                className="float-right py-1 px-3 text-estela-blue-full border-none text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                onClick={() => {
+                                    this.setState({ activeKey: "2" });
+                                }}
+                                className="float-right py-1 px-3 text-estela-blue-full border-none text-base hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
                             >
                                 See items
                             </Button>
@@ -1076,7 +1106,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Button
                                         disabled
                                         size="large"
-                                        className="flex items-center flow-root w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                     >
                                         <Text className="float-left text-sm text-estela-black-medium">Field...</Text>
                                         <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
@@ -1088,7 +1118,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Button
                                         disabled
                                         size="large"
-                                        className="flex items-center flow-root w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                     >
                                         <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
                                         <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
@@ -1100,7 +1130,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Button
                                         disabled
                                         size="large"
-                                        className="flex items-center flow-root w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                     >
                                         <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
                                         <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
@@ -1219,7 +1249,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Button
                                         disabled
                                         size="large"
-                                        className="flex items-center flow-root w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                     >
                                         <Text className="float-left text-sm text-estela-black-medium">Field...</Text>
                                         <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
@@ -1231,7 +1261,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Button
                                         disabled
                                         size="large"
-                                        className="flex items-center flow-root w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                     >
                                         <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
                                         <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
@@ -1243,7 +1273,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Button
                                         disabled
                                         size="large"
-                                        className="flex items-center flow-root w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                                     >
                                         <Text className="float-left text-sm text-estela-black-medium">Criteria...</Text>
                                         <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
@@ -1300,7 +1330,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             let requestContent = (
                                                 <Text className="text-estela-black-medium px-4">{requestProp}</Text>
                                             );
-
                                             if (requestProp.length > 300) {
                                                 requestContent = (
                                                     <Paragraph
@@ -1311,7 +1340,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     </Paragraph>
                                                 );
                                             }
-
                                             return (
                                                 <Row
                                                     key={index}
@@ -1409,7 +1437,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 let logContent = (
                                     <Text className="text-estela-black-medium">{log.log ?? "No data"}</Text>
                                 );
-
                                 if ((log.log ?? "").length > 300) {
                                     logContent = (
                                         <Paragraph
@@ -1420,7 +1447,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         </Paragraph>
                                     );
                                 }
-
                                 const logDate = log.datetime
                                     ? new Date(parseFloat(log.datetime) * 1000).toDateString()
                                     : "no date";
@@ -1473,6 +1499,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             modalStop,
             modalClone,
             spiders,
+            activeKey,
             loadedSpiders,
             newTags,
             newArgs,
@@ -1552,7 +1579,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             >
                                                 Stop this job
                                             </Button>
-
                                             {modalStop && (
                                                 <Modal
                                                     style={{
@@ -1797,6 +1823,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         <Tabs
                                             size="middle"
                                             onChange={(activeKey: string) => {
+                                                this.setState({ activeKey: activeKey });
                                                 if (activeKey === "2" && !loadedItems && !loadedItemsFirstTime) {
                                                     this.getItems(itemsCurrent);
                                                 }
@@ -1811,6 +1838,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 }
                                             }}
                                             className="w-full"
+                                            activeKey={activeKey}
                                             defaultActiveKey={"1"}
                                             items={[
                                                 {
