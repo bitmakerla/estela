@@ -13,14 +13,35 @@ import ArrowDown from "../../assets/icons/arrowDown.svg";
 import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
 import Logout from "../../assets/icons/logout.svg";
+import userDropdownSidenavItems from "ExternalDropdownComponent/DropdownComponent";
 
 const { Header, Content } = Layout;
+type MenuItem = Required<MenuProps>["items"][number];
 
 interface HeaderInterface {
     path?: string;
 }
 
 export class CustomHeader extends Component<HeaderInterface, unknown> {
+    constructor(props: HeaderInterface) {
+        super(props);
+        userDropdownSidenavItems.forEach((element: MenuItem) => {
+            this.itemsUser?.push(element);
+        });
+        const key_logout = this.itemsUser?.length;
+        this.itemsUser?.push({
+            key: `${key_logout}`,
+            label: (
+                <Content className="stroke-black hover:stroke-estela hover:bg-button-hover rounded">
+                    <Link to={""} className="flex items-center hover:text-estela-blue-full" onClick={this.logout}>
+                        <Logout className="mx-1 w-6 h-6" />
+                        Logout
+                    </Link>
+                </Content>
+            ),
+            style: { backgroundColor: "white" },
+        });
+    }
     path = this.props.path;
     isLogged = (): boolean => {
         return Boolean(AuthService.getAuthToken());
@@ -59,18 +80,6 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                     <Link to={"/settings/profile"} className="flex items-center hover:text-estela-blue-full">
                         <Settings className="mx-1 w-6 h-6" />
                         Account Settings
-                    </Link>
-                </Content>
-            ),
-            style: { backgroundColor: "white" },
-        },
-        {
-            key: "3",
-            label: (
-                <Content className="stroke-black hover:stroke-estela hover:bg-button-hover rounded">
-                    <Link to={""} className="flex items-center hover:text-estela-blue-full" onClick={this.logout}>
-                        <Logout className="mx-1 w-6 h-6" />
-                        Logout
                     </Link>
                 </Content>
             ),

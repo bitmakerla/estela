@@ -13,7 +13,7 @@ module.exports = (env) => {
 
         resolve: {
             alias: {
-                DropdownComponent: path.resolve(__dirname, "src/defaultComponents"),
+                ExternalDropdownComponent: path.resolve(__dirname, "src/defaultComponents"),
             },
             extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
         },
