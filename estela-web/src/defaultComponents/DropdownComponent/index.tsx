@@ -1,7 +1,5 @@
-import React, { Fragment } from "react";
+import type { MenuProps } from "antd";
 
-const DropdownComponent = (): JSX.Element => {
-    return <Fragment></Fragment>;
-};
+const userDropdownSidenavItems: MenuProps["items"] = [];
 
-export default DropdownComponent;
+export default userDropdownSidenavItems;

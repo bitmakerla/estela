@@ -3,7 +3,7 @@ import { Switch, Router } from "react-router-dom";
 import { MainRoutes } from "./routes";
 
 import history from "./history";
-import { ExternalRoutes } from "./externalComponets";
+import ExternalRoutes from "ExternalDropdownComponent/ComponentRoutes";
 
 export class App extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -11,7 +11,7 @@ export class App extends Component<unknown, unknown> {
             <Fragment>
                 <Router history={history}>
                     <Switch>
-                        <Suspense fallback={<div>Loading...</div>}>
+                        <Suspense>
                             <MainRoutes />
                             <ExternalRoutes />
                         </Suspense>
