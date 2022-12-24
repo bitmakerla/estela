@@ -648,7 +648,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     data = safe_data as Dictionary[];
                     this.setState({ items: data, loadedItems: true, itemsCurrent: page, itemsCount: response.count });
                 }
-                this.setState({ loadedItems: true });
+                this.setState({ loadedItems: true, loadedItemsFirstTime: true });
             },
             (error: unknown) => {
                 console.error(error);
@@ -779,6 +779,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         const {
             tags,
             lifespan,
+            loadedItems,
             loadedItemsFirstTime,
             envVars,
             args,
@@ -966,6 +967,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     </Tag>
                                 </Col>
                             )}
+                            {status == "STOPPED" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-white-medium text-estela-yellow border-estela-yellow rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
@@ -1037,7 +1045,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             (!items.length ? (
                                 <Row className="grid grid-cols-3 py-1 px-4 mt-4">
                                     <Col className="text-center col-span-3">
-                                        <Spin />
+                                        {loadedItems ? (
+                                            <Text className="text-estela-black-medium">No data</Text>
+                                        ) : (
+                                            <Spin />
+                                        )}
                                     </Col>
                                 </Row>
                             ) : (
@@ -1460,7 +1472,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         }`}
                                     >
                                         <Col className="col-span-1">
-                                            <Text className="text-estela-blue-medium">{index + 1}</Text>
+                                            <Text className="text-estela-blue-medium">
+                                                {this.PAGE_SIZE * (logsCurrent - 1) + index + 1}
+                                            </Text>
                                         </Col>
                                         <Col className="col-span-3">
                                             <Text className="text-estela-black-medium">{logDate}</Text>
@@ -1587,7 +1601,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     }}
                                                     centered
                                                     width={681}
-                                                    visible={modalStop}
+                                                    open={modalStop}
                                                     title={
                                                         <p className="text-xl text-center mt-2 font-normal">
                                                             CONFIRM ACTION
@@ -1630,7 +1644,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     }}
                                                     centered
                                                     width={681}
-                                                    visible={modalClone}
+                                                    open={modalClone}
                                                     title={
                                                         <p className="text-xl text-center mt-2 font-normal">NEW JOB</p>
                                                     }
