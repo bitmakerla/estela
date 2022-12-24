@@ -13,6 +13,8 @@ import {
     Card,
     Modal,
     Select,
+    Pagination,
+    Dropdown,
     Input,
 } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
@@ -24,6 +26,8 @@ import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
+import Export from "../../assets/icons/export.svg";
+import ArrowDown from "../../assets/icons/arrowDown.svg";
 
 import {
     ApiProjectsSpidersJobsReadRequest,
@@ -50,7 +54,7 @@ import {
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 const { Option } = Select;
 
 interface Dictionary {
@@ -104,6 +108,7 @@ interface JobDetailPageState {
     envVars: EnvVarsData[];
     tags: TagsData[];
     date: string;
+    activeKey: string;
     created: string | undefined;
     status: string | undefined;
     cronjob: number | undefined | null;
@@ -111,9 +116,17 @@ interface JobDetailPageState {
     loadedStats: boolean;
     items: Dictionary[];
     loadedItems: boolean;
-    logs: string[];
-    count: number;
-    current: number;
+    loadedItemsFirstTime: boolean;
+    requests: Dictionary[];
+    loadedRequests: boolean;
+    logs: Dictionary[];
+    loadedLogs: boolean;
+    itemsCount: number;
+    itemsCurrent: number;
+    requestsCount: number;
+    requestsCurrent: number;
+    logsCount: number;
+    logsCurrent: number;
     dataStatus: string | undefined;
     dataExpiryDays: number | undefined;
     loading_status: boolean;
@@ -186,7 +199,6 @@ class ItemsMetadata extends Component<ItemsMetadataProps> {
         for (const key in this.item) {
             this.metadata.push(this.typeDefinition(key, this.item[key]));
         }
-        console.log(this.metadata);
     };
 
     render(): React.ReactNode {
@@ -240,6 +252,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         envVars: [],
         tags: [],
         date: "",
+        activeKey: "1",
         created: "",
         status: "",
         cronjob: null,
@@ -247,9 +260,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         loadedStats: false,
         items: [],
         loadedItems: false,
+        loadedItemsFirstTime: false,
+        requests: [],
+        loadedRequests: false,
         logs: [],
-        count: 0,
-        current: 0,
+        loadedLogs: false,
+        itemsCount: 0,
+        itemsCurrent: 0,
+        requestsCount: 0,
+        requestsCurrent: 1,
+        logsCount: 0,
+        logsCurrent: 1,
         dataStatus: "",
         dataExpiryDays: 0,
         loading_status: false,
@@ -328,7 +349,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 },
             );
             this.getProjectSpiders();
-            this.getItems(1, 1);
+            await this.getItems(1);
+            this.setState({ loadedItemsFirstTime: true });
         }
     }
 
@@ -537,7 +559,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 });
             },
             (error: unknown) => {
-                console.log(error);
+                console.error(error);
                 incorrectDataNotification();
             },
         );
@@ -556,10 +578,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.apiService.apiProjectsSpidersJobsUpdate(request).then(
             (response) => {
                 this.setState({ status: response.status, loading_status: false });
-                console.log("Everything is gona be okay");
             },
             (error: unknown) => {
-                console.log(error);
+                console.error(error);
                 incorrectDataNotification();
             },
         );
@@ -586,16 +607,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ dataExpiryDays: days, modified: true });
     };
 
-    getStats = (key: string | string[]): void => {
-        if (key.length === 0) {
-            return;
-        }
+    getStats = (): void => {
         const requestParams: ApiProjectsSpidersJobsDataListRequest = {
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.newJobId,
             type: "stats",
         };
+
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
                 let data: Dictionary = {};
@@ -612,14 +631,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
-    getItems = (page: number, pageSize: number): void => {
+    getItems = async (page: number, pageSize?: number): Promise<void> => {
         const requestParams: ApiProjectsSpidersJobsDataListRequest = {
             pid: this.projectId,
             sid: this.spiderId,
             jid: this.newJobId,
             type: "items",
             page: page,
-            pageSize: pageSize,
+            pageSize: pageSize ?? this.PAGE_SIZE,
         };
         this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
             (response) => {
@@ -627,16 +646,92 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data as Dictionary[];
-                    console.log(data);
-                    this.setState({ items: data, loadedItems: true });
+                    this.setState({ items: data, loadedItems: true, itemsCurrent: page, itemsCount: response.count });
                 }
-                this.setState({ loadedItems: true });
+                this.setState({ loadedItems: true, loadedItemsFirstTime: true });
             },
             (error: unknown) => {
                 console.error(error);
                 resourceNotAllowedNotification();
             },
         );
+    };
+
+    getRequests = async (page: number, pageSize?: number): Promise<void> => {
+        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.newJobId,
+            type: "requests",
+            page: page,
+            pageSize: pageSize ?? this.PAGE_SIZE,
+        };
+        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
+            (response) => {
+                let data: Dictionary[] = [];
+                if (response.results?.length) {
+                    const safe_data: unknown[] = response.results ?? [];
+                    data = safe_data as Dictionary[];
+                    this.setState({
+                        requests: data,
+                        loadedRequests: true,
+                        requestsCurrent: page,
+                        requestsCount: response.count,
+                    });
+                }
+                this.setState({ loadedRequests: true });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+
+    getLogs = async (page: number, pageSize?: number): Promise<void> => {
+        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.newJobId,
+            type: "logs",
+            page: page,
+            pageSize: pageSize ?? this.PAGE_SIZE,
+        };
+        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
+            (response) => {
+                let data: Dictionary[] = [];
+                if (response.results?.length) {
+                    const safe_data: unknown[] = response.results ?? [];
+                    data = safe_data as Dictionary[];
+                    this.setState({
+                        logs: data,
+                        loadedLogs: true,
+                        logsCurrent: page,
+                        logsCount: response.count,
+                    });
+                }
+                this.setState({ loadedLogs: true });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+
+    onItemsPageChange = async (page: number): Promise<void> => {
+        this.setState({ loadedItems: false });
+        await this.getItems(page);
+    };
+
+    onRequestsPageChange = async (page: number): Promise<void> => {
+        this.setState({ loadedRequests: false });
+        await this.getRequests(page);
+    };
+
+    onLogsPageChange = async (page: number): Promise<void> => {
+        this.setState({ loadedLogs: false });
+        await this.getLogs(page);
     };
 
     formatBytes = (bytes: number): StorageMetric => {
@@ -685,6 +780,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             tags,
             lifespan,
             loadedItems,
+            loadedItemsFirstTime,
             envVars,
             args,
             date,
@@ -693,6 +789,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             totalResponseBytes,
             requestCount,
             items,
+            status,
         } = this.state;
         const radius = 100;
         const circunference: number = ((2 * 22) / 7) * radius;
@@ -838,6 +935,52 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Link>
                             </Col>
                         </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                            <Col>
+                                <Text className="font-bold">Job Status</Text>
+                            </Col>
+                            {status == "COMPLETED" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-blue-low text-estela-blue-full border-estela-blue-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "RUNNING" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-blue-low text-estela-green-full border-estela-green-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "ERROR" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "INCOMPLETED" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "STOPPED" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-white-medium text-estela-yellow border-estela-yellow rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-2">
+                            <Col>
+                                <Text className="font-bold">Data Status</Text>
+                            </Col>
+                            <Col className="col-span-2 px-2">{dataStatus}</Col>
+                        </Row>
                     </Card>
                 </Content>
                 <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
@@ -890,28 +1033,475 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         <Row className="flow-root lg:my-6 my-4">
                             <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Fields</Text>
                             <Button
-                                disabled
-                                className="float-right py-1 px-3 text-estela-blue-full border-none text-base font-medium hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                onClick={() => {
+                                    this.setState({ activeKey: "2" });
+                                }}
+                                className="float-right py-1 px-3 text-estela-blue-full border-none text-base hover:text-estela-blue-full hover:bg-estela-blue-low rounded-lg"
                             >
                                 See items
                             </Button>
                         </Row>
-                        {loadedItems ? (
-                            !items.length ? (
+                        {loadedItemsFirstTime &&
+                            (!items.length ? (
                                 <Row className="grid grid-cols-3 py-1 px-4 mt-4">
                                     <Col className="text-center col-span-3">
-                                        <Text className="font-bold text-estela-black-medium col-span-3">No data</Text>
+                                        {loadedItems ? (
+                                            <Text className="text-estela-black-medium">No data</Text>
+                                        ) : (
+                                            <Spin />
+                                        )}
                                     </Col>
                                 </Row>
                             ) : (
                                 <ItemsMetadata item={items[0]} />
-                            )
-                        ) : (
-                            <Spin />
-                        )}
+                            ))}
                     </Card>
                 </Content>
             </>
+        );
+    };
+
+    stats = (): React.ReactNode => {
+        const { loadedStats, stats } = this.state;
+
+        return (
+            <Content className="bg-metal content-padding">
+                {loadedStats ? (
+                    <Row className="grid grid-cols-5 bg-white">
+                        <Col className="col-start-2 col-span-3">
+                            {Object.entries(stats).map(([statKey, stat], index: number) => {
+                                if (index % 2) {
+                                    return (
+                                        <Row
+                                            key={index}
+                                            className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
+                                        >
+                                            <Col>
+                                                <Text className="font-bold">{statKey}</Text>
+                                            </Col>
+                                            <Col>
+                                                <Text className="text-estela-black-full px-4">{stat}</Text>
+                                            </Col>
+                                        </Row>
+                                    );
+                                }
+                                return (
+                                    <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
+                                        <Col>
+                                            <Text className="font-bold">{statKey}</Text>
+                                        </Col>
+                                        <Col>
+                                            <Text className="text-estela-black-full px-4">{stat}</Text>
+                                        </Col>
+                                    </Row>
+                                );
+                            })}
+                        </Col>
+                    </Row>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
+        );
+    };
+
+    items = (): React.ReactNode => {
+        const { loadedItems, items, itemsCurrent, itemsCount } = this.state;
+        return (
+            <Content className="bg-metal content-padding">
+                {loadedItems ? (
+                    <>
+                        <Row className="flow-root my-2 w-full space-x-2" align="middle">
+                            <Col className="flex float-left items-center space-x-3">
+                                <Text className="text-estela-black-medium text-sm">Filter by:</Text>
+                                <Dropdown disabled>
+                                    <Button
+                                        disabled
+                                        size="large"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        <Text className="float-left text-sm text-estela-black-medium">Field...</Text>
+                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
+                                    </Button>
+                                </Dropdown>
+                            </Col>
+                            <Col className="flex float-left items-center space-x-3">
+                                <Dropdown disabled>
+                                    <Button
+                                        disabled
+                                        size="large"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
+                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
+                                    </Button>
+                                </Dropdown>
+                            </Col>
+                            <Col className="flex float-left items-center space-x-3">
+                                <Dropdown disabled>
+                                    <Button
+                                        disabled
+                                        size="large"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
+                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
+                                    </Button>
+                                </Dropdown>
+                            </Col>
+                            <Col className="flex float-left">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Update
+                                </Button>
+                            </Col>
+                            <Col className="flex float-right">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    icon={<Export className="h-3.5 w-4 mr-2" />}
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Download
+                                </Button>
+                            </Col>
+                        </Row>
+                        {items.map((item: Dictionary, index: number) => {
+                            return (
+                                <Card
+                                    key={index}
+                                    className="w-full mt-2"
+                                    style={{ borderRadius: "8px" }}
+                                    bordered={false}
+                                >
+                                    <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
+                                        <Col className="flex float-left">
+                                            <Text className="py-2 text-estela-black-full font-medium text-base">
+                                                ITEM {this.PAGE_SIZE * (itemsCurrent - 1) + index + 1}
+                                            </Text>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled
+                                                size="large"
+                                                icon={<Export className="h-3.5 w-4 mr-2" />}
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Download
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                    <>
+                                        {Object.entries(item).map(([itemPropKey, itemProp], index: number) => {
+                                            let itemContent = (
+                                                <Text className="text-estela-black-medium px-4">{itemProp}</Text>
+                                            );
+
+                                            if (itemProp.length > 300) {
+                                                itemContent = (
+                                                    <Paragraph
+                                                        className="text-estela-black-medium px-4"
+                                                        ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                                                    >
+                                                        {itemProp}
+                                                    </Paragraph>
+                                                );
+                                            }
+
+                                            return (
+                                                <Row
+                                                    key={index}
+                                                    align="middle"
+                                                    className={`grid grid-cols-8 py-1 px-2 ${
+                                                        index % 2 ? "rounded-lg bg-estela-blue-low" : ""
+                                                    }`}
+                                                >
+                                                    <Col className="col-span-2">
+                                                        <Text className="font-bold">{itemPropKey}</Text>
+                                                    </Col>
+                                                    <Col className="col-span-6">{itemContent}</Col>
+                                                </Row>
+                                            );
+                                        })}
+                                    </>
+                                </Card>
+                            );
+                        })}
+                        <Pagination
+                            className="pagination"
+                            defaultCurrent={1}
+                            simple
+                            total={itemsCount}
+                            current={itemsCurrent}
+                            pageSize={this.PAGE_SIZE}
+                            onChange={this.onItemsPageChange}
+                            showSizeChanger={false}
+                        />
+                    </>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
+        );
+    };
+
+    requests = (): React.ReactNode => {
+        const { loadedRequests, requests, requestsCurrent, requestsCount } = this.state;
+        return (
+            <Content className="bg-metal content-padding">
+                {loadedRequests ? (
+                    <>
+                        <Row className="flow-root my-2 w-full space-x-2" align="middle">
+                            <Col className="flex float-left items-center space-x-3">
+                                <Text className="text-estela-black-medium text-sm">Filter by:</Text>
+                                <Dropdown disabled>
+                                    <Button
+                                        disabled
+                                        size="large"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        <Text className="float-left text-sm text-estela-black-medium">Field...</Text>
+                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
+                                    </Button>
+                                </Dropdown>
+                            </Col>
+                            <Col className="flex float-left items-center space-x-3">
+                                <Dropdown disabled>
+                                    <Button
+                                        disabled
+                                        size="large"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
+                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
+                                    </Button>
+                                </Dropdown>
+                            </Col>
+                            <Col className="flex float-left items-center space-x-3">
+                                <Dropdown disabled>
+                                    <Button
+                                        disabled
+                                        size="large"
+                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        <Text className="float-left text-sm text-estela-black-medium">Criteria...</Text>
+                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
+                                    </Button>
+                                </Dropdown>
+                            </Col>
+                            <Col className="flex float-left">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Update
+                                </Button>
+                            </Col>
+                            <Col className="flex float-right">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    icon={<Export className="h-3.5 w-4 mr-2" />}
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Download
+                                </Button>
+                            </Col>
+                        </Row>
+                        {requests.map((request: Dictionary, index: number) => {
+                            return (
+                                <Card
+                                    key={index}
+                                    className="w-full mt-2"
+                                    style={{ borderRadius: "8px" }}
+                                    bordered={false}
+                                >
+                                    <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
+                                        <Col className="flex float-left">
+                                            <Text className="py-2 text-estela-black-full font-medium text-base">
+                                                REQUEST {this.PAGE_SIZE * (requestsCurrent - 1) + index + 1}
+                                            </Text>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled
+                                                size="large"
+                                                icon={<Export className="h-3.5 w-4 mr-2" />}
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Download
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                    <>
+                                        {Object.entries(request).map(([requestPropKey, requestProp], index: number) => {
+                                            let requestContent = (
+                                                <Text className="text-estela-black-medium px-4">{requestProp}</Text>
+                                            );
+                                            if (requestProp.length > 300) {
+                                                requestContent = (
+                                                    <Paragraph
+                                                        className="text-estela-black-medium px-4"
+                                                        ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                                                    >
+                                                        {requestProp}
+                                                    </Paragraph>
+                                                );
+                                            }
+                                            return (
+                                                <Row
+                                                    key={index}
+                                                    align="middle"
+                                                    className={`grid grid-cols-8 py-1 px-2 ${
+                                                        index % 2 ? "rounded-lg bg-estela-blue-low" : ""
+                                                    }`}
+                                                >
+                                                    <Col className="col-span-2">
+                                                        <Text className="font-bold">{requestPropKey}</Text>
+                                                    </Col>
+                                                    <Col className="col-span-6">{requestContent}</Col>
+                                                </Row>
+                                            );
+                                        })}
+                                    </>
+                                </Card>
+                            );
+                        })}
+                        <Pagination
+                            className="pagination"
+                            defaultCurrent={1}
+                            simple
+                            total={requestsCount}
+                            current={requestsCurrent}
+                            pageSize={this.PAGE_SIZE}
+                            onChange={this.onRequestsPageChange}
+                            showSizeChanger={false}
+                        />
+                    </>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
+        );
+    };
+
+    logs = (): React.ReactNode => {
+        const { loadedLogs, logs, logsCurrent, logsCount } = this.state;
+        return (
+            <Content className="bg-metal content-padding">
+                {loadedLogs ? (
+                    <>
+                        <Row className="flow-root my-2 w-full space-x-2" align="middle">
+                            <Col className="flex float-left items-center space-x-3">
+                                <Text className="text-estela-black-medium text-sm">Search:</Text>
+                                <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Enter a word..." />
+                            </Col>
+                            <Col className="flex float-left">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Update
+                                </Button>
+                            </Col>
+
+                            <Col className="flex float-right">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    icon={<Export className="h-3.5 w-4 mr-2" />}
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Download
+                                </Button>
+                            </Col>
+                            <Col className="flex float-right">
+                                <Button
+                                    disabled
+                                    size="large"
+                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Go
+                                </Button>
+                            </Col>
+                            <Col className="flex float-right items-center space-x-3">
+                                <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Go to line..." />
+                            </Col>
+                        </Row>
+                        <Content className="bg-white content-padding">
+                            <Row align="middle" className="grid grid-cols-12 py-1 px-2 rounded-lg bg-estela-blue-low">
+                                <Col className=" col-start-2 col-span-3">
+                                    <Text className="font-bold estela-black-full text-xs">TIME</Text>
+                                </Col>
+                                <Col className="col-span-2">
+                                    <Text className="font-bold estela-black-full text-xs">LEVEL</Text>
+                                </Col>
+                                <Col className="col-span-6">
+                                    <Text className="font-bold estela-black-full text-xs">MESSAGE</Text>
+                                </Col>
+                            </Row>
+                            {logs.map((log: Dictionary, index: number) => {
+                                let logContent = (
+                                    <Text className="text-estela-black-medium">{log.log ?? "No data"}</Text>
+                                );
+                                if ((log.log ?? "").length > 300) {
+                                    logContent = (
+                                        <Paragraph
+                                            className="text-estela-black-medium"
+                                            ellipsis={{ rows: 2, expandable: true, symbol: "more" }}
+                                        >
+                                            {log.log}
+                                        </Paragraph>
+                                    );
+                                }
+                                const logDate = log.datetime
+                                    ? new Date(parseFloat(log.datetime) * 1000).toDateString()
+                                    : "no date";
+
+                                return (
+                                    <Row
+                                        key={index}
+                                        align="middle"
+                                        className={`grid grid-cols-12 py-1 px-2 ${
+                                            index % 2 ? "rounded-lg bg-estela-blue-low" : ""
+                                        }`}
+                                    >
+                                        <Col className="col-span-1">
+                                            <Text className="text-estela-blue-medium">
+                                                {this.PAGE_SIZE * (logsCurrent - 1) + index + 1}
+                                            </Text>
+                                        </Col>
+                                        <Col className="col-span-3">
+                                            <Text className="text-estela-black-medium">{logDate}</Text>
+                                        </Col>
+                                        <Col className="col-span-2">
+                                            <Text className="text-estela-black-medium">INFO</Text>
+                                        </Col>
+                                        <Col className="col-span-6">{logContent}</Col>
+                                    </Row>
+                                );
+                            })}
+                        </Content>
+                        <Pagination
+                            className="pagination"
+                            defaultCurrent={1}
+                            simple
+                            total={logsCount}
+                            current={logsCurrent}
+                            pageSize={this.PAGE_SIZE}
+                            onChange={this.onLogsPageChange}
+                            showSizeChanger={false}
+                        />
+                    </>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     };
 
@@ -923,6 +1513,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             modalStop,
             modalClone,
             spiders,
+            activeKey,
             loadedSpiders,
             newTags,
             newArgs,
@@ -931,6 +1522,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             newEnvVars,
             newEnvVarName,
             newEnvVarValue,
+            itemsCurrent,
+            loadedStats,
+            loadedItems,
+            loadedItemsFirstTime,
+            loadedRequests,
+            requestsCurrent,
+            loadedLogs,
+            logsCurrent,
         } = this.state;
         return (
             <Layout className="general-container">
@@ -994,7 +1593,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             >
                                                 Stop this job
                                             </Button>
-
                                             {modalStop && (
                                                 <Modal
                                                     style={{
@@ -1003,7 +1601,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     }}
                                                     centered
                                                     width={681}
-                                                    visible={modalStop}
+                                                    open={modalStop}
                                                     title={
                                                         <p className="text-xl text-center mt-2 font-normal">
                                                             CONFIRM ACTION
@@ -1046,7 +1644,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     }}
                                                     centered
                                                     width={681}
-                                                    visible={modalClone}
+                                                    open={modalClone}
                                                     title={
                                                         <p className="text-xl text-center mt-2 font-normal">NEW JOB</p>
                                                     }
@@ -1238,6 +1836,23 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <Row className="lg:mx-10 mx-6">
                                         <Tabs
                                             size="middle"
+                                            onChange={(activeKey: string) => {
+                                                this.setState({ activeKey: activeKey });
+                                                if (activeKey === "2" && !loadedItems && !loadedItemsFirstTime) {
+                                                    this.getItems(itemsCurrent);
+                                                }
+                                                if (activeKey === "3" && !loadedRequests) {
+                                                    this.getRequests(requestsCurrent);
+                                                }
+                                                if (activeKey === "4" && !loadedLogs) {
+                                                    this.getLogs(logsCurrent);
+                                                }
+                                                if (activeKey === "5" && !loadedStats) {
+                                                    this.getStats();
+                                                }
+                                            }}
+                                            className="w-full"
+                                            activeKey={activeKey}
                                             defaultActiveKey={"1"}
                                             items={[
                                                 {
@@ -1248,18 +1863,22 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 {
                                                     label: "Items",
                                                     key: "2",
+                                                    children: this.items(),
                                                 },
                                                 {
                                                     label: "Requests",
                                                     key: "3",
+                                                    children: this.requests(),
                                                 },
                                                 {
                                                     label: "Log",
                                                     key: "4",
+                                                    children: this.logs(),
                                                 },
                                                 {
                                                     label: "Stats",
                                                     key: "5",
+                                                    children: this.stats(),
                                                 },
                                             ]}
                                         />
