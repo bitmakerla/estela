@@ -131,6 +131,10 @@ you have a deep understanding of estela.
 * _<DJANGO\_API\_HOST>_: The endpoint of the Django API. This value will be filled later
   after the application installation, do not change this value yet.
 
+* _<DJANGO\_EXTERNAL\_APPS>_: List of Django external apps that will be added to INSTALLED_APPS.
+
+* _<EXTERNAL\_MIDDLEWARE>_: List of middleware that are generally found in Django external apps.
+
 #### Celery
 
 * _<CELERY\_BROKER\_URL>_ (Required): Url of the celery broker.
