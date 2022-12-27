@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import moment from "moment";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
 import {
     Layout,
     Typography,
@@ -56,6 +58,8 @@ import { convertDateToString } from "../../utils";
 const { Content } = Layout;
 const { Text, Paragraph } = Typography;
 const { Option } = Select;
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface Dictionary {
     [Key: string]: string;
@@ -749,7 +753,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             };
         } else {
             const sizes = ["Bytes", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            const i = Math.floor(Math.log(bytes) / Math.log(1000));
             const ans: StorageMetric = {
                 quantity: 0,
                 type: "",
@@ -799,53 +803,78 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             items,
             status,
         } = this.state;
-        const radius = 100;
-        const circunference: number = ((2 * 22) / 7) * radius;
-        const storage: StorageMetric = this.formatBytes(dataStatus !== "DELETED" ? totalResponseBytes || 0 : 0);
-        const storagePercentage = this.percentageStorage(storage);
+        const storage: StorageMetric = this.formatBytes(dataStatus !== "DELETED" ? totalResponseBytes ?? 0 : 0);
         const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
         const requestCountPercentage: number = 100 * requestCountDecimalPercentage;
-        const lifespanPercentage: number = 100 * ((lifespan ?? 0) / 120);
+        const lifespanPercentage: number =
+            Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600))) > 98
+                ? 100
+                : Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
+        let storageMagnitude = 1e3;
+        if (storage.quantity >= 0 && storage.quantity <= 100) {
+            storageMagnitude = storage.quantity >= 90 ? 200 : 100;
+        }
+        if (storage.type === "GB" && storage.quantity >= 1) {
+            storageMagnitude = storage.quantity;
+        }
 
+        const dataChart = {
+            datasets: [
+                {
+                    label: "GB",
+                    data: [storage.quantity, storageMagnitude - storage.quantity],
+                    backgroundColor: ["#7DC932", "#F1F1F1"],
+                    borderWidth: 1,
+                    cutout: "95%",
+                    circumference: 300,
+                    rotation: 210,
+                    borderRadius: 4,
+                },
+            ],
+        };
         return (
             <>
-                <Content className="grid lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
-                    <Card className="w-full col-span-5 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
+                    <Card
+                        className="w-full sm:col-span-1 md:col-span-5 col-span-5 flex flex-col"
+                        style={{ borderRadius: "8px" }}
+                        bordered={false}
+                    >
                         <Text className="py-2 text-estela-black-medium font-medium text-base">Storage</Text>
                         <Content className="grid w-full h-1/2 place-content-center">
                             <Content className="flex items-center justify-center">
-                                <svg className="transform -rotate-90 w-72 h-72">
-                                    <circle
-                                        cx="144"
-                                        cy="144"
-                                        r={`${radius}`}
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                        fill="transparent"
-                                        className="text-estela-white-low"
-                                    />
-
-                                    <circle
-                                        cx="144"
-                                        cy="144"
-                                        r={`${radius}`}
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                        fill="transparent"
-                                        strokeDasharray={circunference}
-                                        strokeDashoffset={circunference - storagePercentage * circunference}
-                                        className="text-estela-states-green-medium"
-                                    />
-                                </svg>
-                                <Content className="absolute items-center justify-center">
-                                    <span className="text-3xl text-center">{`${storage.quantity}${storage.type}`}</span>
-                                    <br />
-                                    <span className="text-lg text-center mx-5">of 1GB</span>
-                                </Content>
+                                <Doughnut
+                                    plugins={[
+                                        {
+                                            id: "storageNeedle",
+                                            afterDatasetDraw(chart) {
+                                                const { ctx } = chart;
+                                                ctx.save();
+                                                const x = chart.getDatasetMeta(0).data[0].x;
+                                                const y = chart.getDatasetMeta(0).data[0].y;
+                                                ctx.textAlign = "center";
+                                                ctx.textBaseline = "middle";
+                                                ctx.font = "1.875rem/2.25rem sans-serif";
+                                                ctx.fillText(`${storage.quantity} ${storage.type}`, x, y - 20);
+                                                ctx.font = "1.25rem/1.75rem sans-serif";
+                                                ctx.fillText("of 1GB", x, y + 20);
+                                            },
+                                        },
+                                    ]}
+                                    options={{
+                                        responsive: true,
+                                        events: [],
+                                    }}
+                                    data={dataChart}
+                                />
                             </Content>
                         </Content>
                     </Card>
-                    <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                    <Card
+                        className="w-full sm:col-span-1 md:col-span-7 col-span-7 flex flex-col"
+                        style={{ borderRadius: "8px" }}
+                        bordered={false}
+                    >
                         <Text className="py-2 text-estela-black-medium font-medium text-base">DETAILS</Text>
                         <Row className="grid grid-cols-3 py-1 px-2 mt-4">
                             <Col>
@@ -1032,7 +1061,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{ width: `${Math.round(lifespanPercentage)}%` }}
+                                        style={{ width: `${lifespanPercentage}%` }}
                                     ></div>
                                 </Content>
                             </Col>
