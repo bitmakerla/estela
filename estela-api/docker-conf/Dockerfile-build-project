@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.9
 
 WORKDIR /home/estela
 
@@ -26,6 +26,7 @@ RUN apt-get update
 RUN apt-get install docker-ce docker-ce-cli containerd.io -y
 
 RUN pip install -r requirements/deploy.txt
+RUN if test -f "requirements/externalApps.txt"; then pip install -r requirements/externalApps.txt; fi
 
 COPY estela-api/ estela-api/
 COPY database_adapters/ estela-api/database_adapters/

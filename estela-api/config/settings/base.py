@@ -68,6 +68,10 @@ DJANGO_API_HOST = env("DJANGO_API_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
 
+DJANGO_EXTERNAL_APPS = env("DJANGO_EXTERNAL_APPS").split(",")
+EXTERNAL_MIDDLEWARES = env("EXTERNAL_MIDDLEWARES").split(",")
+
+
 # Application definition
 
 DEFAULT_APPS = [
@@ -91,7 +95,7 @@ PROJECT_APPS = [
     "core.apps.CoreConfig",
 ]
 
-INSTALLED_APPS = DEFAULT_APPS + THIRD_PARTY_APPS + PROJECT_APPS
+INSTALLED_APPS = DEFAULT_APPS + THIRD_PARTY_APPS + PROJECT_APPS + DJANGO_EXTERNAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -103,6 +107,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
 ]
+
+MIDDLEWARE = MIDDLEWARE + EXTERNAL_MIDDLEWARES
 
 CORS_ORIGIN_WHITELIST = env("CORS_ORIGIN_WHITELIST").split(",")
 

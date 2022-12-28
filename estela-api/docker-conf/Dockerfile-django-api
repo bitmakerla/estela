@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.9
 
 WORKDIR /home/estela
 
@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 RUN pip install -r requirements/test.txt
+RUN if test -f "requirements/externalApps.txt"; then pip install -r requirements/externalApps.txt; fi
 
 COPY estela-api/ .
 COPY database_adapters/ ./database_adapters
