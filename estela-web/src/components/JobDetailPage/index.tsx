@@ -459,7 +459,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             envVars: [...this.state.newEnvVars],
             tags: [...this.state.newTags],
             dataStatus: this.state.newDataStatus,
-            dataExpiryDays: `${futureDate.getUTCFullYear()}-${futureDate.getUTCMonth() + 1}-${futureDate.getUTCDate()}`,
+            dataExpiryDays: this.state.newDataExpireDays,
         };
         const request: ApiProjectsSpidersJobsCreateRequest = {
             data: requestData,
@@ -476,6 +476,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 incorrectDataNotification();
             },
         );
+    };
+
+    handleSpiderChange = (value: string): void => {
+        const spiderId = this.state.spiders.find((spider) => {
+            return spider.name === value;
+        });
+        this.setState({ newSpiderId: String(spiderId?.sid) });
     };
 
     addTag = (): void => {
@@ -785,6 +792,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             args,
             date,
             dataStatus,
+            dataExpiryDays,
             spiderName,
             totalResponseBytes,
             requestCount,
@@ -977,9 +985,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
-                                <Text className="font-bold">Data Status</Text>
+                                <Text className="font-bold">Data Persistence</Text>
                             </Col>
-                            <Col className="col-span-2 px-2">{dataStatus}</Col>
+                            {dataStatus == "PENDING" && <Col className="col-span-2 px-2">{dataExpiryDays} days</Col>}
+                            {dataStatus == "PERSISTENT" && <Col className="col-span-2 px-2">Forever</Col>}
                         </Row>
                     </Card>
                 </Content>
@@ -1535,7 +1544,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
+                    <ProjectSidenav projectId={this.projectId} path={"jobs"} />
                     <Content className="content-padding">
                         {loaded && loadedSpiders ? (
                             <Layout className="white-background">
@@ -1660,17 +1669,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     size="large"
                                                                     className="w-full"
                                                                     defaultValue={spiders[0] ? spiders[0].name : ""}
+                                                                    onChange={this.handleSpiderChange}
                                                                 >
                                                                     {spiders.map((spider: Spider) => (
-                                                                        <Option
-                                                                            onClick={() => {
-                                                                                this.setState({
-                                                                                    newSpiderId: String(spider.sid),
-                                                                                });
-                                                                            }}
-                                                                            key={spider.sid}
-                                                                            value={spider.name}
-                                                                        >
+                                                                        <Option key={spider.sid} value={spider.name}>
                                                                             {spider.name}
                                                                         </Option>
                                                                     ))}
@@ -1725,8 +1727,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     <Button
                                                                         shape="circle"
                                                                         size="small"
-                                                                        icon={<Add className="p-1" />}
-                                                                        className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                        icon={<Add />}
+                                                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                         onClick={this.addTag}
                                                                     ></Button>
                                                                 </Space>
@@ -1764,8 +1766,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                         <Button
                                                                             shape="circle"
                                                                             size="small"
-                                                                            icon={<Add className="p-1" />}
-                                                                            className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                            icon={<Add />}
+                                                                            className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                             onClick={this.addArgument}
                                                                         ></Button>
                                                                     </Space>
@@ -1805,8 +1807,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     <Button
                                                                         shape="circle"
                                                                         size="small"
-                                                                        icon={<Add className="p-1" />}
-                                                                        className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                        icon={<Add />}
+                                                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                         onClick={this.addEnvVar}
                                                                     ></Button>
                                                                 </Space>
