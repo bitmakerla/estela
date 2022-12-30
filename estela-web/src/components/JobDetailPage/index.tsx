@@ -753,7 +753,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             };
         } else {
             const sizes = ["Bytes", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(1000));
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
             const ans: StorageMetric = {
                 quantity: 0,
                 type: "",
@@ -803,7 +803,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             items,
             status,
         } = this.state;
-        const storage: StorageMetric = this.formatBytes(dataStatus !== "DELETED" ? totalResponseBytes ?? 0 : 0);
+        const storage: StorageMetric = this.formatBytes(Number(totalResponseBytes));
         const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
         const requestCountPercentage: number = 100 * requestCountDecimalPercentage;
         const lifespanPercentage: number =
@@ -818,6 +818,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             storageMagnitude = storage.quantity;
         }
 
+        // storage = 10KB || 100KB || 5MB || ... < 50MB
+        // si es megabytes se coloca como límite 50MB
+        // Si es kilobytes
+        // COlores: < 85% rojo, < 65% amarillo
         const dataChart = {
             datasets: [
                 {
