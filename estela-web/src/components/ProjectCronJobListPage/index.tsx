@@ -697,7 +697,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                         <Row className="flow-root">
                                             <Col className="float-left">
                                                 <p className="text-xl font-medium text-silver float-left">
-                                                    PROJECT MEMBERS
+                                                    SCHEDULED JOBS
                                                 </p>
                                             </Col>
                                             <Col className="float-right">
@@ -1101,21 +1101,18 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                 </Modal>
                                             </Col>
                                         </Row>
-                                        <Row justify="center" className="bg-white rounded-lg">
-                                            <div className="m-4">
-                                                <Table
-                                                    tableLayout="fixed"
-                                                    rowSelection={{
-                                                        type: "checkbox",
-                                                        ...this.rowSelection,
-                                                    }}
-                                                    columns={this.columns}
-                                                    dataSource={cronjobs}
-                                                    pagination={false}
-                                                    size="small"
-                                                />
-                                            </div>
-                                        </Row>
+                                        <Content className="bg-white rounded-lg p-4">
+                                            <Table
+                                                rowSelection={{
+                                                    type: "checkbox",
+                                                    ...this.rowSelection,
+                                                }}
+                                                columns={this.columns}
+                                                dataSource={cronjobs}
+                                                pagination={false}
+                                                size="small"
+                                            />
+                                        </Content>
                                         <Row className="my-2">
                                             <Space direction="horizontal">
                                                 <Button

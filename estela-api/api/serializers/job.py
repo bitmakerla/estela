@@ -57,7 +57,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
         required=False, read_only=True, help_text="Current job status."
     )
     data_status = serializers.CharField(required=True, help_text="Data status.")
-    data_expiry_days = serializers.CharField(
+    data_expiry_days = serializers.IntegerField(
         required=False, help_text="Days before data expires."
     )
 

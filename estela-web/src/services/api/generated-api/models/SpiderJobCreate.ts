@@ -78,10 +78,10 @@ export interface SpiderJobCreate {
     cronjob?: number | null;
     /**
      * Days before data expires.
-     * @type {string}
+     * @type {number}
      * @memberof SpiderJobCreate
      */
-    dataExpiryDays?: string;
+    dataExpiryDays?: number;
     /**
      * Data status.
      * @type {string}

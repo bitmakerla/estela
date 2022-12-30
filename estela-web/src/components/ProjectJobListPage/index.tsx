@@ -423,7 +423,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             envVars: [...this.state.envVars],
             tags: [...this.state.tags],
             dataStatus: this.state.dataStatus,
-            dataExpiryDays: `0/${this.state.dataExpireDays}`,
+            dataExpiryDays: this.state.dataExpireDays,
         };
         const request: ApiProjectsSpidersJobsCreateRequest = {
             data: requestData,
