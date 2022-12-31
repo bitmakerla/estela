@@ -23,4 +23,8 @@ app.conf.beat_schedule = {
         "task": "core.tasks.delete_expired_jobs_data",
         "schedule": 3600,
     },
+    "record-projects-usage": {
+        "task": "core.tasks.record_projects_usage",
+        "schedule": 3600,
+    },
 }

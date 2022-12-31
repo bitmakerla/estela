@@ -188,3 +188,15 @@ class KubernetesEngine:
             return None
 
         return self.Status(api_response.status)
+
+    def get_scale_size(self):
+        if api_instance is None:
+            api_instance = self.get_api_instance()
+
+        try:
+            api_response = api_instance.list_node()
+        except ApiException:
+            return None
+
+        number_of_nodes = len(api_response.items)
+        return number_of_nodes
