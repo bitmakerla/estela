@@ -51,6 +51,8 @@ ENGINE: "" # kubernetes
 CREDENTIALS: "" # local
 CORS_ORIGIN_WHITELIST: ""
 DJANGO_API_HOST: dummy
+DJANGO_EXTERNAL_APPS: "" # "app1,app2,app3"
+EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
 
 # Celery
 CELERY_BROKER_URL: redis://estela-redis-service
@@ -77,8 +79,3 @@ QUEUE_MAX_TIMEOUT: ""
 SIZE_THRESHOLD: ""
 INSERT_TIME_THRESHOLD: ""
 ACTIVITY_TIME_THRESHOLD: ""
-
-############ EXTERNAL DJANGO APPS ############
-
-DJANGO_EXTERNAL_APPS: "" # "app1,app2,app3"
-EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"

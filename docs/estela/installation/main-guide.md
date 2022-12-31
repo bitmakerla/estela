@@ -29,7 +29,7 @@ estela runs on Linux-based and Unix-like operating systems, but you can also use
 
 Extra requirements needed for local installation:
 
-- Python v3.6.x  
+- Python v3.9.x
 - [Minikube >= v1.25.0](https://minikube.sigs.k8s.io/docs/start/){:target="_blank"}  
 
 For the rest of the installation, open a terminal in the _installation_ folder
