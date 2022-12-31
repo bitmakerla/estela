@@ -754,36 +754,52 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } else {
             const sizes = ["Bytes", "KB", "MB", "GB"];
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            const ans: StorageMetric = {
-                quantity: 0,
-                type: "",
+            // let quantity = 0;
+
+            // switch (i) {
+            //     case 0:
+            //         quantity = parseFloat(bytes.toFixed(2));
+            //         break;
+            //     case 1:
+            //         quantity = parseFloat((bytes / 1e3).toFixed(2));
+            //         break;
+            //     case 2:
+            //         quantity = parseFloat((bytes / 1e6).toFixed(2));
+            //         break;
+            //     default:
+            //         quantity = parseFloat((bytes / 1e9).toFixed(2));
+            //         break;
+            // }
+            return {
+                quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
+                type: `${sizes[i > sizes.length - 1 ? 3 : i]}`,
             };
-            switch (i) {
-                case 0:
-                    ans.quantity = parseFloat(bytes.toFixed(2));
-                    break;
-                case 1:
-                    ans.quantity = parseFloat((bytes / 1e3).toFixed(2));
-                    break;
-                case 2:
-                    ans.quantity = parseFloat((bytes / 1e6).toFixed(2));
-                    break;
-                default:
-                    ans.quantity = parseFloat((bytes / 1e9).toFixed(2));
-                    break;
-            }
-            ans["type"] = `${sizes[i > sizes.length - 1 ? 3 : i]}`;
-            return ans;
         }
     };
 
-    percentageStorage = (storage: StorageMetric): number => {
-        if (storage.type === "Bytes" || storage.type === "KB") {
-            return storage.quantity / 1e3;
+    chartConfigs = (storage: StorageMetric): [number[], string[]] => {
+        const dataChartProportions = [1, 0];
+        const colorChartArray = ["#7DC932", "#F1F1F1"];
+        if (storage.type === "Bytes") {
+            dataChartProportions[0] = 0.05 * (storage.quantity / 1024);
+            dataChartProportions[1] = 1 - dataChartProportions[0];
+        } else if (storage.type === "KB") {
+            dataChartProportions[0] = 0.1 * (storage.quantity / 1024);
+            dataChartProportions[1] = 1 - dataChartProportions[0];
         } else if (storage.type === "MB") {
-            return storage.quantity < 300 ? storage.quantity / 300 : storage.quantity / 1e3;
+            dataChartProportions[0] = storage.quantity / 1024;
+            dataChartProportions[1] = 1 - dataChartProportions[0];
+            if (dataChartProportions[0] > 0.75) {
+                colorChartArray[0] = "#FFC002";
+            }
+            if (dataChartProportions[0] > 0.9) {
+                colorChartArray[0] = "#E34A46";
+            }
+        } else {
+            dataChartProportions[0] = storage.quantity;
+            colorChartArray[0] = "#E34A46";
         }
-        return storage.quantity / 10;
+        return [dataChartProportions, colorChartArray];
     };
 
     overview = (): React.ReactNode => {
@@ -799,43 +815,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             dataExpiryDays,
             spiderName,
             totalResponseBytes,
-            requestCount,
             items,
             status,
         } = this.state;
         const storage: StorageMetric = this.formatBytes(Number(totalResponseBytes));
-        const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
-        const requestCountPercentage: number = 100 * requestCountDecimalPercentage;
-        const lifespanPercentage: number =
-            Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600))) > 98
-                ? 100
-                : Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
-        let storageMagnitude = 1e3;
-        if (storage.quantity >= 0 && storage.quantity <= 100) {
-            storageMagnitude = storage.quantity >= 90 ? 200 : 100;
-        }
-        if (storage.type === "GB" && storage.quantity >= 1) {
-            storageMagnitude = storage.quantity;
-        }
+        const [dataChartProportions, colorChartArray] = this.chartConfigs(storage);
 
-        // storage = 10KB || 100KB || 5MB || ... < 50MB
-        // si es megabytes se coloca como límite 50MB
-        // Si es kilobytes
-        // COlores: < 85% rojo, < 65% amarillo
-        const dataChart = {
-            datasets: [
-                {
-                    label: "GB",
-                    data: [storage.quantity, storageMagnitude - storage.quantity],
-                    backgroundColor: ["#7DC932", "#F1F1F1"],
-                    borderWidth: 1,
-                    cutout: "95%",
-                    circumference: 300,
-                    rotation: 210,
-                    borderRadius: 4,
-                },
-            ],
-        };
         return (
             <>
                 <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
@@ -869,7 +854,20 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         responsive: true,
                                         events: [],
                                     }}
-                                    data={dataChart}
+                                    data={{
+                                        datasets: [
+                                            {
+                                                label: "GB",
+                                                data: [...dataChartProportions],
+                                                backgroundColor: [...colorChartArray],
+                                                borderWidth: 1,
+                                                cutout: "90%",
+                                                circumference: 300,
+                                                rotation: 210,
+                                                borderRadius: 4,
+                                            },
+                                        ],
+                                    }}
                                 />
                             </Content>
                         </Content>
@@ -1043,7 +1041,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{ width: `${Math.round(requestCountPercentage)}%` }}
+                                        style={{ width: "0%" }}
                                     ></div>
                                 </Content>
                             </Col>
@@ -1065,7 +1063,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{ width: `${lifespanPercentage}%` }}
+                                        style={{
+                                            width: `${
+                                                Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600))) > 98
+                                                    ? 100
+                                                    : Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)))
+                                            }%`,
+                                        }}
                                     ></div>
                                 </Content>
                             </Col>
