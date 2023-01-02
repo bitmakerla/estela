@@ -69,7 +69,9 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
 
 DJANGO_EXTERNAL_APPS = env("DJANGO_EXTERNAL_APPS").split(",")
+DJANGO_EXTERNAL_APPS = [app for app in DJANGO_EXTERNAL_APPS if app != ""]
 EXTERNAL_MIDDLEWARES = env("EXTERNAL_MIDDLEWARES").split(",")
+EXTERNAL_MIDDLEWARES = [app for app in EXTERNAL_MIDDLEWARES if app != ""]
 
 
 # Application definition
