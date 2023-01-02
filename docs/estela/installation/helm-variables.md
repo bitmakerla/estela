@@ -131,7 +131,7 @@ you have a deep understanding of estela.
 * _<DJANGO\_API\_HOST>_: The endpoint of the Django API. This value will be filled later
   after the application installation, do not change this value yet.
 
-* _<DJANGO\_EXTERNAL\_APPS>_: List of Django external apps that will be installed and added to INSTALLED_APPS. To install them, you must create a file similar to estela/api/requirements/externalApps.txt.example and add the repositories of the applications that will be installed via pip.
+* _<DJANGO\_EXTERNAL\_APPS>_: List of Django external apps that will be installed and added to INSTALLED_APPS. To install them, you must create a file similar to `estela/api/requirements/externalApps.txt.example` and add the repositories of the applications that will be installed via pip.
 
 * _<EXTERNAL\_MIDDLEWARES>_: List of middleware that are generally found in Django external apps.
 

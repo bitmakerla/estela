@@ -52,7 +52,7 @@ CREDENTIALS: "" # local
 CORS_ORIGIN_WHITELIST: ""
 DJANGO_API_HOST: dummy
 DJANGO_EXTERNAL_APPS: "" # "app1,app2,app3"
-EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
+EXTERNAL_MIDDLEWARES: "" # "app1.middlewares,app2.middlewares"
 
 # Celery
 CELERY_BROKER_URL: redis://estela-redis-service
