@@ -30,6 +30,8 @@ env = environ.Env(
     CELERY_RESULT_BACKEND=(str, "redis://redis:6379/0"),
     DJANGO_API_HOST=(str, "127.0.0.1"),
     DJANGO_ALLOWED_HOSTS=(str, ""),
+    DJANGO_EXTERNAL_APPS=(str, ""),
+    EXTERNAL_MIDDLEWARES=(str, ""),
     KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "dummy"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
@@ -71,7 +73,7 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 DJANGO_EXTERNAL_APPS = env("DJANGO_EXTERNAL_APPS").split(",")
 DJANGO_EXTERNAL_APPS = [app for app in DJANGO_EXTERNAL_APPS if app != ""]
 EXTERNAL_MIDDLEWARES = env("EXTERNAL_MIDDLEWARES").split(",")
-EXTERNAL_MIDDLEWARES = [app for app in EXTERNAL_MIDDLEWARES if app != ""]
+EXTERNAL_MIDDLEWARES = [middleware for middleware in EXTERNAL_MIDDLEWARES if middleware != ""]
 
 
 # Application definition
