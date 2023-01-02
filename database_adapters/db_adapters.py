@@ -94,21 +94,6 @@ class MongoAdapter(DatabaseInterface):
         result = collection.find({}, {"_id": False})
         return list(result)
 
-    def get_chunked_collection_data(
-        self, database_name, collection_name, chunk_size, current_chunk=None
-    ):
-        collection = self.client[database_name][collection_name]
-        result = (
-            collection.find({"_id": {"$gt": ObjectId(current_chunk)}}).limit(chunk_size)
-            if current_chunk
-            else collection.find().limit(chunk_size)
-        )
-        data = list(result)
-        next_chunk = str(data[-1]["_id"]) if len(data) > 0 else None
-        for item in data:
-            del item["_id"]
-        return data, next_chunk
-
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
     ):
