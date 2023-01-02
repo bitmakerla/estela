@@ -754,22 +754,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } else {
             const sizes = ["Bytes", "KB", "MB", "GB"];
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            // let quantity = 0;
-
-            // switch (i) {
-            //     case 0:
-            //         quantity = parseFloat(bytes.toFixed(2));
-            //         break;
-            //     case 1:
-            //         quantity = parseFloat((bytes / 1e3).toFixed(2));
-            //         break;
-            //     case 2:
-            //         quantity = parseFloat((bytes / 1e6).toFixed(2));
-            //         break;
-            //     default:
-            //         quantity = parseFloat((bytes / 1e9).toFixed(2));
-            //         break;
-            // }
             return {
                 quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
                 type: `${sizes[i > sizes.length - 1 ? 3 : i]}`,
