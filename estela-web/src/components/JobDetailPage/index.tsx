@@ -804,6 +804,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } = this.state;
         const storage: StorageMetric = this.formatBytes(Number(totalResponseBytes));
         const [dataChartProportions, colorChartArray] = this.chartConfigs(storage);
+        const lifespanPercentage: number = Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
         const dataChart = {
             datasets: [
                 {
@@ -833,7 +834,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     plugins={[
                                         {
                                             id: "storageNeedle",
-                                            afterDatasetDraw(chart) {
+                                            afterDatasetDraw(chart: ChartJS) {
                                                 const { ctx } = chart;
                                                 ctx.save();
                                                 const x = chart.getDatasetMeta(0).data[0].x;
@@ -1048,11 +1049,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
                                         style={{
-                                            width: `${
-                                                Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600))) > 98
-                                                    ? 100
-                                                    : Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)))
-                                            }%`,
+                                            width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
                                         }}
                                     ></div>
                                 </Content>
