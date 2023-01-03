@@ -804,7 +804,20 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } = this.state;
         const storage: StorageMetric = this.formatBytes(Number(totalResponseBytes));
         const [dataChartProportions, colorChartArray] = this.chartConfigs(storage);
-
+        const dataChart = {
+            datasets: [
+                {
+                    label: "GB",
+                    data: [...dataChartProportions],
+                    backgroundColor: [...colorChartArray],
+                    borderWidth: 1,
+                    cutout: "90%",
+                    circumference: 300,
+                    rotation: 210,
+                    borderRadius: 4,
+                },
+            ],
+        };
         return (
             <>
                 <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
@@ -838,20 +851,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         responsive: true,
                                         events: [],
                                     }}
-                                    data={{
-                                        datasets: [
-                                            {
-                                                label: "GB",
-                                                data: [...dataChartProportions],
-                                                backgroundColor: [...colorChartArray],
-                                                borderWidth: 1,
-                                                cutout: "90%",
-                                                circumference: 300,
-                                                rotation: 210,
-                                                borderRadius: 4,
-                                            },
-                                        ],
-                                    }}
+                                    data={dataChart}
                                 />
                             </Content>
                         </Content>
