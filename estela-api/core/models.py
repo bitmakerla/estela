@@ -10,9 +10,6 @@ from django.utils import timezone
 
 
 class Project(models.Model):
-    pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1000)
-    users = models.ManyToManyField(User, through="Permission")
     pid = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -20,6 +17,7 @@ class Project(models.Model):
         help_text="A UUID identifying this project.",
     )
     name = models.CharField(max_length=1000, help_text="Project's name.")
+    category = models.CharField(max_length=1000, help_text="Project's category.")
     users = models.ManyToManyField(
         User, through="Permission", help_text="Users with permissions on this project."
     )
