@@ -23,8 +23,6 @@ def launch_deploy_job(pid, did, container_image):
         "CREDENTIALS": settings.CREDENTIALS,
         "ENGINE": settings.ENGINE,
         "SPIDERDATA_DB_ENGINE": settings.SPIDERDATA_DB_ENGINE,
-        "DJANGO_EXTERNAL_APPS": ",".join(settings.DJANGO_EXTERNAL_APPS),
-        "EXTERNAL_MIDDLEWARES": ",".join(settings.EXTERNAL_MIDDLEWARES),
     }
     volume = {"name": "docker-sock", "path": "/var/run"}
     job_manager.create_job(

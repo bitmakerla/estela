@@ -1,7 +1,9 @@
-from abc import ABCMeta, abstractmethod
-
+import sys
+import json
 import pymongo
-from bson.objectid import ObjectId
+
+from abc import ABCMeta, abstractmethod
+from bson.json_util import loads
 from pymongo.errors import ConnectionFailure, PyMongoError
 
 
@@ -26,19 +28,11 @@ class DatabaseInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_chunked_collection_data(self):
-        pass
-
-    @abstractmethod
     def get_paginated_collection_data(self):
         pass
 
     @abstractmethod
     def get_estimated_document_count(self):
-        pass
-
-    @abstractmethod
-    def get_estimated_document_size(self):
         pass
 
     @abstractmethod
@@ -91,28 +85,24 @@ class MongoAdapter(DatabaseInterface):
 
     def get_all_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
-        result = collection.find({}, {"_id": False})
-        return list(result)
+        result = collection.find()
+        result = loads(json.dumps(list(result), default=str))
+        return result
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 2308b3e (BITMAKER-2290: Add support for batch data downloading (#126))
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
     ):
-        collection = self.client[database_name][collection_name]
-        result = (
-            collection.find({}, {"_id": False})
-            .skip(page_size * (page - 1))
-            .limit(page_size)
-        )
-        return list(result)
+        self.collection = self.client[database_name][collection_name]
+        result = self.collection.find().skip(page_size * (page - 1)).limit(page_size)
+        result = loads(json.dumps(list(result), default=str))
+        return result
 
-    def get_estimated_document_count(self, database_name, collection_name):
-        collection = self.client[database_name][collection_name]
-        return collection.estimated_document_count()
-
-    def get_estimated_document_size(self, database_name, collection_name):
-        database = self.client[database_name]
-        document_size = database.command("collstats", collection_name)["avgObjSize"]
-        return document_size
+    def get_estimated_document_count(self):
+        return self.collection.estimated_document_count()
 
     def insert_one_to_unique_collection(self, database_name, collection_name, item):
         response = None
@@ -157,11 +147,14 @@ class MongoAdapter(DatabaseInterface):
         for collection in collections:
             if data_type in collection:
                 total_size_bytes += self.get_collection_size(database_name, collection)
+
         return total_size_bytes
 
-    def get_collection_size(self, database_name, collection_name):
+    def get_collection_size(self, database_name, collection):
         database = self.client[database_name]
-        collection_size = database.command("collstats", collection_name)["size"]
+        collection_size = database.command("dataSize", f"{database_name}.{collection}")[
+            "size"
+        ]
         return collection_size
 
 
