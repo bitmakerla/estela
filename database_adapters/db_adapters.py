@@ -89,10 +89,6 @@ class MongoAdapter(DatabaseInterface):
         result = loads(json.dumps(list(result), default=str))
         return result
 
-<<<<<<< HEAD
-=======
-
->>>>>>> parent of 2308b3e (BITMAKER-2290: Add support for batch data downloading (#126))
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
     ):
