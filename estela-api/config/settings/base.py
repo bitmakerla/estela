@@ -68,8 +68,8 @@ DJANGO_API_HOST = env("DJANGO_API_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
 
-DJANGO_EXTERNAL_APPS = env("DJANGO_EXTERNAL_APPS").split(",")
-EXTERNAL_MIDDLEWARES = env("EXTERNAL_MIDDLEWARES").split(",")
+DJANGO_EXTERNAL_APPS = [x for x in env("DJANGO_EXTERNAL_APPS").split(",") if x]
+EXTERNAL_MIDDLEWARES = [x for x in env("EXTERNAL_MIDDLEWARES").split(",") if x]
 
 
 # Application definition
@@ -200,8 +200,11 @@ MEDIA_URL = "/media/"
 
 STATIC_ROOT = "/static/"
 
-# API limit download settings (Megabytes)
-MAX_DOWNLOADED_SIZE = 1024 * 1024
+
+# API limit data download settings (bytes)
+MAX_DOWNLOADED_SIZE = 8 * 1024 * 1024
+MAX_CHUNK_SIZE = 512 * 1024
+
 
 # Pagination settings used in api_app
 

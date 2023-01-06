@@ -242,7 +242,9 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     def usage(self, request, *args, **kwargs):
         instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
-        start_date = request.query_params.get("start_date", datetime.today().replace(day=1))
+        start_date = request.query_params.get(
+            "start_date", datetime.today().replace(day=1)
+        )
         end_date = request.query_params.get("end_date", datetime.utcnow())
         serializer = UsageRecordSerializer(
             UsageRecord.objects.filter(
