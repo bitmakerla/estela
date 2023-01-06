@@ -39,7 +39,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ("pid", "name", "container_image", "users")
+        fields = ("pid", "name", "category", "container_image", "users")
 
 
 class UsageRecordSerializer(serializers.ModelSerializer):
