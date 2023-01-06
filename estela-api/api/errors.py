@@ -2,7 +2,9 @@ INVALID_TOKEN = "Invalid token."
 NO_AUTH_CREDENTIALS = "Authentication credentials were not provided."
 JOB_NOT_STOPPED = "Job status should be {}, {} or {}."
 POSITIVE_SMALL_INTEGER_FIELD = "Number must be a positive integer."
-MAX_RESPONSE_SIZE_EXCEEDED = "Your job_data have exceeded the maximum response size."
+MAX_RESPONSE_SIZE_EXCEEDED = (
+    "Your data has exceeded the maximum response size. Please use estela-cli."
+)
 INVALID_DATA_STATUS = "Invalid data status value."
 JOB_INSTANCE_NOT_FOUND = "Job running instance not found."
 UNABLE_CONNECT_DB = "Could not connect to the DB."
