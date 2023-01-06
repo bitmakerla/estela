@@ -1588,8 +1588,7 @@ definitions:
       data_expiry_days:
         title: Data expiry days
         description: Days before data expires.
-        type: string
-        minLength: 1
+        type: integer
       data_status:
         title: Data status
         description: Data status.

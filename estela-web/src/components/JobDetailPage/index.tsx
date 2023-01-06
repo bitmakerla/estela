@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import moment from "moment";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
 import {
     Layout,
     Typography,
@@ -56,6 +58,8 @@ import { convertDateToString } from "../../utils";
 const { Content } = Layout;
 const { Text, Paragraph } = Typography;
 const { Option } = Select;
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface Dictionary {
     [Key: string]: string;
@@ -459,7 +463,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             envVars: [...this.state.newEnvVars],
             tags: [...this.state.newTags],
             dataStatus: this.state.newDataStatus,
-            dataExpiryDays: `${futureDate.getUTCFullYear()}-${futureDate.getUTCMonth() + 1}-${futureDate.getUTCDate()}`,
+            dataExpiryDays: this.state.newDataExpireDays,
         };
         const request: ApiProjectsSpidersJobsCreateRequest = {
             data: requestData,
@@ -476,6 +480,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 incorrectDataNotification();
             },
         );
+    };
+
+    handleSpiderChange = (value: string): void => {
+        const spiderId = this.state.spiders.find((spider) => {
+            return spider.name === value;
+        });
+        this.setState({ newSpiderId: String(spiderId?.sid) });
     };
 
     addTag = (): void => {
@@ -743,36 +754,36 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } else {
             const sizes = ["Bytes", "KB", "MB", "GB"];
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            const ans: StorageMetric = {
-                quantity: 0,
-                type: "",
+            return {
+                quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
+                type: `${sizes[i > sizes.length - 1 ? 3 : i]}`,
             };
-            switch (i) {
-                case 0:
-                    ans.quantity = parseFloat(bytes.toFixed(2));
-                    break;
-                case 1:
-                    ans.quantity = parseFloat((bytes / 1e3).toFixed(2));
-                    break;
-                case 2:
-                    ans.quantity = parseFloat((bytes / 1e6).toFixed(2));
-                    break;
-                default:
-                    ans.quantity = parseFloat((bytes / 1e9).toFixed(2));
-                    break;
-            }
-            ans["type"] = `${sizes[i > sizes.length - 1 ? 3 : i]}`;
-            return ans;
         }
     };
 
-    percentageStorage = (storage: StorageMetric): number => {
-        if (storage.type === "Bytes" || storage.type === "KB") {
-            return storage.quantity / 1e3;
+    chartConfigs = (storage: StorageMetric): [number[], string[]] => {
+        const dataChartProportions = [1, 0];
+        const colorChartArray = ["#7DC932", "#F1F1F1"];
+        if (storage.type === "Bytes") {
+            dataChartProportions[0] = 0.05 * (storage.quantity / 1024);
+            dataChartProportions[1] = 1 - dataChartProportions[0];
+        } else if (storage.type === "KB") {
+            dataChartProportions[0] = 0.1 * (storage.quantity / 1024);
+            dataChartProportions[1] = 1 - dataChartProportions[0];
         } else if (storage.type === "MB") {
-            return storage.quantity < 300 ? storage.quantity / 300 : storage.quantity / 1e3;
+            dataChartProportions[0] = storage.quantity / 1024;
+            dataChartProportions[1] = 1 - dataChartProportions[0];
+            if (dataChartProportions[0] > 0.75) {
+                colorChartArray[0] = "#FFC002";
+            }
+            if (dataChartProportions[0] > 0.9) {
+                colorChartArray[0] = "#E34A46";
+            }
+        } else {
+            dataChartProportions[0] = storage.quantity;
+            colorChartArray[0] = "#E34A46";
         }
-        return storage.quantity / 10;
+        return [dataChartProportions, colorChartArray];
     };
 
     overview = (): React.ReactNode => {
@@ -785,59 +796,72 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             args,
             date,
             dataStatus,
+            dataExpiryDays,
             spiderName,
             totalResponseBytes,
-            requestCount,
             items,
             status,
         } = this.state;
-        const radius = 100;
-        const circunference: number = ((2 * 22) / 7) * radius;
-        const storage: StorageMetric = this.formatBytes(dataStatus !== "DELETED" ? totalResponseBytes || 0 : 0);
-        const storagePercentage = this.percentageStorage(storage);
-        const requestCountDecimalPercentage: number = (requestCount || 0) * 1e-9;
-        const requestCountPercentage: number = 100 * requestCountDecimalPercentage;
-        const lifespanPercentage: number = 100 * ((lifespan ?? 0) / 120);
-
+        const storage: StorageMetric = this.formatBytes(Number(totalResponseBytes));
+        const [dataChartProportions, colorChartArray] = this.chartConfigs(storage);
+        const lifespanPercentage: number = Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
+        const dataChart = {
+            datasets: [
+                {
+                    label: "GB",
+                    data: [...dataChartProportions],
+                    backgroundColor: [...colorChartArray],
+                    borderWidth: 1,
+                    cutout: "90%",
+                    circumference: 300,
+                    rotation: 210,
+                    borderRadius: 4,
+                },
+            ],
+        };
         return (
             <>
-                <Content className="grid lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
-                    <Card className="w-full col-span-5 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
+                    <Card
+                        className="w-full sm:col-span-1 md:col-span-5 col-span-5 flex flex-col"
+                        style={{ borderRadius: "8px" }}
+                        bordered={false}
+                    >
                         <Text className="py-2 text-estela-black-medium font-medium text-base">Storage</Text>
                         <Content className="grid w-full h-1/2 place-content-center">
                             <Content className="flex items-center justify-center">
-                                <svg className="transform -rotate-90 w-72 h-72">
-                                    <circle
-                                        cx="144"
-                                        cy="144"
-                                        r={`${radius}`}
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                        fill="transparent"
-                                        className="text-estela-white-low"
-                                    />
-
-                                    <circle
-                                        cx="144"
-                                        cy="144"
-                                        r={`${radius}`}
-                                        stroke="currentColor"
-                                        strokeWidth="5"
-                                        fill="transparent"
-                                        strokeDasharray={circunference}
-                                        strokeDashoffset={circunference - storagePercentage * circunference}
-                                        className="text-estela-states-green-medium"
-                                    />
-                                </svg>
-                                <Content className="absolute items-center justify-center">
-                                    <span className="text-3xl text-center">{`${storage.quantity}${storage.type}`}</span>
-                                    <br />
-                                    <span className="text-lg text-center mx-5">of 1GB</span>
-                                </Content>
+                                <Doughnut
+                                    plugins={[
+                                        {
+                                            id: "storageNeedle",
+                                            afterDatasetDraw(chart: ChartJS) {
+                                                const { ctx } = chart;
+                                                ctx.save();
+                                                const x = chart.getDatasetMeta(0).data[0].x;
+                                                const y = chart.getDatasetMeta(0).data[0].y;
+                                                ctx.textAlign = "center";
+                                                ctx.textBaseline = "middle";
+                                                ctx.font = "1.875rem/2.25rem sans-serif";
+                                                ctx.fillText(`${storage.quantity} ${storage.type}`, x, y - 20);
+                                                ctx.font = "1.25rem/1.75rem sans-serif";
+                                                ctx.fillText("of 1GB", x, y + 20);
+                                            },
+                                        },
+                                    ]}
+                                    options={{
+                                        responsive: true,
+                                        events: [],
+                                    }}
+                                    data={dataChart}
+                                />
                             </Content>
                         </Content>
                     </Card>
-                    <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                    <Card
+                        className="w-full sm:col-span-1 md:col-span-7 col-span-7 flex flex-col"
+                        style={{ borderRadius: "8px" }}
+                        bordered={false}
+                    >
                         <Text className="py-2 text-estela-black-medium font-medium text-base">DETAILS</Text>
                         <Row className="grid grid-cols-3 py-1 px-2 mt-4">
                             <Col>
@@ -977,9 +1001,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
-                                <Text className="font-bold">Data Status</Text>
+                                <Text className="font-bold">Data Persistence</Text>
                             </Col>
-                            <Col className="col-span-2 px-2">{dataStatus}</Col>
+                            {dataStatus == "PENDING" && <Col className="col-span-2 px-2">{dataExpiryDays} days</Col>}
+                            {dataStatus == "PERSISTENT" && <Col className="col-span-2 px-2">Forever</Col>}
                         </Row>
                     </Card>
                 </Content>
@@ -1001,7 +1026,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{ width: `${Math.round(requestCountPercentage)}%` }}
+                                        style={{ width: "0%" }}
                                     ></div>
                                 </Content>
                             </Col>
@@ -1023,7 +1048,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{ width: `${Math.round(lifespanPercentage)}%` }}
+                                        style={{
+                                            width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
+                                        }}
                                     ></div>
                                 </Content>
                             </Col>
@@ -1535,7 +1562,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             <Layout className="general-container">
                 <Header />
                 <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
+                    <ProjectSidenav projectId={this.projectId} path={"jobs"} />
                     <Content className="content-padding">
                         {loaded && loadedSpiders ? (
                             <Layout className="white-background">
@@ -1660,17 +1687,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     size="large"
                                                                     className="w-full"
                                                                     defaultValue={spiders[0] ? spiders[0].name : ""}
+                                                                    onChange={this.handleSpiderChange}
                                                                 >
                                                                     {spiders.map((spider: Spider) => (
-                                                                        <Option
-                                                                            onClick={() => {
-                                                                                this.setState({
-                                                                                    newSpiderId: String(spider.sid),
-                                                                                });
-                                                                            }}
-                                                                            key={spider.sid}
-                                                                            value={spider.name}
-                                                                        >
+                                                                        <Option key={spider.sid} value={spider.name}>
                                                                             {spider.name}
                                                                         </Option>
                                                                     ))}
@@ -1725,8 +1745,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     <Button
                                                                         shape="circle"
                                                                         size="small"
-                                                                        icon={<Add className="p-1" />}
-                                                                        className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                        icon={<Add />}
+                                                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                         onClick={this.addTag}
                                                                     ></Button>
                                                                 </Space>
@@ -1764,8 +1784,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                         <Button
                                                                             shape="circle"
                                                                             size="small"
-                                                                            icon={<Add className="p-1" />}
-                                                                            className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                            icon={<Add />}
+                                                                            className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                             onClick={this.addArgument}
                                                                         ></Button>
                                                                     </Space>
@@ -1805,8 +1825,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                     <Button
                                                                         shape="circle"
                                                                         size="small"
-                                                                        icon={<Add className="p-1" />}
-                                                                        className="flex items-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                        icon={<Add />}
+                                                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
                                                                         onClick={this.addEnvVar}
                                                                     ></Button>
                                                                 </Space>

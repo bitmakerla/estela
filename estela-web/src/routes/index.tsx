@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 
 import { LoginPage } from "../components/LoginPage";
 import { RegisterPage } from "../components/RegisterPage";
@@ -30,7 +30,7 @@ import { SettingsDataPersistencePage } from "../components/SettingsDataPersisten
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
         return (
-            <>
+            <Switch>
                 <Route path="/" exact>
                     <Redirect to="/login" />
                 </Route>
@@ -71,7 +71,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/settings/profile" component={SettingsProfilePage} exact />
                 <Route path="/settings/password" component={SettingsPasswordPage} exact />
                 <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
-            </>
+            </Switch>
         );
     }
 }

@@ -22,17 +22,26 @@ To install and use the estela CLI on Linux, Mac, or Windows, you must have:
 - Python (v3.6 or higher)
 
 ## Install the estela CLI
+
+estela CLI is available on PyPI:
+
+```bash
+$ python -m pip install estela
+```
+
+Or, you can install estela CLI manually:
+
 1. Clone the estela CLI repository:
 ```bash
 $ git clone https://github.com/bitmakerla/estela-cli
 ```
 
-1. Enter the root directory of the repository where `setup.py` is located and run:
+2. Enter the root directory of the repository where `setup.py` is located and run:
 ```bash
 $ python setup.py install
 ```
 
-1. To confirm the CLI was installed properly, run the following CLI command:
+3. To confirm the CLI was installed properly, run the following CLI command:
 ```bash
 $ estela --version
 ```

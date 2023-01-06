@@ -43,11 +43,6 @@ class SpiderJobViewSet(
         )
         return page, page_size
 
-    def date_to_days(self, date_str):
-        Y, M, D = [int(i) for i in date_str.split("-")]
-        interval = date(Y, M, D) - date.today()
-        return interval.days
-
     def get_queryset(self):
         if self.request is None:
             return SpiderJob.objects.none()
@@ -108,8 +103,7 @@ class SpiderJobViewSet(
         serializer.is_valid(raise_exception=True)
         data_status = request.data.pop("data_status", SpiderJob.PERSISTENT_STATUS)
         if data_status == SpiderJob.PENDING_STATUS:
-            date_str = request.data.pop("data_expiry_days", date.today() + timedelta(1))
-            data_expiry_days = self.date_to_days(date_str)
+            data_expiry_days = request.data.pop("data_expiry_days", 1)
             if data_expiry_days < 1:
                 raise ParseError({"error": "Invalid data expiry days value."})
         else:
