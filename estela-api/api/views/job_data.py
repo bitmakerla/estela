@@ -36,8 +36,7 @@ class JobDataViewSet(
         page_size = int(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
-        export_format = request.query_params.get("format", "json")
-        return page, data_type, mode, page_size, export_format
+        return page, data_type, mode, page_size
 
     def get_paginated_link(self, page_number):
         if page_number < 1:
@@ -88,16 +87,17 @@ class JobDataViewSet(
         ],
     )
     def list(self, request, *args, **kwargs):
-        page, data_type, mode, page_size, export_format = self.get_parameters(request)
+        page, data_type, mode, page_size = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page_size < 1:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if data_type not in self.JOB_DATA_TYPES:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
-        job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
+
+        job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
@@ -124,9 +124,11 @@ class JobDataViewSet(
             result = spiderdata_db_client.get_all_collection_data(
                 kwargs["pid"], job_collection_name
             )
+
             if mode == "json":
                 response = JsonResponse(result, safe=False)
                 return response
+
             if mode == "csv":
                 response = HttpResponse(content_type="text/csv; charset=utf-8")
                 response["Content-Disposition"] = "attachment; {}.csv".format(
@@ -136,17 +138,33 @@ class JobDataViewSet(
                 response.write(codecs.BOM_UTF8)
                 csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
                 csv_writer.writeheader()
-
                 for item in result:
                     csv_writer.writerow(item)
-
                 return response
         else:
+            count = spiderdata_db_client.get_estimated_document_count(
+                kwargs["pid"], job_collection_name
+            )
+            if request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
+                chunk_size = max(
+                    1,
+                    settings.MAX_CHUNK_SIZE
+                    // spiderdata_db_client.get_estimated_document_size(
+                        kwargs["pid"], job_collection_name
+                    ),
+                )
+                current_chunk = request.query_params.get("current_chunk", None)
+                result, next_chunk = spiderdata_db_client.get_chunked_collection_data(
+                    kwargs["pid"], job_collection_name, chunk_size, current_chunk
+                )
+                response = {"count": count, "results": result}
+                if next_chunk:
+                    response["next_chunk"] = next_chunk
+                return Response(response)
+
             result = spiderdata_db_client.get_paginated_collection_data(
                 kwargs["pid"], job_collection_name, page, page_size
             )
-            count = spiderdata_db_client.get_estimated_document_count()
-
             return Response(
                 {
                     "count": count,
