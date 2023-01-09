@@ -5,8 +5,6 @@ from rest_framework import serializers
 
 
 class JobRamLimitValidator:
-    """"""
-
     CONVERSIONS = {"Mi": 1024**2, "Gi": 1024**3}
 
     def convert_to_bytes(self, value):
