@@ -162,6 +162,10 @@ class SpiderCronJob(models.Model):
     data_expiry_days = models.PositiveSmallIntegerField(
         null=True, help_text="Days before data expires."
     )
+    limits = models.JSONField(
+        default=dict,
+        help_text="Resource limits applied to the spider jobs deriving from this cronjob.",
+    )
     deleted = models.BooleanField(
         default=False, help_text="Whether the Cronjob has been deleted."
     )

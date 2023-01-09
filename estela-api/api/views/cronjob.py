@@ -66,6 +66,13 @@ class SpiderCronJobViewSet(
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
+
+        if not request.data.get("limits") or not request.data["limits"].get("memory"):
+            request.data["limits"] = {"memory": settings.JOB_MIN_RAM_LIMIT}
+        # We eliminate any other values that might have been sent in limits besides
+        # the ones we want. For now, we only want memory limits.
+        request.data["limits"] = {"memory": request.data["limits"]["memory"]}
+
         serializer = SpiderCronJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data_status = request.data.pop("data_status", SpiderCronJob.PERSISTENT_STATUS)
@@ -89,6 +96,7 @@ class SpiderCronJobViewSet(
             cronjob.key,
             request.data.get("cargs", []),
             request.data.get("cenv_vars", []),
+            cronjob.limits,
             request.data.get("ctags", []),
             cronjob.schedule,
             data_expiry_days=data_expiry_days,
