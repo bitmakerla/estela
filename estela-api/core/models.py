@@ -254,6 +254,9 @@ class SpiderJob(models.Model):
     request_count = models.PositiveBigIntegerField(
         default=0, help_text="The number of requests made by the spider job."
     )
+    limits = models.JSONField(
+        default=dict, help_text="Resource limits applied to the spider job."
+    )
 
     class Meta:
         ordering = ["-created"]

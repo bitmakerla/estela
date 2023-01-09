@@ -37,6 +37,7 @@ class KubernetesEngine:
         namespace,
         container_name,
         env_vars,
+        limits,
         volume_spec,
         command,
         isbuild,
@@ -55,6 +56,11 @@ class KubernetesEngine:
             for env_name, env_value in self.CREDENTIALS.get_credentials().items():
                 env_list.append(client.V1EnvVar(name=env_name, value=env_value))
 
+        resource_requirements = client.V1ResourceRequirements(
+            requests=limits,
+            limits=limits,
+        )
+
         volume = volume_mount = None
         if volume_spec:
             volume_mount = client.V1VolumeMount(
@@ -68,6 +74,7 @@ class KubernetesEngine:
                 name=volume_spec["name"],
                 host_path=host_path,
             )
+
         container = client.V1Container(
             name=container_name,
             image=container_image,
@@ -75,6 +82,7 @@ class KubernetesEngine:
             command=command,
             image_pull_policy=self.IMAGE_PULL_POLICY,
             volume_mounts=[volume_mount] if volume_mount else None,
+            resoureces=resource_requirements,
         )
 
         template.template.spec = client.V1PodSpec(
@@ -104,6 +112,7 @@ class KubernetesEngine:
         spider_name="",
         job_args=[],
         job_env_vars=[],
+        job_limits={},
         container_image="",
         namespace="default",
         container_name="jobcontainer",
@@ -146,6 +155,7 @@ class KubernetesEngine:
             namespace,
             container_name,
             job_env_vars,
+            job_limits,
             volume,
             command,
             isbuild,

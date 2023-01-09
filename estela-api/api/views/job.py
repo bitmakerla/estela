@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -99,6 +99,13 @@ class SpiderJobViewSet(
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         async_param = request.query_params.get("async", False)
+
+        if not request.data.get("limits") or not request.data["limits"].get("ram"):
+            request.data["limits"] = {"ram": settings.JOB_MIN_RAM_LIMIT}
+        # We eliminate any other values that might have been added sent in limits besides
+        # the ones we want. For now, we only want limits on RAM.
+        request.data["limits"] = {"ram": request.data["limits"]["ram"]}
+
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data_status = request.data.pop("data_status", SpiderJob.PERSISTENT_STATUS)
@@ -127,6 +134,7 @@ class SpiderJobViewSet(
                 job.spider.name,
                 job_args,
                 job_env_vars,
+                job.limits,
                 job.spider.project.container_image,
                 auth_token=token,
             )
