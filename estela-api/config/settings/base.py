@@ -53,6 +53,8 @@ env = environ.Env(
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(str, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
+    JOB_MIN_RAM_LIMIT=(str, "256Mi"),
+    JOB_MAX_RAM_LIMIT=(str, "1Gi"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -73,7 +75,9 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 DJANGO_EXTERNAL_APPS = env("DJANGO_EXTERNAL_APPS").split(",")
 DJANGO_EXTERNAL_APPS = [app for app in DJANGO_EXTERNAL_APPS if app != ""]
 EXTERNAL_MIDDLEWARES = env("EXTERNAL_MIDDLEWARES").split(",")
-EXTERNAL_MIDDLEWARES = [middleware for middleware in EXTERNAL_MIDDLEWARES if middleware != ""]
+EXTERNAL_MIDDLEWARES = [
+    middleware for middleware in EXTERNAL_MIDDLEWARES if middleware != ""
+]
 
 
 # Application definition
@@ -265,6 +269,10 @@ TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
 ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
 SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
+
+# SpiderJob settings
+JOB_MIN_RAM_LIMIT = env("JOB_MIN_RAM_LIMIT")
+JOB_MAX_RAM_LIMIT = env("JOB_MAX_RAM_LIMIT")
 
 # Spiderdata Database settings
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")
