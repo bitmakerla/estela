@@ -100,11 +100,11 @@ class SpiderJobViewSet(
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         async_param = request.query_params.get("async", False)
 
-        if not request.data.get("limits") or not request.data["limits"].get("ram"):
-            request.data["limits"] = {"ram": settings.JOB_MIN_RAM_LIMIT}
+        if not request.data.get("limits") or not request.data["limits"].get("memory"):
+            request.data["limits"] = {"memory": settings.JOB_MIN_RAM_LIMIT}
         # We eliminate any other values that might have been added sent in limits besides
         # the ones we want. For now, we only want limits on RAM.
-        request.data["limits"] = {"ram": request.data["limits"]["ram"]}
+        request.data["limits"] = {"memory": request.data["limits"]["memory"]}
 
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
