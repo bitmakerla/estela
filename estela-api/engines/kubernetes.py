@@ -82,7 +82,7 @@ class KubernetesEngine:
             command=command,
             image_pull_policy=self.IMAGE_PULL_POLICY,
             volume_mounts=[volume_mount] if volume_mount else None,
-            resoureces=resource_requirements,
+            resources=resource_requirements,
         )
 
         template.template.spec = client.V1PodSpec(
