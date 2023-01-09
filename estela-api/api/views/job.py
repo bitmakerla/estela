@@ -102,8 +102,8 @@ class SpiderJobViewSet(
 
         if not request.data.get("limits") or not request.data["limits"].get("memory"):
             request.data["limits"] = {"memory": settings.JOB_MIN_RAM_LIMIT}
-        # We eliminate any other values that might have been added sent in limits besides
-        # the ones we want. For now, we only want limits on RAM.
+        # We eliminate any other values that might have been sent in limits besides
+        # the ones we want. For now, we only want memory limits.
         request.data["limits"] = {"memory": request.data["limits"]["memory"]}
 
         serializer = SpiderJobCreateSerializer(data=request.data)

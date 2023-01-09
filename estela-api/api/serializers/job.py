@@ -37,12 +37,12 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "request_count",
             "args",
             "env_vars",
+            "limits",
             "tags",
             "job_status",
             "cronjob",
             "data_expiry_days",
             "data_status",
-            "limits",
         )
 
 
@@ -73,12 +73,12 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "name",
             "args",
             "env_vars",
+            "limits",
             "tags",
             "job_status",
             "cronjob",
             "data_expiry_days",
             "data_status",
-            "limits",
         )
 
     def create(self, validated_data):
