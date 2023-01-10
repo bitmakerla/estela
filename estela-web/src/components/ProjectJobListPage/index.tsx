@@ -41,6 +41,7 @@ import {
     ProjectSidenav,
     Header,
     Spin,
+    CardNotification,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 
@@ -487,6 +488,20 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             >
                                                 Run new job
                                             </Button>
+                                            <CardNotification open={modal} />
+                                            {/* <Modal
+                                                style={{
+                                                    overflow: "hidden",
+                                                    padding: 0,
+                                                }}
+                                                centered
+                                                width={600}
+                                                open={modal}
+                                                onCancel={() => this.setState({ modal: false })}
+                                                footer={null}
+                                            >
+                                                <CardNotification />
+                                            </Modal> */}
                                             <Modal
                                                 style={{
                                                     overflow: "hidden",
@@ -494,7 +509,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 }}
                                                 centered
                                                 width={450}
-                                                open={modal}
+                                                open={false}
                                                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
                                                 onCancel={() => this.setState({ modal: false })}
                                                 footer={null}

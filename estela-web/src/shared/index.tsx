@@ -4,6 +4,7 @@ export { ProfileSettingsSideNav } from "./profileSettingsSidenav";
 export { NotificationsSidenav } from "./notificationsSidenav";
 export { NotificationsList } from "./notificationsList";
 export { CustomSpin as Spin } from "./spin";
+export { CardNotification } from "./cardNotification";
 export {
     authNotification,
     resourceNotAllowedNotification,
