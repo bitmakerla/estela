@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Button, Layout, Space, Row, Col, Tag, Table, Modal, Input, Select } from "antd";
+import { Button, Layout, Space, Typography, Row, Col, Tag, Table, Modal, Input, Select } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -13,6 +13,7 @@ import { authNotification, incorrectDataNotification, Header, Spin } from "../..
 
 const { Content } = Layout;
 const { Option } = Select;
+const { Text } = Typography;
 
 interface ProjectList {
     name: string;
@@ -69,7 +70,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             title: "PID",
             dataIndex: "pid",
             key: "pid",
-            render: (pid: string): ReactElement => <p className="font-courier">ID: {pid}</p>,
+            render: (pid: string): ReactElement => <p className="font-courier">{pid}</p>,
         },
         {
             title: "ROLE",
@@ -84,11 +85,12 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     ];
 
     emptyText = (): ReactElement => (
-        <div className="flex flex-col items-center justify-center text-gray-400">
+        <Content className="flex flex-col items-center justify-center text-estela-black-medium">
             <FolderDotted className="w-20 h-20" />
             <p>No proyects yet.</p>
-        </div>
+        </Content>
     );
+
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
             authNotification();
@@ -182,56 +184,54 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                         <Fragment>
                             <Content className="mx-4">
                                 <Space direction="vertical" className="mx-8">
-                                    <div className="float-left">
-                                        <p className="text-3xl">
+                                    <Content className="float-left">
+                                        <Text className="text-3xl">
                                             Welcome home&nbsp;
                                             <span className="text-estela">{this.getUser()}</span>!
-                                        </p>
-                                    </div>
-                                    <div className="bg-white rounded-md p-6 mx-4">
-                                        <Row className="flow-root items-center my-2">
+                                        </Text>
+                                    </Content>
+                                    <Content className="bg-white rounded-md p-6 mx-4">
+                                        <Row className="flow-root items-center">
                                             <Col className="float-left">
-                                                <p className="text-silver text-base font-medium">RECENT PROJECTS</p>
+                                                <Text className="text-silver text-base font-medium">
+                                                    RECENT PROJECTS
+                                                </Text>
                                             </Col>
                                         </Row>
-                                        <Row className="gap-3">
-                                            <Col className="bg-[#F6FAFD] rounded-md p-3">
-                                                <Row className="gap-3">
-                                                    <p className="font-bold">My first project</p>
-                                                    <p className="text-estela font-semibold">New</p>
-                                                </Row>
-                                                <p className="font-courier">
-                                                    ID: 23ea584d-f39c-85bd-74c1-9b725ffcab1d7
-                                                </p>
-                                                <Row className="float-right mt-2 bg-white rounded-md">
-                                                    <p>Admin</p>
-                                                </Row>
-                                            </Col>
-                                            <Col className="rounded-md p-3">
-                                                <Row className="gap-3">
-                                                    <p className="font-bold">My first project</p>
-                                                </Row>
-                                                <p className="font-courier">
-                                                    ID: 23ea584d-f39c-85bd-74c1-9b725ffcab1d7
-                                                </p>
-                                                <Row className="float-right mt-2">
-                                                    <p>Admin</p>
-                                                </Row>
-                                            </Col>
-                                            <Col className="rounded-md p-3">
-                                                <Row className="gap-3">
-                                                    <p className="font-bold">My first project</p>
-                                                </Row>
-                                                <p className="font-courier">
-                                                    ID: 23ea584d-f39c-85bd-74c1-9b725ffcab1d7
-                                                </p>
-                                                <Row className="float-right mt-2">
-                                                    <p>Admin</p>
-                                                </Row>
-                                            </Col>
+                                        <Row className="grid grid-cols-3 gap-3 mt-4">
+                                            {projects.map((project: ProjectList, index) => {
+                                                return index < 3 ? (
+                                                    <Button
+                                                        key={project.key}
+                                                        onClick={() => {
+                                                            history.push(`/projects/${project.pid}/dashboard`);
+                                                        }}
+                                                        className="bg-white rounded-md p-3 h-20 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
+                                                    >
+                                                        <Row className="gap-3 m-1">
+                                                            <Text className="text-sm font-bold">{project.name}</Text>
+                                                            {index === 0 && (
+                                                                <Tag className="text-estela bg-estela-blue-low border-none font-medium rounded-md">
+                                                                    New
+                                                                </Tag>
+                                                            )}
+                                                        </Row>
+                                                        <Row className="flow-root rounded-md m-2">
+                                                            <Text className="float-left text-xs font-courier">
+                                                                {project.pid}
+                                                            </Text>
+                                                            <Tag className="float-right bg-white border-white rounded-md">
+                                                                {project.role}
+                                                            </Tag>
+                                                        </Row>
+                                                    </Button>
+                                                ) : (
+                                                    <Content></Content>
+                                                );
+                                            })}
                                         </Row>
-                                    </div>
-                                    <div className="bg-white rounded-md p-6 mx-4">
+                                    </Content>
+                                    <Content className="bg-white rounded-md p-6 mx-4">
                                         <Row className="flow-root items-center my-2">
                                             <Col className="float-left">
                                                 <p className="text-silver text-base font-medium">MY PROJECTS</p>
@@ -245,24 +245,31 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                     Start new project
                                                 </Button>
                                                 <Modal
+                                                    width={500}
                                                     open={modalNewProject}
-                                                    title={<p className="text-center">CREATE NEW PROJECT</p>}
+                                                    title={
+                                                        <p className="text-xl text-center text-estela-black-medium font-normal">
+                                                            CREATE NEW PROJECT
+                                                        </p>
+                                                    }
                                                     onCancel={() => this.setState({ modalNewProject: false })}
                                                     footer={null}
                                                 >
-                                                    <div className="mx-3">
-                                                        <p className="py-3">Name</p>
+                                                    <Content className="mx-2">
+                                                        <p className="mb-3 text-base">Name</p>
                                                         <Input
                                                             style={{ borderRadius: "8px" }}
                                                             className="border-estela rounded"
+                                                            size="large"
                                                             name="newProjectName"
                                                             placeholder="Enter project name"
                                                             value={newProjectName}
                                                             onChange={this.handleInputChange}
                                                         />
-                                                        <p className="py-3">Category (optional)</p>
+                                                        <p className="mt-4 mb-3 text-base">Category (optional)</p>
                                                         <Select
                                                             className="w-full"
+                                                            size="large"
                                                             defaultValue={ProjectCategoryEnum.NotEspecified}
                                                             onChange={this.handleSelectChange}
                                                         >
@@ -316,15 +323,18 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                                 Other category
                                                             </Option>
                                                         </Select>
-                                                        <p className="my-3 text-gray-500">
+                                                        <p className="my-4 text-estela-black-medium">
                                                             Your project will be created with a data persistence of
-                                                            <span className="text-gray-700 font-bold"> 1 week </span>
+                                                            <span className="text-estela-black-full font-bold">
+                                                                {" "}
+                                                                1 week{" "}
+                                                            </span>
                                                             you want to change it, enter here.
                                                         </p>
-                                                        <Row className="mt-6 w-full grid grid-cols-2" justify="center">
+                                                        <Row className="mt-6 grid grid-cols-2 gap-2" justify="center">
                                                             <Button
                                                                 size="large"
-                                                                className="mr-2 sm:mr-1 bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
+                                                                className="bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
                                                                 onClick={() => {
                                                                     this.setState({ modalNewProject: false });
                                                                     this.projectManagment({
@@ -337,7 +347,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                             </Button>
                                                             <Button
                                                                 size="large"
-                                                                className="ml-2 sm:ml-1 border-estela hover:border-estela text-estela hover:text-estela"
+                                                                className="border-estela hover:border-estela hover:bg-estela-blue-low text-estela hover:text-estela rounded"
                                                                 onClick={() =>
                                                                     this.setState({ modalNewProject: false })
                                                                 }
@@ -345,7 +355,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                                 Cancel
                                                             </Button>
                                                         </Row>
-                                                    </div>
+                                                    </Content>
                                                 </Modal>
                                             </Col>
                                         </Row>
@@ -358,25 +368,26 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                 dataSource={projects}
                                                 pagination={false}
                                                 size="middle"
+                                                locale={{ emptyText: this.emptyText }}
                                             />
                                         </Row>
                                         {this.totalProjects === 0 && (
-                                            <Row className="flex">
+                                            <Row className="flex my-4">
                                                 <Col>
-                                                    <Bug className="m-4 w-10 h-10" />
+                                                    <Bug className="m-4 w-10 h-10 stroke-black" />
                                                 </Col>
-                                                <Col>
-                                                    <p className="font-bold">Get started</p>
-                                                    <Col>
-                                                        <Row className="text-gray-400">
-                                                            Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                                                            Itaque aliquam reiciendis ea expedita.
-                                                        </Row>
-                                                    </Col>
+                                                <Col className="my-auto ml-4">
+                                                    <Text className="font-bold text-lg text-estela-black-full">
+                                                        Get started
+                                                    </Text>
+                                                    <br />
+                                                    <Text className="text-sm text-estela-black-medium">
+                                                        Create a new project to begin the experience
+                                                    </Text>
                                                 </Col>
                                             </Row>
                                         )}
-                                    </div>
+                                    </Content>
                                 </Space>
                             </Content>
                         </Fragment>

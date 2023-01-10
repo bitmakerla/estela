@@ -62,7 +62,7 @@ export class LoginPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your username" }]}
                                 >
-                                    <Input autoComplete="username" className="border-estela" />
+                                    <Input autoComplete="username" className="border-estela rounded-md" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Password"
@@ -70,7 +70,10 @@ export class LoginPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your password" }]}
                                 >
-                                    <Input.Password autoComplete="current-password" className="border-estela" />
+                                    <Input.Password
+                                        autoComplete="current-password"
+                                        className="border-estela rounded-md"
+                                    />
                                 </Form.Item>
                             </div>
                             <Button

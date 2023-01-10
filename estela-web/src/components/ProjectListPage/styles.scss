@@ -1,14 +1,7 @@
-// .project-list {
-//     max-width: 500px;
-//     margin: 40px auto;
-// }
+$estela-blue-full: #4D47C3;
 
-// .create-new-project {
-//     margin: 30px auto;
-//     display: flex;
-//     align-self: auto;
-// }
-
-// .container {
-//     background-color: #FBFCFD;
-// }
+Button:hover {
+    .ant-typography {
+        color: $estela-blue-full;
+    }
+}
