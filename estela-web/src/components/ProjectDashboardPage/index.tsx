@@ -141,6 +141,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
 
     getCurrentUsage = async (): Promise<void> => {
         await this.apiService.apiProjectsCurrentUsage({ pid: this.projectId }).then((response: ProjectUsage) => {
+            console.log(response);
             this.setState({
                 network: Number(response.networkUsage),
                 processingTime: response.processingTime,
