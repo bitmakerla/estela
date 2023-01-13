@@ -8,7 +8,6 @@ import { NotificationsSettingsPage } from "../components/NotificationsSettingsPa
 import { ProjectListPage } from "../components/ProjectListPage";
 import { ProjectDetailPage } from "../components/ProjectDetailPage";
 import { ProjectSettingsPage } from "../components/ProjectSettingsPage";
-import { ProjectCreatePage } from "../components/ProjectCreatePage";
 import { ProjectMemberPage } from "../components/ProjectMemberPage";
 import { ProjectJobListPage } from "../components/ProjectJobListPage";
 import { ProjectCronJobListPage } from "../components/ProjectCronJobListPage";
@@ -39,7 +38,6 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/notifications/inbox" component={NotificationsInboxPage} exact />
                 <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
                 <Route path="/projects" component={ProjectListPage} exact />
-                <Route path="/projects/create" component={ProjectCreatePage} exact />
                 <Route path="/projects/:projectId" component={ProjectDetailPage} exact />
                 <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
                 <Route path="/projects/:projectId/settings" component={ProjectSettingsPage} exact />

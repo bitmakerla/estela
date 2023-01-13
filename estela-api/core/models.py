@@ -10,6 +10,22 @@ from django.utils import timezone
 
 
 class Project(models.Model):
+    NOT_ESPECIFIED = "NOT ESPECIFIED"
+    E_COMMERCE = "E-COMMERCE"
+    LOGISTICS = "LOGISTICS"
+    FINANCE = "FINANCE"
+    EDUCATIONAL = "EDUCATIONAL"
+    TECHNOLOGY = "TECHNOLOGY"
+    OTHER_CATEGORY = "OTHER_CATEGORY"
+    CATEGORY_OPTIONS = [
+        (NOT_ESPECIFIED, "Not specified"),
+        (E_COMMERCE, "E-commerce"),
+        (LOGISTICS, "Logistics"),
+        (FINANCE, "Finance"),
+        (EDUCATIONAL, "Educational"),
+        (TECHNOLOGY, "Technology"),
+        (OTHER_CATEGORY, "Other category")
+    ]
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
     users = models.ManyToManyField(User, through="Permission")
@@ -20,6 +36,12 @@ class Project(models.Model):
         help_text="A UUID identifying this project.",
     )
     name = models.CharField(max_length=1000, help_text="Project's name.")
+    category = models.CharField(
+        max_length=30,
+        choices=CATEGORY_OPTIONS,
+        default=OTHER_CATEGORY,
+        help_text="Project's category.",
+    )
     users = models.ManyToManyField(
         User, through="Permission", help_text="Users with permissions on this project."
     )

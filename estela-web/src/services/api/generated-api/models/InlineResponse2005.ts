@@ -26,17 +26,17 @@ export interface InlineResponse2005 {
      */
     count: number;
     /**
-     * URI to the next data chunk.
-     * @type {string}
-     * @memberof InlineResponse2005
-     */
-    next?: string | null;
-    /**
      * URI to the previous data chunk.
      * @type {string}
      * @memberof InlineResponse2005
      */
     previous?: string | null;
+    /**
+     * URI to the next data chunk.
+     * @type {string}
+     * @memberof InlineResponse2005
+     */
+    next?: string | null;
     /**
      * Data items.
      * @type {Array<object>}
@@ -56,8 +56,8 @@ export function InlineResponse2005FromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'count': json['count'],
-        'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'next': !exists(json, 'next') ? undefined : json['next'],
         'results': !exists(json, 'results') ? undefined : json['results'],
     };
 }
@@ -72,8 +72,8 @@ export function InlineResponse2005ToJSON(value?: InlineResponse2005 | null): any
     return {
         
         'count': value.count,
-        'next': value.next,
         'previous': value.previous,
+        'next': value.next,
         'results': value.results,
     };
 }
