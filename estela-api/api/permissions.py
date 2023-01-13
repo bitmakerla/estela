@@ -35,6 +35,7 @@ class IsAdminOrReadOnly(BasePermission):
         if user_permission.permission in [
             Permission.DEVELOPER_PERMISSION,
             Permission.ADMIN_PERMISSION,
+            Permission.OWNER_PERMISSION,
         ]:
             return True
         return False

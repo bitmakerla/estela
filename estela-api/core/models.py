@@ -61,10 +61,12 @@ class Project(models.Model):
 
 
 class Permission(models.Model):
+    OWNER_PERMISSION = "OWNER"
     ADMIN_PERMISSION = "ADMIN"
     DEVELOPER_PERMISSION = "DEVELOPER"
     VIEWER_PERMISSION = "VIEWER"
     PERMISSIONS_OPTIONS = [
+        (OWNER_PERMISSION, "Owner"),
         (ADMIN_PERMISSION, "Admin"),
         (DEVELOPER_PERMISSION, "Developer"),
         (VIEWER_PERMISSION, "Viewer"),
