@@ -1,6 +1,6 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Button, Layout, Space, Typography, Row, Col, Tag, Table, Modal, Input, Select } from "antd";
+import { Button, Layout, Pagination, Space, Typography, Row, Col, Tag, Table, Modal, Input, Select } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -175,7 +175,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     };
 
     render(): JSX.Element {
-        const { projects, loaded, modalNewProject, newProjectName, newProjectCategory } = this.state;
+        const { projects, count, current, loaded, modalNewProject, newProjectName, newProjectCategory } = this.state;
         return (
             <Layout className="h-screen">
                 <Header />
@@ -369,6 +369,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                 pagination={false}
                                                 size="middle"
                                                 locale={{ emptyText: this.emptyText }}
+                                            />
+                                            <Pagination
+                                                className="pagination"
+                                                defaultCurrent={1}
+                                                total={count}
+                                                current={current}
+                                                pageSize={this.PAGE_SIZE}
+                                                onChange={this.onPageChange}
+                                                showSizeChanger={false}
                                             />
                                         </Row>
                                         {this.totalProjects === 0 && (
