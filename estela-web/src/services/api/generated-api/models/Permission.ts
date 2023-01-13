@@ -45,6 +45,7 @@ export interface Permission {
 * @enum {string}
 */
 export enum PermissionPermissionEnum {
+    Owner = 'OWNER',
     Admin = 'ADMIN',
     Developer = 'DEVELOPER',
     Viewer = 'VIEWER'

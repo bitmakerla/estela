@@ -52,7 +52,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         instance = serializer.save()
         instance.users.add(
             self.request.user,
-            through_defaults={"permission": Permission.ADMIN_PERMISSION},
+            through_defaults={"permission": Permission.OWNER_PERMISSION},
         )
         UsageRecord.objects.create(
             project=instance,
@@ -93,19 +93,24 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                 user_instance = user_instance.get()
                 if (
                     user_instance.permission_set.get(project=instance).permission
-                    == Permission.ADMIN_PERMISSION
-                ):
+                    in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
+                ) and permission != Permission.OWNER_PERMISSION:
                     if action == "add":
                         instance.users.add(
                             user, through_defaults={"permission": permission}
                         )
-                    elif action == "remove":
+                    elif action == "remove" and (
+                        user.permission_set.get(project=instance).permission
+                        != Permission.OWNER_PERMISSION
+                    ):
                         instance.users.remove(user)
                     elif action == "update":
                         instance.users.remove(user)
                         instance.users.add(
                             user, through_defaults={"permission": permission}
                         )
+                    else:
+                        raise ParseError({"error": "Action not supported."})
                 else:
                     raise ParseError({"error": "Action not supported."})
             else:
