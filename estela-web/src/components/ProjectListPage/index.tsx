@@ -226,7 +226,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                         </Row>
                                                     </Button>
                                                 ) : (
-                                                    <Content></Content>
+                                                    <Content key={project.key}></Content>
                                                 );
                                             })}
                                         </Row>

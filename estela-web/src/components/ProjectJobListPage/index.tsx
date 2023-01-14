@@ -128,8 +128,13 @@ interface RouteParams {
     projectId: string;
 }
 
+interface StateType {
+    open: boolean;
+}
+
 export class ProjectJobListPage extends Component<RouteComponentProps<RouteParams>, ProjectJobListPageState> {
     PAGE_SIZE = 10;
+    LocationState = this.props.location.state as StateType;
     state: ProjectJobListPageState = {
         name: "",
         spiderId: "",
@@ -150,7 +155,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         newEnvVarName: "",
         newEnvVarValue: "",
         newTagName: "",
-        modal: false,
+        modal: this.LocationState ? this.LocationState.open : false,
         loadedSpiders: false,
         tableStatus: new Array<boolean>(4).fill(true),
         loaded: false,

@@ -971,6 +971,7 @@ definitions:
         description: Permission on this project.
         type: string
         enum:
+          - OWNER
           - ADMIN
           - DEVELOPER
           - VIEWER

@@ -6,13 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0021_spidercronjob_deleted'),
+        ("core", "0021_spidercronjob_deleted"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='category',
-            field=models.CharField(choices=[('NOT ESPECIFIED', 'Not specified'), ('E-COMMERCE', 'E-commerce'), ('LOGISTICS', 'Logistics'), ('FINANCE', 'Finance'), ('EDUCATIONAL', 'Educational'), ('TECHNOLOGY', 'Technology'), ('OTHER_CATEGORY', 'Other category')], default='OTHER_CATEGORY', help_text="Project's category.", max_length=30),
+            model_name="project",
+            name="category",
+            field=models.CharField(
+                choices=[
+                    ("NOT ESPECIFIED", "Not specified"),
+                    ("E-COMMERCE", "E-commerce"),
+                    ("LOGISTICS", "Logistics"),
+                    ("FINANCE", "Finance"),
+                    ("EDUCATIONAL", "Educational"),
+                    ("TECHNOLOGY", "Technology"),
+                    ("OTHER_CATEGORY", "Other category"),
+                ],
+                default="OTHER_CATEGORY",
+                help_text="Project's category.",
+                max_length=30,
+            ),
         ),
     ]
