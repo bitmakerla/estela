@@ -16,7 +16,6 @@ import { DeployListPage } from "../components/DeployListPage";
 import { SpiderListPage } from "../components/SpiderListPage";
 import { SpiderDetailPage } from "../components/SpiderDetailPage";
 import { JobDetailPage } from "../components/JobDetailPage";
-import { JobCreatePage } from "../components/JobCreatePage";
 import { CronJobListPage } from "../components/CronJobListPage";
 import { CronJobCreatePage } from "../components/CronJobCreatePage";
 import { CronJobDetailPage } from "../components/CronJobDetailPage";
@@ -48,7 +47,6 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
                 <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
                 <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
-                <Route path="/projects/:projectId/spiders/:spiderId/jobs/create" component={JobCreatePage} exact />
                 <Route
                     path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType"
                     component={JobDataListPage}

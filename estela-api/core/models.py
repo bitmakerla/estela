@@ -24,7 +24,7 @@ class Project(models.Model):
         (FINANCE, "Finance"),
         (EDUCATIONAL, "Educational"),
         (TECHNOLOGY, "Technology"),
-        (OTHER_CATEGORY, "Other category")
+        (OTHER_CATEGORY, "Other category"),
     ]
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
@@ -61,10 +61,12 @@ class Project(models.Model):
 
 
 class Permission(models.Model):
+    OWNER_PERMISSION = "OWNER"
     ADMIN_PERMISSION = "ADMIN"
     DEVELOPER_PERMISSION = "DEVELOPER"
     VIEWER_PERMISSION = "VIEWER"
     PERMISSIONS_OPTIONS = [
+        (OWNER_PERMISSION, "Owner"),
         (ADMIN_PERMISSION, "Admin"),
         (DEVELOPER_PERMISSION, "Developer"),
         (VIEWER_PERMISSION, "Viewer"),
