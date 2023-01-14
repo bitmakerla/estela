@@ -707,7 +707,9 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             <Col className="float-right">
                                                 <Button
                                                     onClick={() => {
-                                                        history.push(`/projects/${this.projectId}/jobs`);
+                                                        history.push(`/projects/${this.projectId}/jobs`, {
+                                                            open: true,
+                                                        });
                                                     }}
                                                     icon={<Play className="mr-2" width={19} />}
                                                     size="large"
