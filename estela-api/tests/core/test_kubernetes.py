@@ -19,6 +19,7 @@ class TestKubernetes(BaseTestCase):
             TEST_SPIDER,
             {},
             {},
+            {},
             TEST_DOCKER_IMAGE,
             api_instance=self.job_api_instance,
         )
@@ -31,6 +32,7 @@ class TestKubernetes(BaseTestCase):
             "1.1.1",
             "1.1.1",
             TEST_SPIDER,
+            {},
             {},
             {},
             TEST_DOCKER_IMAGE,
@@ -48,6 +50,7 @@ class TestKubernetes(BaseTestCase):
             TEST_SPIDER,
             {},
             {},
+            {},
             TEST_DOCKER_IMAGE,
             api_instance=self.job_api_instance,
         )
@@ -60,6 +63,7 @@ class TestKubernetes(BaseTestCase):
             "1.1.1",
             "1.1.1",
             TEST_SPIDER,
+            {},
             {},
             {},
             TEST_DOCKER_IMAGE,

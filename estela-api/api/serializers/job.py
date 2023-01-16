@@ -6,6 +6,7 @@ from api.serializers.job_specific import (
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
+from api.validators import JobRamLimitValidator
 from config.job_manager import job_manager
 from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
@@ -36,6 +37,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "request_count",
             "args",
             "env_vars",
+            "limits",
             "tags",
             "job_status",
             "cronjob",
@@ -60,6 +62,9 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
     data_expiry_days = serializers.IntegerField(
         required=False, help_text="Days before data expires."
     )
+    limits = serializers.JSONField(
+        required=False, help_text="Job limits.", validators=[JobRamLimitValidator()]
+    )
 
     class Meta:
         model = SpiderJob
@@ -68,6 +73,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "name",
             "args",
             "env_vars",
+            "limits",
             "tags",
             "job_status",
             "cronjob",

@@ -1,15 +1,15 @@
 from croniter import croniter
 from rest_framework import serializers
+
 from api import errors
-
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
-
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from core.cronjob import enable_cronjob, disable_cronjob, update_schedule
+from api.validators import JobRamLimitValidator
+from core.cronjob import disable_cronjob, enable_cronjob, update_schedule
+from core.models import SpiderCronJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):
@@ -35,6 +35,7 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
             "name",
             "cargs",
             "cenv_vars",
+            "limits",
             "ctags",
             "schedule",
             "status",
@@ -61,6 +62,11 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         required=False, read_only=True, help_text="Unique cron job name."
     )
+    limits = serializers.JSONField(
+        required=False,
+        help_text="Limits for derived jobs.",
+        validators=[JobRamLimitValidator()],
+    )
 
     def validate(self, attrs):
         attrs = super(SpiderCronJobCreateSerializer, self).validate(attrs)
@@ -77,6 +83,7 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
             "name",
             "cargs",
             "cenv_vars",
+            "limits",
             "ctags",
             "schedule",
             "unique_collection",

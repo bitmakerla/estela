@@ -53,7 +53,9 @@ CORS_ORIGIN_WHITELIST: ""
 DJANGO_API_HOST: dummy
 DJANGO_EXTERNAL_APPS: "" # "app_1,app_2,..."
 EXTERNAL_APP_KEYS: "" # "key_1,key_2,..."
-EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
+EXTERNAL_MIDDLEWARES: "" # "app1.middlewares,app2.middlewares,..."
+JOB_MIN_RAM_LIMIT: "256Mi"
+JOB_MAX_RAM_LIMIT: "1Gi"
 
 # Celery
 CELERY_BROKER_URL: redis://estela-redis-service

@@ -54,6 +54,8 @@ env = environ.Env(
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(str, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
+    JOB_MIN_RAM_LIMIT=(str, "128Mi"),
+    JOB_MAX_RAM_LIMIT=(str, "1Gi"),
 )
 
 environ.Env.read_env(env_file=".env")
@@ -70,14 +72,13 @@ DEBUG = False
 DJANGO_API_HOST = env("DJANGO_API_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
+DJANGO_EXTERNAL_APPS = [app for app in env("DJANGO_EXTERNAL_APPS").split(",") if app]
+EXTERNAL_APP_KEYS = [app_key for app_key in env("EXTERNAL_APP_KEYS").split(",") if app_key]
+EXTERNAL_MIDDLEWARES = [
+    middleware for middleware in env("EXTERNAL_MIDDLEWARES").split(",") if middleware
+]
 
-DJANGO_EXTERNAL_APPS = [x for x in env("DJANGO_EXTERNAL_APPS").split(",") if x]
-EXTERNAL_APP_KEYS = [x for x in env("EXTERNAL_APP_KEYS").split(",") if x]
-EXTERNAL_MIDDLEWARES = [x for x in env("EXTERNAL_MIDDLEWARES").split(",") if x]
-
-
-# Application definition
-
+# Apps definition
 DEFAULT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -268,6 +269,10 @@ TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
 ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
 SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
+
+# SpiderJob settings
+JOB_MIN_RAM_LIMIT = env("JOB_MIN_RAM_LIMIT")
+JOB_MAX_RAM_LIMIT = env("JOB_MAX_RAM_LIMIT")
 
 # Spiderdata Database settings
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")

@@ -38,6 +38,7 @@ def run_spider_jobs():
             job.spider.name,
             job_args,
             job_env_vars,
+            job.limits,
             job.spider.project.container_image,
             auth_token=get_default_token(job),
         )
@@ -109,6 +110,7 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
         job.spider.name,
         job_args,
         job_env_vars,
+        job.limits,
         job.spider.project.container_image,
         auth_token=token,
         unique=job.cronjob.unique_collection,

@@ -3,10 +3,18 @@ import json
 from core.tasks import launch_job
 
 
-def create_cronjob(name, key, args, env_vars, tags, schedule, data_expiry_days=None):
+def create_cronjob(
+    name, key, args, env_vars, limits, tags, schedule, data_expiry_days=None
+):
     m, h, d_w, d_m, m_y = schedule.split(" ")
     cjid, sid, pid = key.split(".")
-    data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
+    data = {
+        "cronjob": cjid,
+        "args": args,
+        "env_vars": env_vars,
+        "limits": limits,
+        "tags": tags,
+    }
     schedule, _ = CrontabSchedule.objects.get_or_create(
         minute=m,
         hour=h,
@@ -28,6 +36,7 @@ def run_cronjob_once(data):
         "cronjob": data.get("cjid"),
         "args": data.get("cargs"),
         "env_vars": data.get("cenv_vars"),
+        "limits": data.get("limits"),
         "tags": data.get("ctags"),
     }
     launch_job(data.get("spider"), _data)
