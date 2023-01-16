@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0021_spidercronjob_deleted"),
+        ("core", "0023_auto_20230113_0354"),
     ]
 
     operations = [
