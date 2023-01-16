@@ -31,6 +31,7 @@ env = environ.Env(
     DJANGO_API_HOST=(str, "127.0.0.1"),
     DJANGO_ALLOWED_HOSTS=(str, ""),
     DJANGO_EXTERNAL_APPS=(str, ""),
+    EXTERNAL_APP_KEYS=(str, "dummy"),
     EXTERNAL_MIDDLEWARES=(str, ""),
     KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "dummy"),
@@ -71,6 +72,7 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
 
 DJANGO_EXTERNAL_APPS = [x for x in env("DJANGO_EXTERNAL_APPS").split(",") if x]
+EXTERNAL_APP_KEYS = [x for x in env("EXTERNAL_APP_KEYS").split(",") if x]
 EXTERNAL_MIDDLEWARES = [x for x in env("EXTERNAL_MIDDLEWARES").split(",") if x]
 
 
