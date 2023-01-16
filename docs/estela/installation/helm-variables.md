@@ -133,6 +133,8 @@ you have a deep understanding of estela.
 
 * _<DJANGO\_EXTERNAL\_APPS>_: List of Django external apps that will be installed and added to INSTALLED_APPS. To install them, you must create a file similar to estela/api/requirements/externalApps.txt.example and add the repositories of the applications that will be installed via pip.
 
+* _<EXTERNAL\_APP\_KEYS>_: List of keys to use inside Djando external apps.
+
 * _<EXTERNAL\_MIDDLEWARES>_: List of middleware that are generally found in Django external apps.
 
 #### Celery

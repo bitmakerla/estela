@@ -51,7 +51,8 @@ ENGINE: "" # kubernetes
 CREDENTIALS: "" # local
 CORS_ORIGIN_WHITELIST: ""
 DJANGO_API_HOST: dummy
-DJANGO_EXTERNAL_APPS: "" # "app1,app2,app3"
+DJANGO_EXTERNAL_APPS: "" # "app_1,app_2,..."
+EXTERNAL_APP_KEYS: "" # "key_1,key_2,..."
 EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
 
 # Celery
