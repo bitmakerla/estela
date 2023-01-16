@@ -39,6 +39,12 @@ export interface Project {
      */
     name: string;
     /**
+     * Project's category.
+     * @type {string}
+     * @memberof Project
+     */
+    category?: ProjectCategoryEnum;
+    /**
      * Path of the project's container image.
      * @type {string}
      * @memberof Project
@@ -50,6 +56,20 @@ export interface Project {
      * @memberof Project
      */
     users?: Array<Permission>;
+}
+
+/**
+* @export
+* @enum {string}
+*/
+export enum ProjectCategoryEnum {
+    NotEspecified = 'NOT ESPECIFIED',
+    ECommerce = 'E-COMMERCE',
+    Logistics = 'LOGISTICS',
+    Finance = 'FINANCE',
+    Educational = 'EDUCATIONAL',
+    Technology = 'TECHNOLOGY',
+    OtherCategory = 'OTHER_CATEGORY'
 }
 
 export function ProjectFromJSON(json: any): Project {
@@ -64,6 +84,7 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         
         'pid': !exists(json, 'pid') ? undefined : json['pid'],
         'name': json['name'],
+        'category': !exists(json, 'category') ? undefined : json['category'],
         'containerImage': !exists(json, 'container_image') ? undefined : json['container_image'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(PermissionFromJSON)),
     };
@@ -79,6 +100,7 @@ export function ProjectToJSON(value?: Project | null): any {
     return {
         
         'name': value.name,
+        'category': value.category,
         'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(PermissionToJSON)),
     };
 }

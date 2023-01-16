@@ -101,7 +101,7 @@ export class RegisterPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your email", type: "email" }]}
                                 >
-                                    <Input autoComplete="email" className="border-estela" />
+                                    <Input autoComplete="email" className="border-estela rounded-md" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Username"
@@ -109,7 +109,7 @@ export class RegisterPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your username" }]}
                                 >
-                                    <Input autoComplete="username" className="border-estela" />
+                                    <Input autoComplete="username" className="border-estela rounded-md" />
                                 </Form.Item>
                                 <Form.Item
                                     label="Password"
@@ -117,7 +117,10 @@ export class RegisterPage extends Component<unknown> {
                                     required
                                     rules={[{ required: true, message: "Please input your password" }]}
                                 >
-                                    <Input.Password autoComplete="current-password" className="border-estela" />
+                                    <Input.Password
+                                        autoComplete="current-password"
+                                        className="border-estela rounded-md"
+                                    />
                                 </Form.Item>
                             </div>
                             <Button

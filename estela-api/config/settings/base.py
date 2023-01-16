@@ -31,6 +31,7 @@ env = environ.Env(
     DJANGO_API_HOST=(str, "127.0.0.1"),
     DJANGO_ALLOWED_HOSTS=(str, ""),
     DJANGO_EXTERNAL_APPS=(str, ""),
+    EXTERNAL_APP_KEYS=(str, "dummy"),
     EXTERNAL_MIDDLEWARES=(str, ""),
     KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "dummy"),
@@ -71,15 +72,13 @@ DEBUG = False
 DJANGO_API_HOST = env("DJANGO_API_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
-
 DJANGO_EXTERNAL_APPS = [app for app in env("DJANGO_EXTERNAL_APPS").split(",") if app]
+EXTERNAL_APP_KEYS = [app_key for app_key in env("EXTERNAL_APP_KEYS").split(",") if app_key]
 EXTERNAL_MIDDLEWARES = [
     middleware for middleware in env("EXTERNAL_MIDDLEWARES").split(",") if middleware
 ]
 
-
-# Application definition
-
+# Apps definition
 DEFAULT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

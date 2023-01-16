@@ -790,13 +790,13 @@ paths:
               count:
                 description: Data items count.
                 type: number
-              next:
-                description: URI to the next data chunk.
+              previous:
+                description: URI to the previous data chunk.
                 type: string
                 format: uri
                 x-nullable: true
-              previous:
-                description: URI to the previous data chunk.
+              next:
+                description: URI to the next data chunk.
                 type: string
                 format: uri
                 x-nullable: true
@@ -971,6 +971,7 @@ definitions:
         description: Permission on this project.
         type: string
         enum:
+          - OWNER
           - ADMIN
           - DEVELOPER
           - VIEWER
@@ -991,6 +992,18 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+      category:
+        title: Category
+        description: Project's category.
+        type: string
+        enum:
+          - NOT ESPECIFIED
+          - E-COMMERCE
+          - LOGISTICS
+          - FINANCE
+          - EDUCATIONAL
+          - TECHNOLOGY
+          - OTHER_CATEGORY
       container_image:
         title: Container image
         description: Path of the project's container image.

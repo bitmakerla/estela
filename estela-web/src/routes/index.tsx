@@ -8,7 +8,6 @@ import { NotificationsSettingsPage } from "../components/NotificationsSettingsPa
 import { ProjectListPage } from "../components/ProjectListPage";
 import { ProjectDetailPage } from "../components/ProjectDetailPage";
 import { ProjectSettingsPage } from "../components/ProjectSettingsPage";
-import { ProjectCreatePage } from "../components/ProjectCreatePage";
 import { ProjectMemberPage } from "../components/ProjectMemberPage";
 import { ProjectJobListPage } from "../components/ProjectJobListPage";
 import { ProjectCronJobListPage } from "../components/ProjectCronJobListPage";
@@ -17,7 +16,6 @@ import { DeployListPage } from "../components/DeployListPage";
 import { SpiderListPage } from "../components/SpiderListPage";
 import { SpiderDetailPage } from "../components/SpiderDetailPage";
 import { JobDetailPage } from "../components/JobDetailPage";
-import { JobCreatePage } from "../components/JobCreatePage";
 import { CronJobListPage } from "../components/CronJobListPage";
 import { CronJobCreatePage } from "../components/CronJobCreatePage";
 import { CronJobDetailPage } from "../components/CronJobDetailPage";
@@ -39,7 +37,6 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/notifications/inbox" component={NotificationsInboxPage} exact />
                 <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
                 <Route path="/projects" component={ProjectListPage} exact />
-                <Route path="/projects/create" component={ProjectCreatePage} exact />
                 <Route path="/projects/:projectId" component={ProjectDetailPage} exact />
                 <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
                 <Route path="/projects/:projectId/settings" component={ProjectSettingsPage} exact />
@@ -50,7 +47,6 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
                 <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
                 <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
-                <Route path="/projects/:projectId/spiders/:spiderId/jobs/create" component={JobCreatePage} exact />
                 <Route
                     path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType"
                     component={JobDataListPage}
