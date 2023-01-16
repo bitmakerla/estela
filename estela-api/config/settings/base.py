@@ -53,7 +53,7 @@ env = environ.Env(
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(str, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
-    JOB_MIN_RAM_LIMIT=(str, "256Mi"),
+    JOB_MIN_RAM_LIMIT=(str, "128Mi"),
     JOB_MAX_RAM_LIMIT=(str, "1Gi"),
 )
 
