@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import moment from "moment";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, LinearScale } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import {
     Layout,
@@ -59,7 +59,7 @@ const { Content } = Layout;
 const { Text, Paragraph } = Typography;
 const { Option } = Select;
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, LinearScale, Tooltip, Legend);
 
 interface Dictionary {
     [Key: string]: string;
