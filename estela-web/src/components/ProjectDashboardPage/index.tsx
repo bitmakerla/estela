@@ -8,7 +8,7 @@ import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
     Project,
-    ProjectUsage,
+    UsageRecord,
     ProjectJob,
     SpiderJob,
 } from "../../services/api";
@@ -34,7 +34,7 @@ interface ProjectDashboardPageState {
     name: string;
     jobs: SpiderJobData[];
     network: number;
-    processingTime: string | undefined;
+    processingTime: string;
     storage: number;
     projectUseLoaded: boolean;
     loaded: boolean;
@@ -116,7 +116,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 },
             );
             this.getJobs(1);
-            this.getCurrentUsage();
+            this.getUsageRecords();
         }
     }
 
@@ -139,14 +139,14 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         });
     };
 
-    getCurrentUsage = async (): Promise<void> => {
-        await this.apiService.apiProjectsCurrentUsage({ pid: this.projectId }).then((response: ProjectUsage) => {
+    getUsageRecords = async (): Promise<void> => {
+        await this.apiService.apiProjectsUsage({ pid: this.projectId }).then((response: UsageRecord[]) => {
+            const time = String(response[0].processingTime);
             this.setState({
-                network: Number(response.networkUsage),
-                processingTime: response.processingTime,
-                storage:
-                    Number(response.itemsDataSize) + Number(response.requestsDataSize) + Number(response.logsDataSize),
                 projectUseLoaded: true,
+                network: response[0].networkUsage,
+                processingTime: time.substring(0, time.indexOf(":", time.indexOf(":") + 1) + 3),
+                storage: response[0].itemsDataSize + response[0].requestsDataSize + response[0].logsDataSize,
             });
         });
     };
@@ -218,7 +218,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                                     </Text>
                                                     {projectUseLoaded ? (
                                                         <Text className="text-xl my-2 font-bold leading-8">
-                                                            {processingTime} seg
+                                                            {processingTime}
                                                         </Text>
                                                     ) : (
                                                         <Spiner className="my-4" />
