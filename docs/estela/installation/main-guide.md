@@ -25,7 +25,7 @@ estela runs on Linux-based and Unix-like operating systems, but you can also use
 - [Kubectl >= v1.23.x](https://kubernetes.io/docs/tasks/tools/#kubectl){:target="_blank"}  
 - [Helm >= v3.9.x](https://helm.sh/docs/intro/install/){:target="_blank"}  
 - [yarn v1.22.x](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable){:target="_blank"}  
-- [node v18.x](https://nodejs.org/){:target="_blank"}  
+- [node v18.x](https://nodejs.org/){:target="_blank"}
 
 Extra requirements needed for local installation:
 
@@ -34,6 +34,29 @@ Extra requirements needed for local installation:
 
 For the rest of the installation, open a terminal in the _installation_ folder
 of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="_blank"}.
+
+
+You can install the requirements from the command line using:
+{% tabs requirements %}
+  {% tab requirements Ubuntu %}
+  ```bash
+  $ apt-get install docker kubectl heml yarn node
+  ```
+  {% endtab %}
+
+  {% tab requirements Mac %}
+  ```bash
+  $ brew install docker kubectl helm yarn node
+  ```
+  {% endtab %}
+{% endtabs %}
+
+{: .highlight }
+> Please note that docker installation in ``MAC`` will be 
+> better to do using the following resource: 
+> [docker installation docs](https://docs.docker.com/desktop/install/mac-install/){:target="_blank"}
+
+
 
 ## Installation
 

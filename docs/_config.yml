@@ -67,6 +67,25 @@ gh_edit_branch: "main" # the branch that your docs is served from
 # gh_edit_source: docs # the source that your files originate from
 gh_edit_view_mode: "tree" # "tree" or "edit" if you want the user to jump into the editor immediately
 
+plugins:
+  - jekyll-tabs
+
+# Just the Docs
+callouts:
+  highlight:
+    title: Important
+    color: yellow
+    opacity: 0.2
+  warning:
+    title: Warning
+    color: red
+  note:
+    title: Note
+    color: blue
+  note-title:
+    title: Note
+    color: blue
+
 # Google Analytics Tracking
 #ga_tracking: UA-5555555-55
 #ga_tracking_anonymize_ip: true # Use GDPR compliant Google Analytics settings (true by default)
