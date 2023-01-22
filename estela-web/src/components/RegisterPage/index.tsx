@@ -1,16 +1,18 @@
 import React, { Component } from "react";
-import { Button, Form, Input, Layout } from "antd";
+import { Button, Form, Space, Typography, Input, Layout } from "antd";
 import { Link } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthRegisterRequest, Token } from "../../services/api";
+import Bitmaker from "../../assets/logo/bitmaker.svg";
 import { insecurePasswordNotification, emailConfirmationNotification } from "../../shared";
 
 import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
+const { Text } = Typography;
 
 export class RegisterPage extends Component<unknown> {
     apiService = ApiService();
@@ -77,24 +79,24 @@ export class RegisterPage extends Component<unknown> {
     render(): JSX.Element {
         return (
             <Layout className="white-background h-screen container mx-auto">
-                <div className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                     <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
-                        <div className="">
+                        <Content className="">
                             <p className="text-5xl font-bold">
                                 Stable, reliable and <span className="text-estela">open source</span>
                             </p>
                             <p className="text-3xl font-normal py-2 sm:p-auto">
                                 Scraped <span className="text-estela">when</span> you want it.
                             </p>
-                            <p className="text-sm font-normal py-4 flex">
-                                Powered by&nbsp;
-                                <img src="Bitmaker.svg" width="100" className="mx-2" alt="" />
-                            </p>
-                        </div>
+                            <Space className="my-4">
+                                <Text className="text-sm font-normal">Powered by&nbsp;</Text>
+                                <Bitmaker className="w-28 h-12" />
+                            </Space>
+                        </Content>
                     </Content>
                     <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                         <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
-                            <div className="">
+                            <Content className="">
                                 <Form.Item
                                     label="Email"
                                     name="email"
@@ -122,7 +124,7 @@ export class RegisterPage extends Component<unknown> {
                                         className="border-estela rounded-md"
                                     />
                                 </Form.Item>
-                            </div>
+                            </Content>
                             <Button
                                 block
                                 htmlType="submit"
@@ -130,17 +132,17 @@ export class RegisterPage extends Component<unknown> {
                             >
                                 Register
                             </Button>
-                            <div className="text-center text-base m-5">
+                            <Content className="text-center text-base m-5">
                                 <p>If you already have an account. You can</p>
                                 <p>
                                     <Link className="text-estela text-base underline" to="/login">
                                         login here
                                     </Link>
                                 </p>
-                            </div>
+                            </Content>
                         </Form>
                     </Content>
-                </div>
+                </Content>
             </Layout>
         );
     }
