@@ -124,7 +124,7 @@ lint:
 .PHONY: upgrade-release
 upgrade-release:
 	-cd $(INSTALLATION_DIR) && . ./local/.env && cd helm-chart && \
-	 helm upgrade $${RELEASE_NAME} . && helm history $${RELEASE_NAME} && helm get values $${RELEASE_NAME}
+	 pwd && helm upgrade $${RELEASE_NAME} -f values.yaml . && helm history $${RELEASE_NAME} && helm get values $${RELEASE_NAME}
 
 
 .PHONY: rollback-release

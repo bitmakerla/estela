@@ -16,9 +16,11 @@
 summary {
     display: list-item;
     color: #44434d;
+    padding-top: 10px;
 }
 summary::marker {
     color: #1890ff;
+    content: "*";
 }
 
 .main-content .tab li::before{

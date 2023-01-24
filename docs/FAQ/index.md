@@ -14,4 +14,4 @@ If you are working with local resources, you can remove them by running the foll
 ```bash
 $ make delete-resources
 ```
-Look for the local docker images and delete them. If you already passed the [Helm deployment step]({% link estela/installation/main-guide.md %}#3-helm-deployment){:target="_blank"}, some docker volumes were created, delete them too.
+Look for the local docker images and delete them. If you already passed the [Helm deployment step]({% link estela/installation/installation.md %}#3-helm-deployment){:target="_blank"}, some docker volumes were created, delete them too.

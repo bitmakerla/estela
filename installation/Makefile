@@ -2,7 +2,7 @@ API_DIR = ../estela-api
 QUEUING_DIR = ../queueing
 WEB_DIR = ../estela-web
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
-API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.spec.clusterIP}')
 RESOURCES = db registry minio zookeeper kafka
 
 

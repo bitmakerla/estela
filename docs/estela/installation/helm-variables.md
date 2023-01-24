@@ -1,19 +1,11 @@
 ---
 layout: page
-title: Variables Guide
-parent: Installation
+title: Variables Annex
+parent: Getting started
 grand_parent: estela
 ---
 
 # estela Helm Chart variables guide
-
-First, make a copy (in the _helm-chart_ directory) of 
-[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example){:target="_blank"}
-and rename it to `values.yaml`. If you do not need to define an optional 
-variable, fill its value with an empty string `""`. Now, complete the following fields:
-
-_Note_: The values that should be used if the resources have been deployed locally are
-commented in the `values.yaml.example` file.
 
 ## Chart variables
 
