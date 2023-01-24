@@ -13,6 +13,22 @@
     position: relative;
 }
 
+summary {
+    display: list-item;
+    color: #44434d;
+}
+summary::marker {
+    color: #1890ff;
+}
+
+.main-content .tab li::before{
+    content: "";
+}
+
+.main-content .tab-content li::before{
+    content: "";
+}
+
 .tab > * > a {
     display: block;
     text-align: center;

@@ -1,78 +1,185 @@
 ---
-layout: page
+layout: default
 title: Main Guide
 parent: Installation
 grand_parent: estela
+nav_order: 1
 ---
 
-# estela Installation Guide
+# Installation
+{: .no_toc}
 
-The installation can be divided into four parts:
+## Table of contents
+{: .no_toc .text-delta }
 
-1. Set the needed resources to run estela.
-2. Set the environment variables to configure estela.
-3. Deploy the estela modules with Helm.
-4. Build and run the estela web application.
+1. TOC
+{:toc}
 
-Currently, estela is a kubernetes application, but it can be installed on different 
-architectures (soon).
+{:% .note }
+> Currently, estela is a kubernetes application, but it can be installed on different 
+> architectures 🔜.
+
+---
 
 ## Requirements
 
-estela runs on Linux-based and Unix-like operating systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
+<details markdown="block">
+  <summary>
+  Docker v20.10.x with docker-compose
+  </summary>
+ {% tabs requirements %}
+  {% tab requirements Ubuntu %}
+  You could install using the following command
+  ```bash
+  $ apt-get install docker kubectl heml yarn node
+  ```
+  {% endtab %}
 
-- [Docker v20.10.x with *docker-compose*](https://docs.docker.com/get-docker/){:target="_blank"} 
-- [Kubectl >= v1.23.x](https://kubernetes.io/docs/tasks/tools/#kubectl){:target="_blank"}  
-- [Helm >= v3.9.x](https://helm.sh/docs/intro/install/){:target="_blank"}  
-- [yarn v1.22.x](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable){:target="_blank"}  
-- [node v18.x](https://nodejs.org/){:target="_blank"}
-
-Extra requirements needed for local installation:
-
-- Python v3.9.x
-- [Minikube >= v1.25.0](https://minikube.sigs.k8s.io/docs/start/){:target="_blank"}  
-
-For the rest of the installation, open a terminal in the _installation_ folder
-of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="_blank"}.
-
-
-You can install the requirements from the command line using:
-{% tabs requirements %}
+  {% tab requirements macOS %}
+  ```bash
+  $ brew install --cask docker
+  $ brew install kubectl helm yarn node
+  ```
+  {% endtab %}
+ {% endtabs %}
+</details>
+<details markdown="block">
+  <summary>
+  Kubectl >= v1.23.x
+  </summary>
+  dsadasdas
+ {% tabs requirements %}
   {% tab requirements Ubuntu %}
   ```bash
   $ apt-get install docker kubectl heml yarn node
   ```
   {% endtab %}
 
-  {% tab requirements Mac %}
+  {% tab requirements macOS %}
   ```bash
-  $ brew install docker kubectl helm yarn node
+  $ brew install --cask docker
+  $ brew install kubectl helm yarn node
   ```
   {% endtab %}
-{% endtabs %}
+ {% endtabs %}
+</details>
+<details markdown="block">
+  <summary>
+  Helm >= v3.9.x
+  </summary>
+ dsadasdas
+ {% tabs requirements %}
+  {% tab requirements Ubuntu %}
+  ```bash
+  $ apt-get install docker kubectl heml yarn node
+  ```
+  {% endtab %}
+
+  {% tab requirements macOS %}
+  ```bash
+  $ brew install --cask docker
+  $ brew install kubectl helm yarn node
+  ```
+  {% endtab %}
+ {% endtabs %}
+</details>
+
+<details>
+<summary>
+yarn v1.22.x
+</summary>
+</details>
+
+<details>
+<summary>
+node v18.x
+</summary>
+</details>
+
+Extra requirements needed for local installation:
+
+- Python v3.9.x
+- [Minikube >= v1.25.0](https://minikube.sigs.k8s.io/docs/start/){:target="_blank"}  
+
+ {% tabs requirements %}
+  {% tab requirements Ubuntu %}
+  ```bash
+  $ apt-get install docker kubectl heml yarn node
+  ```
+  {% endtab %}
+
+  {% tab requirements macOS %}
+  ```bash
+  $ brew install --cask docker
+  $ brew install kubectl helm yarn node
+  ```
+  {% endtab %}
+ {% endtabs %}
 
 {: .highlight }
-> Please note that docker installation in ``MAC`` will be 
-> better to do using the following resource: 
-> [docker installation docs](https://docs.docker.com/desktop/install/mac-install/){:target="_blank"}
+> Please note that command line installation is a reference and some requirements could be
+> installed in another ways, *i.e.* Install Docker Desktop in **macOS** to satisfy docker
+> requirement: [docker installation docs](https://docs.docker.com/desktop/install/mac-install/){:target="_blank"}
 
+{: .note}
+> estela runs on Linux-based and Unix-like operating systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
 
+---
 
-## Installation
+For the rest of the installation, open a terminal in the _installation_ folder
+of the cloned [estela repository](https://github.com/bitmakerla/estela){:target="_blank"}.
 
-### 1. Resources
+## Resources
 
-Refer to the 
+We will set the needed resources to run estela.  All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
+can be started locally by running this command in the  _installation_ folder:
+
+```bash
+$ make resources
+```
+
+If you want to start only some of the resources, modify the `RESOURCES` variable of the 
+Makefile.
+
+To allow the use of images stored in the local container registry, you need to
+add the following line to the Docker daemon 
+[config file](https://docs.docker.com/config/daemon){:target="_blank"}.
+Then, restart Docker.
+
+```json
+{
+	...
+	"insecure-registries" : [ "<HOST_IP>:5000" ]
+	...
+}
+```
+Where _<HOST\_IP>_ is equal to the output of:
+
+```bash
+$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
+```
+
+Please refer to the 
 [resources guide]({% link estela/installation/resources.md %}){:target="_blank"}
 to complete this step and have all the needed resources up and running.
 
-### 2. Environment Variables
+---
+
+## Environment Variables
+First, make a copy (in the _helm-chart_ directory) of 
+[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example){:target="_blank"}
+and rename it to `values.yaml`. If you do not need to define an optional 
+variable, fill its value with an empty string `""`. Now, complete the following fields:
+
+{:% .note}
+The values that should be used if the resources have been deployed locally are
+commented in the `values.yaml.example` file.
 
 Refer to the
 [variables guide]({% link estela/installation/helm-variables.md %}){:target="_blank"},
 and complete the `helm-chart/values.yaml` file with the appropriate environment values.
 
-### 3. Helm Deployment
+## Helm Deployment
 
 The images of each of the estela modules must be built and uploaded to the Docker
 Container Registry, make sure to do this step before installing the Helm application.
@@ -130,7 +237,7 @@ Now, perform the following steps:
 
 The estela application is now ready to use!
 
-### 4. Web Deployment
+## Web Deployment
 
 To build the estela web application, run:
 
@@ -148,6 +255,7 @@ Visit the [web application](http://localhost:3000/login){:target="_blank"} and s
 creating projects!
 
 ## Uninstalling estela
+{: .no_toc}
 
 To uninstall estela, just run:
 
@@ -156,6 +264,7 @@ $ make uninstall
 ```
 
 ## Final Notes
+{: .no_toc}
 
 If you have installed estela locally, you do not need to repeat all the steps every time 
 you reboot your computer. Once the installation is done, you can start the application 
