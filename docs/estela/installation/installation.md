@@ -17,7 +17,7 @@ nav_order: 1
 
 {: .note }
 > Currently, estela is a kubernetes application, but it can be installed on different 
-> architectures 🔜.
+> architectures in the future 🔜.
 
 ---
 
@@ -28,14 +28,14 @@ nav_order: 1
 Estela projects are built into docker images and added to Docker-Registry. It is
 also necessary to install estela resources.
 
-It is recommended to install `docker-desktop` that includes docker and docker-compose. 
+It is recommended to install `docker-desktop` which includes docker and docker-compose. 
 A detailed guide on how to install can be found [here](https://docs.docker.com/get-docker/){:target="_blank"}.
 
 #### Kubectl >= v1.23.x
 {: .no_toc}
 The Kubernetes command-line tool, kubectl, allows you to run commands against Kubernetes clusters. 
 
-To install `kubectl` you can use following command-line code according your OS:
+To install `kubectl` you can use following command-line code according to your OS:
 {% tabs requirements %}
   {% tab requirements macOS %}
   ```bash
@@ -56,14 +56,14 @@ To install `kubectl` you can use following command-line code according your OS:
 {% endtabs %}
 
 {: .note }
-Detailed installation guide can be found [here](https://kubernetes.io/docs/tasks/tools/){:target="_blank"}
+A detailed installation guide can be found [here](https://kubernetes.io/docs/tasks/tools/){:target="_blank"}
 
 #### Helm >= v3.9.x
 {: .no_toc}
 
 Helm is a package manager for Kubernetes. 
 
-To install `Helm` you can use the following command-line code according your OS:
+To install `Helm` you can use the following command-line code according to your OS:
 
 {% tabs requirements %}
   {% tab requirements macOS %}
@@ -87,7 +87,7 @@ To install `Helm` you can use the following command-line code according your OS:
 
 Node is an open-source, cross-platform JavaScript runtime environment. 
 
-To install `node` you can use the following command-line code according your OS:
+To install `node` you can use the following command-line code according to your OS:
 
 {% tabs requirements %}
   {% tab requirements macOS %}
@@ -122,8 +122,7 @@ Local installation will require:
 #### Python v3.9.x
 {: .no_toc}
 
-Please refer to https://www.python.org/downloads/ and install the appropiate version of python
-according your SO.
+Please refer to https://www.python.org/downloads/ and install the appropiate version of python according to your SO.
 
 #### Minikube >= v1.25.0
 {: .no_toc}
@@ -148,7 +147,7 @@ To install `minikube` you can use the following command-line code:
 
 ---
 
-You can use the following command-line to check if every requirement is satisfied:
+You can use the following command-line code to check if every requirement is satisfied:
 ```bash
 $ kubectl version --short 2>/dev/null; helm version --short; yarn --version --short; node --version; python --version; minikube version --short; docker --version
 ```
@@ -165,11 +164,11 @@ Docker version 20.10.14, build a224086
 ```
 
 {: .highlight }
-> Please note that command line installation is a reference and some requirements could be
-> installed in another ways, i.e. using binaries. 
+> Please note that command line installation is a reference 
+> and some requirements could be installed in other ways, such as using binaries. 
 
 {: .highlight }
-> To use the above command-line instructions in macOS you need to install [homebrew](https://brew.sh/)
+> To use the above command-line instructions on macOS you need to install [homebrew](https://brew.sh/)
 
 {: .note}
 > estela runs on Linux-based and Unix-like operating systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
@@ -211,7 +210,7 @@ $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 
 Please refer to the 
 [resources annex]({% link estela/installation/resources.md %}){:target="_blank"}
-to have a detailed information of the resources needed by estela.
+for detailed information about the resources needed by Estela.
 
 ---
 
@@ -233,43 +232,44 @@ commented in the `helm-chart/values.yaml.example` file.
 
 ## Helm Deployment
 
-The images of each of the estela modules must be built and uploaded to the Docker
-Container Registry, make sure to do this step before installing the Helm application.
+The images for all Estela modules must be built and uploaded to the Docker Container Registry prior to installing the Helm application.
 
-If you are using a local registry, you can build and upload the images by running:
+If you are using a local registry, you can build and upload the images by running the 
+following:
 
 ```bash
 $ make images
 ```
 
-The Helm deployment needs a release name and a namespace to identify the current version
+The Helm deployment requires a release name and a namespace to identify the current version
 of the installed application. By default, the values of these variables are `base` and 
-`default` respectively.
+`default`, respectively.
 
-Now, perform the following steps:
+To proceed with the installation, perform the following steps:
 
-* Install the helm application:
+* Install the Helm application by running:
 
    ```
    $ make install
    ```
 
-* If you are using Minikube, you need an external IP for the API Django service, please 
-  run this command in a new terminal:
+* If you are using Minikube, you will need an external IP for the API Django service. 
+  To obtain this, please run the following command in a new terminal:
 
   ```
   $ minikube tunnel
   ```
 
-* Now, some settings need to be applied for estela to work properly. For example,
-  update the application with the value of the Django service external IP, perform the 
-  migrations, and the creation of the needed Django super users.
+* Now, we will need to apply necessary settings for Estela to function properly. 
+  This includes updating the application with the value of the Django service 
+  external IP, performing migrations, and creating the needed Django superusers. 
+  This can be done by running:
 
   ```
   $ make setup
   ```
 
-* If you are using the local resources, specifically MinIO, you need to create a 
+* If you are using the local resources, specifically MinIO, you will need to create a 
   public bucket with the name specified in the 
   [_BUCKET\_NAME\_PROJECTS_]({% link estela/installation/helm-variables.md %}#registry){:target="_blank"}
   variable.
@@ -281,7 +281,7 @@ Now, perform the following steps:
 	click the _Manage_ button of the newly created bucket, and change the _Access Policy_
 	to _public_.
 
-* You can create a new super user to manage and use estela.
+* You can create a new superuser to manage and use estela by running:
 
   ```
   $ make createsuperuser
@@ -299,7 +299,7 @@ To build the estela web application, run:
 $ make build-web
 ```
 
-Then, execute the web application locally:
+Then, execute the web application locally by running:
 
 ```bash
 $ make run-web
@@ -309,7 +309,7 @@ Visit the [web application](http://localhost:3000/login){:target="_blank"} and s
 creating projects!
 
 {:% .note }
-You can use the superuser credentials that you set with `make createsuperuser` to login the in the [web application](http://localhost:3000/login).
+You can use the superuser credentials that you set with `make createsuperuser` to login to the [web application](http://localhost:3000/login).
 
 
 ---
@@ -317,7 +317,7 @@ You can use the superuser credentials that you set with `make createsuperuser` t
 ## Uninstalling estela
 {: .no_toc}
 
-To uninstall estela, just run:
+To uninstall estela, simply run:
 
 ```
 $ make uninstall
@@ -329,8 +329,8 @@ $ make uninstall
 {: .no_toc}
 
 If you have installed estela locally, you do not need to repeat all the steps every time 
-you reboot your computer. Once the installation is done, you can start the application 
-and the resources with:
+you reboot your computer. Once the installation is complete, you can start the application 
+and resources with:
 
 ```bash
 $ make start
