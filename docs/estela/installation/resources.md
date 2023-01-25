@@ -5,7 +5,7 @@ parent: Getting started
 grand_parent: estela
 ---
 
-# estela Resources Guide
+# estela Resources Annex
 
 estela needs the following resources to run:
 

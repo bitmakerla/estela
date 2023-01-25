@@ -181,7 +181,7 @@ of the cloned [estela repository](https://github.com/bitmakerla/estela){:target=
 
 ## Resources
 
-We will set the needed resources to run estela.  All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
+All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
 can be started locally by running this command in the  _installation_ folder:
 
 ```bash
@@ -211,7 +211,7 @@ $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 
 Please refer to the 
 [resources annex]({% link estela/installation/resources.md %}){:target="_blank"}
-to complete this step and have all the needed resources up and running.
+to have a detailed information of the resources needed by estela.
 
 ---
 
@@ -219,15 +219,15 @@ to complete this step and have all the needed resources up and running.
 First, make a copy (in the _helm-chart_ directory) of 
 [`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example){:target="_blank"}
 and rename it to `values.yaml`. If you do not need to define an optional 
-variable, fill its value with an empty string `""`. Now, complete the following fields:
-
-{:% .note}
-The values that should be used if the resources have been deployed locally are
-commented in the `values.yaml.example` file.
+variable, fill its value with an empty string `""`.
 
 Refer to the
 [variables annex]({% link estela/installation/helm-variables.md %}){:target="_blank"},
 and complete the `helm-chart/values.yaml` file with the appropriate environment values.
+
+{:% .note}
+The values that should be used if the resources have been deployed locally are
+commented in the `helm-chart/values.yaml.example` file.
 
 ---
 
@@ -307,6 +307,10 @@ $ make run-web
 
 Visit the [web application](http://localhost:3000/login){:target="_blank"} and start
 creating projects!
+
+{:% .note }
+You can use the superuser credentials that you set with `make createsuperuser` to login the in the [web application](http://localhost:3000/login).
+
 
 ---
 

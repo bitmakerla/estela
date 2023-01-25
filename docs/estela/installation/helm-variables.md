@@ -5,7 +5,7 @@ parent: Getting started
 grand_parent: estela
 ---
 
-# estela Helm Chart variables guide
+# estela Helm Chart variables Annex
 
 ## Chart variables
 
