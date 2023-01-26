@@ -7,13 +7,14 @@ import { ApiService, AuthService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import Bug from "../../assets/icons/bug.svg";
 import FolderDotted from "../../assets/icons/folderDotted.svg";
+import WelcomeProjects from "../../assets/images/welcomeProjects.svg";
 import history from "../../history";
 import { ApiProjectsListRequest, ApiProjectsCreateRequest, Project, ProjectCategoryEnum } from "../../services/api";
 import { authNotification, incorrectDataNotification, Header, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Option } = Select;
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
 
 interface ProjectList {
     name: string;
@@ -30,6 +31,7 @@ interface ProjectsPageState {
     count: number;
     current: number;
     modalNewProject: boolean;
+    modalWelcome: boolean;
     newProjectName: string;
     newProjectCategory: ProjectCategoryEnum;
 }
@@ -45,6 +47,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         count: 0,
         current: 0,
         modalNewProject: false,
+        modalWelcome: false,
         newProjectName: "",
         newProjectCategory: ProjectCategoryEnum.NotEspecified,
     };
@@ -107,7 +110,13 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                     key: id,
                 };
             });
-            this.setState({ projects: [...projectData], count: data.count, current: data.current, loaded: true });
+            this.setState({
+                projects: [...projectData],
+                count: data.count,
+                current: data.current,
+                loaded: true,
+                modalWelcome: data.count === 0,
+            });
         }
     }
 
@@ -171,11 +180,13 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             count: data.count,
             current: data.current,
             loaded: true,
+            modalWelcome: data.count === 0,
         });
     };
 
     render(): JSX.Element {
-        const { projects, count, current, loaded, modalNewProject, newProjectName, newProjectCategory } = this.state;
+        const { projects, count, current, loaded, modalNewProject, modalWelcome, newProjectName, newProjectCategory } =
+            this.state;
         return (
             <Layout className="h-screen">
                 <Header />
@@ -183,6 +194,46 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                     {loaded ? (
                         <Fragment>
                             <Content className="mx-4">
+                                <Modal
+                                    open={modalWelcome}
+                                    footer={false}
+                                    width={990}
+                                    onCancel={() => {
+                                        this.setState({ modalWelcome: false });
+                                    }}
+                                >
+                                    <Row className="py-8 px-4" align="middle">
+                                        <Col span={16}>
+                                            <Text className="text-estela font-bold text-4xl">WELCOME SCRAPER!</Text>
+                                            <Paragraph className="text-xl mt-6">
+                                                Start by creating a <Text strong>project</Text> to be able to deploy
+                                                your spiders and start with your scraping.
+                                            </Paragraph>
+                                            <Paragraph className="text-lg font-bold">
+                                                Remember to install the&nbsp;
+                                                <a
+                                                    target="_blank"
+                                                    href="https://estela.bitmaker.la/docs/"
+                                                    rel="noreferrer"
+                                                >
+                                                    <Text className="text-estela underline">estela CLI</Text>
+                                                </a>
+                                                &nbsp;to be able to deploy your spiders!
+                                            </Paragraph>
+                                            <Button
+                                                className="mt-6 w-96 h-14 rounded-md bg-estela text-white hover:border-estela hover:text-estela"
+                                                onClick={() => {
+                                                    this.setState({ modalWelcome: false, modalNewProject: true });
+                                                }}
+                                            >
+                                                Start new project
+                                            </Button>
+                                        </Col>
+                                        <Col span={8}>
+                                            <WelcomeProjects className="w-72 h-72" />
+                                        </Col>
+                                    </Row>
+                                </Modal>
                                 <Space direction="vertical" className="mx-8">
                                     <Content className="float-left">
                                         <Text className="text-3xl">
