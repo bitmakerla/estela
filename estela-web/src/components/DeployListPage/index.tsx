@@ -149,7 +149,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     }
 
     handleCloseModal = (): void => {
-        this.setState({ ...this.state, modalIsOpen: false });
+        this.setState({ modalIsOpen: false });
     };
 
     render(): JSX.Element {
@@ -179,13 +179,13 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 <Text className="font-bold"> deploy </Text> your spiders.
                                             </Paragraph>
                                             <Paragraph className="font-bold text-lg">
-                                                Check all our documentation
+                                                Check all our documentation&nbsp;
                                                 <a
                                                     target="_blank"
                                                     href="https://estela.bitmaker.la/docs/"
                                                     rel="noreferrer"
                                                 >
-                                                    <Text className="text-estela underline"> here! </Text>
+                                                    <Text className="text-estela underline">here!</Text>
                                                 </a>
                                             </Paragraph>
                                         </Col>
