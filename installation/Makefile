@@ -3,6 +3,7 @@ QUEUING_DIR = ../queueing
 WEB_DIR = ../estela-web
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.spec.clusterIP}')
+LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 RESOURCES = db registry minio zookeeper kafka
 
 
@@ -118,7 +119,7 @@ setup: update-api-ip makemigrations migrate restart-celery-beat create-minio-sup
 .PHONY: build-web
 build-web:
 	-. ./local/.env && cd $(WEB_DIR) && \
-	 echo "REACT_APP_API_BASE_URL=http://$(API_IP)" > .env.development
+	 echo "REACT_APP_API_BASE_URL=http://$(LOCAL_API_IP)" > .env.development
 	-cd $(WEB_DIR) && yarn install
 
 
