@@ -147,20 +147,16 @@ To install `minikube` you can use the following command-line code:
 
 ---
 
-You can use the following command-line code to check if every requirement is satisfied:
+You can use the `installation/check_requirements.sh` script to verify that all requirements have been met. For example, here is an example of a successful setup:
 ```bash
-$ kubectl version --short 2>/dev/null; helm version --short; yarn --version --short; node --version; python --version; minikube version --short; docker --version
-```
-An example of expected output is the following:
-```bash
-Client Version: v1.26.1
-Kustomize Version: v4.5.7
-v3.11.0+g472c573
-1.22.19
-v19.4.0
-Python 3.9.12
-v1.28.0
-Docker version 20.10.14, build a224086
+$ bash installation/check_requirements.sh 
+docker version is correct: 20.10.14,
+kubectl version is correct: v1.26.1
+helm version is correct: v3.11.0+g472c573
+yarn version is correct: 1.22.19
+node version is correct: v18.0.0
+python version is correct: 3.9.12
+minikube version is correct: v1.28.0
 ```
 
 {: .highlight }
@@ -198,7 +194,7 @@ Then, restart Docker.
 ```json
 {
 	...
-	"insecure-registries" : [ "<HOST_IP>:5000" ]
+	"insecure-registries" : [ "<HOST_IP>:5001" ]
 	...
 }
 ```
