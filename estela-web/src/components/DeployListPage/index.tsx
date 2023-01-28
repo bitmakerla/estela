@@ -267,7 +267,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 </p>
                                                 <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
                                                     <p className=" text-white">
-                                                        $ github clone https://github.com/scrapy/quotesbot.git
+                                                        $ git clone https://github.com/scrapy/quotesbot.git
                                                     </p>
                                                     <p className=" text-white ">$ estela login</p>
                                                     <p className=" text-white ">Host [http://localhost]:</p>
