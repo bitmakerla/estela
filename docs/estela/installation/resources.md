@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Resources Annex
+title: Resources Appendix
 parent: Getting started
 grand_parent: estela
 ---
 
-# estela Resources Annex
+# estela Resources Appendix
 
 estela needs the following resources to run:
 

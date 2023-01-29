@@ -16,8 +16,8 @@ nav_order: 1
 {:toc}
 
 {: .note }
-> Currently, estela is a kubernetes application, but it can be installed on different 
-> architectures in the future 🔜.
+> Currently, estela is a kubernetes application, but it can be extended to support
+> different architectures 🔜.
 
 ---
 
@@ -29,7 +29,7 @@ Estela projects are built into docker images and added to Docker-Registry. It is
 also necessary to install estela resources.
 
 It is recommended to install `docker-desktop` which includes docker and docker-compose. 
-A detailed guide on how to install can be found [here](https://docs.docker.com/get-docker/){:target="_blank"}.
+A detailed guide on how to install it can be found [here](https://docs.docker.com/get-docker/){:target="_blank"}.
 
 #### Kubectl >= v1.23.x
 {: .no_toc}
@@ -122,7 +122,8 @@ Local installation will require:
 #### Python v3.9.x
 {: .no_toc}
 
-Please refer to https://www.python.org/downloads/ and install the appropiate version of python according to your SO.
+Please refer to [https://www.python.org/downloads/](https://www.python.org/downloads/) and install the appropiate version
+of Python according to your operating system.
 
 #### Minikube >= v1.25.0
 {: .no_toc}
@@ -164,10 +165,11 @@ minikube version is correct: v1.28.0
 > and some requirements could be installed in other ways, such as using binaries. 
 
 {: .highlight }
-> To use the above command-line instructions on macOS you need to install [homebrew](https://brew.sh/)
+> To use the above command-line instructions on macOS you need to install [homebrew](https://brew.sh/).
 
 {: .note}
-> estela runs on Linux-based and Unix-like operating systems, but you can also use Windows Subsystem for Linux ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
+> estela runs on Linux-based and Unix-like operating systems. Still, you can use Windows Subsystem for Linux
+> ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
 
 ---
 
@@ -184,7 +186,7 @@ $ make resources
 ```
 
 If you want to start only some of the resources, modify the `RESOURCES` variable of the 
-Makefile.
+`Makefile`.
 
 To allow the use of images stored in the local container registry, you need to
 add the following line to the Docker daemon 
@@ -205,7 +207,7 @@ $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
 ```
 
 Please refer to the 
-[resources annex]({% link estela/installation/resources.md %}){:target="_blank"}
+[resources appendix]({% link estela/installation/resources.md %}){:target="_blank"}
 for detailed information about the resources needed by Estela.
 
 ---
@@ -217,7 +219,7 @@ and rename it to `values.yaml`. If you do not need to define an optional
 variable, fill its value with an empty string `""`.
 
 Refer to the
-[variables annex]({% link estela/installation/helm-variables.md %}){:target="_blank"},
+[variables appendix]({% link estela/installation/helm-variables.md %}){:target="_blank"},
 and complete the `helm-chart/values.yaml` file with the appropriate environment values.
 
 {:% .note}

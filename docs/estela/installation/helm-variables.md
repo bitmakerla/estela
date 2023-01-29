@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Variables Annex
+title: Variables Appendix
 parent: Getting started
 grand_parent: estela
 ---
 
-# estela Helm Chart variables Annex
+# estela Helm Chart variables Appendix
 
 ## Chart variables
 
