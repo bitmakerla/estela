@@ -7,24 +7,12 @@ LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-servic
 RESOURCES = db registry minio zookeeper kafka
 
 
-ifeq ($(OS),Windows_NT)
-	DOCKER_COMPOSE = docker compose
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		DOCKER_COMPOSE = docker-compose
-	else # OSX
-		DOCKER_COMPOSE = docker compose
-	endif
-endif
-
-
 .PHONY: resources
 resources:
 	-minikube start
 	-echo "$$(minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1')" > tmp
 	-python3 local/start-environment.py
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml up ${RESOURCES} -d
+	-docker compose -f local/docker-compose.yaml up ${RESOURCES} -d
 	-minikube delete
 	-. ./local/.env && minikube start \
 		   --insecure-registry=$${HOST_REGISTRY} \
@@ -36,8 +24,8 @@ resources:
 
 .PHONY: delete-resources
 delete-resources:
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml down
-	-minikube delete --all --purge
+	-docker compose -f local/docker-compose.yaml down
+	-minikube delete
 
 
 .PHONY: build-all-images
@@ -130,11 +118,11 @@ run-web:
 
 .PHONY: start
 start:
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml up ${RESOURCES} -d
+	-docker compose -f local/docker-compose.yaml up ${RESOURCES} -d
 	-minikube start
 
 
 .PHONY: stop
 stop:
 	-minikube stop
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml stop
+	-docker compose -f local/docker-compose.yaml stop
