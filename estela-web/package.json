@@ -7,6 +7,7 @@
     "antd": "^4.24.0",
     "chart.js": "^4.1.1",
     "cronstrue": "^2.19.0",
+    "file-loader": "^6.2.0",
     "follow-redirects": "^1.14.8",
     "hosted-git-info": "^2.8.9",
     "node-fetch": "^2.6.7",

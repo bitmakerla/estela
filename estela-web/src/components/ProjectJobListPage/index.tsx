@@ -118,7 +118,8 @@ interface ProjectJobListPageState {
     newEnvVarName: string;
     newEnvVarValue: string;
     newTagName: string;
-    modal: boolean;
+    modalJob: boolean;
+    modalBilling: boolean;
     loaded: boolean;
     count: number;
     current: number;
@@ -155,7 +156,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         newEnvVarName: "",
         newEnvVarValue: "",
         newTagName: "",
-        modal: this.LocationState ? this.LocationState.open : false,
+        modalJob: this.LocationState ? this.LocationState.open : false,
+        modalBilling: this.LocationState ? this.LocationState.open : false,
         loadedSpiders: false,
         tableStatus: new Array<boolean>(4).fill(true),
         loaded: false,
@@ -388,6 +390,10 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         }
     };
 
+    setModalBilling = (modalValue: boolean) => {
+        this.setState({ modalBilling: modalValue });
+    };
+
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         const {
             target: { value, name },
@@ -440,9 +446,15 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             (response: SpiderJobCreate) => {
                 history.push(`/projects/${this.projectId}/spiders/${this.state.spiderId}/jobs/${response.jid}`);
             },
-            (error: unknown) => {
-                console.error(error);
-                incorrectDataNotification();
+            async (error) => {
+                const data = await error.json();
+                if (data.type && data.type === "BillingError") {
+                    this.setState({ modalBilling: true });
+                    invalidDataNotification(data.error ?? "some error occurred try again later");
+                } else {
+                    incorrectDataNotification();
+                }
+                this.setState({ modalJob: false });
             },
         );
     };
@@ -454,7 +466,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             spiders,
             tableStatus,
             errorJobs,
-            modal,
+            modalJob,
+            modalBilling,
             args,
             envVars,
             completedJobs,
@@ -469,6 +482,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             newTagName,
             tags,
         } = this.state;
+
         return (
             <Layout>
                 <Header />
@@ -489,24 +503,15 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 icon={<Run className="mr-2" width={19} />}
                                                 size="large"
                                                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                onClick={() => this.setState({ modal: true })}
+                                                onClick={() => this.setState({ modalJob: true })}
                                             >
                                                 Run new job
                                             </Button>
-                                            <CardNotification open={modal} />
-                                            {/* <Modal
-                                                style={{
-                                                    overflow: "hidden",
-                                                    padding: 0,
-                                                }}
-                                                centered
-                                                width={600}
-                                                open={modal}
-                                                onCancel={() => this.setState({ modal: false })}
-                                                footer={null}
-                                            >
-                                                <CardNotification />
-                                            </Modal> */}
+                                            <CardNotification
+                                                key={+modalBilling}
+                                                open={modalBilling}
+                                                setOpen={this.setModalBilling}
+                                            />
                                             <Modal
                                                 style={{
                                                     overflow: "hidden",
@@ -514,9 +519,9 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 }}
                                                 centered
                                                 width={450}
-                                                open={false}
+                                                open={modalJob}
                                                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
-                                                onCancel={() => this.setState({ modal: false })}
+                                                onCancel={() => this.setState({ modalJob: false })}
                                                 footer={null}
                                             >
                                                 <Row>
@@ -683,7 +688,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                     <Button
                                                         size="large"
                                                         className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                        onClick={() => this.setState({ modal: false })}
+                                                        onClick={() => this.setState({ modalJob: false })}
                                                     >
                                                         Cancel
                                                     </Button>

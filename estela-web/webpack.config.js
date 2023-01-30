@@ -8,7 +8,7 @@ module.exports = (env) => {
         entry: "./src/index.ts",
         devtool: "inline-source-map",
         output: {
-            publicPath: env.publicPath ?  `${env.publicPath}` : "http://localhost:3000/",
+            publicPath: env.publicPath ? `${env.publicPath}` : "http://localhost:3000/",
         },
 
         resolve: {
@@ -52,6 +52,15 @@ module.exports = (env) => {
                         {
                             loader: "@svgr/webpack",
                             options: { babel: false, icon: true },
+                        },
+                    ],
+                },
+                {
+                    test: /\.(png)$/,
+                    use: [
+                        {
+                            loader: "file-loader",
+                            options: {},
                         },
                     ],
                 },

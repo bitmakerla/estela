@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Col, Row, Layout, Modal, Typography, Image, Space, Button } from "antd";
 
+import CloudStorage from "../../assets/images/cloud-storage.png";
 import "./styles.scss";
 import history from "../../history";
 
@@ -9,10 +10,13 @@ const { Content } = Layout;
 
 interface IState {
     open: boolean;
+    setOpen: (modalValue: boolean) => void;
 }
 
 export class CardNotification extends Component<IState> {
     openModal: boolean = this.props.open;
+    setOpenModal = this.props.setOpen;
+
     render(): JSX.Element {
         return (
             <Modal
@@ -23,7 +27,7 @@ export class CardNotification extends Component<IState> {
                 centered
                 width={600}
                 open={this.openModal}
-                onCancel={() => this.setState({ modal: false })}
+                onCancel={() => this.setOpenModal(false)}
                 footer={null}
             >
                 <Content>
@@ -36,7 +40,7 @@ export class CardNotification extends Component<IState> {
                             <Text className="text-2xl font-medium">unlimited resources,</Text>
                         </Space>
                         <Col className="col-span-2 my-auto">
-                            <Image width={200} src="../../assets/images/cloud-storage.png" />
+                            <Image width={200} src={CloudStorage} />
                         </Col>
                     </Row>
                     <Row className="m-2">
