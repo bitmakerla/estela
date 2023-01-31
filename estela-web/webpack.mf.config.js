@@ -62,7 +62,7 @@ module.exports = (env) => {
                 name: "estela_web",
                 filename: "remoteEntry.js",
                 remotes: {
-                    ExternalDropdownComponent: `user_dropdown_module@${env.remoteURL}remoteEntry.js`,
+                    BillingModule: `user_dropdown_module@${env.remoteURL}remoteEntry.js`,
                 },
                 exposes: {
                     "./header": "./src/shared/header/index.tsx",

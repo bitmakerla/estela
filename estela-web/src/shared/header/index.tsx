@@ -13,7 +13,7 @@ import ArrowDown from "../../assets/icons/arrowDown.svg";
 import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
 import Logout from "../../assets/icons/logout.svg";
-import userDropdownSidenavItems from "ExternalDropdownComponent/DropdownComponent";
+import userDropdownSidenavItems from "BillingModule/DropdownComponent";
 
 const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];

@@ -41,9 +41,9 @@ import {
     ProjectSidenav,
     Header,
     Spin,
-    CardNotification,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
+import { CardNotification } from "BillingModule/CardNotification";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -506,11 +506,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             >
                                                 Run new job
                                             </Button>
-                                            <CardNotification
-                                                key={+modalBilling}
-                                                open={modalBilling}
-                                                setOpen={this.setModalBilling}
-                                            />
+                                            <CardNotification open={modalBilling} setOpen={this.setModalBilling} />
                                             <Modal
                                                 style={{
                                                     overflow: "hidden",
