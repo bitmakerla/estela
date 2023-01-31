@@ -450,7 +450,6 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 const data = await error.json();
                 if (data.type && data.type === "BillingError") {
                     this.setState({ modalBilling: true });
-                    invalidDataNotification(data.error ?? "some error occurred try again later");
                 } else {
                     incorrectDataNotification();
                 }

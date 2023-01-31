@@ -55,15 +55,6 @@ module.exports = (env) => {
                         },
                     ],
                 },
-                {
-                    test: /\.(png)$/,
-                    use: [
-                        {
-                            loader: "file-loader",
-                            options: {},
-                        },
-                    ],
-                },
                 { test: /\.json$/, type: "json" },
             ],
         },
