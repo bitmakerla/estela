@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-from urllib.parse import urlparse
-import environ
 from pathlib import Path
+from urllib.parse import urlparse
+
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -35,6 +36,9 @@ env = environ.Env(
     EXTERNAL_MIDDLEWARES=(str, ""),
     KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "dummy"),
+    REDIS_URL=(str, "redis://redis"),
+    REDIS_STATS_KEY=(str, "scrapy_stats"),
+    REDIS_STATS_INTERVAL=(str, "1.0"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
@@ -233,6 +237,12 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 KAFKA_HOSTS = env("KAFKA_HOSTS")
 KAFKA_PORT = env("KAFKA_PORT")
+
+# Redis settings for job stats
+
+REDIS_URL = env("REDIS_URL")
+REDIS_STATS_KEY = env("REDIS_STATS_KEY")
+REDIS_STATS_INTERVAL = env("REDIS_STATS_INTERVAL")
 
 
 # Cluster settings

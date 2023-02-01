@@ -1,17 +1,20 @@
-from datetime import date, timedelta
+from datetime import timedelta
+
+import redis
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
-from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 
 from api.filters import SpiderJobFilter
 from api.mixins import BaseViewSet
 from api.serializers.job import (
-    SpiderJobSerializer,
     SpiderJobCreateSerializer,
+    SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
 from config.job_manager import job_manager
@@ -35,6 +38,10 @@ class SpiderJobViewSet(
     MAX_PAGINATION_SIZE = 100
     MIN_PAGINATION_SIZE = 1
     DEFAULT_PAGINATION_SIZE = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.redis_conn = redis.from_url(settings.REDIS_URL)
 
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
@@ -158,6 +165,27 @@ class SpiderJobViewSet(
 
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def retrieve(self, request, *args, jid=None, **kwargs):
+        job = get_object_or_404(self.queryset, jid=jid)
+        if job.status == SpiderJob.RUNNING_STATUS:
+            job_stats = self.redis_conn.hgetall(f"{settings.REDIS_STATS_KEY}_{job.key}")
+            job.lifespan = timedelta(
+                seconds=int(float(job_stats.get(b"elapsed_time", b"0").decode()))
+            )
+            job.total_response_bytes = int(
+                job_stats.get(b"response_bytes", b"0").decode()
+            )
+            job.item_count = int(job_stats.get(b"item_scraped_count", b"0").decode())
+            job.request_count = int(job_stats.get(b"request_count", b"0").decode())
+            print(f"THE JOB STATS RUNNING {job_stats}")
+        else:
+            print(f"THE JOB STATS NOT RUNNING")
+
+        serializer = SpiderJobSerializer(job)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)

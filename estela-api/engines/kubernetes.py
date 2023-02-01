@@ -1,8 +1,9 @@
 from distutils.command.build import build
+from json import dumps
+
 from django.conf import settings
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
-from json import dumps
 
 
 class KubernetesEngine:
@@ -121,6 +122,9 @@ class KubernetesEngine:
             [
                 ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
                 ("KAFKA_ADVERTISED_LISTENERS", settings.KAFKA_HOSTS),
+                ("REDIS_URL", settings.REDIS_URL),
+                ("REDIS_STATS_KEY", f"{settings.REDIS_STATS_KEY}_{key}"),
+                ("REDIS_STATS_INTERVAL", settings.REDIS_STATS_INTERVAL),
                 ("FIFO_PATH", "/fifo-data/{}.fifo".format(spider_name)),
                 (
                     "JOB_INFO",
