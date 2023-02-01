@@ -8,12 +8,12 @@ module.exports = (env) => {
         entry: "./src/index.ts",
         devtool: "inline-source-map",
         output: {
-            publicPath: env.publicPath ?  `${env.publicPath}` : "http://localhost:3000/",
+            publicPath: env.publicPath ? `${env.publicPath}` : "http://localhost:3000/",
         },
 
         resolve: {
             alias: {
-                ExternalDropdownComponent: path.resolve(__dirname, "src/defaultComponents"),
+                ExternalComponents: path.resolve(__dirname, "src/defaultComponents"),
             },
             extensions: [".tsx", ".ts", ".jsx", ".js", ".json"],
         },
