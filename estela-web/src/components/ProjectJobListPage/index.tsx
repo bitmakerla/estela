@@ -43,7 +43,7 @@ import {
     Spin,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
-import { CardNotification } from "BillingModule/CardNotification";
+import { CardNotification, checkExternalError } from "ExternalComponents/CardNotification";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -119,7 +119,7 @@ interface ProjectJobListPageState {
     newEnvVarValue: string;
     newTagName: string;
     modalJob: boolean;
-    modalBilling: boolean;
+    modalExternal: boolean;
     loaded: boolean;
     count: number;
     current: number;
@@ -157,7 +157,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         newEnvVarValue: "",
         newTagName: "",
         modalJob: this.LocationState ? this.LocationState.open : false,
-        modalBilling: this.LocationState ? this.LocationState.open : false,
+        modalExternal: this.LocationState ? this.LocationState.open : false,
         loadedSpiders: false,
         tableStatus: new Array<boolean>(4).fill(true),
         loaded: false,
@@ -390,8 +390,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         }
     };
 
-    setModalBilling = (modalValue: boolean) => {
-        this.setState({ modalBilling: modalValue });
+    setModalExternal = (modalValue: boolean) => {
+        this.setState({ modalExternal: modalValue });
     };
 
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -448,8 +448,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             },
             async (error) => {
                 const data = await error.json();
-                if (data.type && data.type === "BillingError") {
-                    this.setState({ modalBilling: true });
+                if (checkExternalError(data)) {
+                    this.setState({ modalExternal: true });
                 } else {
                     incorrectDataNotification();
                 }
@@ -466,7 +466,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             tableStatus,
             errorJobs,
             modalJob,
-            modalBilling,
+            modalExternal,
             args,
             envVars,
             completedJobs,
@@ -506,7 +506,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             >
                                                 Run new job
                                             </Button>
-                                            <CardNotification open={modalBilling} setOpen={this.setModalBilling} />
+                                            <CardNotification open={modalExternal} setOpen={this.setModalExternal} />
                                             <Modal
                                                 style={{
                                                     overflow: "hidden",

@@ -3,7 +3,7 @@ import { Switch, Router } from "react-router-dom";
 import { MainRoutes } from "./routes";
 
 import history from "./history";
-import ExternalRoutes from "BillingModule/ComponentRoutes";
+import ExternalRoutes from "ExternalComponents/ComponentRoutes";
 
 export class App extends Component<unknown, unknown> {
     render(): JSX.Element {
