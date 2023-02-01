@@ -1,15 +1,14 @@
 from croniter import croniter
 from rest_framework import serializers
+
 from api import errors
-
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
-
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from core.cronjob import enable_cronjob, disable_cronjob, update_schedule
+from core.cronjob import disable_cronjob, enable_cronjob, update_schedule
+from core.models import SpiderCronJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):

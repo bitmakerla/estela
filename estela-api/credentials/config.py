@@ -1,5 +1,5 @@
-from credentials.local import LocalCredentials
 from credentials.aws import AWSCredentials
+from credentials.local import LocalCredentials
 
 
 def Credentials(plataform):

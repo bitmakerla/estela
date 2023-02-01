@@ -1,15 +1,14 @@
 from datetime import timedelta
 
+from celery.exceptions import TaskError
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
-from celery.exceptions import TaskError
 
 from api.serializers.job import SpiderJobCreateSerializer
 from config.celery import app as celery_app
-from config.job_manager import job_manager
+from config.job_manager import job_manager, spiderdata_db_client
 from core.models import Project, Spider, SpiderJob, UsageRecord
-from config.job_manager import spiderdata_db_client
 
 
 def get_default_token(job):

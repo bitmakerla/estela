@@ -2,11 +2,12 @@ import uuid
 from datetime import timedelta
 from urllib.parse import urlparse
 
-from config.job_manager import job_manager
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+from config.job_manager import job_manager
 
 
 class Project(models.Model):

@@ -1,5 +1,6 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
-from core.models import Project, Permission
+from rest_framework.permissions import SAFE_METHODS, BasePermission
+
+from core.models import Permission, Project
 
 
 class IsProjectUser(BasePermission):

@@ -1,24 +1,23 @@
 from datetime import datetime, timezone
+
+from django.conf import settings
+from django.contrib.auth.models import User, update_last_login
+from django.core.mail import EmailMessage
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
-from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
-from api.tokens import account_activation_token
-from django.contrib.auth.models import User
-from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
-from django.conf import settings
-from django.contrib.auth.models import update_last_login
-from django.shortcuts import redirect
 
 from api.exceptions import EmailServiceError
 from api.serializers.auth import TokenSerializer, UserSerializer
+from api.tokens import account_activation_token
 from core.views import send_verification_email
 
 

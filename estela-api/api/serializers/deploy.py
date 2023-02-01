@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
-from core.models import Deploy, Spider
-from api.serializers.spider import SpiderSerializer
 from api.serializers.project import UserDetailSerializer
+from api.serializers.spider import SpiderSerializer
+from core.models import Deploy, Spider
 
 
 class DeploySerializer(serializers.ModelSerializer):
