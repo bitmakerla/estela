@@ -7,6 +7,7 @@ from core.models import (
     SpiderJobArg,
     SpiderJobEnvVar,
     UsageRecord,
+    Permission,
 )
 
 
