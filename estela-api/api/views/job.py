@@ -174,16 +174,17 @@ class SpiderJobViewSet(
         if job.status == SpiderJob.RUNNING_STATUS:
             job_stats = self.redis_conn.hgetall(f"{settings.REDIS_STATS_KEY}_{job.key}")
             job.lifespan = timedelta(
-                seconds=int(float(job_stats.get(b"elapsed_time", b"0").decode()))
+                seconds=int(
+                    float(job_stats.get(b"elapsed_time_seconds", b"0").decode())
+                )
             )
             job.total_response_bytes = int(
-                job_stats.get(b"response_bytes", b"0").decode()
+                job_stats.get(b"downloader/response_bytes", b"0").decode()
             )
             job.item_count = int(job_stats.get(b"item_scraped_count", b"0").decode())
-            job.request_count = int(job_stats.get(b"request_count", b"0").decode())
-            print(f"THE JOB STATS RUNNING {job_stats}")
-        else:
-            print(f"THE JOB STATS NOT RUNNING")
+            job.request_count = int(
+                job_stats.get(b"downloader/request_count", b"0").decode()
+            )
 
         serializer = SpiderJobSerializer(job)
 
