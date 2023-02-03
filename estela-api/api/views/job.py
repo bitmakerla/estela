@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-import redis
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +16,7 @@ from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
+from api.utils import update_stats_from_redis
 from config.job_manager import job_manager
 from core.models import Spider, SpiderJob
 
@@ -38,10 +38,6 @@ class SpiderJobViewSet(
     MAX_PAGINATION_SIZE = 100
     MIN_PAGINATION_SIZE = 1
     DEFAULT_PAGINATION_SIZE = 10
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.redis_conn = redis.from_url(settings.REDIS_URL)
 
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
@@ -172,19 +168,7 @@ class SpiderJobViewSet(
     def retrieve(self, request, *args, jid=None, **kwargs):
         job = get_object_or_404(self.queryset, jid=jid)
         if job.status == SpiderJob.RUNNING_STATUS:
-            job_stats = self.redis_conn.hgetall(f"{settings.REDIS_STATS_KEY}_{job.key}")
-            job.lifespan = timedelta(
-                seconds=int(
-                    float(job_stats.get(b"elapsed_time_seconds", b"0").decode())
-                )
-            )
-            job.total_response_bytes = int(
-                job_stats.get(b"downloader/response_bytes", b"0").decode()
-            )
-            job.item_count = int(job_stats.get(b"item_scraped_count", b"0").decode())
-            job.request_count = int(
-                job_stats.get(b"downloader/request_count", b"0").decode()
-            )
+            update_stats_from_redis(job)
 
         serializer = SpiderJobSerializer(job)
 

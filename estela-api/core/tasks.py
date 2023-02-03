@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from api.serializers.job import SpiderJobCreateSerializer
+from api.utils import update_stats_from_redis, delete_stats_from_redis
 from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
 from core.models import Project, Spider, SpiderJob, UsageRecord
@@ -125,6 +126,11 @@ def check_and_update_job_status_errors():
         if job_status is None or (
             job_status.active is None and job_status.succeeded is None
         ):
+            try:
+                update_stats_from_redis(job)
+                delete_stats_from_redis(job)
+            except:
+                pass
             job.status = SpiderJob.ERROR_STATUS
             job.save()
 

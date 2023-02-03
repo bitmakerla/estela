@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-
 with open("tmp") as f:
     host_ip = f.read().strip()
 
@@ -13,8 +12,8 @@ namespace = "default"
 with open("local/.env", "w") as f:
     lines = [
         f"HOST_IP={host_ip}",
-        "LOCAL_REGISTRY=localhost:5000",
-        f"HOST_REGISTRY={host_ip}:5000",
+        "LOCAL_REGISTRY=localhost:5001",
+        f"HOST_REGISTRY={host_ip}:5001",
         f"RELEASE_NAME={release_name}",
         f"NAMESPACE={namespace}",
     ]
