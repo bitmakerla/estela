@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+from celery import chain
 from celery.exceptions import TaskError
 
 from api.serializers.job import SpiderJobCreateSerializer
@@ -157,6 +158,7 @@ def record_project_usage_after_data_delete(project_id, job_id):
     new_usage_record.requests_data_size = requests_data_size
     new_usage_record.logs_data_size = logs_data_size
     new_usage_record.save()
+    return new_usage_record
 
 
 @celery_app.task(
@@ -219,3 +221,20 @@ def record_project_usage_after_job_event(job_id):
         items_data_size=new_items_data_size,
         **updated_values,
     )
+    return usage_record
+
+def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id = None):
+    
+    list_of_process_functions = []
+    for external_app in settings.DJANGO_EXTERNAL_APPS:
+        module = __import__(external_app)
+        process_usage_data = getattr(module, "process_usage_data")
+        if process_usage_data:
+            list_of_process_functions.append(process_usage_data)
+
+    if after_delete:
+        process_chain = chain(record_project_usage_after_data_delete.s(project_id,job_id), *list_of_process_functions)
+    else:
+        process_chain = chain(record_project_usage_after_job_event.s(job_id), *list_of_process_functions)
+
+    return process_chain
