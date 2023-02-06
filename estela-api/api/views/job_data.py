@@ -211,7 +211,9 @@ class JobDataViewSet(
         count = spiderdata_db_client.delete_collection_data(
             kwargs["pid"], job_collection_name
         )
-        chain_of_usage_process = get_chain_to_process_usage_data(after_delete=True, project_id=job.spider.project.pid, job_id=job.jid)
+        chain_of_usage_process = get_chain_to_process_usage_data(
+            after_delete=True, project_id=job.spider.project.pid, job_id=job.jid
+        )
         chain_of_usage_process.apply_async()
 
         return Response(
