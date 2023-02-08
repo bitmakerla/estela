@@ -1,14 +1,15 @@
-import csv
+import redis
 import codecs
+import csv
 
-from django.http.response import JsonResponse, HttpResponse
 from django.conf import settings
+from django.http.response import HttpResponse, JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, mixins
-from rest_framework.response import Response
-from rest_framework.exceptions import ParseError
+from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
@@ -28,6 +29,10 @@ class JobDataViewSet(
     MIN_PAGINATION_SIZE = 1
     DEFAULT_PAGINATION_SIZE = 50
     JOB_DATA_TYPES = ["items", "requests", "logs", "stats"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.redis_conn = redis.from_url(settings.REDIS_URL)
 
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
@@ -98,18 +103,27 @@ class JobDataViewSet(
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-            and data_type == "items"
-        ):
-            job_collection_name = "{}-scj{}-job_{}".format(
-                kwargs["sid"], job.cronjob.cjid, data_type
-            )
-        else:
-            job_collection_name = "{}-{}-job_{}".format(
-                kwargs["sid"], kwargs["jid"], data_type
-            )
+
+        if job.status == SpiderJob.RUNNING_STATUS and data_type == "stats":
+            job_stats = self.redis_conn.hgetall(f"scrapy_stats_{job.key}")
+            parsed_job_stats = {
+                key.decode(): value.decode() for key, value in job_stats.items()
+            }
+            if mode == "paged":
+                return Response(
+                    {
+                        "count": 1,
+                        "previous": None,
+                        "next": None,
+                        "results": [parsed_job_stats],
+                    }
+                )
+            else:
+                return self.get_formatted_response(result, mode, job_collection_name)
+
+        job_collection_name = self.get_collection_name(
+            job, data_type, kwargs["sid"], kwargs["jid"]
+        )
 
         if mode != "paged":
             collection_size = spiderdata_db_client.get_collection_size(
@@ -125,22 +139,7 @@ class JobDataViewSet(
                 kwargs["pid"], job_collection_name
             )
 
-            if mode == "json":
-                response = JsonResponse(result, safe=False)
-                return response
-
-            if mode == "csv":
-                response = HttpResponse(content_type="text/csv; charset=utf-8")
-                response["Content-Disposition"] = "attachment; {}.csv".format(
-                    job_collection_name
-                )
-                # Force response to be UTF-8 - This is where the magic happens
-                response.write(codecs.BOM_UTF8)
-                csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
-                csv_writer.writeheader()
-                for item in result:
-                    csv_writer.writerow(item)
-                return response
+            return self.get_formatted_response(result, mode, job_collection_name)
         else:
             count = spiderdata_db_client.get_estimated_document_count(
                 kwargs["pid"], job_collection_name
@@ -195,19 +194,10 @@ class JobDataViewSet(
         data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-            and data_type == "items"
-        ):
-            job_collection_name = "{}-scj{}-job_{}".format(
-                kwargs["sid"], job.cronjob.cjid, data_type
-            )
-        else:
-            job_collection_name = "{}-{}-job_{}".format(
-                kwargs["sid"], kwargs["jid"], data_type
-            )
 
+        job_collection_name = self.get_collection_name(
+            job, data_type, kwargs["sid"], kwargs["jid"]
+        )
         count = spiderdata_db_client.delete_collection_data(
             kwargs["pid"], job_collection_name
         )
@@ -221,3 +211,31 @@ class JobDataViewSet(
             },
             status=status.HTTP_200_OK,
         )
+
+    def get_formatted_response(self, result, mode, job_collection_name):
+        if mode == "json":
+            response = JsonResponse(result, safe=False)
+            return response
+
+        if mode == "csv":
+            response = HttpResponse(content_type="text/csv; charset=utf-8")
+            response["Content-Disposition"] = "attachment; {}.csv".format(
+                job_collection_name
+            )
+            # Force response to be UTF-8 - This is where the magic happens
+            response.write(codecs.BOM_UTF8)
+            csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
+            csv_writer.writeheader()
+            for item in result:
+                csv_writer.writerow(item)
+            return response
+
+    def get_collection_name(self, job, data_type, sid, jid):
+        if (
+            job.cronjob is not None
+            and job.cronjob.unique_collection
+            and data_type == "items"
+        ):
+            return "{}-scj{}-job_{}".format(sid, job.cronjob.cjid, data_type)
+        else:
+            return "{}-{}-job_{}".format(sid, jid, data_type)

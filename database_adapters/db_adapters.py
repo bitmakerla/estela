@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import pymongo
 from bson.objectid import ObjectId
-from pymongo.errors import ConnectionFailure, PyMongoError
+from pymongo.errors import ConnectionFailure
 
 
 class InsertionResponse:
@@ -136,7 +136,7 @@ class MongoAdapter(DatabaseInterface):
                 item, {"$set": item}, upsert=True
             )
             response = InsertionResponse(True)
-        except PyMongoError as ex:
+        except Exception as ex:
             response = InsertionResponse(False, ex)
         finally:
             return response
@@ -146,7 +146,7 @@ class MongoAdapter(DatabaseInterface):
         try:
             self.client[database_name][collection_name].insert_one(item)
             response = InsertionResponse(True)
-        except PyMongoError as ex:
+        except Exception as ex:
             response = InsertionResponse(False, ex)
         finally:
             return response
@@ -160,7 +160,7 @@ class MongoAdapter(DatabaseInterface):
                 items, ordered=ordered
             )
             response = InsertionResponse(True)
-        except PyMongoError as ex:
+        except Exception as ex:
             response = InsertionResponse(False, ex, need_upsert=True)
         finally:
             return response

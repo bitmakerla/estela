@@ -4,7 +4,7 @@ QUEUING_DIR = ../queueing
 WEB_DIR = ../estela-web
 INSTALLATION_DIR = ../installation
 
-REGISTRY_HOST = localhost:5000
+REGISTRY_HOST = localhost:5001
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 

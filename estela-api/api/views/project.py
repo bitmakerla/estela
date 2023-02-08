@@ -1,9 +1,17 @@
 from datetime import datetime, timedelta
 
+from django.core.paginator import Paginator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.response import Response
+
 from api import errors
 from api.mixins import BaseViewSet
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,
@@ -14,18 +22,11 @@ from core.models import (
     Permission,
     Project,
     Spider,
-    SpiderJob,
     SpiderCronJob,
+    SpiderJob,
     UsageRecord,
     User,
 )
-from django.core.paginator import Paginator
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, ParseError
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):

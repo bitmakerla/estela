@@ -12,14 +12,16 @@ services:
       - MYSQL_ROOT_PASSWORD=YebCEeClTXAJjlQJwv7P
     ports:
       - "3306:3306"
+    restart: unless-stopped
 
   registry:
     container_name: estela_registry
     image: registry:2
     ports:
-      - 5000:5000
+      - 5001:5000
     volumes:
       - registry_data:/var/lib/registry
+    restart: unless-stopped
   
   minio:
     container_name: estela_storage
@@ -33,6 +35,7 @@ services:
     volumes:
       - datastore:/data
     command: server /data --console-address ":9001"
+    restart: unless-stopped
 
   zookeeper:
     container_name: zookeeper
@@ -42,6 +45,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
     - 2181:2181
+    restart: unless-stopped
 
   kafka:
     container_name: kafka
@@ -69,6 +73,7 @@ services:
     - zookeeper
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
 volumes:
   estela_dbdata:

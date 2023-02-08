@@ -2,8 +2,8 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from core.tasks import record_project_usage_after_job_event
 from core.models import SpiderJob
+from core.tasks import record_project_usage_after_job_event
 
 
 @receiver(post_save, sender=SpiderJob, dispatch_uid="update_usage")

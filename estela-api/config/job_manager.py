@@ -1,7 +1,8 @@
-from engines.config import JobManager
-from credentials.config import Credentials
-from django.conf import settings
 from database_adapters.db_adapters import get_database_interface
+from django.conf import settings
+
+from credentials.config import Credentials
+from engines.config import JobManager
 
 credentials = Credentials(plataform=settings.CREDENTIALS)
 
