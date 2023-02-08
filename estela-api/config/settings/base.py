@@ -37,7 +37,6 @@ env = environ.Env(
     KAFKA_HOSTS=(str, "127.0.0.1"),
     KAFKA_PORT=(str, "dummy"),
     REDIS_URL=(str, "redis://redis"),
-    REDIS_STATS_KEY=(str, "scrapy_stats"),
     REDIS_STATS_INTERVAL=(str, "1.0"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
@@ -241,7 +240,6 @@ KAFKA_PORT = env("KAFKA_PORT")
 # Redis settings for job stats
 
 REDIS_URL = env("REDIS_URL")
-REDIS_STATS_KEY = env("REDIS_STATS_KEY")
 REDIS_STATS_INTERVAL = env("REDIS_STATS_INTERVAL")
 
 

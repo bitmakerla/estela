@@ -123,7 +123,7 @@ class KubernetesEngine:
                 ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
                 ("KAFKA_ADVERTISED_LISTENERS", settings.KAFKA_HOSTS),
                 ("REDIS_URL", settings.REDIS_URL),
-                ("REDIS_STATS_KEY", f"{settings.REDIS_STATS_KEY}_{key}"),
+                ("REDIS_STATS_KEY", f"scrapy_stats_{key}"),
                 ("REDIS_STATS_INTERVAL", settings.REDIS_STATS_INTERVAL),
                 ("FIFO_PATH", "/fifo-data/{}.fifo".format(spider_name)),
                 (

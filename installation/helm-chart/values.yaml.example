@@ -31,7 +31,6 @@ KAFKA_PORT: "" # 9092
 
 # Redis scrapy stats
 REDIS_URL: redis://estela-redis-service
-REDIS_STATS_KEY: "" # scrapy_stats
 REDIS_STATS_INTERVAL: "" # 5.0
 
 ############ API ############

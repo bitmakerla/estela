@@ -105,7 +105,7 @@ class JobDataViewSet(
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
 
         if job.status == SpiderJob.RUNNING_STATUS and data_type == "stats":
-            job_stats = self.redis_conn.hgetall(f"{settings.REDIS_STATS_KEY}_{job.key}")
+            job_stats = self.redis_conn.hgetall(f"scrapy_stats_{job.key}")
             parsed_job_stats = {
                 key.decode(): value.decode() for key, value in job_stats.items()
             }

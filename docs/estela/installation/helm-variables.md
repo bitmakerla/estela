@@ -88,7 +88,6 @@ you have a deep understanding of estela.
 
 #### Redis Stats
 * _<REDIS\_URL>_ (Required): The connection URL to the Redis instance.
-* _<REDIS\_STATS\_KEY>_ (Optional): The prefix of the key where the stats of jobs running are saved. If the variable is left blank, the default value is `scrapy_stats`.
 * _<REDIS\_STATS\_INTERVAL>_ (Required): The interval, in seconds, of how often the job stats should be updated.
 
 ### estela API variables

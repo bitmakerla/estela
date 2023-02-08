@@ -7,7 +7,7 @@ from datetime import timedelta
 
 def update_stats_from_redis(job):
     redis_conn = redis.from_url(settings.REDIS_URL)
-    job_stats = redis_conn.hgetall(f"{settings.REDIS_STATS_KEY}_{job.key}")
+    job_stats = redis_conn.hgetall(f"scrapy_stats_{job.key}")
     job.lifespan = timedelta(
         seconds=int(float(job_stats.get(b"elapsed_time_seconds", b"0").decode()))
     )
@@ -21,6 +21,6 @@ def update_stats_from_redis(job):
 def delete_stats_from_redis(job):
     redis_conn = redis.from_url(settings.REDIS_URL)
     try:
-        redis_conn.delete(f"{settings.REDIS_STATS_KEY}_{job.key}")
+        redis_conn.delete(f"scrapy_stats_{job.key}")
     except:
         pass
