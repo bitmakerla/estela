@@ -43,7 +43,7 @@ import {
     Spin,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
-import { CardNotification, checkExternalError } from "ExternalComponents/CardNotification";
+import { checkExternalError } from "ExternalComponents/CardNotification";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -118,11 +118,11 @@ interface ProjectJobListPageState {
     newEnvVarName: string;
     newEnvVarValue: string;
     newTagName: string;
-    modalJob: boolean;
-    modalExternal: boolean;
+    modal: boolean;
     loaded: boolean;
     count: number;
     current: number;
+    externalComponent: () => JSX.Element;
 }
 
 interface RouteParams {
@@ -156,8 +156,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         newEnvVarName: "",
         newEnvVarValue: "",
         newTagName: "",
-        modalJob: this.LocationState ? this.LocationState.open : false,
-        modalExternal: this.LocationState ? this.LocationState.open : false,
+        modal: this.LocationState ? this.LocationState.open : false,
+        externalComponent: () => <></>,
         loadedSpiders: false,
         tableStatus: new Array<boolean>(4).fill(true),
         loaded: false,
@@ -390,10 +390,6 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         }
     };
 
-    setModalExternal = (modalValue: boolean) => {
-        this.setState({ modalExternal: modalValue });
-    };
-
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         const {
             target: { value, name },
@@ -448,12 +444,17 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             },
             async (error) => {
                 const data = await error.json();
-                if (checkExternalError(data)) {
-                    this.setState({ modalExternal: true });
+                const [errorComponent, err] = checkExternalError(data);
+                console.log(data);
+
+                if (err) {
+                    invalidDataNotification(data.detail);
+                    this.setState({ externalComponent: () => <></> });
+                    this.setState({ externalComponent: errorComponent });
                 } else {
                     incorrectDataNotification();
                 }
-                this.setState({ modalJob: false });
+                this.setState({ modal: false });
             },
         );
     };
@@ -465,8 +466,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             spiders,
             tableStatus,
             errorJobs,
-            modalJob,
-            modalExternal,
+            modal,
+            externalComponent,
             args,
             envVars,
             completedJobs,
@@ -502,11 +503,11 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 icon={<Run className="mr-2" width={19} />}
                                                 size="large"
                                                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                onClick={() => this.setState({ modalJob: true })}
+                                                onClick={() => this.setState({ modal: true })}
                                             >
                                                 Run new job
                                             </Button>
-                                            <CardNotification open={modalExternal} setOpen={this.setModalExternal} />
+                                            {externalComponent()}
                                             <Modal
                                                 style={{
                                                     overflow: "hidden",
@@ -514,9 +515,9 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 }}
                                                 centered
                                                 width={450}
-                                                open={modalJob}
+                                                open={modal}
                                                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
-                                                onCancel={() => this.setState({ modalJob: false })}
+                                                onCancel={() => this.setState({ modal: false })}
                                                 footer={null}
                                             >
                                                 <Row>
@@ -683,7 +684,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                     <Button
                                                         size="large"
                                                         className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                        onClick={() => this.setState({ modalJob: false })}
+                                                        onClick={() => this.setState({ modal: false })}
                                                     >
                                                         Cancel
                                                     </Button>
