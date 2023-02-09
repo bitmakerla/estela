@@ -53,6 +53,7 @@ import {
     Spin,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
+import { checkExternalError } from "ExternalComponents/CardNotification";
 
 const { Option } = Select;
 const { Content } = Layout;
@@ -143,6 +144,7 @@ interface ProjectCronJobListPageState {
     newEnvVarName: string;
     newEnvVarValue: string;
     newTagName: string;
+    externalComponent: () => JSX.Element;
 }
 
 interface RouteParams {
@@ -182,6 +184,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         modal: false,
         count: 0,
         current: 0,
+        externalComponent: () => <></>,
     };
 
     apiService = ApiService();
@@ -435,9 +438,17 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             (response: SpiderCronJobCreate) => {
                 history.push(`/projects/${this.projectId}/spiders/${this.state.spiderId}/cronjobs/${response.cjid}`);
             },
-            (error: unknown) => {
-                console.error(error);
-                incorrectDataNotification();
+            async (error) => {
+                const data = await error.json();
+                const [errorComponent, err] = checkExternalError(data);
+                if (err) {
+                    invalidDataNotification(data.detail);
+                    this.setState({ externalComponent: () => <></> });
+                    this.setState({ externalComponent: errorComponent });
+                } else {
+                    incorrectDataNotification();
+                }
+                this.setState({ modal: false });
             },
         );
     };
@@ -673,6 +684,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             weekDays,
             spiders,
             modal,
+            externalComponent,
             count,
             current,
             args,
@@ -715,6 +727,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                 >
                                                     Schedule new job
                                                 </Button>
+                                                {externalComponent()}
                                                 <Modal
                                                     style={{
                                                         overflow: "hidden",
