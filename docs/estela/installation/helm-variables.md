@@ -143,9 +143,11 @@ you have a deep understanding of estela.
 
 #### Celery
 
-* _<CELERY\_BROKER\_URL>_ (Required): Url of the celery broker.
+* _<CELERY\_BROKER\_URL>_ (Required): URL of the celery broker.
 
-* _<CELERY\_RESULT\_BACKEND>_ (Required): Url to send the results from the API module tasks.
+* _<CELERY\_RESULT\_BACKEND>_ (Required): URL to send the results from the API module tasks.
+
+* _<CELERY\_EXTERNAL\_IMPORTS>_ (Optional): List of celery apps we want to import, which are found in external Django apps. E.g., `my_app.celery,my_app2.celery`.
 
 #### Mailing
 

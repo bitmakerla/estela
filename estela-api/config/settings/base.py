@@ -28,6 +28,7 @@ env = environ.Env(
     REPOSITORY_NAME=(str, "dummy"),
     CELERY_BROKER_URL=(str, "redis://redis"),
     CELERY_RESULT_BACKEND=(str, "redis://redis:6379/0"),
+    CELERY_EXTERNAL_IMPORTS=(str, ""),
     DJANGO_API_HOST=(str, "127.0.0.1"),
     DJANGO_ALLOWED_HOSTS=(str, ""),
     DJANGO_EXTERNAL_APPS=(str, ""),
@@ -227,6 +228,9 @@ REPOSITORY_NAME = env("REPOSITORY_NAME")
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+CELERY_EXTERNAL_IMPORTS = [app for app in env("CELERY_EXTERNAL_IMPORTS").split(",") if app]
+CELERY_IMPORTS = ["config.celery"] + EXTERNAL_CELERY_IMPORTS
 
 
 # Kafka settings
