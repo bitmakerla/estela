@@ -147,7 +147,7 @@ you have a deep understanding of estela.
 
 * _<CELERY\_RESULT\_BACKEND>_ (Required): URL to send the results from the API module tasks.
 
-* _<CELERY\_EXTERNAL\_IMPORTS>_ (Optional): List of celery apps we want to import, which are found in external Django apps. E.g., `my_app.celery,my_app2.celery`.
+* _<CELERY\_EXTERNAL\_IMPORTS>_ (Optional): List of apps that contain Celery apps with their own configurations. The beat schedules from these apps will be imported to estela's main Celery app. E.g., you may set `app1,app2` as a value for this variable. Then, estela will look for Celery apps named `app` inside `app1.celery` and `app2.celery`.
 
 #### Mailing
 

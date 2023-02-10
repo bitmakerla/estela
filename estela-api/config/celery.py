@@ -1,7 +1,7 @@
 import os
 
 from celery import Celery
-
+from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.base")
 
@@ -24,3 +24,10 @@ app.conf.beat_schedule = {
         "schedule": 3600,
     },
 }
+
+
+for import_name in settings.CELERY_EXTERNAL_IMPORTS:
+    module = __import__(import_name)
+    external_app = module.celery.app
+
+    app.conf.beat_schedule.update(external_app.conf.beat_schedule)

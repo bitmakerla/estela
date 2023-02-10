@@ -58,7 +58,7 @@ EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
 # Celery
 CELERY_BROKER_URL: redis://estela-redis-service
 CELERY_RESULT_BACKEND: redis://estela-redis-service:6379/0
-CELERY_EXTERNAL_IMPORTS: "" # "app1.celery,app2.celery"
+CELERY_EXTERNAL_IMPORTS: "" # "app1,app2"
 
 # Mailing
 EMAIL_HOST: "" # http://smtp.gmail.com
