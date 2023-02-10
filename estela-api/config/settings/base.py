@@ -230,7 +230,7 @@ CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 CELERY_EXTERNAL_IMPORTS = [app for app in env("CELERY_EXTERNAL_IMPORTS").split(",") if app]
-CELERY_IMPORTS = ["config.celery"] + EXTERNAL_CELERY_IMPORTS
+CELERY_IMPORTS = ["config.celery"] + CELERY_EXTERNAL_IMPORTS
 
 
 # Kafka settings
