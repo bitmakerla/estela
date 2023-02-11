@@ -27,7 +27,6 @@ app.conf.beat_schedule = {
 
 
 for import_name in settings.CELERY_EXTERNAL_IMPORTS:
-    module = __import__(import_name)
-    external_app = module.celery.app
-
+    module = __import__(f"{import_name}.celery", fromlist=["celery"])
+    external_app = module.app
     app.conf.beat_schedule.update(external_app.conf.beat_schedule)
