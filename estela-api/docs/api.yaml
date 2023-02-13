@@ -881,6 +881,75 @@ paths:
         required: true
         type: string
         format: uuid
+  /bitmaker_billing/credit_cards:
+    get:
+      operationId: bitmaker_billing_credit_cards_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - bitmaker_billing
+    parameters: []
+  /bitmaker_billing/customer:
+    post:
+      operationId: bitmaker_billing_customer_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - bitmaker_billing
+    parameters: []
+  /bitmaker_billing/customer/{id}:
+    get:
+      operationId: bitmaker_billing_customer_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - bitmaker_billing
+    put:
+      operationId: bitmaker_billing_customer_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - bitmaker_billing
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this customer.
+        required: true
+        type: integer
+  /bitmaker_billing/secrets:
+    get:
+      operationId: bitmaker_billing_secrets_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - bitmaker_billing
+    parameters: []
+  /bitmaker_billing/set_default_payment_card:
+    post:
+      operationId: bitmaker_billing_set_default_payment_card_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - bitmaker_billing
+    parameters: []
 definitions:
   AuthToken:
     required:
