@@ -66,7 +66,7 @@ module.exports = (env) => {
                 },
                 exposes: {
                     "./header": "./src/shared/header/index.tsx",
-                    "./authService": "./src/services/auth.service.ts",
+                    "./authService": "./src/services/index.ts",
                     "./constants": "./src/constants.ts",
                     "./notifications": "./src/shared/notifications/index.tsx",
                 },
