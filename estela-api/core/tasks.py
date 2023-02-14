@@ -1,15 +1,16 @@
+import json
 from datetime import timedelta
 
+from celery import chain
+from celery.exceptions import TaskError
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
-from celery.exceptions import TaskError
 
 from api.serializers.job import SpiderJobCreateSerializer
 from config.celery import app as celery_app
-from config.job_manager import job_manager
+from config.job_manager import job_manager, spiderdata_db_client
 from core.models import Project, Spider, SpiderJob, UsageRecord
-from config.job_manager import spiderdata_db_client
 
 
 def get_default_token(job):
@@ -153,10 +154,25 @@ def record_project_usage_after_data_delete(project_id, job_id):
     job = SpiderJob.objects.get(jid=job_id)
     new_usage_record.item_count -= job.item_count
     new_usage_record.request_count -= job.request_count
+
+    job_item_data_size = new_usage_record.items_data_size - items_data_size
+    job_request_data_size = new_usage_record.requests_data_size - requests_data_size
+    job_logs_data_size = new_usage_record.logs_data_size - logs_data_size
+
     new_usage_record.items_data_size = items_data_size
     new_usage_record.requests_data_size = requests_data_size
     new_usage_record.logs_data_size = logs_data_size
     new_usage_record.save()
+
+    return json.dumps(
+        {
+            "job_id": job_id,
+            "job_item_data_size": job_item_data_size,
+            "job_request_data_size": job_request_data_size,
+            "job_logs_data_size": job_logs_data_size,
+            "action": "delete",
+        }
+    )
 
 
 @celery_app.task(
@@ -214,8 +230,46 @@ def record_project_usage_after_job_event(job_id):
         if unique_collection
         else last_usage_record.items_data_size + items_data_size
     )
+
+    job_item_data_size = (
+        items_data_size - last_usage_record.items_data_size
+        if unique_collection
+        else items_data_size
+    )
+
     usage_record = UsageRecord.objects.create(
         project=project,
         items_data_size=new_items_data_size,
         **updated_values,
     )
+
+    return json.dumps(
+        {
+            "job_id": job_id,
+            "job_item_data_size": job_item_data_size,
+            "job_request_data_size": requests_data_size,
+            "job_logs_data_size": logs_data_size,
+            "action": "add",
+        }
+    )
+
+
+def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=None):
+    list_of_process_functions = []
+    for external_app in settings.DJANGO_EXTERNAL_APPS:
+        module = __import__(f"{external_app}.tasks", fromlist=["tasks"])
+        process_usage_data = getattr(module, "process_usage_data", None)
+        if process_usage_data:
+            list_of_process_functions.append(process_usage_data.s())
+
+    if after_delete:
+        process_chain = chain(
+            record_project_usage_after_data_delete.s(project_id, job_id),
+            *list_of_process_functions,
+        )
+    else:
+        process_chain = chain(
+            record_project_usage_after_job_event.s(job_id), *list_of_process_functions
+        )
+
+    return process_chain

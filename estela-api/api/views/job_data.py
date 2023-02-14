@@ -17,7 +17,7 @@ from api.mixins import BaseViewSet
 from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
-from core.tasks import record_project_usage_after_data_delete
+from core.tasks import get_chain_to_process_usage_data
 
 
 class JobDataViewSet(
@@ -211,9 +211,10 @@ class JobDataViewSet(
         count = spiderdata_db_client.delete_collection_data(
             kwargs["pid"], job_collection_name
         )
-        record_project_usage_after_data_delete.s(
-            job.spider.project.pid, job.jid
-        ).apply_async()
+        chain_of_usage_process = get_chain_to_process_usage_data(
+            after_delete=True, project_id=job.spider.project.pid, job_id=job.jid
+        )
+        chain_of_usage_process.apply_async()
 
         return Response(
             {
