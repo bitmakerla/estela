@@ -15,8 +15,8 @@ of estela.
 * _local_ (Required): Set this variable to `true` if estela is being deployed on local
   resources. Otherwise, set it to `false`.
 
-* _hostIp_ (Optional): This variable is required only if the above variable _local_ has 
-  been set to `true`, this address is a reference to the host machine from minikube. 
+*_hostIp_ (Required/Optional): This variable is *required only if the above variable _local_ has 
+  been set to `true`*, this address is a reference to the host machine from minikube. 
   Find it by running:
   ```bash
   $ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
