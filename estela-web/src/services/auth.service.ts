@@ -29,7 +29,7 @@ export const AuthService = {
         localStorage.setItem(USERNAME_ITEM_NAME, username);
     },
     getUserRole(): string | null {
-        return localStorage.getItem(USERNAME_ROLE);
+        return localStorage.getItem(USERNAME_ROLE) ?? "";
     },
     removeUserRole(): void {
         localStorage.removeItem(USERNAME_ROLE);

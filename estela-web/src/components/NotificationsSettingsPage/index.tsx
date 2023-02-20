@@ -9,7 +9,6 @@ export class NotificationsSettingsPage extends Component<unknown, unknown> {
     async componentDidMount(): Promise<void> {
         if (!AuthService.getAuthToken()) {
             authNotification();
-        } else {
         }
     }
     updateNotifications = (): void => {

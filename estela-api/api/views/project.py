@@ -217,7 +217,9 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     def current_usage(self, request, *args, **kwargs):
         instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
-        serializer = ProjectUsageSerializer(project)
+        serializer = ProjectUsageSerializer(
+            UsageRecord.objects.filter(project=project).first()
+        )
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,

@@ -63,7 +63,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     def register(self, request, *args, **kwargs):
         if not settings.REGISTER == "True":
             raise MethodNotAllowed({"error": "This action is disabled"})
-        serializer = self.get_serializer(data=request.data)
+        serializer:AuthTokenSerializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         user.is_active = False

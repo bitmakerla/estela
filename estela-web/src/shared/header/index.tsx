@@ -20,6 +20,10 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 interface HeaderInterface {
     path?: string;
+    user?: {
+        username?: string;
+        role?: string;
+    };
 }
 
 export class CustomHeader extends Component<HeaderInterface, unknown> {
@@ -57,6 +61,8 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
 
     logout = (): void => {
         AuthService.removeAuthToken();
+        AuthService.removeUserUsername();
+        AuthService.removeUserRole();
         history.push("/login");
     };
 
@@ -145,7 +151,9 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                     </Col>
                                     <Row className="grid grid-cols-1 my-3">
                                         <Col className="font-medium text-sm h-6">{this.getUser()}</Col>
-                                        <Col className="text-estela-black-medium text-xs h-4">{this.getUserRole()}</Col>
+                                        <Col className="text-estela-black-medium text-xs h-4">
+                                            {this.props.user?.role || this.getUserRole()}
+                                        </Col>
                                     </Row>
                                     <Col className="my-5">
                                         <ArrowDown className="stroke-estela h-5 w-5" />
