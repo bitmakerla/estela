@@ -40,6 +40,8 @@ interface ProjectDashboardPageState {
     loaded: boolean;
     count: number;
     current: number;
+    username?: string;
+    role?: string;
 }
 
 interface RouteParams {
@@ -166,10 +168,11 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     render(): JSX.Element {
-        const { name, loaded, projectUseLoaded, jobs, count, current, network, processingTime, storage } = this.state;
+        const { name, loaded, projectUseLoaded, jobs, count, current, network, processingTime, storage, role } =
+            this.state;
         return (
             <Layout>
-                <Header />
+                <Header user={{ role: role }} />
                 <Layout className="white-background">
                     <ProjectSidenav projectId={this.projectId} path={"dashboard"} />
                     <Layout className="bg-metal rounded-t-2xl h-screen">

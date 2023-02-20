@@ -21,6 +21,10 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 interface HeaderInterface {
     path?: string;
+    user?: {
+        username?: string;
+        role?: string;
+    };
 }
 
 export class CustomHeader extends Component<HeaderInterface, unknown> {
