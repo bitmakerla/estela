@@ -11,6 +11,7 @@ import WelcomeProjects from "../../assets/images/welcomeProjects.svg";
 import history from "../../history";
 import { ApiProjectsListRequest, ApiProjectsCreateRequest, Project, ProjectCategoryEnum } from "../../services/api";
 import { authNotification, incorrectDataNotification, Header, Spin } from "../../shared";
+import { UserContext, UserContextProps } from "../../context/UserContext";
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -53,6 +54,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     };
 
     apiService = ApiService();
+    static contextType = UserContext;
 
     columns = [
         {
@@ -255,6 +257,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                     <Button
                                                         key={project.key}
                                                         onClick={() => {
+                                                            const { updateRole } = this.context as UserContextProps;
+                                                            updateRole(project.role);
                                                             history.push(`/projects/${project.pid}/dashboard`);
                                                         }}
                                                         className="bg-white rounded-md p-3 h-20 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
