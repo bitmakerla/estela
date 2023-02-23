@@ -169,7 +169,8 @@ minikube version is correct: v1.28.0
 
 {: .note}
 > estela runs on Linux-based and Unix-like operating systems. Still, you can use Windows Subsystem for Linux
-> ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows.
+> ([WSL](https://learn.microsoft.com/en-us/windows/wsl/install){:target="_blank"}) if you are using Windows. 
+> Note: The Windows installation has not yet been tested by our team.
 
 ---
 

@@ -57,7 +57,7 @@ images: build-all-images upload-all-images
 .PHONY: install
 install:
 	-. ./local/.env && cd helm-chart && \
-	 helm install $${RELEASE_NAME} --create-namespace --debug --namespace=$${NAMESPACE} .
+	 helm upgrade --install $${RELEASE_NAME} --create-namespace --debug --namespace=$${NAMESPACE} .
 
 
 .PHONY: uninstall
