@@ -200,6 +200,24 @@ Then, restart Docker.
 	...
 }
 ```
+Here is an example on how the config file should look: 
+```json
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false,
+  "features": {
+    "buildkit": true
+  },
+  "insecure-registries": [
+    "<HOST_IP>:5001"
+  ]
+}
+```
 Where _<HOST\_IP>_ is equal to the output of:
 
 ```bash
