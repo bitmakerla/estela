@@ -122,7 +122,7 @@ interface ProjectJobListPageState {
     loaded: boolean;
     count: number;
     current: number;
-    externalComponent: () => JSX.Element;
+    externalComponent: JSX.Element;
 }
 
 interface RouteParams {
@@ -157,7 +157,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         newEnvVarValue: "",
         newTagName: "",
         modal: this.LocationState ? this.LocationState.open : false,
-        externalComponent: () => <></>,
+        externalComponent: <></>,
         loadedSpiders: false,
         tableStatus: new Array<boolean>(4).fill(true),
         loaded: false,
@@ -445,11 +445,10 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             async (error) => {
                 const data = await error.json();
                 const [errorComponent, err] = checkExternalError(data);
-                console.log(data);
 
                 if (err) {
                     invalidDataNotification(data.detail);
-                    this.setState({ externalComponent: () => <></> });
+                    this.setState({ externalComponent: <></> });
                     this.setState({ externalComponent: errorComponent });
                 } else {
                     incorrectDataNotification();
@@ -482,7 +481,6 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             newTagName,
             tags,
         } = this.state;
-
         return (
             <Layout>
                 <Header />
@@ -507,7 +505,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             >
                                                 Run new job
                                             </Button>
-                                            {externalComponent()}
+                                            {externalComponent}
                                             <Modal
                                                 style={{
                                                     overflow: "hidden",
