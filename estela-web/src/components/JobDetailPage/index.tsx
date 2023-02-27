@@ -29,6 +29,7 @@ import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
 import Export from "../../assets/icons/export.svg";
+import Delete from "../../assets/icons/trash.svg";
 import ArrowDown from "../../assets/icons/arrowDown.svg";
 
 import {
@@ -38,6 +39,8 @@ import {
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersListRequest,
+    ApiProjectsSpidersJobsDataDeleteRequest,
+    DeleteJobData,
     SpiderJob,
     SpiderJobCreate,
     SpiderJobUpdate,
@@ -48,6 +51,7 @@ import {
     authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
+    dataDeletedNotification,
     Header,
     ProjectSidenav,
     invalidDataNotification,
@@ -104,6 +108,10 @@ interface Tags {
 
 interface JobDetailPageState {
     loaded: boolean;
+    loadedButton: boolean;
+    itemModal: boolean;
+    requestModal: boolean;
+    logModal: boolean;
     name: string | undefined;
     lifespan: number | undefined;
     totalResponseBytes: number | undefined;
@@ -248,6 +256,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     dataLogs = "logs";
     state: JobDetailPageState = {
         loaded: false,
+        loadedButton: false,
+        itemModal: false,
+        requestModal: false,
+        logModal: false,
         name: "",
         lifespan: 0,
         totalResponseBytes: 0,
@@ -634,6 +646,33 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     data = safe_data[0] as Dictionary;
                     this.setState({ stats: data, loadedStats: true });
                 }
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+
+    deleteSpiderJobData = (type_: string): void => {
+        this.setState({ loadedButton: true });
+        const request: ApiProjectsSpidersJobsDataDeleteRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: `${this.jobId}`,
+            type: type_,
+        };
+        this.apiService.apiProjectsSpidersJobsDataDelete(request).then(
+            (response: DeleteJobData) => {
+                if (type_ == "items") {
+                    this.setState({ items: [], itemsCount: 0, itemsCurrent: 0, loadedItems: true });
+                } else if (type_ == "requests") {
+                    this.setState({ requests: [], requestsCount: 0, requestsCurrent: 0, loadedRequests: true });
+                } else if (type_ == "logs") {
+                    this.setState({ logs: [], logsCount: 0, logsCurrent: 0, loadedLogs: true });
+                }
+                this.setState({ loadedButton: false });
+                dataDeletedNotification(response.count);
             },
             (error: unknown) => {
                 console.error(error);
@@ -1133,7 +1172,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     items = (): React.ReactNode => {
-        const { loadedItems, items, itemsCurrent, itemsCount } = this.state;
+        const { loadedItems, loadedButton, items, itemModal, itemsCurrent, itemsCount } = this.state;
         return (
             <Content className="bg-metal content-padding">
                 {loadedItems ? (
@@ -1186,6 +1225,35 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Button>
                             </Col>
                             <Col className="flex float-right">
+                                <Button
+                                    loading={loadedButton}
+                                    disabled={items.length === 0}
+                                    size="large"
+                                    icon={<Delete className="h-3.5 w-4 mr-2" />}
+                                    onClick={() => {
+                                        this.setState({ itemModal: true });
+                                    }}
+                                    className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
+                                >
+                                    Delete items
+                                </Button>
+                                <Modal
+                                    open={itemModal}
+                                    onOk={() => {
+                                        this.setState({ itemModal: false });
+                                        this.deleteSpiderJobData("items");
+                                    }}
+                                    onCancel={() => {
+                                        this.setState({ itemModal: false });
+                                    }}
+                                    okText="Yes"
+                                    okType="danger"
+                                    cancelText="No"
+                                    okButtonProps={{ className: "rounded-lg" }}
+                                    cancelButtonProps={{ className: "rounded-lg" }}
+                                >
+                                    <Text>Are you sure you want to delete job items?</Text>
+                                </Modal>
                                 <Button
                                     disabled
                                     size="large"
@@ -1276,7 +1344,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     requests = (): React.ReactNode => {
-        const { loadedRequests, requests, requestsCurrent, requestsCount } = this.state;
+        const { loadedRequests, loadedButton, requests, requestModal, requestsCurrent, requestsCount } = this.state;
         return (
             <Content className="bg-metal content-padding">
                 {loadedRequests ? (
@@ -1329,6 +1397,35 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Button>
                             </Col>
                             <Col className="flex float-right">
+                                <Button
+                                    loading={loadedButton}
+                                    disabled={requests.length === 0}
+                                    size="large"
+                                    icon={<Delete className="h-3.5 w-4 mr-2" />}
+                                    onClick={() => {
+                                        this.setState({ requestModal: true });
+                                    }}
+                                    className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
+                                >
+                                    Delete requests
+                                </Button>
+                                <Modal
+                                    open={requestModal}
+                                    onOk={() => {
+                                        this.setState({ requestModal: false });
+                                        this.deleteSpiderJobData("requests");
+                                    }}
+                                    onCancel={() => {
+                                        this.setState({ requestModal: false });
+                                    }}
+                                    okText="Yes"
+                                    okType="danger"
+                                    cancelText="No"
+                                    okButtonProps={{ className: "rounded-lg" }}
+                                    cancelButtonProps={{ className: "rounded-lg" }}
+                                >
+                                    <Text>Are you sure you want to delete job requests?</Text>
+                                </Modal>
                                 <Button
                                     disabled
                                     size="large"
@@ -1417,7 +1514,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     };
 
     logs = (): React.ReactNode => {
-        const { loadedLogs, logs, logsCurrent, logsCount } = this.state;
+        const { loadedLogs, loadedButton, logs, logModal, logsCurrent, logsCount } = this.state;
         return (
             <Content className="bg-metal content-padding">
                 {loadedLogs ? (
@@ -1438,6 +1535,35 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
 
                             <Col className="flex float-right">
+                                <Button
+                                    loading={loadedButton}
+                                    disabled={logs.length === 0}
+                                    size="large"
+                                    icon={<Delete className="h-3.5 w-4 mr-2" />}
+                                    onClick={() => {
+                                        this.setState({ logModal: true });
+                                    }}
+                                    className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
+                                >
+                                    Delete logs
+                                </Button>
+                                <Modal
+                                    open={logModal}
+                                    onOk={() => {
+                                        this.setState({ logModal: false });
+                                        this.deleteSpiderJobData("logs");
+                                    }}
+                                    onCancel={() => {
+                                        this.setState({ logModal: false });
+                                    }}
+                                    okText="Yes"
+                                    okType="danger"
+                                    cancelText="No"
+                                    okButtonProps={{ className: "rounded-lg" }}
+                                    cancelButtonProps={{ className: "rounded-lg" }}
+                                >
+                                    <Text>Are you sure you want to delete job logs?</Text>
+                                </Modal>
                                 <Button
                                     disabled
                                     size="large"

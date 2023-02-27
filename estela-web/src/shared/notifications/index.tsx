@@ -22,7 +22,7 @@ export const resourceNotAllowedNotification = (): void => {
 export const dataDeletedNotification = (n: number): void => {
     notification.open({
         message: "Data Successfully Deleted",
-        description: `${n} Item have been deleted`,
+        description: `${n} Items have been deleted`,
     });
 };
 
