@@ -7,39 +7,49 @@ interface UserProviderProps {
 
 interface UserProviderState {
     username: string;
-    token: string;
-    role: string;
+    email: string;
+    accessToken: string;
+    role?: string;
 }
 
 export class UserProvider extends Component<UserProviderProps, UserProviderState> {
     state: UserProviderState = {
         username: "",
-        token: "",
+        email: "",
+        accessToken: "",
         role: "",
     };
 
     updateUsername = (newUsername: string) => {
         this.setState({ username: newUsername });
     };
-    updateToken = (newToken: string) => {
-        this.setState({ token: newToken });
+    
+    updateEmail = (newEmail: string) => {
+        this.setState({ email: newEmail });
     };
+
+    updateAccessToken = (newAccessToken: string) => {
+        this.setState({ accessToken: newAccessToken });
+    };
+    
     updateRole = (newRole: string) => {
         this.setState({ role: newRole });
     };
 
     render(): JSX.Element {
         const { children } = this.props;
-        const { username, token, role } = this.state;
-        const { updateUsername, updateToken, updateRole } = this;
+        const { username, email, accessToken, role } = this.state;
+        const { updateUsername, updateEmail, updateAccessToken, updateRole } = this;
         return (
             <UserContext.Provider
                 value={{
                     username,
-                    token,
+                    email,
+                    accessToken,
                     role,
                     updateUsername,
-                    updateToken,
+                    updateEmail,
+                    updateAccessToken,
                     updateRole,
                 }}
             >
