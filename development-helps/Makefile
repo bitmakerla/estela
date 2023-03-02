@@ -4,7 +4,7 @@ QUEUING_DIR = ../queueing
 WEB_DIR = ../estela-web
 INSTALLATION_DIR = ../installation
 
-REGISTRY_HOST = localhost:5000
+REGISTRY_HOST = localhost:5001
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 
@@ -124,7 +124,7 @@ lint:
 .PHONY: upgrade-release
 upgrade-release:
 	-cd $(INSTALLATION_DIR) && . ./local/.env && cd helm-chart && \
-	 helm upgrade $${RELEASE_NAME} . && helm history $${RELEASE_NAME} && helm get values $${RELEASE_NAME}
+	 helm upgrade $${RELEASE_NAME} -f values.yaml . && helm history $${RELEASE_NAME} && helm get values $${RELEASE_NAME}
 
 
 .PHONY: rollback-release

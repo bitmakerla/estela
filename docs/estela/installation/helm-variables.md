@@ -1,19 +1,11 @@
 ---
 layout: page
-title: Variables Guide
-parent: Installation
+title: Variables Appendix
+parent: Getting started
 grand_parent: estela
 ---
 
-# estela Helm Chart variables guide
-
-First, make a copy (in the _helm-chart_ directory) of 
-[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example){:target="_blank"}
-and rename it to `values.yaml`. If you do not need to define an optional 
-variable, fill its value with an empty string `""`. Now, complete the following fields:
-
-_Note_: The values that should be used if the resources have been deployed locally are
-commented in the `values.yaml.example` file.
+# estela Helm Chart variables Appendix
 
 ## Chart variables
 
@@ -23,7 +15,7 @@ of estela.
 * _local_ (Required): Set this variable to `true` if estela is being deployed on local
   resources. Otherwise, set it to `false`.
 
-* _hostIp_ (Optional): This variable is required only if the above variable _local_ has 
+*_hostIp_ (Required/Optional): This variable is *required only if the above variable _local_ has 
   been set to `true`, this address is a reference to the host machine from minikube. 
   Find it by running:
   ```bash
@@ -32,7 +24,7 @@ of estela.
 
 * _registryHost_ (Required): The registry host where the images of the estela modules are 
   located. If a local registry is being used, this host is equal to the above variable
-  _hostIp_, remember to add the port if you are using a local registry host: `<hostIp>:5000`.
+  _hostIp_, remember to add the port if you are using a local registry host: `<hostIp>:5001`.
 
 * _nodeSelector_ (Optional): The name of the node on which estela will be installed in case
   the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROLE_NAME }`.

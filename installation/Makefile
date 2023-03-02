@@ -2,20 +2,9 @@ API_DIR = ../estela-api
 QUEUING_DIR = ../queueing
 WEB_DIR = ../estela-web
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
-API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.spec.clusterIP}')
+LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 RESOURCES = db registry minio zookeeper kafka
-
-
-ifeq ($(OS),Windows_NT)
-	DOCKER_COMPOSE = docker compose
-else
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S),Linux)
-		DOCKER_COMPOSE = docker-compose
-	else # OSX
-		DOCKER_COMPOSE = docker compose
-	endif
-endif
 
 
 .PHONY: resources
@@ -23,7 +12,7 @@ resources:
 	-minikube start
 	-echo "$$(minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1')" > tmp
 	-python3 local/start-environment.py
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml up ${RESOURCES} -d
+	-docker compose -f local/docker-compose.yaml up ${RESOURCES} -d
 	-minikube delete
 	-. ./local/.env && minikube start \
 		   --insecure-registry=$${HOST_REGISTRY} \
@@ -35,8 +24,8 @@ resources:
 
 .PHONY: delete-resources
 delete-resources:
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml down
-	-minikube delete --all --purge
+	-docker compose -f local/docker-compose.yaml down
+	-minikube delete
 
 
 .PHONY: build-all-images
@@ -68,7 +57,7 @@ images: build-all-images upload-all-images
 .PHONY: install
 install:
 	-. ./local/.env && cd helm-chart && \
-	 helm install $${RELEASE_NAME} --create-namespace --debug --namespace=$${NAMESPACE} .
+	 helm upgrade --install $${RELEASE_NAME} --create-namespace --debug --namespace=$${NAMESPACE} .
 
 
 .PHONY: uninstall
@@ -118,7 +107,7 @@ setup: update-api-ip makemigrations migrate restart-celery-beat create-minio-sup
 .PHONY: build-web
 build-web:
 	-. ./local/.env && cd $(WEB_DIR) && \
-	 echo "REACT_APP_API_BASE_URL=http://$(API_IP)" > .env.development
+	 echo "REACT_APP_API_BASE_URL=http://$(LOCAL_API_IP)" > .env.development
 	-cd $(WEB_DIR) && yarn install
 
 
@@ -129,11 +118,11 @@ run-web:
 
 .PHONY: start
 start:
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml up ${RESOURCES} -d
+	-docker compose -f local/docker-compose.yaml up ${RESOURCES} -d
 	-minikube start
 
 
 .PHONY: stop
 stop:
 	-minikube stop
-	-$(DOCKER_COMPOSE) -f local/docker-compose.yaml stop
+	-docker compose -f local/docker-compose.yaml stop
