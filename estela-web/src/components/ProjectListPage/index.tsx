@@ -151,6 +151,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
 
     setUserRole = (role: string): void => {
         AuthService.setUserRole(role);
+        const { updateRole } = this.context as UserContextProps;
+        updateRole(role);
     };
 
     getUser = (): string => {
