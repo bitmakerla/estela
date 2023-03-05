@@ -8,7 +8,7 @@ import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
 import Bitmaker from "../../assets/logo/bitmaker.svg";
 import { handleInvalidDataError } from "../../utils";
-import { UserContext, UserContextProps } from "../../context/UserContext";
+import { UserContext, UserContextProps } from "../../context";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -19,24 +19,29 @@ export class LoginPage extends Component<unknown> {
 
     componentDidMount(): void {
         if (AuthService.getAuthToken()) {
-            const { updateUsername, updateToken, updateRole } = this.context as UserContextProps;
+            const { updateUsername, updateAccessToken, updateRole, updateEmail } = this.context as UserContextProps;
             updateUsername(AuthService.getUserUsername() ?? "");
-            updateToken(AuthService.getAuthToken() ?? "");
-            updateRole(AuthService.getUserRole() ?? "");
+            updateEmail(AuthService.getUserEmail() ?? "");
+            updateAccessToken(AuthService.getAuthToken() ?? "");
+            if (AuthService.getUserRole() && updateRole) {
+                updateRole(AuthService.getUserRole() ?? "");
+            }
             history.push("/projects");
         }
     }
 
     handleSubmit = (data: { username: string; password: string }): void => {
         const request: ApiAuthLoginRequest = { data };
-        const { updateUsername, updateToken } = this.context as UserContextProps;
+        const { updateUsername, updateEmail, updateAccessToken } = this.context as UserContextProps;
         this.apiService.apiAuthLogin(request).then(
             (response: Token) => {
                 AuthService.setAuthToken(response.key);
-                updateToken(response.key);
+                updateAccessToken(response.key);
                 if (response.user !== undefined) {
-                    AuthService.setUserUsername(response.user);
-                    updateUsername(response.user);
+                    AuthService.setUserUsername(response.user.username);
+                    updateUsername(response.user.username);
+                    AuthService.setUserEmail(response.user.email ?? "");
+                    updateEmail(response.user.email ?? "");
                 }
                 history.push("/projects");
             },

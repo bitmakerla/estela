@@ -1,7 +1,7 @@
 import React, { Component, Fragment, Suspense } from "react";
 import { Switch, Router } from "react-router-dom";
 import { MainRoutes } from "./routes";
-import { UserProvider } from "./context/UserProvider";
+import { UserProvider } from "./context";
 
 import history from "./history";
 import ExternalRoutes from "ExternalComponents/ComponentRoutes";

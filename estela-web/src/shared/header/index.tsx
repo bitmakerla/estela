@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import history from "../../history";
 import { AuthService } from "../../services";
 import { NotificationsList } from "../../shared";
-import { UserContext, UserContextProps } from "../../context/UserContext";
+import { UserContext, UserContextProps } from "../../context";
 
 import User from "../../assets/icons/user.svg";
 import Notification from "../../assets/icons/notification.svg";
@@ -56,17 +56,19 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
 
     getUserRole = (): string => {
         const { role } = this.context as UserContextProps;
-        return role;
+        return role ?? "";
     };
 
     logout = (): void => {
         AuthService.removeAuthToken();
         AuthService.removeUserUsername();
+        AuthService.removeUserEmail();
         AuthService.removeUserRole();
-        const { updateUsername, updateToken, updateRole } = this.context as UserContextProps;
+        const { updateUsername, updateAccessToken, updateEmail, updateRole } = this.context as UserContextProps;
         updateUsername("");
-        updateRole("");
-        updateToken("");
+        updateEmail("");
+        updateRole && updateRole("");
+        updateAccessToken("");
         history.push("/login");
     };
 

@@ -23,7 +23,7 @@ export class UserProvider extends Component<UserProviderProps, UserProviderState
     updateUsername = (newUsername: string) => {
         this.setState({ username: newUsername });
     };
-    
+
     updateEmail = (newEmail: string) => {
         this.setState({ email: newEmail });
     };
@@ -31,7 +31,7 @@ export class UserProvider extends Component<UserProviderProps, UserProviderState
     updateAccessToken = (newAccessToken: string) => {
         this.setState({ accessToken: newAccessToken });
     };
-    
+
     updateRole = (newRole: string) => {
         this.setState({ role: newRole });
     };
