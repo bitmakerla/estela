@@ -77,7 +77,14 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
             key: "1",
             label: (
                 <Content className="stroke-black hover:stroke-estela hover:bg-button-hover rounded">
-                    <Link to={""} className="flex items-center hover:text-estela-blue-full">
+                    <Link
+                        to={""}
+                        onClick={() => {
+                            const { updateRole } = this.context as UserContextProps;
+                            updateRole && updateRole("");
+                        }}
+                        className="flex items-center hover:text-estela-blue-full"
+                    >
                         <Dashboard className="mx-1 w-6 h-6" />
                         Home
                     </Link>
@@ -89,7 +96,14 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
             key: "2",
             label: (
                 <Content className="stroke-black hover:stroke-estela-blue-full hover:bg-button-hover rounded">
-                    <Link to={"/settings/profile"} className="flex items-center hover:text-estela-blue-full">
+                    <Link
+                        to={"/settings/profile"}
+                        onClick={() => {
+                            const { updateRole } = this.context as UserContextProps;
+                            updateRole && updateRole("");
+                        }}
+                        className="flex items-center hover:text-estela-blue-full"
+                    >
                         <Settings className="mx-1 w-6 h-6" />
                         Account Settings
                     </Link>

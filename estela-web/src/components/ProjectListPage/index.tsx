@@ -100,6 +100,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         if (!AuthService.getAuthToken()) {
             authNotification();
         } else {
+            const { updateRole } = this.context as UserContextProps;
+            updateRole && updateRole("");
             const data = await this.getProjects(1);
             const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
                 return {
