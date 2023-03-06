@@ -41,6 +41,7 @@ import {
     ProjectSidenav,
     Header,
     Spin,
+    PaginationItem,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { checkExternalError } from "ExternalComponents/CardNotification";
@@ -908,6 +909,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                     pageSize={this.PAGE_SIZE}
                                                     onChange={this.onPageChange}
                                                     showSizeChanger={false}
+                                                    itemRender={PaginationItem}
                                                 />
                                             </Row>
                                         </Col>
