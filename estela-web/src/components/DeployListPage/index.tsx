@@ -8,7 +8,14 @@ import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiProjectsDeploysListRequest, Deploy, Spider, UserDetail } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import {
+    authNotification,
+    resourceNotAllowedNotification,
+    Header,
+    ProjectSidenav,
+    Spin,
+    PaginationItem,
+} from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -212,54 +219,65 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                 </Modal>
                                 <Content className="lg:m-10 md:mx-6 mx-2">
                                     <p className="font-medium text-xl text-silver">SPIDER OVERVIEW</p>
-                                    <Row justify="center">
-                                        <Row align="middle" className="gap-4 my-4">
-                                            <Col>
-                                                <Info className="w-9 h-9" />
-                                            </Col>
-                                            <Col className="flex flex-col">
-                                                <div>
-                                                    <Text strong>Deploy spiders</Text> and <Text strong>jobs</Text>,
-                                                    access <Text strong>developer features</Text> and more by installing
-                                                    <a
-                                                        target="_blank"
-                                                        href="https://estela.bitmaker.la/docs/estela-cli/install.html"
-                                                        rel="noreferrer"
-                                                    >
-                                                        <Text className="text-estela underline mx-1">estela CLI</Text>
-                                                    </a>
-                                                </div>
-                                                <div>
-                                                    Want to know more about estela, access our{" "}
-                                                    <a
-                                                        target="_blank"
-                                                        href="https://estela.bitmaker.la/docs/"
-                                                        rel="noreferrer"
-                                                    >
-                                                        <Text className="text-estela underline mx-1">
-                                                            documentation
-                                                        </Text>
-                                                    </a>
-                                                </div>
-                                            </Col>
-                                        </Row>
-                                        <Row align="middle" className="rounded-md p-4 bg-estela-blue-low text-base">
-                                            <p className="text-estela-black-full text-sm font-normal">
-                                                Copy project ID to deploy your spiders:
-                                            </p>
-                                            <Link
-                                                id="id_project"
-                                                className="text-estela-blue-medium text-base font-normal"
-                                                to={`/projects/${this.projectId}/dashboard`}
+                                    <Row className="bg-white p-5 rounded-lg mt-6" justify="center">
+                                        <Content>
+                                            <Row align="middle" className="gap-4 my-4">
+                                                <Col>
+                                                    <Info className="w-9 h-9" />
+                                                </Col>
+                                                <Col className="flex flex-col">
+                                                    <div>
+                                                        <Text strong>Deploy spiders</Text> and <Text strong>jobs</Text>,
+                                                        access <Text strong>developer features</Text> and more by
+                                                        installing
+                                                        <a
+                                                            target="_blank"
+                                                            href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                                            rel="noreferrer"
+                                                        >
+                                                            <Text className="text-estela underline mx-1">
+                                                                estela CLI
+                                                            </Text>
+                                                        </a>
+                                                    </div>
+                                                    <div>
+                                                        Want to know more about estela, access our{" "}
+                                                        <a
+                                                            target="_blank"
+                                                            href="https://estela.bitmaker.la/docs/"
+                                                            rel="noreferrer"
+                                                        >
+                                                            <Text className="text-estela underline mx-1">
+                                                                documentation
+                                                            </Text>
+                                                        </a>
+                                                    </div>
+                                                </Col>
+                                            </Row>
+                                            <Row
+                                                justify="space-between"
+                                                align="middle"
+                                                className="rounded-md p-4 bg-estela-blue-low text-base"
                                             >
-                                                {this.projectId}
-                                            </Link>
-                                            <Button
-                                                icon={<Copy width={24} />}
-                                                className="border-0 mx-4 hover:bg-button-hover stroke-black hover:stroke-estela"
-                                                onClick={this.copy}
-                                            />
-                                        </Row>
+                                                <Row className="gap-4 px-5">
+                                                    <p className="text-estela-black-full text-sm font-normal">
+                                                        Copy project ID to deploy your spiders:
+                                                    </p>
+                                                    <Link
+                                                        id="id_project"
+                                                        className="text-estela-blue-medium text-base font-normal"
+                                                        to={`/projects/${this.projectId}/dashboard`}
+                                                    >
+                                                        {this.projectId}
+                                                    </Link>
+                                                </Row>
+                                                <Button
+                                                    icon={<Copy width={24} />}
+                                                    className="border-0 mx-4 hover:bg-button-hover stroke-black hover:stroke-estela"
+                                                    onClick={this.copy}
+                                                />
+                                            </Row>
+                                        </Content>
                                         <Row className="my-6 grid grid-cols-11 text-base mx-10">
                                             <div className="col-span-5 flex flex-col font-sans text-xs mx-5">
                                                 <p className="font-medium text-center text-sm text-estela-black-full">
@@ -311,16 +329,17 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 locale={{ emptyText: "No jobs yet." }}
                                             />
                                         </Row>
+                                        <Pagination
+                                            className="pagination"
+                                            defaultCurrent={1}
+                                            total={count}
+                                            current={current}
+                                            pageSize={this.PAGE_SIZE}
+                                            onChange={this.onPageChange}
+                                            showSizeChanger={false}
+                                            itemRender={PaginationItem}
+                                        />
                                     </Row>
-                                    <Pagination
-                                        className="pagination"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
-                                    />
                                 </Content>
                             </Layout>
                         ) : (
