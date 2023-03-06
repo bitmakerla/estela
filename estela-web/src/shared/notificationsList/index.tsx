@@ -11,26 +11,8 @@ const notis = [
     {
         id: 1,
         seen: false,
-        message: "Scraper202122 has run a job in MySpider spider",
-        date: "Jan 01, 2022 at 9:15 AM",
-    },
-    {
-        id: 2,
-        seen: false,
-        message: "Scraper202122 has invited you to join project MyProject",
-        date: "Jan 01, 2022 at 9:15 AM",
-    },
-    {
-        id: 3,
-        seen: true,
-        message: "You have changed the role of MyProject project, from admin to developer.",
-        date: "Jan 01, 2022 at 9:15 AM",
-    },
-    {
-        id: 4,
-        seen: true,
-        message: "You created the MyFirstProject project ",
-        date: "Jan 01, 2022 at 8:15 AM",
+        message: "We are working on this feature.",
+        date: "Soon",
     },
 ];
 

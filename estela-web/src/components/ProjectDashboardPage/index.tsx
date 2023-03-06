@@ -8,9 +8,9 @@ import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
     Project,
-    UsageRecord,
     ProjectJob,
     SpiderJob,
+    ProjectUsage,
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
@@ -140,13 +140,13 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     getUsageRecords = async (): Promise<void> => {
-        await this.apiService.apiProjectsUsage({ pid: this.projectId }).then((response: UsageRecord[]) => {
-            const time = String(response[0].processingTime);
+        await this.apiService.apiProjectsCurrentUsage({ pid: this.projectId }).then((response: ProjectUsage) => {
+            const time = parseFloat(response.processingTime ?? "0");
             this.setState({
                 projectUseLoaded: true,
-                network: response[0].networkUsage,
-                processingTime: time.substring(0, time.indexOf(":", time.indexOf(":") + 1) + 3),
-                storage: response[0].itemsDataSize + response[0].requestsDataSize + response[0].logsDataSize,
+                network: response.networkUsage,
+                processingTime: String(Math.round(time * 100) / 100),
+                storage: response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
             });
         });
     };
@@ -184,6 +184,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                             ID : {this.projectId}
                                         </Text>
                                         <Button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(this.projectId);
+                                            }}
                                             icon={<Copy className="w-6 h-6" />}
                                             className="flex items-center justify-center border-white stroke-estela text-estela hover:bg-estela-blue-low hover:border-estela rounded-md"
                                         ></Button>
@@ -218,7 +221,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                                     </Text>
                                                     {projectUseLoaded ? (
                                                         <Text className="text-xl my-2 font-bold leading-8">
-                                                            {processingTime}
+                                                            {processingTime} seg
                                                         </Text>
                                                     ) : (
                                                         <Spiner className="my-4" />
@@ -234,11 +237,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                                         STORAGE USED
                                                     </Text>
                                                     {projectUseLoaded ? (
-                                                        <>
-                                                            <Text className="text-xl my-2 font-bold leading-8">
-                                                                {this.formatBytes(storage)}
-                                                            </Text>
-                                                        </>
+                                                        <Text className="text-xl my-2 font-bold leading-8">
+                                                            {this.formatBytes(storage)}
+                                                        </Text>
                                                     ) : (
                                                         <Spiner className="my-4" />
                                                     )}

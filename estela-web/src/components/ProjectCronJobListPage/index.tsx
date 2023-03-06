@@ -144,7 +144,7 @@ interface ProjectCronJobListPageState {
     newEnvVarName: string;
     newEnvVarValue: string;
     newTagName: string;
-    externalComponent: () => JSX.Element;
+    externalComponent: JSX.Element;
 }
 
 interface RouteParams {
@@ -184,7 +184,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         modal: false,
         count: 0,
         current: 0,
-        externalComponent: () => <></>,
+        externalComponent: <></>,
     };
 
     apiService = ApiService();
@@ -443,7 +443,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 const [errorComponent, err] = checkExternalError(data);
                 if (err) {
                     invalidDataNotification(data.detail);
-                    this.setState({ externalComponent: () => <></> });
+                    this.setState({ externalComponent: <></> });
                     this.setState({ externalComponent: errorComponent });
                 } else {
                     incorrectDataNotification();
@@ -727,7 +727,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                 >
                                                     Schedule new job
                                                 </Button>
-                                                {externalComponent()}
+                                                {externalComponent}
                                                 <Modal
                                                     style={{
                                                         overflow: "hidden",

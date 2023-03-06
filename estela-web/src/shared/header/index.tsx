@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import history from "../../history";
 import { AuthService } from "../../services";
 import { NotificationsList } from "../../shared";
+import { UserContext, UserContextProps } from "../../context/UserContext";
 
 import User from "../../assets/icons/user.svg";
 import Notification from "../../assets/icons/notification.svg";
@@ -43,6 +44,8 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
         });
     }
     path = this.props.path;
+    static contextType = UserContext;
+
     isLogged = (): boolean => {
         return Boolean(AuthService.getAuthToken());
     };
@@ -52,11 +55,18 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
     };
 
     getUserRole = (): string => {
-        return String(AuthService.getUserRole());
+        const { role } = this.context as UserContextProps;
+        return role;
     };
 
     logout = (): void => {
         AuthService.removeAuthToken();
+        AuthService.removeUserUsername();
+        AuthService.removeUserRole();
+        const { updateUsername, updateToken, updateRole } = this.context as UserContextProps;
+        updateUsername("");
+        updateRole("");
+        updateToken("");
         history.push("/login");
     };
 
@@ -143,9 +153,13 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
                                     <Col className="my-5">
                                         <User className="stroke-estela h-6 w-6" />
                                     </Col>
-                                    <Row className="grid grid-cols-1 my-3">
+                                    <Row className="grid grid-cols-1 my-3" align="middle">
                                         <Col className="font-medium text-sm h-6">{this.getUser()}</Col>
-                                        <Col className="text-estela-black-medium text-xs h-4">{this.getUserRole()}</Col>
+                                        {this.getUserRole() !== "" && (
+                                            <Col className="text-estela-black-medium text-xs h-4">
+                                                {this.getUserRole()}
+                                            </Col>
+                                        )}
                                     </Row>
                                     <Col className="my-5">
                                         <ArrowDown className="stroke-estela h-5 w-5" />
