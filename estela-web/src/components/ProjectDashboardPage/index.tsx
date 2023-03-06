@@ -12,7 +12,14 @@ import {
     SpiderJob,
     ProjectUsage,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import {
+    authNotification,
+    resourceNotAllowedNotification,
+    Header,
+    ProjectSidenav,
+    Spin,
+    PaginationItem,
+} from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Text } = Typography;
@@ -277,6 +284,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                                 pageSize={this.PAGE_SIZE}
                                                 onChange={this.onPageChange}
                                                 showSizeChanger={false}
+                                                itemRender={PaginationItem}
                                             />
                                         </Card>
                                     </Col>
