@@ -17,3 +17,4 @@ minio
 pymongo[srv]
 redis
 gunicorn
+git+https://github.com/bitmakerla/estela-queue-adapter.git@BITMAKER-2425

@@ -117,11 +117,9 @@ class KubernetesEngine:
         if api_instance is None:
             api_instance = self.get_api_instance()
 
+        job_env_vars.update(list(settings.QUEUE_PARAMS.items()))
         job_env_vars.update(
             [
-                ("KAFKA_ADVERTISED_PORT", settings.KAFKA_PORT),
-                ("KAFKA_ADVERTISED_LISTENERS", settings.KAFKA_HOSTS),
-                ("FIFO_PATH", "/fifo-data/{}.fifo".format(spider_name)),
                 (
                     "JOB_INFO",
                     dumps(

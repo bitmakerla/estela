@@ -14,8 +14,12 @@ from urllib.parse import urlparse
 import environ
 from pathlib import Path
 
+from estela_queue_adapter import get_queue_env_vars
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 
 # Set environment variables from environment file
 env = environ.Env(
@@ -34,8 +38,6 @@ env = environ.Env(
     DJANGO_EXTERNAL_APPS=(str, ""),
     EXTERNAL_APP_KEYS=(str, "dummy"),
     EXTERNAL_MIDDLEWARES=(str, ""),
-    KAFKA_HOSTS=(str, "127.0.0.1"),
-    KAFKA_PORT=(str, "dummy"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
@@ -56,8 +58,8 @@ env = environ.Env(
     EMAIL_PORT=(str, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
 )
-
 environ.Env.read_env(env_file=".env")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -71,14 +73,12 @@ DEBUG = False
 DJANGO_API_HOST = env("DJANGO_API_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
-
 DJANGO_EXTERNAL_APPS = [x for x in env("DJANGO_EXTERNAL_APPS").split(",") if x]
 EXTERNAL_APP_KEYS = [x for x in env("EXTERNAL_APP_KEYS").split(",") if x]
 EXTERNAL_MIDDLEWARES = [x for x in env("EXTERNAL_MIDDLEWARES").split(",") if x]
 
 
 # Application definition
-
 DEFAULT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -140,7 +140,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
@@ -155,7 +154,6 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -185,7 +183,6 @@ PASSWORD_RESET_TIMEOUT = 60  # In seconds
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -199,7 +196,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 
@@ -212,37 +208,32 @@ MAX_CHUNK_SIZE = 512 * 1024
 
 
 # Pagination settings used in api_app
-
 API_PAGE_SIZE = 100  # Paginator page size
 API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size
 
 
 # Container Registry Settings
-
 REGISTRY_HOST = env("REGISTRY_HOST")
 REPOSITORY_NAME = env("REPOSITORY_NAME")
 
 
 # Celery settings
-
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-CELERY_EXTERNAL_IMPORTS = [app for app in env("CELERY_EXTERNAL_IMPORTS").split(",") if app]
+CELERY_EXTERNAL_IMPORTS = [
+    app for app in env("CELERY_EXTERNAL_IMPORTS").split(",") if app
+]
 CELERY_IMPORTS = ["config.celery"] + CELERY_EXTERNAL_IMPORTS
 
 
-# Kafka settings
-
-KAFKA_HOSTS = env("KAFKA_HOSTS")
-KAFKA_PORT = env("KAFKA_PORT")
+# Queue settings
+QUEUE_PARAMS = get_queue_env_vars()
 
 
 # Cluster settings
-
 MULTI_NODE_MODE = False
-
 
 SWAGGER_SETTINGS = {
     "DEFAULT_INFO": "docs.settings.api_info",

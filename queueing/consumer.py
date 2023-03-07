@@ -7,7 +7,8 @@ import time
 from queue import Queue
 from config.database_manager import db_client
 from inserter import Inserter
-from utils import connect_kafka_consumer, jsonify
+from utils import jsonify
+from estela_queue_adapter import get_consumer_interface
 
 
 WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
@@ -73,15 +74,22 @@ def heartbeat():
             logging.debug("Heartbeat: {} alive inserters.".format(len(inserters)))
 
 
-def consume_from_kafka(topic_name):
+def consume_from_queue_platform(topic_name):
     if db_client.get_connection():
-        logging.info("DB connection established.")
+        logging.info("DB: connection established.")
     else:
         raise Exception("Could not connect to the DB.")
 
-    consumer = connect_kafka_consumer(topic_name, QUEUE_MAX_TIMEOUT)
-    if consumer is None:
-        raise Exception("Could not connect to kafka.")
+    env = {
+        "QUEUE_PLATFORM_TOPIC": topic_name,
+        "QUEUE_PLATFORM_MAX_TIMEOUT": str(QUEUE_MAX_TIMEOUT),
+    }
+    os.environ.update(env)
+    consumer = get_consumer_interface()
+    if consumer.get_connection():
+        logging.info("Queue platform: connection established.")
+    else:
+        raise Exception("Could not connect to the queue platform.")
 
     _heartbeat = threading.Thread(target=heartbeat, daemon=True)
     _heartbeat.start()
@@ -112,7 +120,7 @@ def consume_from_kafka(topic_name):
 def main():
     logging.basicConfig(level=logging.INFO)
     try:
-        consume_from_kafka(sys.argv[1])
+        consume_from_queue_platform(sys.argv[1])
     except Exception as ex:
         logging.exception(str(ex))
         return 1
