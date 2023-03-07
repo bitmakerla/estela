@@ -51,6 +51,7 @@ import {
     Header,
     ProjectSidenav,
     Spin,
+    PaginationItem,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { checkExternalError } from "ExternalComponents/CardNotification";
@@ -1159,6 +1160,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                             pageSize={this.PAGE_SIZE}
                                             onChange={this.onPageChange}
                                             showSizeChanger={false}
+                                            itemRender={PaginationItem}
                                         />
                                     </div>
                                 </Content>

@@ -54,6 +54,7 @@ import {
     Header,
     ProjectSidenav,
     Spin,
+    PaginationItem,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 
@@ -431,14 +432,27 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     };
 
     onPageChange = async (page: number): Promise<void> => {
-        this.setState({ loaded: false });
         const data = await this.getJobs(page);
         const jobs: SpiderJobData[] = data.data;
+        const errorJobs = jobs.filter((job: SpiderJobData) => job.status === "ERROR");
+        const completedJobs = jobs.filter((job: SpiderJobData) => job.status === "COMPLETED");
+        const runningJobs = jobs.filter((job: SpiderJobData) => job.status === "RUNNING");
+        const queueJobs = jobs.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
+        const tableStatus = [
+            queueJobs.length === 0 ? false : true,
+            runningJobs.length === 0 ? false : true,
+            completedJobs.length === 0 ? false : true,
+            errorJobs.length === 0 ? false : true,
+        ];
         this.setState({
             jobs: [...jobs],
+            errorJobs: [...errorJobs],
+            completedJobs: [...completedJobs],
+            runningJobs: [...runningJobs],
+            queueJobs: [...queueJobs],
+            tableStatus: [...tableStatus],
             count: data.count,
             current: data.current,
-            loaded: true,
         });
     };
 
@@ -1146,6 +1160,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     pageSize={this.PAGE_SIZE}
                                     onChange={this.onPageChange}
                                     showSizeChanger={false}
+                                    itemRender={PaginationItem}
                                 />
                             </Row>
                         </Col>

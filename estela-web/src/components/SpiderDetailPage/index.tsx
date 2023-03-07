@@ -20,7 +20,14 @@ import {
     SpiderJobArg,
     SpiderJobTag,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import {
+    authNotification,
+    resourceNotAllowedNotification,
+    Header,
+    ProjectSidenav,
+    Spin,
+    PaginationItem,
+} from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -569,6 +576,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                 pageSize={this.PAGE_SIZE}
                                 onChange={this.onPageChange}
                                 showSizeChanger={false}
+                                itemRender={PaginationItem}
                             />
                         </Row>
                     </Col>
