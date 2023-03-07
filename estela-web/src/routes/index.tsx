@@ -6,7 +6,6 @@ import { RegisterPage } from "../components/RegisterPage";
 import { NotificationsInboxPage } from "../components/NotificationsInboxPage";
 import { NotificationsSettingsPage } from "../components/NotificationsSettingsPage";
 import { ProjectListPage } from "../components/ProjectListPage";
-import { ProjectDetailPage } from "../components/ProjectDetailPage";
 import { ProjectSettingsPage } from "../components/ProjectSettingsPage";
 import { ProjectMemberPage } from "../components/ProjectMemberPage";
 import { ProjectJobListPage } from "../components/ProjectJobListPage";
@@ -37,7 +36,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/notifications/inbox" component={NotificationsInboxPage} exact />
                 <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
                 <Route path="/projects" component={ProjectListPage} exact />
-                <Route path="/projects/:projectId" component={ProjectDetailPage} exact />
+                {/* ESTELA LAYOUT */}
                 <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
                 <Route path="/projects/:projectId/settings" component={ProjectSettingsPage} exact />
                 <Route path="/projects/:projectId/deploys" component={DeployListPage} exact />
@@ -47,6 +46,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
                 <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
                 <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
+                {/* Needs revision */}
                 <Route
                     path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType"
                     component={JobDataListPage}
@@ -54,6 +54,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                 />
                 <Route path="/projects/:projectId/spiders/:spiderId/jobs/:jobId" component={JobDetailPage} exact />
                 <Route path="/projects/:projectId/spiders/:spiderId/cronjobs" component={CronJobListPage} exact />
+                {/* Needs revision */}
                 <Route
                     path="/projects/:projectId/spiders/:spiderId/cronjobs/create"
                     component={CronJobCreatePage}
@@ -64,6 +65,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                     component={CronJobDetailPage}
                     exact
                 />
+                {/* --------------------- */}
                 <Route path="/settings/profile" component={SettingsProfilePage} exact />
                 <Route path="/settings/password" component={SettingsPasswordPage} exact />
                 <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />

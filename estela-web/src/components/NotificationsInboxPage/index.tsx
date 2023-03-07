@@ -15,7 +15,7 @@ export class NotificationsInboxPage extends Component<unknown, unknown> {
 
     render(): JSX.Element {
         return (
-            <Layout className="">
+            <Layout>
                 <Header path={"/notifications/inbox"} />
                 <Layout className="bg-metal pt-16 pl-16">
                     <NotificationsSidenav path={"notifications/inbox"} />

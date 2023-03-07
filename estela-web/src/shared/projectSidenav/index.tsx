@@ -18,9 +18,17 @@ interface ProjectSideNavPropsInterface {
     path: string;
 }
 
-export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unknown> {
+interface ProjectSideNavPropsState {
+    pathHighlight: string;
+}
+
+export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, ProjectSideNavPropsState> {
     projectId = this.props.projectId;
     path = this.props.path;
+
+    state: ProjectSideNavPropsState = {
+        pathHighlight: "dashboard",
+    };
 
     items: MenuProps["items"] = [
         {
@@ -33,7 +41,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
             label: (
                 <Content className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
                     <Dashboard className="mr-2 w-8 h-8" />
-                    <Link to={`/projects/${this.projectId}/dashboard`}>Dashboard</Link>
+                    <Link
+                        to={`/projects/${this.projectId}/dashboard`}
+                        onClick={() => this.changePathSidenavHandler("dashboard")}
+                    >
+                        Dashboard
+                    </Link>
                 </Content>
             ),
         },
@@ -50,7 +63,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     key: "jobs",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link to={`/projects/${this.projectId}/jobs`}>Overview</Link>
+                            <Link
+                                to={`/projects/${this.projectId}/jobs`}
+                                onClick={() => this.changePathSidenavHandler("jobs")}
+                            >
+                                Overview
+                            </Link>
                         </Content>
                     ),
                 },
@@ -58,7 +76,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     key: "cronjobs",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link to={`/projects/${this.projectId}/cronjobs`}>Schedule</Link>
+                            <Link
+                                to={`/projects/${this.projectId}/cronjobs`}
+                                onClick={() => this.changePathSidenavHandler("cronjobs")}
+                            >
+                                Schedule
+                            </Link>
                         </Content>
                     ),
                 },
@@ -77,7 +100,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     key: "spiders",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link to={`/projects/${this.projectId}/spiders`}>Overview</Link>
+                            <Link
+                                to={`/projects/${this.projectId}/spiders`}
+                                onClick={() => this.changePathSidenavHandler("spiders")}
+                            >
+                                Overview
+                            </Link>
                         </Content>
                     ),
                 },
@@ -85,7 +113,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     key: "deploys",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link to={`/projects/${this.projectId}/deploys`}>Deploys</Link>
+                            <Link
+                                to={`/projects/${this.projectId}/deploys`}
+                                onClick={() => this.changePathSidenavHandler("deploys")}
+                            >
+                                Deploys
+                            </Link>
                         </Content>
                     ),
                 },
@@ -98,7 +131,10 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                 {
                     key: "activity",
                     label: (
-                        <Content className="flex items-center stroke-estela-black-low rounded">
+                        <Content
+                            className="flex items-center stroke-estela-black-low rounded"
+                            onClick={() => this.changePathSidenavHandler("activity")}
+                        >
                             <Activity className="mr-2 w-8 h-8" />
                             Activity
                         </Content>
@@ -110,7 +146,12 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     label: (
                         <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela hover:text-estela rounded">
                             <Members className="mr-2 w-8 h-8" />
-                            <Link to={`/projects/${this.projectId}/members`}>Members</Link>
+                            <Link
+                                to={`/projects/${this.projectId}/members`}
+                                onClick={() => this.changePathSidenavHandler("members")}
+                            >
+                                Members
+                            </Link>
                         </Content>
                     ),
                 },
@@ -119,7 +160,11 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
                     label: (
                         <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Settings className="mr-2 w-8 h-8" />
-                            <Link to={`/projects/${this.projectId}/settings`} className="hover:text-estela">
+                            <Link
+                                to={`/projects/${this.projectId}/settings`}
+                                className="hover:text-estela"
+                                onClick={() => this.changePathSidenavHandler("settings")}
+                            >
                                 Settings
                             </Link>
                         </Content>
@@ -130,14 +175,20 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, unkn
         },
     ];
 
+    changePathSidenavHandler(newPath: string) {
+        this.setState({ pathHighlight: newPath });
+    }
+
     render(): JSX.Element {
+        const { pathHighlight } = this.state;
+
         return (
             <Sider width={240}>
                 <Menu
                     items={this.items}
                     mode="inline"
                     className="h-full"
-                    selectedKeys={[`${this.path}`]}
+                    selectedKeys={[`${pathHighlight}`]}
                     defaultOpenKeys={["2", "3"]}
                 />
             </Sider>
