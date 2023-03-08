@@ -48,6 +48,7 @@ needed to access projects associated with your account.
 >  | paste -d "/" <(echo "http:/") - 
 > ```
 > To make this command work, you should run `minikube tunnel`.
+
 {:% .note }
 > You can use the superuser credentials that you set with `make createsuperuser` to log in.
 
