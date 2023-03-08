@@ -137,12 +137,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         this.setState({ newProjectCategory: value });
     };
 
-    projectManagment = (data: { name: string; category: ProjectCategoryEnum }): void => {
+    projectManagement = (data: { name: string; category: ProjectCategoryEnum }): void => {
         const request: ApiProjectsCreateRequest = { data };
         this.apiService.apiProjectsCreate(request).then(
             (response: Project) => {
+                const { updateRole } = this.context as UserContextProps;
+                if (response.users && response.users.length > 0) {
+                    updateRole && updateRole(response.users[0].permission ?? "");
+                }
                 history.push(`/projects/${response.pid}/dashboard`);
-                window.location.reload();
             },
             (error: unknown) => {
                 console.error(error);
@@ -154,7 +157,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     setUserRole = (role: string): void => {
         AuthService.setUserRole(role);
         const { updateRole } = this.context as UserContextProps;
-        updateRole(role);
+        updateRole && updateRole(role);
     };
 
     getUser = (): string => {
@@ -262,7 +265,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                         key={project.key}
                                                         onClick={() => {
                                                             const { updateRole } = this.context as UserContextProps;
-                                                            updateRole(project.role);
+                                                            AuthService.setUserRole(project.role);
+                                                            updateRole && updateRole(project.role);
                                                             history.push(`/projects/${project.pid}/dashboard`);
                                                         }}
                                                         className="bg-white rounded-md p-3 h-20 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
@@ -396,7 +400,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                                 className="bg-estela text-white border-estela hover:text-estela hover:border-estela rounded"
                                                                 onClick={() => {
                                                                     this.setState({ modalNewProject: false });
-                                                                    this.projectManagment({
+                                                                    this.projectManagement({
                                                                         name: newProjectName,
                                                                         category: newProjectCategory,
                                                                     });

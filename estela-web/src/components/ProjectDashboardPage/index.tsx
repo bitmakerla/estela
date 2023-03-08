@@ -14,6 +14,7 @@ import {
 } from "../../services/api";
 import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
+import { UserContext, UserContextProps } from "../../context";
 
 const { Text } = Typography;
 
@@ -61,6 +62,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
+    static contextType = UserContext;
 
     columns = [
         {
@@ -109,6 +111,11 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             this.apiService.apiProjectsRead(requestParams).then(
                 (response: Project) => {
                     this.setState({ name: response.name });
+                    const { updateRole } = this.context as UserContextProps;
+                    const userRole = AuthService.getUserRole();
+                    if (userRole) {
+                        updateRole && updateRole(userRole);
+                    }
                 },
                 (error: unknown) => {
                     console.error(error);
