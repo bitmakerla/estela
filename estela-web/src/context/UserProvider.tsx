@@ -1,50 +1,46 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 import { UserContext } from "./UserContext";
 
 interface UserProviderProps {
     children: JSX.Element | JSX.Element[];
 }
 
-interface UserProviderState {
-    username: string;
-    token: string;
-    role: string;
-}
+export const UserProvider: React.FC<UserProviderProps> = (props) => {
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [accessToken, setAccessToken] = useState("");
+    const [role, setRole] = useState("");
 
-export class UserProvider extends Component<UserProviderProps, UserProviderState> {
-    state: UserProviderState = {
-        username: "",
-        token: "",
-        role: "",
+    const updateUsername = (newUsername: string) => {
+        setUsername(newUsername);
     };
 
-    updateUsername = (newUsername: string) => {
-        this.setState({ username: newUsername });
-    };
-    updateToken = (newToken: string) => {
-        this.setState({ token: newToken });
-    };
-    updateRole = (newRole: string) => {
-        this.setState({ role: newRole });
+    const updateEmail = (newEmail: string) => {
+        setEmail(newEmail);
     };
 
-    render(): JSX.Element {
-        const { children } = this.props;
-        const { username, token, role } = this.state;
-        const { updateUsername, updateToken, updateRole } = this;
-        return (
-            <UserContext.Provider
-                value={{
-                    username,
-                    token,
-                    role,
-                    updateUsername,
-                    updateToken,
-                    updateRole,
-                }}
-            >
-                {children}
-            </UserContext.Provider>
-        );
-    }
-}
+    const updateAccessToken = (newAccessToken: string) => {
+        setAccessToken(newAccessToken);
+    };
+
+    const updateRole = (newRole: string) => {
+        setRole(newRole);
+    };
+
+    return (
+        <UserContext.Provider
+            value={{
+                username,
+                email,
+                accessToken,
+                role,
+                updateUsername,
+                updateEmail,
+                updateAccessToken,
+                updateRole,
+            }}
+        >
+            {props.children}
+        </UserContext.Provider>
+    );
+};

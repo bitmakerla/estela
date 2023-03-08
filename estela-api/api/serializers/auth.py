@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from api.serializers.project import UserDetailSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,8 +41,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
-        read_only=True, slug_field="username", help_text="Username."
+    user = UserDetailSerializer(
+        required=False, help_text="User details."
     )
     key = serializers.CharField(max_length=40, help_text="User's auth token key.")
 

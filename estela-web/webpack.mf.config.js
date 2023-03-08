@@ -69,6 +69,7 @@ module.exports = (env) => {
                     "./authService": "./src/services/index.ts",
                     "./constants": "./src/constants.ts",
                     "./notifications": "./src/shared/notifications/index.tsx",
+                    "./userContext": "./src/context/index.ts",
                 },
                 shared: {
                     ...deps,

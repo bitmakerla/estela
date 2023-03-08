@@ -38,7 +38,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     )
     @action(methods=["POST"], detail=False)
     def login(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
+        serializer:AuthTokenSerializer = self.get_serializer(
             data=request.data, context={"request": self.request}
         )
 

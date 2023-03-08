@@ -896,17 +896,32 @@ definitions:
         title: Password
         type: string
         minLength: 1
+  UserDetail:
+    description: User details.
+    required:
+      - username
+    type: object
+    properties:
+      username:
+        title: Username
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        type: string
+        pattern: ^[\w.@+-]+$
+        maxLength: 150
+        minLength: 1
+      email:
+        title: Email address
+        type: string
+        format: email
+        maxLength: 254
   Token:
     required:
       - key
     type: object
     properties:
       user:
-        title: User
-        description: Username.
-        type: string
-        pattern: ^[\w.@+-]+$
-        readOnly: true
+        $ref: '#/definitions/UserDetail'
       key:
         title: Key
         description: User's auth token key.
@@ -941,25 +956,6 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
-  UserDetail:
-    description: Username.
-    required:
-      - username
-    type: object
-    properties:
-      username:
-        title: Username
-        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-          only.
-        type: string
-        pattern: ^[\w.@+-]+$
-        maxLength: 150
-        minLength: 1
-      email:
-        title: Email address
-        type: string
-        format: email
-        maxLength: 254
   Permission:
     description: Users with permissions on this project.
     type: object

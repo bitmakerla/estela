@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    UserDetail,
+    UserDetailFromJSON,
+    UserDetailFromJSONTyped,
+    UserDetailToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -20,11 +27,11 @@ import { exists, mapValues } from '../runtime';
  */
 export interface Token {
     /**
-     * Username.
-     * @type {string}
+     * 
+     * @type {UserDetail}
      * @memberof Token
      */
-    readonly user?: string;
+    user?: UserDetail;
     /**
      * User's auth token key.
      * @type {string}
@@ -43,7 +50,7 @@ export function TokenFromJSONTyped(json: any, ignoreDiscriminator: boolean): Tok
     }
     return {
         
-        'user': !exists(json, 'user') ? undefined : json['user'],
+        'user': !exists(json, 'user') ? undefined : UserDetailFromJSON(json['user']),
         'key': json['key'],
     };
 }
@@ -57,6 +64,7 @@ export function TokenToJSON(value?: Token | null): any {
     }
     return {
         
+        'user': UserDetailToJSON(value.user),
         'key': value.key,
     };
 }

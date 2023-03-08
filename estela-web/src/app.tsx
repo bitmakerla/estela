@@ -1,10 +1,10 @@
 import React, { Component, Fragment, Suspense } from "react";
 import { Switch, Router } from "react-router-dom";
 import { MainRoutes } from "./routes";
-import { UserProvider } from "./context/UserProvider";
+import { UserProvider } from "./context";
 
 import history from "./history";
-import ExternalRoutes from "ExternalComponents/ComponentRoutes";
+import ComponentRoutes from "ExternalComponents/ComponentRoutes";
 
 export class App extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -15,8 +15,8 @@ export class App extends Component<unknown, unknown> {
                         <Suspense>
                             <UserProvider>
                                 <MainRoutes />
-                                <ExternalRoutes />
                             </UserProvider>
+                            <ComponentRoutes />
                         </Suspense>
                     </Switch>
                 </Router>
