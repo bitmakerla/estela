@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Menu, Layout } from "antd";
 import type { MenuProps } from "antd";
@@ -16,21 +16,11 @@ const { Sider, Content } = Layout;
 interface ProjectSideNavPropsInterface {
     projectId: string;
     path: string;
+    updatePath: (newPath: string) => void;
 }
 
-interface ProjectSideNavPropsState {
-    pathHighlight: string;
-}
-
-export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, ProjectSideNavPropsState> {
-    projectId = this.props.projectId;
-    path = this.props.path;
-
-    state: ProjectSideNavPropsState = {
-        pathHighlight: "dashboard",
-    };
-
-    items: MenuProps["items"] = [
+export const ProjectSidenav: React.FC<ProjectSideNavPropsInterface> = ({ projectId, path, updatePath }) => {
+    const items: MenuProps["items"] = [
         {
             key: "1",
             label: <h2 className=" text-estela-black-medium font-bold text-sm">TOOLS</h2>,
@@ -41,10 +31,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
             label: (
                 <Content className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
                     <Dashboard className="mr-2 w-8 h-8" />
-                    <Link
-                        to={`/projects/${this.projectId}/dashboard`}
-                        onClick={() => this.changePathSidenavHandler("dashboard")}
-                    >
+                    <Link to={`/projects/${projectId}/dashboard`} onClick={() => updatePath("dashboard")}>
                         Dashboard
                     </Link>
                 </Content>
@@ -63,10 +50,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                     key: "jobs",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link
-                                to={`/projects/${this.projectId}/jobs`}
-                                onClick={() => this.changePathSidenavHandler("jobs")}
-                            >
+                            <Link to={`/projects/${projectId}/jobs`} onClick={() => updatePath("jobs")}>
                                 Overview
                             </Link>
                         </Content>
@@ -76,10 +60,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                     key: "cronjobs",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link
-                                to={`/projects/${this.projectId}/cronjobs`}
-                                onClick={() => this.changePathSidenavHandler("cronjobs")}
-                            >
+                            <Link to={`/projects/${projectId}/cronjobs`} onClick={() => updatePath("cronjobs")}>
                                 Schedule
                             </Link>
                         </Content>
@@ -100,10 +81,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                     key: "spiders",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link
-                                to={`/projects/${this.projectId}/spiders`}
-                                onClick={() => this.changePathSidenavHandler("spiders")}
-                            >
+                            <Link to={`/projects/${projectId}/spiders`} onClick={() => updatePath("spiders")}>
                                 Overview
                             </Link>
                         </Content>
@@ -113,10 +91,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                     key: "deploys",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
-                            <Link
-                                to={`/projects/${this.projectId}/deploys`}
-                                onClick={() => this.changePathSidenavHandler("deploys")}
-                            >
+                            <Link to={`/projects/${projectId}/deploys`} onClick={() => updatePath("deploys")}>
                                 Deploys
                             </Link>
                         </Content>
@@ -133,7 +108,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                     label: (
                         <Content
                             className="flex items-center stroke-estela-black-low rounded"
-                            onClick={() => this.changePathSidenavHandler("activity")}
+                            onClick={() => updatePath("activity")}
                         >
                             <Activity className="mr-2 w-8 h-8" />
                             Activity
@@ -146,10 +121,7 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                     label: (
                         <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela hover:text-estela rounded">
                             <Members className="mr-2 w-8 h-8" />
-                            <Link
-                                to={`/projects/${this.projectId}/members`}
-                                onClick={() => this.changePathSidenavHandler("members")}
-                            >
+                            <Link to={`/projects/${projectId}/members`} onClick={() => updatePath("members")}>
                                 Members
                             </Link>
                         </Content>
@@ -161,9 +133,9 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
                         <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
                             <Settings className="mr-2 w-8 h-8" />
                             <Link
-                                to={`/projects/${this.projectId}/settings`}
+                                to={`/projects/${projectId}/settings`}
                                 className="hover:text-estela"
-                                onClick={() => this.changePathSidenavHandler("settings")}
+                                onClick={() => updatePath("settings")}
                             >
                                 Settings
                             </Link>
@@ -175,23 +147,9 @@ export class ProjectSidenav extends Component<ProjectSideNavPropsInterface, Proj
         },
     ];
 
-    changePathSidenavHandler(newPath: string) {
-        this.setState({ pathHighlight: newPath });
-    }
-
-    render(): JSX.Element {
-        const { pathHighlight } = this.state;
-
-        return (
-            <Sider width={240}>
-                <Menu
-                    items={this.items}
-                    mode="inline"
-                    className="h-full"
-                    selectedKeys={[`${pathHighlight}`]}
-                    defaultOpenKeys={["2", "3"]}
-                />
-            </Sider>
-        );
-    }
-}
+    return (
+        <Sider width={240}>
+            <Menu items={items} mode="inline" className="h-full" selectedKeys={[path]} defaultOpenKeys={["2", "3"]} />
+        </Sider>
+    );
+};

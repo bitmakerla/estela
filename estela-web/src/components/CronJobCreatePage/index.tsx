@@ -16,8 +16,6 @@ import {
     incorrectDataNotification,
     invalidDataNotification,
     resourceNotAllowedNotification,
-    Header,
-    ProjectSidenav,
 } from "../../shared";
 
 const { Content } = Layout;
@@ -218,128 +216,122 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
         } = this.state;
 
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
-                    <Content className="content-padding">
-                        <Title level={2} className="text-center">
-                            Create {spiderName} CronJob
-                        </Title>
-                        <Form className="project-create-form" onFinish={this.handleSubmit}>
-                            <Form.Item
-                                label="Schedule"
-                                name="schedule"
-                                required
-                                rules={[{ required: true, message: "Please input cronjob schedule" }]}
-                            >
-                                <Input />
-                            </Form.Item>
-                            <div className="cronjobs-info">
-                                More information about cron schedule expressions&nbsp;
-                                <a href="https://crontab.guru/" target="_blank" rel="noreferrer">
-                                    here
-                                </a>
-                            </div>
-                            <Form.Item name="unique_collection" valuePropName="checked">
-                                <Checkbox>Unique Collection</Checkbox>
-                            </Form.Item>
-                            <div className="arg-label">Arguments:</div>
-                            <Space direction="vertical">
-                                {args.map((arg: ArgsData, id) => (
-                                    <Tag closable key={arg.key} onClose={() => this.handleRemoveArg(id)}>
-                                        {arg.name}: {arg.value}
-                                    </Tag>
-                                ))}
-                                <div className="args">
-                                    <Input
-                                        name="newArgName"
-                                        placeholder="name"
-                                        value={newArgName}
-                                        onChange={this.handleInputChange}
-                                    />
-                                    <Input
-                                        name="newArgValue"
-                                        placeholder="value"
-                                        value={newArgValue}
-                                        onChange={this.handleInputChange}
-                                    />
-                                </div>
+            <Content className="content-padding">
+                <Title level={2} className="text-center">
+                    Create {spiderName} CronJob
+                </Title>
+                <Form className="project-create-form" onFinish={this.handleSubmit}>
+                    <Form.Item
+                        label="Schedule"
+                        name="schedule"
+                        required
+                        rules={[{ required: true, message: "Please input cronjob schedule" }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <div className="cronjobs-info">
+                        More information about cron schedule expressions&nbsp;
+                        <a href="https://crontab.guru/" target="_blank" rel="noreferrer">
+                            here
+                        </a>
+                    </div>
+                    <Form.Item name="unique_collection" valuePropName="checked">
+                        <Checkbox>Unique Collection</Checkbox>
+                    </Form.Item>
+                    <div className="arg-label">Arguments:</div>
+                    <Space direction="vertical">
+                        {args.map((arg: ArgsData, id) => (
+                            <Tag closable key={arg.key} onClose={() => this.handleRemoveArg(id)}>
+                                {arg.name}: {arg.value}
+                            </Tag>
+                        ))}
+                        <div className="args">
+                            <Input
+                                name="newArgName"
+                                placeholder="name"
+                                value={newArgName}
+                                onChange={this.handleInputChange}
+                            />
+                            <Input
+                                name="newArgValue"
+                                placeholder="value"
+                                value={newArgValue}
+                                onChange={this.handleInputChange}
+                            />
+                        </div>
+                    </Space>
+                    <Button className="job-create-button" onClick={this.addArgument}>
+                        Save Argument
+                    </Button>
+                    <div className="envVar-label">Environment variables:</div>
+                    <Space direction="vertical">
+                        {envVars.map((envVar: EnvVarsData, id) => (
+                            <Tag closable key={envVar.key} onClose={() => this.handleRemoveEnvVar(id)}>
+                                {envVar.name}: {envVar.value}
+                            </Tag>
+                        ))}
+                        <div className="envVars">
+                            <Input
+                                name="newEnvVarName"
+                                placeholder="name"
+                                value={newEnvVarName}
+                                onChange={this.handleInputChange}
+                            />
+                            <Input
+                                name="newEnvVarValue"
+                                placeholder="value"
+                                value={newEnvVarValue}
+                                onChange={this.handleInputChange}
+                            />
+                        </div>
+                    </Space>
+                    <Button className="job-create-button" onClick={this.addEnvironmentVariable}>
+                        Save Environment Variable
+                    </Button>
+                    <div className="tag-label">Tags:</div>
+                    <Space direction="vertical">
+                        <Space direction="horizontal">
+                            {tags.map((tag: TagsData, id) => (
+                                <Tag closable key={tag.key} onClose={() => this.handleRemoveTag(id)}>
+                                    {tag.name}
+                                </Tag>
+                            ))}
+                        </Space>
+                        <div className="tags">
+                            <Input
+                                name="newTagName"
+                                placeholder="name"
+                                value={newTagName}
+                                onChange={this.handleInputChange}
+                            />
+                        </div>
+                    </Space>
+                    <Button className="job-create-button" onClick={this.addTag}>
+                        Save Tag
+                    </Button>
+                    <Space direction="vertical" size="large">
+                        <Space direction="horizontal">
+                            Save Data Permanently
+                            <Switch size="small" checked={isDataPersistent} onChange={this.onChangeData} />
+                        </Space>
+                        {!isDataPersistent && (
+                            <Space direction="horizontal">
+                                Days
+                                <InputNumber
+                                    size="small"
+                                    min={1}
+                                    max={31}
+                                    defaultValue={days as number | undefined}
+                                    onChange={this.onChangeDay}
+                                />
                             </Space>
-                            <Button className="job-create-button" onClick={this.addArgument}>
-                                Save Argument
-                            </Button>
-                            <div className="envVar-label">Environment variables:</div>
-                            <Space direction="vertical">
-                                {envVars.map((envVar: EnvVarsData, id) => (
-                                    <Tag closable key={envVar.key} onClose={() => this.handleRemoveEnvVar(id)}>
-                                        {envVar.name}: {envVar.value}
-                                    </Tag>
-                                ))}
-                                <div className="envVars">
-                                    <Input
-                                        name="newEnvVarName"
-                                        placeholder="name"
-                                        value={newEnvVarName}
-                                        onChange={this.handleInputChange}
-                                    />
-                                    <Input
-                                        name="newEnvVarValue"
-                                        placeholder="value"
-                                        value={newEnvVarValue}
-                                        onChange={this.handleInputChange}
-                                    />
-                                </div>
-                            </Space>
-                            <Button className="job-create-button" onClick={this.addEnvironmentVariable}>
-                                Save Environment Variable
-                            </Button>
-                            <div className="tag-label">Tags:</div>
-                            <Space direction="vertical">
-                                <Space direction="horizontal">
-                                    {tags.map((tag: TagsData, id) => (
-                                        <Tag closable key={tag.key} onClose={() => this.handleRemoveTag(id)}>
-                                            {tag.name}
-                                        </Tag>
-                                    ))}
-                                </Space>
-                                <div className="tags">
-                                    <Input
-                                        name="newTagName"
-                                        placeholder="name"
-                                        value={newTagName}
-                                        onChange={this.handleInputChange}
-                                    />
-                                </div>
-                            </Space>
-                            <Button className="job-create-button" onClick={this.addTag}>
-                                Save Tag
-                            </Button>
-                            <Space direction="vertical" size="large">
-                                <Space direction="horizontal">
-                                    Save Data Permanently
-                                    <Switch size="small" checked={isDataPersistent} onChange={this.onChangeData} />
-                                </Space>
-                                {!isDataPersistent && (
-                                    <Space direction="horizontal">
-                                        Days
-                                        <InputNumber
-                                            size="small"
-                                            min={1}
-                                            max={31}
-                                            defaultValue={days as number | undefined}
-                                            onChange={this.onChangeDay}
-                                        />
-                                    </Space>
-                                )}
-                            </Space>
-                            <Button type="primary" htmlType="submit" className="job-create-button">
-                                Create CronJob
-                            </Button>
-                        </Form>
-                    </Content>
-                </Layout>
-            </Layout>
+                        )}
+                    </Space>
+                    <Button type="primary" htmlType="submit" className="job-create-button">
+                        Create CronJob
+                    </Button>
+                </Form>
+            </Content>
         );
     }
 }

@@ -1,27 +1,30 @@
-import React, { Component } from "react";
-import { RouteComponentProps } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import { Layout } from "antd";
-import { Header } from "..";
+import { Header, ProjectSidenav } from "..";
 
 interface RouteParams {
     projectId: string;
 }
 
-interface ProjectLayoutProps extends RouteComponentProps<RouteParams> {
-    children: JSX.Element | JSX.Element[];
+interface ProjectLayoutProps {
+    children?: JSX.Element | JSX.Element[];
 }
 
-export class ProjectLayout extends Component<RouteComponentProps<RouteParams>, unknown> {
-    projectId: string = this.props.match.params.projectId;
-    render() {
-        return (
-            <Layout>
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"jobs"} />
-                    {this.props}
-                </Layout>
+export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
+    const [path, setPath] = useState("dashboard");
+    const { projectId } = useParams<RouteParams>();
+
+    const updatePathHandler = (newPath: string) => {
+        setPath(newPath);
+    };
+    return (
+        <Layout>
+            <Header />
+            <Layout className="white-background">
+                <ProjectSidenav projectId={projectId} path={path} updatePath={updatePathHandler} />
+                {children}
             </Layout>
-        );
-    }
-}
+        </Layout>
+    );
+};

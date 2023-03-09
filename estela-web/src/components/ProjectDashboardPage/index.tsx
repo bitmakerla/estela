@@ -12,14 +12,7 @@ import {
     SpiderJob,
     ProjectUsage,
 } from "../../services/api";
-import {
-    authNotification,
-    resourceNotAllowedNotification,
-    Header,
-    ProjectSidenav,
-    Spin,
-    PaginationItem,
-} from "../../shared";
+import { authNotification, resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
 
@@ -182,126 +175,112 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     render(): JSX.Element {
         const { name, loaded, projectUseLoaded, jobs, count, current, network, processingTime, storage } = this.state;
         return (
-            <Layout>
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"dashboard"} />
-                    <Layout className="bg-metal rounded-t-2xl h-screen">
-                        {loaded ? (
-                            <Fragment>
-                                <Row className="flow-root lg:m-8 m-4">
-                                    <Col className="text-xl leading-6 text-estela-black-medium font-medium float-left">
-                                        {name}
-                                    </Col>
-                                    <Col className="flex float-right lg:mx-4 mx-2">
-                                        <Text className="my-1 mr-2 text-base text-estela-black-medium">
-                                            ID : {this.projectId}
-                                        </Text>
-                                        <Button
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(this.projectId);
-                                            }}
-                                            icon={<Copy className="w-6 h-6" />}
-                                            className="flex items-center justify-center border-white stroke-estela text-estela hover:bg-estela-blue-low hover:border-estela rounded-md"
-                                        ></Button>
-                                    </Col>
-                                </Row>
-                                <Row className="lg:mx-6 mx-2 grid grid-cols-5 gap-2 lg:gap-4">
-                                    <Col className="bg-metal grid justify-start col-span-1 gap-2">
+            <Layout className="bg-metal rounded-t-2xl h-screen">
+                {loaded ? (
+                    <Fragment>
+                        <Row className="flow-root lg:m-8 m-4">
+                            <Col className="text-xl leading-6 text-estela-black-medium font-medium float-left">
+                                {name}
+                            </Col>
+                            <Col className="flex float-right lg:mx-4 mx-2">
+                                <Text className="my-1 mr-2 text-base text-estela-black-medium">
+                                    ID : {this.projectId}
+                                </Text>
+                                <Button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(this.projectId);
+                                    }}
+                                    icon={<Copy className="w-6 h-6" />}
+                                    className="flex items-center justify-center border-white stroke-estela text-estela hover:bg-estela-blue-low hover:border-estela rounded-md"
+                                ></Button>
+                            </Col>
+                        </Row>
+                        <Row className="lg:mx-6 mx-2 grid grid-cols-5 gap-2 lg:gap-4">
+                            <Col className="bg-metal grid justify-start col-span-1 gap-2">
+                                <Space direction="vertical">
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
                                         <Space direction="vertical">
-                                            <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                                <Space direction="vertical">
-                                                    <Text className="text-base text-estela-black-medium break-words">
-                                                        NETWORK USED
+                                            <Text className="text-base text-estela-black-medium break-words">
+                                                NETWORK USED
+                                            </Text>
+                                            {projectUseLoaded ? (
+                                                <>
+                                                    <Text className="text-xl my-2 font-bold leading-8">
+                                                        {this.formatBytes(network)}
                                                     </Text>
-                                                    {projectUseLoaded ? (
-                                                        <>
-                                                            <Text className="text-xl my-2 font-bold leading-8">
-                                                                {this.formatBytes(network)}
-                                                            </Text>
-                                                        </>
-                                                    ) : (
-                                                        <Spiner className="my-4" />
-                                                    )}
-                                                    <Text className="text-sm text-estela-black-medium">
-                                                        Sum of all jobs
-                                                    </Text>
-                                                </Space>
-                                            </Card>
-                                            <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                                <Space direction="vertical">
-                                                    <Text className="text-base text-estela-black-medium break-words">
-                                                        PROCESSING TIME USED
-                                                    </Text>
-                                                    {projectUseLoaded ? (
-                                                        <Text className="text-xl my-2 font-bold leading-8">
-                                                            {processingTime} seg
-                                                        </Text>
-                                                    ) : (
-                                                        <Spiner className="my-4" />
-                                                    )}
-                                                    <Text className="text-sm text-estela-black-medium">
-                                                        Sum of all jobs
-                                                    </Text>
-                                                </Space>
-                                            </Card>
-                                            <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                                <Space direction="vertical">
-                                                    <Text className="text-base text-estela-black-medium">
-                                                        STORAGE USED
-                                                    </Text>
-                                                    {projectUseLoaded ? (
-                                                        <Text className="text-xl my-2 font-bold leading-8">
-                                                            {this.formatBytes(storage)}
-                                                        </Text>
-                                                    ) : (
-                                                        <Spiner className="my-4" />
-                                                    )}
-                                                    <Text className="text-sm text-estela-black-medium">
-                                                        Sum of all jobs
-                                                    </Text>
-                                                </Space>
-                                            </Card>
+                                                </>
+                                            ) : (
+                                                <Spiner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
                                         </Space>
-                                    </Col>
-                                    <Col className="bg-metal col-span-4">
-                                        <Card bordered={false} className="bg-white rounded-2xl">
-                                            <Row className="flow-root">
-                                                <Text className="float-left text-base font-medium text-estela-black-medium m-4 sm:m-2">
-                                                    RECENT JOBS
+                                    </Card>
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
+                                        <Space direction="vertical">
+                                            <Text className="text-base text-estela-black-medium break-words">
+                                                PROCESSING TIME USED
+                                            </Text>
+                                            {projectUseLoaded ? (
+                                                <Text className="text-xl my-2 font-bold leading-8">
+                                                    {processingTime} seg
                                                 </Text>
-                                                <Link
-                                                    className="float-right m-4 sm:m-2 text-estela-blue-full hover:text-estela-blue-medium font-medium text-base"
-                                                    to={`/projects/${this.projectId}/jobs`}
-                                                >
-                                                    See all
-                                                </Link>
-                                            </Row>
-                                            <Table
-                                                columns={this.columns}
-                                                dataSource={jobs}
-                                                pagination={false}
-                                                className="mx-4 sm:m-2"
-                                            />
-                                            <Pagination
-                                                className="text-center"
-                                                defaultCurrent={1}
-                                                total={count}
-                                                current={current}
-                                                pageSize={this.PAGE_SIZE}
-                                                onChange={this.onPageChange}
-                                                showSizeChanger={false}
-                                                itemRender={PaginationItem}
-                                            />
-                                        </Card>
-                                    </Col>
-                                </Row>
-                            </Fragment>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Layout>
-                </Layout>
+                                            ) : (
+                                                <Spiner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
+                                        </Space>
+                                    </Card>
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
+                                        <Space direction="vertical">
+                                            <Text className="text-base text-estela-black-medium">STORAGE USED</Text>
+                                            {projectUseLoaded ? (
+                                                <Text className="text-xl my-2 font-bold leading-8">
+                                                    {this.formatBytes(storage)}
+                                                </Text>
+                                            ) : (
+                                                <Spiner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
+                                        </Space>
+                                    </Card>
+                                </Space>
+                            </Col>
+                            <Col className="bg-metal col-span-4">
+                                <Card bordered={false} className="bg-white rounded-2xl">
+                                    <Row className="flow-root">
+                                        <Text className="float-left text-base font-medium text-estela-black-medium m-4 sm:m-2">
+                                            RECENT JOBS
+                                        </Text>
+                                        <Link
+                                            className="float-right m-4 sm:m-2 text-estela-blue-full hover:text-estela-blue-medium font-medium text-base"
+                                            to={`/projects/${this.projectId}/jobs`}
+                                        >
+                                            See all
+                                        </Link>
+                                    </Row>
+                                    <Table
+                                        columns={this.columns}
+                                        dataSource={jobs}
+                                        pagination={false}
+                                        className="mx-4 sm:m-2"
+                                    />
+                                    <Pagination
+                                        className="text-center"
+                                        defaultCurrent={1}
+                                        total={count}
+                                        current={current}
+                                        pageSize={this.PAGE_SIZE}
+                                        onChange={this.onPageChange}
+                                        showSizeChanger={false}
+                                        itemRender={PaginationItem}
+                                    />
+                                </Card>
+                            </Col>
+                        </Row>
+                    </Fragment>
+                ) : (
+                    <Spin />
+                )}
             </Layout>
         );
     }

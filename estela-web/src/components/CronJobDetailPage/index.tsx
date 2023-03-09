@@ -51,8 +51,6 @@ import {
     authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
-    Header,
-    ProjectSidenav,
     Spin,
     PaginationItem,
 } from "../../shared";
@@ -1278,88 +1276,78 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     render(): JSX.Element {
         const { loaded, status } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="bg-white">
-                    <ProjectSidenav projectId={this.projectId} path={"cronjobs"} />
-                    <Content className="content-padding">
-                        {loaded ? (
-                            <Layout className="bg-white">
-                                <Content className="bg-metal rounded-2xl">
-                                    <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
-                                        <Col className="float-left">
-                                            <Text className="text-estela-black-medium font-medium text-xl">
-                                                Sche-Job-{this.cronjobId}
-                                            </Text>
-                                        </Col>
-                                        <Col className="float-right flex gap-1">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
-                                                size="large"
-                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                            >
-                                                Clone
-                                            </Button>
-                                            <Button
-                                                onClick={this.runOnce}
-                                                icon={<Run className="h-6 w-6 mr-2 text-sm" />}
-                                                size="large"
-                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                            >
-                                                Run once
-                                            </Button>
-                                            {status == SpiderCronJobUpdateStatusEnum.Active ? (
-                                                <Button
-                                                    onClick={() =>
-                                                        this.updateStatus(SpiderCronJobUpdateStatusEnum.Disabled)
-                                                    }
-                                                    icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
-                                                    size="large"
-                                                    className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                                >
-                                                    Disable
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    onClick={() =>
-                                                        this.updateStatus(SpiderCronJobUpdateStatusEnum.Active)
-                                                    }
-                                                    icon={<Run className="h-6 w-6 mr-2 text-sm" />}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                                >
-                                                    Enable
-                                                </Button>
-                                            )}
-                                        </Col>
-                                    </Row>
-                                    <Row className="lg:mx-10 mx-6">
-                                        <Tabs
-                                            size="middle"
-                                            defaultActiveKey={"1"}
-                                            items={[
-                                                {
-                                                    label: "Overview",
-                                                    key: "1",
-                                                    children: this.overview(),
-                                                },
-                                                {
-                                                    label: "Data persistence",
-                                                    key: "2",
-                                                    children: this.dataPersistence(),
-                                                },
-                                            ]}
-                                        />
-                                    </Row>
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+            <Content className="content-padding">
+                {loaded ? (
+                    <Layout className="bg-white">
+                        <Content className="bg-metal rounded-2xl">
+                            <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
+                                <Col className="float-left">
+                                    <Text className="text-estela-black-medium font-medium text-xl">
+                                        Sche-Job-{this.cronjobId}
+                                    </Text>
+                                </Col>
+                                <Col className="float-right flex gap-1">
+                                    <Button
+                                        disabled={true}
+                                        icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
+                                        size="large"
+                                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    >
+                                        Clone
+                                    </Button>
+                                    <Button
+                                        onClick={this.runOnce}
+                                        icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                        size="large"
+                                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    >
+                                        Run once
+                                    </Button>
+                                    {status == SpiderCronJobUpdateStatusEnum.Active ? (
+                                        <Button
+                                            onClick={() => this.updateStatus(SpiderCronJobUpdateStatusEnum.Disabled)}
+                                            icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
+                                            size="large"
+                                            className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                        >
+                                            Disable
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={() => this.updateStatus(SpiderCronJobUpdateStatusEnum.Active)}
+                                            icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                        >
+                                            Enable
+                                        </Button>
+                                    )}
+                                </Col>
+                            </Row>
+                            <Row className="lg:mx-10 mx-6">
+                                <Tabs
+                                    size="middle"
+                                    defaultActiveKey={"1"}
+                                    items={[
+                                        {
+                                            label: "Overview",
+                                            key: "1",
+                                            children: this.overview(),
+                                        },
+                                        {
+                                            label: "Data persistence",
+                                            key: "2",
+                                            children: this.dataPersistence(),
+                                        },
+                                    ]}
+                                />
+                            </Row>
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }

@@ -20,14 +20,7 @@ import {
     SpiderJobArg,
     SpiderJobTag,
 } from "../../services/api";
-import {
-    authNotification,
-    resourceNotAllowedNotification,
-    Header,
-    ProjectSidenav,
-    Spin,
-    PaginationItem,
-} from "../../shared";
+import { authNotification, resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -687,71 +680,65 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     render(): JSX.Element {
         const { loaded, name, optionTab } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"spiders"} />
-                    <Content className="bg-metal rounded-2xl">
-                        {loaded ? (
-                            <Layout className="white-background">
-                                <Content className="bg-metal rounded-2xl">
-                                    <Content className="lg:m-10 md:mx-6 mx-2">
-                                        <Row className="flow-root my-6 space-x-4">
-                                            <Col className="float-left">
-                                                <Text className="text-estela-black-medium text-xl">{name}</Text>
-                                            </Col>
-                                            <Col className="float-right">
-                                                <Button
-                                                    onClick={() => {
-                                                        history.push(`/projects/${this.projectId}/cronjobs`);
-                                                    }}
-                                                    icon={<Add className="mr-2" width={19} />}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                >
-                                                    Schedule new job
-                                                </Button>
-                                            </Col>
-                                            <Col className="float-right">
-                                                <Button
-                                                    onClick={() => {
-                                                        history.push(`/projects/${this.projectId}/jobs`, {
-                                                            open: true,
-                                                        });
-                                                    }}
-                                                    icon={<Play className="mr-2" width={19} />}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                >
-                                                    Run new job
-                                                </Button>
-                                            </Col>
-                                        </Row>
-                                        <Tabs
-                                            defaultActiveKey={optionTab}
-                                            onChange={this.onDetailMenuTabChange}
-                                            items={[
-                                                {
-                                                    label: "Overview",
-                                                    key: "overview",
-                                                    children: this.overview(),
-                                                },
-                                                {
-                                                    label: "Settings",
-                                                    key: "settings",
-                                                    children: this.settings(),
-                                                },
-                                            ]}
-                                        />
-                                    </Content>
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+            <Content className="bg-metal rounded-2xl">
+                {loaded ? (
+                    <Layout className="white-background">
+                        <Content className="bg-metal rounded-2xl">
+                            <Content className="lg:m-10 md:mx-6 mx-2">
+                                <Row className="flow-root my-6 space-x-4">
+                                    <Col className="float-left">
+                                        <Text className="text-estela-black-medium text-xl">{name}</Text>
+                                    </Col>
+                                    <Col className="float-right">
+                                        <Button
+                                            onClick={() => {
+                                                history.push(`/projects/${this.projectId}/cronjobs`);
+                                            }}
+                                            icon={<Add className="mr-2" width={19} />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                        >
+                                            Schedule new job
+                                        </Button>
+                                    </Col>
+                                    <Col className="float-right">
+                                        <Button
+                                            onClick={() => {
+                                                history.push(`/projects/${this.projectId}/jobs`, {
+                                                    open: true,
+                                                });
+                                            }}
+                                            icon={<Play className="mr-2" width={19} />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                        >
+                                            Run new job
+                                        </Button>
+                                    </Col>
+                                </Row>
+                                <Tabs
+                                    defaultActiveKey={optionTab}
+                                    onChange={this.onDetailMenuTabChange}
+                                    items={[
+                                        {
+                                            label: "Overview",
+                                            key: "overview",
+                                            children: this.overview(),
+                                        },
+                                        {
+                                            label: "Settings",
+                                            key: "settings",
+                                            children: this.settings(),
+                                        },
+                                    ]}
+                                />
+                            </Content>
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }

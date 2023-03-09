@@ -23,6 +23,7 @@ import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
 import { SettingsProfilePage } from "../components/SettingsProfilePage";
 import { SettingsPasswordPage } from "../components/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../components/SettingsDataPersistencePage";
+import { ProjectLayout } from "../shared/layouts/ProjectLayout";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -37,35 +38,61 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
                 <Route path="/projects" component={ProjectListPage} exact />
                 {/* ESTELA LAYOUT */}
-                <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
-                <Route path="/projects/:projectId/settings" component={ProjectSettingsPage} exact />
-                <Route path="/projects/:projectId/deploys" component={DeployListPage} exact />
-                <Route path="/projects/:projectId/members" component={ProjectMemberPage} exact />
-                <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
-                <Route path="/projects/:projectId/jobs" component={ProjectJobListPage} exact />
-                <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
-                <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
-                <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
-                {/* Needs revision */}
                 <Route
-                    path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType"
-                    component={JobDataListPage}
-                    exact
-                />
-                <Route path="/projects/:projectId/spiders/:spiderId/jobs/:jobId" component={JobDetailPage} exact />
-                <Route path="/projects/:projectId/spiders/:spiderId/cronjobs" component={CronJobListPage} exact />
-                {/* Needs revision */}
-                <Route
-                    path="/projects/:projectId/spiders/:spiderId/cronjobs/create"
-                    component={CronJobCreatePage}
-                    exact
-                />
-                <Route
-                    path="/projects/:projectId/spiders/:spiderId/cronjobs/:cronjobId"
-                    component={CronJobDetailPage}
-                    exact
-                />
-                {/* --------------------- */}
+                    path={[
+                        "/projects/:projectId/dashboard",
+                        "/projects/:projectId/settings",
+                        "/projects/:projectId/deploys",
+                        "/projects/:projectId/members",
+                        "/projects/:projectId/spiders",
+                        "/projects/:projectId/jobs",
+                        "/projects/:projectId/cronjobs",
+                        "/projects/:projectId/activity",
+                        "/projects/:projectId/spiders/:spiderId",
+                        "/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType",
+                        "/projects/:projectId/spiders/:spiderId/jobs/:jobId",
+                        "/projects/:projectId/spiders/:spiderId/cronjobs",
+                        "/projects/:projectId/spiders/:spiderId/cronjobs/create",
+                        "/projects/:projectId/spiders/:spiderId/cronjobs/:cronjobId",
+                    ]}
+                >
+                    <ProjectLayout>
+                        <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
+                        <Route path="/projects/:projectId/settings" component={ProjectSettingsPage} exact />
+                        <Route path="/projects/:projectId/deploys" component={DeployListPage} exact />
+                        <Route path="/projects/:projectId/members" component={ProjectMemberPage} exact />
+                        <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
+                        <Route path="/projects/:projectId/jobs" component={ProjectJobListPage} exact />
+                        <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
+                        <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
+                        <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
+                        <Route
+                            path="/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType"
+                            component={JobDataListPage}
+                            exact
+                        />
+                        <Route
+                            path="/projects/:projectId/spiders/:spiderId/jobs/:jobId"
+                            component={JobDetailPage}
+                            exact
+                        />
+                        <Route
+                            path="/projects/:projectId/spiders/:spiderId/cronjobs"
+                            component={CronJobListPage}
+                            exact
+                        />
+                        <Route
+                            path="/projects/:projectId/spiders/:spiderId/cronjobs/create"
+                            component={CronJobCreatePage}
+                            exact
+                        />
+                        <Route
+                            path="/projects/:projectId/spiders/:spiderId/cronjobs/:cronjobId"
+                            component={CronJobDetailPage}
+                            exact
+                        />
+                    </ProjectLayout>
+                </Route>
                 <Route path="/settings/profile" component={SettingsProfilePage} exact />
                 <Route path="/settings/password" component={SettingsPasswordPage} exact />
                 <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />

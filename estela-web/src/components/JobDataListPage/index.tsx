@@ -9,14 +9,7 @@ import {
     ApiProjectsSpidersJobsDataDeleteRequest,
     DeleteJobData,
 } from "../../services/api";
-import {
-    authNotification,
-    resourceNotAllowedNotification,
-    dataDeletedNotification,
-    Header,
-    ProjectSidenav,
-    Spin,
-} from "../../shared";
+import { authNotification, resourceNotAllowedNotification, dataDeletedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -151,64 +144,58 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
     render(): JSX.Element {
         const { loaded, data, count, current } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"/jobs"} />
-                    <Content>
-                        {loaded ? (
-                            <Layout className="white-background">
-                                <Content>
-                                    <List
-                                        header={
-                                            <Fragment>
-                                                <Title level={3}>Spider Job {this.jobId + " " + this.type}</Title>
-                                                <span>
-                                                    <b>Total data items:</b> {count}
-                                                </span>
-                                            </Fragment>
-                                        }
-                                        bordered
-                                        dataSource={data}
-                                        renderItem={(item) => (
-                                            <List.Item className="list-item">
-                                                <div>
-                                                    {Object.keys(item).map((key, idx) => {
-                                                        return (
-                                                            <div key={idx}>
-                                                                <b>
-                                                                    <span>{key}</span>:
-                                                                </b>
-                                                                &nbsp;
-                                                                <span>{JSON.stringify(item[key])}</span>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </List.Item>
-                                        )}
-                                        className="data-list"
-                                    />
-                                    <Button danger className="stop-job" onClick={this.showConfirm}>
-                                        <div>Delete Job Data</div>
-                                    </Button>
-                                    <Pagination
-                                        className="pagination"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
-                                    />
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+            <Content>
+                {loaded ? (
+                    <Layout className="white-background">
+                        <Content>
+                            <List
+                                header={
+                                    <Fragment>
+                                        <Title level={3}>Spider Job {this.jobId + " " + this.type}</Title>
+                                        <span>
+                                            <b>Total data items:</b> {count}
+                                        </span>
+                                    </Fragment>
+                                }
+                                bordered
+                                dataSource={data}
+                                renderItem={(item) => (
+                                    <List.Item className="list-item">
+                                        <div>
+                                            {Object.keys(item).map((key, idx) => {
+                                                return (
+                                                    <div key={idx}>
+                                                        <b>
+                                                            <span>{key}</span>:
+                                                        </b>
+                                                        &nbsp;
+                                                        <span>{JSON.stringify(item[key])}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </List.Item>
+                                )}
+                                className="data-list"
+                            />
+                            <Button danger className="stop-job" onClick={this.showConfirm}>
+                                <div>Delete Job Data</div>
+                            </Button>
+                            <Pagination
+                                className="pagination"
+                                defaultCurrent={1}
+                                total={count}
+                                current={current}
+                                pageSize={this.PAGE_SIZE}
+                                onChange={this.onPageChange}
+                                showSizeChanger={false}
+                            />
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }
