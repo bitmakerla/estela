@@ -12,7 +12,7 @@ import {
     SpiderJob,
     ProjectUsage,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
+import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
 
@@ -104,27 +104,23 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
-            this.apiService.apiProjectsRead(requestParams).then(
-                (response: Project) => {
-                    this.setState({ name: response.name });
-                    const { updateRole } = this.context as UserContextProps;
-                    const userRole = AuthService.getUserRole();
-                    if (userRole) {
-                        updateRole && updateRole(userRole);
-                    }
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-            this.getJobs(1);
-            this.getUsageRecords();
-        }
+        const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
+        this.apiService.apiProjectsRead(requestParams).then(
+            (response: Project) => {
+                this.setState({ name: response.name });
+                const { updateRole } = this.context as UserContextProps;
+                const userRole = AuthService.getUserRole();
+                if (userRole) {
+                    updateRole && updateRole(userRole);
+                }
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+        this.getJobs(1);
+        this.getUsageRecords();
     }
 
     getJobs = async (page: number): Promise<void> => {

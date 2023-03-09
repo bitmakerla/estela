@@ -4,14 +4,14 @@ import { Layout, Pagination, Typography, Button, Row, Space, Table, Tag } from "
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import {
     ApiProjectsSpidersCronjobsListRequest,
     ApiProjectsSpidersReadRequest,
     SpiderCronJob,
     Spider,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -96,28 +96,24 @@ export class CronJobListPage extends Component<RouteComponentProps<RouteParams>,
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
-            this.apiService.apiProjectsSpidersRead(requestParams).then(
-                async (response: Spider) => {
-                    const data = await this.getProjectCronJobs(1);
-                    const cronjobs: SpiderCronJobData[] = data.data;
-                    this.setState({
-                        spiderName: response.name,
-                        cronjobs: [...cronjobs],
-                        count: data.count,
-                        current: data.current,
-                        loaded: true,
-                    });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-        }
+        const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
+        this.apiService.apiProjectsSpidersRead(requestParams).then(
+            async (response: Spider) => {
+                const data = await this.getProjectCronJobs(1);
+                const cronjobs: SpiderCronJobData[] = data.data;
+                this.setState({
+                    spiderName: response.name,
+                    cronjobs: [...cronjobs],
+                    count: data.count,
+                    current: data.current,
+                    loaded: true,
+                });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
     }
 
     getProjectCronJobs = async (

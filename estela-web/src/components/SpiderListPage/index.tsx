@@ -5,9 +5,9 @@ import Add from "../../assets/icons/add.svg";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { ColumnsType } from "antd/lib/table";
 
 const { Content } = Layout;
@@ -42,11 +42,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     projectId: string = this.props.match.params.projectId;
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            await this.getProjectSpiders(1);
-        }
+        await this.getProjectSpiders(1);
     }
 
     async getProjectSpiders(page: number): Promise<void> {

@@ -17,7 +17,7 @@ import {
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import Run from "../../assets/icons/play.svg";
 import Filter from "../../assets/icons/filter.svg";
 import Setting from "../../assets/icons/setting.svg";
@@ -37,7 +37,6 @@ import {
     resourceNotAllowedNotification,
     incorrectDataNotification,
     invalidDataNotification,
-    authNotification,
     Spin,
     PaginationItem,
 } from "../../shared";
@@ -248,22 +247,18 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
-            this.apiService.apiProjectsRead(requestParams).then(
-                (response: Project) => {
-                    this.setState({ name: response.name });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-            this.getJobs(1);
-            this.getProjectSpiders(1);
-        }
+        const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
+        this.apiService.apiProjectsRead(requestParams).then(
+            (response: Project) => {
+                this.setState({ name: response.name });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+        this.getJobs(1);
+        this.getProjectSpiders(1);
     }
 
     getProjectSpiders = async (page: number): Promise<void> => {

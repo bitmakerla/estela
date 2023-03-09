@@ -4,19 +4,14 @@ import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import {
     ApiProjectsSpidersReadRequest,
     ApiProjectsSpidersCronjobsCreateRequest,
     SpiderCronJobCreate,
     Spider,
 } from "../../services/api";
-import {
-    authNotification,
-    incorrectDataNotification,
-    invalidDataNotification,
-    resourceNotAllowedNotification,
-} from "../../shared";
+import { incorrectDataNotification, invalidDataNotification, resourceNotAllowedNotification } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -81,9 +76,6 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
     countKey = 0;
 
     componentDidMount(): void {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        }
         const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
         this.apiService.apiProjectsSpidersRead(requestParams).then(
             async (response: Spider) => {

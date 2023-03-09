@@ -3,13 +3,13 @@ import { Layout, List, Pagination, Typography, Button, Modal, message, Input } f
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import {
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersJobsDataDeleteRequest,
     DeleteJobData,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, dataDeletedNotification, Spin } from "../../shared";
+import { resourceNotAllowedNotification, dataDeletedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -48,11 +48,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
     type: string = this.props.match.params.dataType;
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            await this.getSpiderJobData(1);
-        }
+        await this.getSpiderJobData(1);
     }
 
     deleteSpiderJobData = (): void => {

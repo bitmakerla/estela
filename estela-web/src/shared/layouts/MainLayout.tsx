@@ -6,11 +6,11 @@ interface MainLayoutProps {
     children: JSX.Element | JSX.Element[];
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     return (
-        <Layout className="general-container">
+        <Layout className="h-screen">
             <Header />
-            {children}
+            <Layout className="bg-metal p-6">{children}</Layout>
         </Layout>
     );
 };

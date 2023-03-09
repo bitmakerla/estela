@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Menu, Layout } from "antd";
 import type { MenuProps } from "antd";
@@ -9,12 +9,11 @@ const { Sider, Content } = Layout;
 
 interface ProfileSettingsSideNavPropsInterface {
     path: string;
+    updatePath: (newPath: string) => void;
 }
 
-export class ProfileSettingsSideNav extends Component<ProfileSettingsSideNavPropsInterface, unknown> {
-    path = this.props.path;
-
-    items: MenuProps["items"] = [
+export const ProfileSettingsSideNav: React.FC<ProfileSettingsSideNavPropsInterface> = ({ path, updatePath }) => {
+    const items: MenuProps["items"] = [
         {
             key: "1",
             label: <h2 className="m-5 text-estela-black-medium text-base">ACCOUNT SETTINGS</h2>,
@@ -23,7 +22,9 @@ export class ProfileSettingsSideNav extends Component<ProfileSettingsSideNavProp
                     key: "profile",
                     label: (
                         <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/settings/profile`}>Profile</Link>
+                            <Link to={`/settings/profile`} onClick={() => updatePath("profile")}>
+                                Profile
+                            </Link>
                         </Content>
                     ),
                 },
@@ -31,7 +32,9 @@ export class ProfileSettingsSideNav extends Component<ProfileSettingsSideNavProp
                     key: "password",
                     label: (
                         <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/settings/password`}>Password</Link>
+                            <Link to={`/settings/password`} onClick={() => updatePath("password")}>
+                                Password
+                            </Link>
                         </Content>
                     ),
                 },
@@ -46,7 +49,9 @@ export class ProfileSettingsSideNav extends Component<ProfileSettingsSideNavProp
                     key: "dataPersistence",
                     label: (
                         <Content className="pl-2 flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">
-                            <Link to={`/settings/dataPersistence`}>Data persistence</Link>
+                            <Link to={`/settings/dataPersistence`} onClick={() => updatePath("dataPersistence")}>
+                                Data persistence
+                            </Link>
                         </Content>
                     ),
                 },
@@ -55,11 +60,9 @@ export class ProfileSettingsSideNav extends Component<ProfileSettingsSideNavProp
         },
     ];
 
-    render(): JSX.Element {
-        return (
-            <Sider width={240}>
-                <Menu items={this.items} mode="inline" className="h-full" selectedKeys={[`${this.path}`]} />
-            </Sider>
-        );
-    }
-}
+    return (
+        <Sider width={240}>
+            <Menu items={items} mode="inline" className="h-full" selectedKeys={[`${path}`]} />
+        </Sider>
+    );
+};

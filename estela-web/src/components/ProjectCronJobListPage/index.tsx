@@ -25,7 +25,7 @@ import type { DatePickerProps, RadioChangeEvent } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import {
     ApiProjectsSpidersCronjobsCreateRequest,
@@ -44,7 +44,6 @@ import {
     Spider,
 } from "../../services/api";
 import {
-    authNotification,
     resourceNotAllowedNotification,
     invalidDataNotification,
     incorrectDataNotification,
@@ -304,25 +303,21 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
-            this.apiService.apiProjectsRead(requestParams).then(
-                (response: Project) => {
-                    this.setState({ name: response.name });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-            this.getCronJobs(1);
-            this.getProjectSpiders(1);
-            const weekDays = this.state.weekDays;
-            weekDays[moment().day() % 7] = true;
-            this.setState({ currentDay: moment().day(), weekDays: weekDays });
-        }
+        const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
+        this.apiService.apiProjectsRead(requestParams).then(
+            (response: Project) => {
+                this.setState({ name: response.name });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+        this.getCronJobs(1);
+        this.getProjectSpiders(1);
+        const weekDays = this.state.weekDays;
+        weekDays[moment().day() % 7] = true;
+        this.setState({ currentDay: moment().day(), weekDays: weekDays });
     }
 
     getProjectSpiders = async (page: number): Promise<void> => {

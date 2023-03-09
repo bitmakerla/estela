@@ -13,7 +13,7 @@ import {
     ProjectUpdatePermissionEnum,
     ApiProjectsUpdateRequest,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Spin, nonExistentUserNotification } from "../../shared";
+import { resourceNotAllowedNotification, Spin, nonExistentUserNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
@@ -117,11 +117,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     };
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            this.updateInfo();
-        }
+        this.updateInfo();
     }
 
     userManagement = (email: string, option: number): void => {

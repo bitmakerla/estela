@@ -24,7 +24,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
@@ -48,7 +48,6 @@ import {
     Spider,
 } from "../../services/api";
 import {
-    authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
     dataDeletedNotification,
@@ -324,48 +323,44 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsSpidersJobsReadRequest = {
-                pid: this.projectId,
-                sid: this.spiderId,
-                jid: this.jobId,
-            };
-            this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
-                async (response: SpiderJob) => {
-                    const args = response.args || [];
-                    const envVars = response.envVars || [];
-                    const tags = response.tags || [];
-                    const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
-                    const lifespan: number =
-                        lifeSpanArr.length !== 3 ? 0 : +lifeSpanArr[0] * 3600 + +lifeSpanArr[1] * 60 + +lifeSpanArr[2];
-                    this.setState({
-                        name: response.name,
-                        lifespan: lifespan,
-                        totalResponseBytes: response.totalResponseBytes,
-                        args: [...args],
-                        envVars: [...envVars],
-                        tags: [...tags],
-                        date: convertDateToString(response.created),
-                        created: `${response.created}`,
-                        status: response.jobStatus,
-                        cronjob: response.cronjob,
-                        requestCount: response.requestCount,
-                        loaded: true,
-                        dataStatus: response.dataStatus,
-                        dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
-                    });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-            this.getProjectSpiders();
-            await this.getItems(1);
-            this.setState({ loadedItemsFirstTime: true });
-        }
+        const requestParams: ApiProjectsSpidersJobsReadRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.jobId,
+        };
+        this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
+            async (response: SpiderJob) => {
+                const args = response.args || [];
+                const envVars = response.envVars || [];
+                const tags = response.tags || [];
+                const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
+                const lifespan: number =
+                    lifeSpanArr.length !== 3 ? 0 : +lifeSpanArr[0] * 3600 + +lifeSpanArr[1] * 60 + +lifeSpanArr[2];
+                this.setState({
+                    name: response.name,
+                    lifespan: lifespan,
+                    totalResponseBytes: response.totalResponseBytes,
+                    args: [...args],
+                    envVars: [...envVars],
+                    tags: [...tags],
+                    date: convertDateToString(response.created),
+                    created: `${response.created}`,
+                    status: response.jobStatus,
+                    cronjob: response.cronjob,
+                    requestCount: response.requestCount,
+                    loaded: true,
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
+                });
+            },
+            (error: unknown) => {
+                console.error(error);
+                resourceNotAllowedNotification();
+            },
+        );
+        this.getProjectSpiders();
+        await this.getItems(1);
+        this.setState({ loadedItemsFirstTime: true });
     }
 
     getProjectSpiders = async (): Promise<void> => {

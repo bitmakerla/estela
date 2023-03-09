@@ -8,7 +8,6 @@ export const authNotification = (): void => {
         message: "Authenticated Resource",
         description: "You need to be logged to enter to this resource.",
     });
-    history.push("/login");
 };
 
 export const resourceNotAllowedNotification = (): void => {

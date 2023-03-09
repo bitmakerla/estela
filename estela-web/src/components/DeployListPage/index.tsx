@@ -6,9 +6,9 @@ import Info from "../../assets/icons/info.svg";
 import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import { ApiProjectsDeploysListRequest, Deploy, Spider, UserDetail } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
+import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -102,11 +102,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            await this.getProjectDeploys(1);
-        }
+        await this.getProjectDeploys(1);
     }
 
     onPageChange = async (page: number): Promise<void> => {

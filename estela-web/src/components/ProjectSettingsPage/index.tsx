@@ -4,7 +4,7 @@ import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import {
     ApiProjectsReadRequest,
     Project,
@@ -13,7 +13,7 @@ import {
     ApiProjectsUpdateRequest,
     ApiProjectsDeleteRequest,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification } from "../../shared";
+import { resourceNotAllowedNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
@@ -81,11 +81,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     };
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            this.updateInfo();
-        }
+        this.updateInfo();
     }
 
     changeName = (): void => {

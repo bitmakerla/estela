@@ -23,7 +23,8 @@ import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
 import { SettingsProfilePage } from "../components/SettingsProfilePage";
 import { SettingsPasswordPage } from "../components/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../components/SettingsDataPersistencePage";
-import { ProjectLayout } from "../shared/layouts/ProjectLayout";
+import { ProjectLayout, AuthLayout, MainLayout, NotificationsLayout, SettingsLayout } from "../shared";
+import { PrivateRoute } from "../shared";
 
 export class MainRoutes extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -32,13 +33,21 @@ export class MainRoutes extends Component<unknown, unknown> {
                 <Route path="/" exact>
                     <Redirect to="/login" />
                 </Route>
-                <Route path="/login" component={LoginPage} exact />
-                <Route path="/register" component={RegisterPage} exact />
-                <Route path="/notifications/inbox" component={NotificationsInboxPage} exact />
-                <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
-                <Route path="/projects" component={ProjectListPage} exact />
-                {/* ESTELA LAYOUT */}
-                <Route
+
+                <Route path={["/login", "/register"]} exact>
+                    <AuthLayout>
+                        <Route path="/login" component={LoginPage} exact />
+                        <Route path="/register" component={RegisterPage} exact />
+                    </AuthLayout>
+                </Route>
+
+                <PrivateRoute path={["/projects"]} exact>
+                    <MainLayout>
+                        <Route path="/projects" component={ProjectListPage} exact />
+                    </MainLayout>
+                </PrivateRoute>
+
+                <PrivateRoute
                     path={[
                         "/projects/:projectId/dashboard",
                         "/projects/:projectId/settings",
@@ -55,6 +64,7 @@ export class MainRoutes extends Component<unknown, unknown> {
                         "/projects/:projectId/spiders/:spiderId/cronjobs/create",
                         "/projects/:projectId/spiders/:spiderId/cronjobs/:cronjobId",
                     ]}
+                    exact
                 >
                     <ProjectLayout>
                         <Route path="/projects/:projectId/dashboard" component={ProjectDashboardPage} exact />
@@ -92,10 +102,26 @@ export class MainRoutes extends Component<unknown, unknown> {
                             exact
                         />
                     </ProjectLayout>
-                </Route>
-                <Route path="/settings/profile" component={SettingsProfilePage} exact />
-                <Route path="/settings/password" component={SettingsPasswordPage} exact />
-                <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
+                </PrivateRoute>
+
+                <PrivateRoute path={["/notifications/inbox", "/notifications/settings"]} exact>
+                    <MainLayout>
+                        <NotificationsLayout>
+                            <Route path="/notifications/inbox" component={NotificationsInboxPage} exact />
+                            <Route path="/notifications/settings" component={NotificationsSettingsPage} exact />
+                        </NotificationsLayout>
+                    </MainLayout>
+                </PrivateRoute>
+
+                <PrivateRoute path={["/settings/profile", "/settings/password", "/settings/dataPersistence"]} exact>
+                    <MainLayout>
+                        <SettingsLayout>
+                            <Route path="/settings/profile" component={SettingsProfilePage} exact />
+                            <Route path="/settings/password" component={SettingsPasswordPage} exact />
+                            <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
+                        </SettingsLayout>
+                    </MainLayout>
+                </PrivateRoute>
             </Switch>
         );
     }
