@@ -71,7 +71,7 @@ export class LoginPage extends Component<unknown> {
                 </Content>
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                     <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
-                        <Content className="">
+                        <Content>
                             <Form.Item
                                 label="Username"
                                 name="username"
