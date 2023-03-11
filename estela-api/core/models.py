@@ -403,7 +403,6 @@ class UsageRecord(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
-
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User,

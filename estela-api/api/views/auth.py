@@ -161,7 +161,6 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         user_id_base64 = request.query_params.get("pair", "")
         user_id = force_text(urlsafe_base64_decode(user_id_base64))
         return token, user_id
-
     @swagger_auto_schema(
         methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
     )
