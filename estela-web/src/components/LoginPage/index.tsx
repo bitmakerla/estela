@@ -36,7 +36,6 @@ export class LoginPage extends Component<unknown> {
         this.apiService.apiAuthLogin(request).then(
             (response: Token) => {
                 AuthService.setAuthToken(response.key);
-                console.log(response);
                 updateAccessToken(response.key);
                 if (response.user !== undefined) {
                     AuthService.setUserUsername(response.user.username);
