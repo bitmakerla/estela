@@ -56,3 +56,22 @@ def send_verification_email(user, request):
         mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
     )
     email.send()
+
+def send_change_password_email(user, request):
+    mail_subject = "Change your estela password."
+    to_email = user.email
+    current_site = get_current_site(request)
+    token, created = Token.objects.get_or_create(user=user)
+    message = render_to_string(
+        "change_password_email.html",
+        {
+            "user": user,
+            "domain": current_site.domain,
+            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+            "token": token,
+        },
+    )
+    email = EmailMessage(
+        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
+    )
+    email.send()

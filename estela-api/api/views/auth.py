@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.authentication import TokenAuthentication
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from django.utils.encoding import force_text
@@ -19,7 +20,7 @@ from django.shortcuts import redirect
 
 from api.exceptions import EmailServiceError
 from api.serializers.auth import TokenSerializer, UserSerializer
-from core.views import send_verification_email
+from core.views import send_verification_email, send_change_password_email
 
 
 class AuthAPIViewSet(viewsets.GenericViewSet):
@@ -116,6 +117,58 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             )
         else:
             self.retry_send_verification_email(user, request)
+            return redirect(
+                settings.CORS_ORIGIN_WHITELIST[0],
+                {"message": "Activation link is invalid!"},
+            )
+
+class ChangePasswordView(viewsets.GenericViewSet):
+    def get_parameters(self, request):
+        token = request.query_params.get("token", "")
+        user_id_base64 = request.query_params.get("pair", "")
+        user_id = force_text(urlsafe_base64_decode(user_id_base64))
+        return token, user_id
+    
+    @swagger_auto_schema(
+        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+    )
+    @action(
+        methods=["POST"],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        authentication_classes=[TokenAuthentication]
+    )
+    def request(self, request, *args, **kwargs):
+        token = request.data['token']
+        user = Token.objects.get(key=token).user
+        try:
+            send_change_password_email(user, request)
+        except Exception as ex:
+            raise EmailServiceError(
+                {
+                    "error": "There was an error sending the verification email. Please try again later."
+                }
+            )
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+    
+    @action(methods=["GET"], detail=False)
+    def validate(self, request, *args, **kwargs):
+        token, user_id = self.get_parameters(request)
+        user = User.objects.filter(pk=user_id)
+        if not user:
+            return redirect(
+                settings.CORS_ORIGIN_WHITELIST[0], {"error": "User does not exist."}
+            )
+        user = user.get()
+        if Token.objects.filter(user=user, token=token).exists():
+            return redirect(
+                settings.CORS_ORIGIN_WHITELIST[0],
+                {
+                    "message": "You can now change your password."
+                },
+            )
+        else:
             return redirect(
                 settings.CORS_ORIGIN_WHITELIST[0],
                 {"message": "Activation link is invalid!"},
