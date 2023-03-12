@@ -122,7 +122,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
                 {"message": "Activation link is invalid!"},
             )
 
-class ChangePasswordView(viewsets.GenericViewSet):
+class ChangePasswordViewSet(viewsets.GenericViewSet):
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
         user_id_base64 = request.query_params.get("pair", "")

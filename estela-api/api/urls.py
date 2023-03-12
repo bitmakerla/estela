@@ -43,5 +43,10 @@ router.register(
 )
 
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
+router.register(
+    prefix=r"auth/change_password",
+    viewset=auth_views.ChangePasswordViewSet,
+    basename="reset_password"
+)
 
 urlpatterns = router.urls
