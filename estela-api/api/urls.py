@@ -41,10 +41,18 @@ router.register(
     viewset=cronjob_views.SpiderCronJobViewSet,
     basename="cronjob",
 )
-
-router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 router.register(
-    prefix=r"auth/change_password",
+    prefix=r"auth",
+    viewset=auth_views.AuthAPIViewSet,
+    basename="auth"
+)
+router.register(
+    r"auth/profile/(?P<username>\w+)",
+    auth_views.UserProfileViewSet,
+    basename="profile"
+)
+router.register(
+    prefix=r"account/change_password",
     viewset=auth_views.ChangePasswordViewSet,
     basename="reset_password"
 )
