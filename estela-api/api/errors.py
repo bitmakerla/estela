@@ -15,4 +15,8 @@ INVALID_JOB_DATA_TYPE = "Invalid job data type parameter."
 PAGE_NOT_FOUND = "Page not found."
 INSUFFICIENT_PERMISSIONS = "You do not have the {} permissions to perform this action."
 USER_NOT_FOUND = "User not found."
+<<<<<<< HEAD
 UNABLE_CHANGE_PASSWORD = "Unable to change password."
+=======
+UNABLE_CHANGE_PASSWORD = "Unable to change password."
+>>>>>>> 90409be (UserProfile serialized and request, validate & change password view handled)
