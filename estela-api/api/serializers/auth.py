@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from core.models import UserProfile
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
@@ -51,7 +52,7 @@ class TokenSerializer(serializers.ModelSerializer):
         fields = ["user", "key"]
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
-    last_password_change = serializers.DateTimeField(source="user.profile.last_password_change", read_only=True)
+    last_password_change = serializers.ReadOnlyField(source="userprofile.last_password_change", read_only=True)
     class Meta:
         model = User
         fields = ["username", "email", "last_password_change"]

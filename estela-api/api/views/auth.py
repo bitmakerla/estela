@@ -20,7 +20,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.password_validation import validate_password
 from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
 from api.serializers.auth import TokenSerializer, UserSerializer, UserProfileSerializer
-from core.views import send_verification_email, send_change_password_email
+from core.views import send_verification_email, send_change_password_email, send_alert_password_changed
 from django.core import exceptions
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -131,6 +131,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     lookup_field = "username"
 
+    def get_queryset(self):
+        if not self.request.user.is_superuser:
+            return self.queryset.filter(username=self.request.user.username)
+        return self.queryset
 class ChangePasswordViewSet(viewsets.GenericViewSet):
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
@@ -149,12 +153,12 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
     )
     def request(self, request, *args, **kwargs):
         email = request.data['email']
-        user = Token.objects.filter(email=email)
+        user = User.objects.filter(email=email)
         if not user:
             raise UserNotFoundError({"error": "User does not exist."})
         user = user.get()
         if (
-            int((datetime.now(timezone.utc) - user.profile.last_passsword_change).total_seconds())
+            int((datetime.now(timezone.utc) - user.userprofile.last_password_change).total_seconds())
             < settings.PASSWORD_CHANGE_TIME
         ):
             raise ChangePasswordError({
@@ -202,7 +206,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         methods=["PATCH"], responses={status.HTTP_200_OK: TokenSerializer()}
     )
     @action(methods=["PATCH"], detail=False)
-    def change(self, request, *args, **kwargs):
+    def confirm(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
         old_password = request.data['old_password']
         new_password = request.data['new_password']
@@ -224,7 +228,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
                 msg = _("Passwords do not match.")
                 raise serializers.ValidationError(msg, code="not_match_passwords")
             user.set_password(new_password)
-            user.profile.last_passsword_change = datetime.now(timezone.utc)
+            user.userprofile.last_password_change = datetime.now(timezone.utc)
             user.save()
         else:
             try:
@@ -237,6 +241,12 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
                 )
             raise ChangePasswordError({
                 "error": "Activation link is invalid. Check your email again."
+            })
+        try:
+            send_alert_password_changed(user, request)
+        except Exception as ex:
+            raise EmailServiceError({
+                "error": "There was an error sending the verification email. Please try again later."
             })
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)

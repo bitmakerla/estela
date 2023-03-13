@@ -74,3 +74,18 @@ def send_change_password_email(user, request):
         mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
     )
     email.send()
+
+def send_alert_password_changed(user, request):
+    mail_subject = "Your estela password has been changed."
+    to_email = user.email
+    current_site = get_current_site(request)
+    message = render_to_string(
+        "alert_password_changed.html",
+        {
+            "user": user,
+        },
+    )
+    email = EmailMessage(
+        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
+    )
+    email.send()

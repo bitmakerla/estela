@@ -180,8 +180,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-PASSWORD_RESET_TIMEOUT = 60  # In seconds
-PASSWORD_CHANGE_TIME = 300  # In seconds
+PASSWORD_RESET_TIMEOUT = 300  # In seconds (5 minutes)
+PASSWORD_CHANGE_TIME = 15780000  # In seconds (6 months)
 
 
 # Internationalization

@@ -47,8 +47,8 @@ router.register(
     basename="auth"
 )
 router.register(
-    r"auth/profile/(?P<username>\w+)",
-    auth_views.UserProfileViewSet,
+    prefix=r"auth/profile",
+    viewset=auth_views.UserProfileViewSet,
     basename="profile"
 )
 router.register(
