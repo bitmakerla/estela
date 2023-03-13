@@ -124,7 +124,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
                 {"message": "Activation link is invalid!"},
             )
 
-class UserProfileViewSet(viewsets.ModelViewSet):
+class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated, IsProfileUser]

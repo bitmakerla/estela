@@ -17,6 +17,41 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
+  /api/account/change_password/confirm:
+    patch:
+      operationId: api_account_change_password_confirm
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Token'
+      tags:
+        - api
+    parameters: []
+  /api/account/change_password/request:
+    post:
+      operationId: api_account_change_password_request
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - api
+    parameters: []
+  /api/account/change_password/validate:
+    get:
+      operationId: api_account_change_password_validate
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - api
+    parameters: []
   /api/auth/activate:
     get:
       operationId: api_auth_activate
@@ -50,6 +85,41 @@ paths:
       tags:
         - api
     parameters: []
+  /api/auth/profile:
+    get:
+      operationId: api_auth_profile_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    parameters: []
+  /api/auth/profile/{username}:
+    get:
+      operationId: api_auth_profile_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    parameters:
+      - name: username
+        in: path
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        required: true
+        type: string
+        pattern: ^[\w.@+-]+$
   /api/auth/register:
     post:
       operationId: api_auth_register
@@ -882,20 +952,6 @@ paths:
         type: string
         format: uuid
 definitions:
-  AuthToken:
-    required:
-      - username
-      - password
-    type: object
-    properties:
-      username:
-        title: Username
-        type: string
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        minLength: 1
   UserDetail:
     description: User details.
     required:
@@ -928,6 +984,42 @@ definitions:
         type: string
         maxLength: 40
         minLength: 1
+  AuthToken:
+    required:
+      - username
+      - password
+    type: object
+    properties:
+      username:
+        title: Username
+        type: string
+        minLength: 1
+      password:
+        title: Password
+        type: string
+        minLength: 1
+  UserProfile:
+    required:
+      - username
+    type: object
+    properties:
+      username:
+        title: Username
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        type: string
+        pattern: ^[\w.@+-]+$
+        maxLength: 150
+        minLength: 1
+      email:
+        title: Email address
+        type: string
+        format: email
+        maxLength: 254
+      last_password_change:
+        title: Last password change
+        type: string
+        readOnly: true
   User:
     required:
       - username
@@ -1740,3 +1832,4 @@ definitions:
         type: integer
         maximum: 18446744073709551615
         minimum: 0
+  
