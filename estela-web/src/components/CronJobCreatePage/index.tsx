@@ -82,7 +82,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                 this.setState({ spiderName: response.name });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -108,7 +108,7 @@ export class CronJobCreatePage extends Component<RouteComponentProps<RouteParams
                 history.push(`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${response.cjid}`);
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );

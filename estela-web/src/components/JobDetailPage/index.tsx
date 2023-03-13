@@ -354,7 +354,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -382,7 +382,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -411,7 +411,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -481,7 +481,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 location.reload();
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -544,7 +544,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ status: response.status });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -575,7 +575,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -596,7 +596,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ status: response.status, loading_status: false });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -641,7 +641,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -668,7 +668,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 dataDeletedNotification(response.count);
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -694,7 +694,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ loadedItems: true, loadedItemsFirstTime: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -725,7 +725,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ loadedRequests: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -756,7 +756,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ loadedLogs: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

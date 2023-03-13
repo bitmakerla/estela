@@ -309,7 +309,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 this.setState({ name: response.name });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -335,7 +335,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -466,7 +466,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 this.getCronJobs(1);
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -633,10 +633,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         };
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
-                console.log(response.cjid);
+                response;
             },
             (error: unknown) => {
-                console.error(error);
+                error;
             },
         );
     };

@@ -201,7 +201,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -223,7 +223,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 this.setState({ spiderCreationDate: convertDateToString(oldestDeployDate) });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

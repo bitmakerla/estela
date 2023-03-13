@@ -60,7 +60,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                 this.setState({ spiders: [...spiders], count: results.count, current: page, loaded: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

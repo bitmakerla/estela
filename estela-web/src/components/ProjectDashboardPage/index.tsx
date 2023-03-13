@@ -115,7 +115,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

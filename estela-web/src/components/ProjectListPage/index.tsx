@@ -144,7 +144,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 history.push(`/projects/${response.pid}/dashboard`);
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );

@@ -138,7 +138,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                 });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

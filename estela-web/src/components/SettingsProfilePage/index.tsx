@@ -48,7 +48,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                 this.setState({ email: user_email });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

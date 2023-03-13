@@ -74,7 +74,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 this.setState({ name: response.name, users: users, loaded: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -85,7 +85,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     }
 
     changeName = (): void => {
-        console.log("new name is", this.state.name);
         const requestData: ProjectUpdate = {
             permission: this.state.permission,
             name: this.state.name,

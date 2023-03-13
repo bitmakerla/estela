@@ -335,7 +335,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -362,7 +362,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 message.success("Schedule updated successfully");
             },
             (error: unknown) => {
-                console.log(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -388,10 +388,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     modified: false,
                     loading_status: false,
                 });
-                console.log(response);
             },
             (error: unknown) => {
-                console.log(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -472,13 +471,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
-                console.log(response);
                 const data = await this.getJobs(1);
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({ jobs: [...jobs] });
             },
             (error: unknown) => {
-                console.log(error);
+                error;
             },
         );
     };
@@ -497,10 +495,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
             (response) => {
                 this.setState({ status: response.status, loading_status: false });
-                console.log("Everything is gona be okay");
             },
             (error: unknown) => {
-                console.log(error);
+                error;
                 incorrectDataNotification();
             },
         );

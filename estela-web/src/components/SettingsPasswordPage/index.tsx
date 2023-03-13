@@ -58,7 +58,7 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                 this.setState({ email: user_email });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

@@ -64,7 +64,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                 dataDeletedNotification(response.count);
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -102,9 +102,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                     <p>Are you sure?</p>
                 </>
             ),
-            onCancel: () => {
-                console.log("Cancel action");
-            },
+            onCancel: () => {},
         });
     };
 
@@ -126,7 +124,7 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                 this.setState({ data: [...data], count: response.count, current: page, loaded: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

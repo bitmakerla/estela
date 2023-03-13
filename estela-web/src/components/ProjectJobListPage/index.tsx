@@ -253,7 +253,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 this.setState({ name: response.name });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -276,7 +276,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );

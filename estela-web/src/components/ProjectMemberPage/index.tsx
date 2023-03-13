@@ -110,7 +110,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                 this.setState({ name: response.name, users: users, members: memberList, loaded: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
