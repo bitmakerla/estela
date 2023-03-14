@@ -89,7 +89,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             dataIndex: "date",
         },
         {
-            title: "CRONJOB",
+            title: "SCHEDULED JOB",
             key: "id",
             dataIndex: "id",
             render: (id: Ids): ReactElement => (

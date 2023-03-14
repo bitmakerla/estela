@@ -49,7 +49,6 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                // const spiders: Spider[] = results.results;
                 const spiders: SpiderList[] = results.results.map((spider: Spider, index: number) => {
                     return {
                         key: index,

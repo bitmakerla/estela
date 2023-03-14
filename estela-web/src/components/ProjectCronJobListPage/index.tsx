@@ -20,6 +20,7 @@ import {
     InputNumber,
     TimePicker,
     DatePicker,
+    ConfigProvider,
 } from "antd";
 import type { DatePickerProps, RadioChangeEvent } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
@@ -252,7 +253,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             ),
         },
         {
-            title: "SPIDER ID",
+            title: "SPIDER",
             dataIndex: "id",
             key: "id",
             render: (id: Ids): ReactElement => (
@@ -947,7 +948,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                 checked={schedulesFlag[1]}
                                                                 onChange={() => this.onChangeSchedule(1)}
                                                             />
-                                                            <p className="text-sm">&nbsp;Advanced</p>
+                                                            <p className="text-sm">&nbsp;By planning</p>
                                                         </Content>
                                                         {schedulesFlag[1] && (
                                                             <Content>
@@ -1088,16 +1089,18 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                     </Col>
                                 </Row>
                                 <Content className="bg-white rounded-lg p-4">
-                                    <Table
-                                        rowSelection={{
-                                            type: "checkbox",
-                                            ...this.rowSelection,
-                                        }}
-                                        columns={this.columns}
-                                        dataSource={cronjobs}
-                                        pagination={false}
-                                        size="small"
-                                    />
+                                    <ConfigProvider renderEmpty={() => <p>No scheduled jobs yet.</p>}>
+                                        <Table
+                                            rowSelection={{
+                                                type: "checkbox",
+                                                ...this.rowSelection,
+                                            }}
+                                            columns={this.columns}
+                                            dataSource={cronjobs}
+                                            pagination={false}
+                                            size="small"
+                                        />
+                                    </ConfigProvider>
                                 </Content>
                                 <Row className="my-2">
                                     <Space direction="horizontal">

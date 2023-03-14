@@ -201,7 +201,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             ),
         },
         {
-            title: "Cronjob",
+            title: "SCHEDULED JOB",
             key: "id",
             dataIndex: "id",
             render: (id: Ids): ReactElement =>
