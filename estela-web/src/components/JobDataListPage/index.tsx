@@ -102,7 +102,9 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
                     <p>Are you sure?</p>
                 </>
             ),
-            onCancel: () => {},
+            onCancel: () => {
+                console.log("");
+            },
         });
     };
 

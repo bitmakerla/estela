@@ -471,6 +471,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
+                response;
                 const data = await this.getJobs(1);
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({ jobs: [...jobs] });

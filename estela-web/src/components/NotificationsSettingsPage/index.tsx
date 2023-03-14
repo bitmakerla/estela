@@ -4,7 +4,9 @@ import { Layout, Space, Row } from "antd";
 import "./styles.scss";
 
 export class NotificationsSettingsPage extends Component<unknown, unknown> {
-    updateNotifications = (): void => {};
+    updateNotifications = (): void => {
+        console.log("");
+    };
 
     render(): JSX.Element {
         return (
