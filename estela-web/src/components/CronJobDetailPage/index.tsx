@@ -28,7 +28,7 @@ import cronstrue from "cronstrue";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Run from "../../assets/icons/play.svg";
 import Edit from "../../assets/icons/edit.svg";
@@ -47,15 +47,7 @@ import {
     SpiderCronJobUpdate,
     SpiderCronJobUpdateDataStatusEnum,
 } from "../../services/api";
-import {
-    authNotification,
-    resourceNotAllowedNotification,
-    incorrectDataNotification,
-    Header,
-    ProjectSidenav,
-    Spin,
-    PaginationItem,
-} from "../../shared";
+import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Option } = Select;
@@ -284,73 +276,69 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsSpidersCronjobsReadRequest = {
-                pid: this.projectId,
-                sid: this.spiderId,
-                cjid: this.cronjobId,
-            };
-            this.apiService.apiProjectsSpidersCronjobsRead(requestParams).then(
-                async (response: SpiderCronJob) => {
-                    let args = response.cargs;
-                    if (args === undefined) {
-                        args = [];
-                    }
-                    let envVars = response.cenvVars;
-                    if (envVars === undefined) {
-                        envVars = [];
-                    }
-                    let tags = response.ctags;
-                    if (tags === undefined) {
-                        tags = [];
-                    }
-                    this.initial_schedule = response.schedule || "";
-                    const data = await this.getJobs(1);
-                    const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
-                    const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
-                    const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
-                    const queueJobs = data.data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
-                    const tableStatus = [
-                        queueJobs.length === 0 ? false : true,
-                        runningJobs.length === 0 ? false : true,
-                        completedJobs.length === 0 ? false : true,
-                        errorJobs.length === 0 ? false : true,
-                    ];
-                    const weekDays = this.state.weekDays;
-                    weekDays[moment().day() % 7] = true;
-                    const jobs: SpiderJobData[] = data.data;
-                    this.setState({
-                        name: response.name,
-                        args: [...args],
-                        envVars: [...envVars],
-                        tags: [...tags],
-                        status: response.status,
-                        schedule: response.schedule,
-                        created: convertDateToString(response.created),
-                        unique_collection: response.uniqueCollection,
-                        jobs: [...jobs],
-                        count: data.count,
-                        current: data.current,
-                        dataStatus: response.dataStatus,
-                        dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
-                        loaded: true,
-                        errorJobs: [...errorJobs],
-                        completedJobs: [...completedJobs],
-                        runningJobs: [...runningJobs],
-                        queueJobs: [...queueJobs],
-                        tableStatus: [...tableStatus],
-                        currentDay: moment().day(),
-                        weekDays: weekDays,
-                    });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-        }
+        const requestParams: ApiProjectsSpidersCronjobsReadRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            cjid: this.cronjobId,
+        };
+        this.apiService.apiProjectsSpidersCronjobsRead(requestParams).then(
+            async (response: SpiderCronJob) => {
+                let args = response.cargs;
+                if (args === undefined) {
+                    args = [];
+                }
+                let envVars = response.cenvVars;
+                if (envVars === undefined) {
+                    envVars = [];
+                }
+                let tags = response.ctags;
+                if (tags === undefined) {
+                    tags = [];
+                }
+                this.initial_schedule = response.schedule || "";
+                const data = await this.getJobs(1);
+                const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
+                const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
+                const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
+                const queueJobs = data.data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
+                const tableStatus = [
+                    queueJobs.length === 0 ? false : true,
+                    runningJobs.length === 0 ? false : true,
+                    completedJobs.length === 0 ? false : true,
+                    errorJobs.length === 0 ? false : true,
+                ];
+                const weekDays = this.state.weekDays;
+                weekDays[moment().day() % 7] = true;
+                const jobs: SpiderJobData[] = data.data;
+                this.setState({
+                    name: response.name,
+                    args: [...args],
+                    envVars: [...envVars],
+                    tags: [...tags],
+                    status: response.status,
+                    schedule: response.schedule,
+                    created: convertDateToString(response.created),
+                    unique_collection: response.uniqueCollection,
+                    jobs: [...jobs],
+                    count: data.count,
+                    current: data.current,
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
+                    loaded: true,
+                    errorJobs: [...errorJobs],
+                    completedJobs: [...completedJobs],
+                    runningJobs: [...runningJobs],
+                    queueJobs: [...queueJobs],
+                    tableStatus: [...tableStatus],
+                    currentDay: moment().day(),
+                    weekDays: weekDays,
+                });
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
     }
 
     handleInputChange = (event: string): void => {
@@ -374,7 +362,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 message.success("Schedule updated successfully");
             },
             (error: unknown) => {
-                console.log(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -400,10 +388,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     modified: false,
                     loading_status: false,
                 });
-                console.log(response);
             },
             (error: unknown) => {
-                console.log(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -484,13 +471,13 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
-                console.log(response);
+                response;
                 const data = await this.getJobs(1);
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({ jobs: [...jobs] });
             },
             (error: unknown) => {
-                console.log(error);
+                error;
             },
         );
     };
@@ -509,10 +496,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
             (response) => {
                 this.setState({ status: response.status, loading_status: false });
-                console.log("Everything is gona be okay");
             },
             (error: unknown) => {
-                console.log(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -1278,88 +1264,78 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     render(): JSX.Element {
         const { loaded, status } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="bg-white">
-                    <ProjectSidenav projectId={this.projectId} path={"cronjobs"} />
-                    <Content className="content-padding">
-                        {loaded ? (
-                            <Layout className="bg-white">
-                                <Content className="bg-metal rounded-2xl">
-                                    <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
-                                        <Col className="float-left">
-                                            <Text className="text-estela-black-medium font-medium text-xl">
-                                                Sche-Job-{this.cronjobId}
-                                            </Text>
-                                        </Col>
-                                        <Col className="float-right flex gap-1">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
-                                                size="large"
-                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                            >
-                                                Clone
-                                            </Button>
-                                            <Button
-                                                onClick={this.runOnce}
-                                                icon={<Run className="h-6 w-6 mr-2 text-sm" />}
-                                                size="large"
-                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                            >
-                                                Run once
-                                            </Button>
-                                            {status == SpiderCronJobUpdateStatusEnum.Active ? (
-                                                <Button
-                                                    onClick={() =>
-                                                        this.updateStatus(SpiderCronJobUpdateStatusEnum.Disabled)
-                                                    }
-                                                    icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
-                                                    size="large"
-                                                    className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                                >
-                                                    Disable
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    onClick={() =>
-                                                        this.updateStatus(SpiderCronJobUpdateStatusEnum.Active)
-                                                    }
-                                                    icon={<Run className="h-6 w-6 mr-2 text-sm" />}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                                >
-                                                    Enable
-                                                </Button>
-                                            )}
-                                        </Col>
-                                    </Row>
-                                    <Row className="lg:mx-10 mx-6">
-                                        <Tabs
-                                            size="middle"
-                                            defaultActiveKey={"1"}
-                                            items={[
-                                                {
-                                                    label: "Overview",
-                                                    key: "1",
-                                                    children: this.overview(),
-                                                },
-                                                {
-                                                    label: "Data persistence",
-                                                    key: "2",
-                                                    children: this.dataPersistence(),
-                                                },
-                                            ]}
-                                        />
-                                    </Row>
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+            <Content className="content-padding">
+                {loaded ? (
+                    <Layout className="bg-white">
+                        <Content className="bg-metal rounded-2xl">
+                            <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
+                                <Col className="float-left">
+                                    <Text className="text-estela-black-medium font-medium text-xl">
+                                        Sche-Job-{this.cronjobId}
+                                    </Text>
+                                </Col>
+                                <Col className="float-right flex gap-1">
+                                    <Button
+                                        disabled={true}
+                                        icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
+                                        size="large"
+                                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    >
+                                        Clone
+                                    </Button>
+                                    <Button
+                                        onClick={this.runOnce}
+                                        icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                        size="large"
+                                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    >
+                                        Run once
+                                    </Button>
+                                    {status == SpiderCronJobUpdateStatusEnum.Active ? (
+                                        <Button
+                                            onClick={() => this.updateStatus(SpiderCronJobUpdateStatusEnum.Disabled)}
+                                            icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
+                                            size="large"
+                                            className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                        >
+                                            Disable
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={() => this.updateStatus(SpiderCronJobUpdateStatusEnum.Active)}
+                                            icon={<Run className="h-6 w-6 mr-2 text-sm" />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                        >
+                                            Enable
+                                        </Button>
+                                    )}
+                                </Col>
+                            </Row>
+                            <Row className="lg:mx-10 mx-6">
+                                <Tabs
+                                    size="middle"
+                                    defaultActiveKey={"1"}
+                                    items={[
+                                        {
+                                            label: "Overview",
+                                            key: "1",
+                                            children: this.overview(),
+                                        },
+                                        {
+                                            label: "Data persistence",
+                                            key: "2",
+                                            children: this.dataPersistence(),
+                                        },
+                                    ]}
+                                />
+                            </Row>
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }

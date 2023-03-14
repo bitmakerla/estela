@@ -4,14 +4,14 @@ import { Layout, Pagination, Typography, Button, Row, Space, Table, Tag } from "
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import {
     ApiProjectsSpidersCronjobsListRequest,
     ApiProjectsSpidersReadRequest,
     SpiderCronJob,
     Spider,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -96,28 +96,24 @@ export class CronJobListPage extends Component<RouteComponentProps<RouteParams>,
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
-            this.apiService.apiProjectsSpidersRead(requestParams).then(
-                async (response: Spider) => {
-                    const data = await this.getProjectCronJobs(1);
-                    const cronjobs: SpiderCronJobData[] = data.data;
-                    this.setState({
-                        spiderName: response.name,
-                        cronjobs: [...cronjobs],
-                        count: data.count,
-                        current: data.current,
-                        loaded: true,
-                    });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-        }
+        const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
+        this.apiService.apiProjectsSpidersRead(requestParams).then(
+            async (response: Spider) => {
+                const data = await this.getProjectCronJobs(1);
+                const cronjobs: SpiderCronJobData[] = data.data;
+                this.setState({
+                    spiderName: response.name,
+                    cronjobs: [...cronjobs],
+                    count: data.count,
+                    current: data.current,
+                    loaded: true,
+                });
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
     }
 
     getProjectCronJobs = async (
@@ -149,54 +145,48 @@ export class CronJobListPage extends Component<RouteComponentProps<RouteParams>,
     render(): JSX.Element {
         const { loaded, cronjobs, count, current, spiderName } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={""} />
-                    <Content className="content-padding">
-                        {loaded ? (
-                            <Layout className="white-background">
-                                <Content>
-                                    <Title level={4} className="text-center">
-                                        {spiderName}
-                                    </Title>
-                                    <Row justify="center" className="cronjob-list">
-                                        <Space direction="vertical" size="large">
-                                            <Text>
-                                                <b>Spider ID:</b>&nbsp; {this.spiderId}
-                                            </Text>
-                                            <Text>
-                                                <b>Project ID:</b>
-                                                <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
-                                            </Text>
-                                            <Table
-                                                columns={this.columns}
-                                                dataSource={cronjobs}
-                                                pagination={false}
-                                                size="middle"
-                                            />
-                                        </Space>
-                                    </Row>
-                                    <Pagination
-                                        className="pagination"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
+            <Content className="content-padding">
+                {loaded ? (
+                    <Layout className="white-background">
+                        <Content>
+                            <Title level={4} className="text-center">
+                                {spiderName}
+                            </Title>
+                            <Row justify="center" className="cronjob-list">
+                                <Space direction="vertical" size="large">
+                                    <Text>
+                                        <b>Spider ID:</b>&nbsp; {this.spiderId}
+                                    </Text>
+                                    <Text>
+                                        <b>Project ID:</b>
+                                        <Link to={`/projects/${this.projectId}`}>&nbsp; {this.projectId}</Link>
+                                    </Text>
+                                    <Table
+                                        columns={this.columns}
+                                        dataSource={cronjobs}
+                                        pagination={false}
+                                        size="middle"
                                     />
-                                    <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/create`}>
-                                        <Button className="create-new-job">Create New CronJob</Button>
-                                    </Link>
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+                                </Space>
+                            </Row>
+                            <Pagination
+                                className="pagination"
+                                defaultCurrent={1}
+                                total={count}
+                                current={current}
+                                pageSize={this.PAGE_SIZE}
+                                onChange={this.onPageChange}
+                                showSizeChanger={false}
+                            />
+                            <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/create`}>
+                                <Button className="create-new-job">Create New CronJob</Button>
+                            </Link>
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }

@@ -24,7 +24,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
@@ -48,12 +48,9 @@ import {
     Spider,
 } from "../../services/api";
 import {
-    authNotification,
     resourceNotAllowedNotification,
     incorrectDataNotification,
     dataDeletedNotification,
-    Header,
-    ProjectSidenav,
     invalidDataNotification,
     Spin,
 } from "../../shared";
@@ -326,48 +323,44 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsSpidersJobsReadRequest = {
-                pid: this.projectId,
-                sid: this.spiderId,
-                jid: this.jobId,
-            };
-            this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
-                async (response: SpiderJob) => {
-                    const args = response.args || [];
-                    const envVars = response.envVars || [];
-                    const tags = response.tags || [];
-                    const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
-                    const lifespan: number =
-                        lifeSpanArr.length !== 3 ? 0 : +lifeSpanArr[0] * 3600 + +lifeSpanArr[1] * 60 + +lifeSpanArr[2];
-                    this.setState({
-                        name: response.name,
-                        lifespan: lifespan,
-                        totalResponseBytes: response.totalResponseBytes,
-                        args: [...args],
-                        envVars: [...envVars],
-                        tags: [...tags],
-                        date: convertDateToString(response.created),
-                        created: `${response.created}`,
-                        status: response.jobStatus,
-                        cronjob: response.cronjob,
-                        requestCount: response.requestCount,
-                        loaded: true,
-                        dataStatus: response.dataStatus,
-                        dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
-                    });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-            this.getProjectSpiders();
-            await this.getItems(1);
-            this.setState({ loadedItemsFirstTime: true });
-        }
+        const requestParams: ApiProjectsSpidersJobsReadRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: this.jobId,
+        };
+        this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
+            async (response: SpiderJob) => {
+                const args = response.args || [];
+                const envVars = response.envVars || [];
+                const tags = response.tags || [];
+                const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
+                const lifespan: number =
+                    lifeSpanArr.length !== 3 ? 0 : +lifeSpanArr[0] * 3600 + +lifeSpanArr[1] * 60 + +lifeSpanArr[2];
+                this.setState({
+                    name: response.name,
+                    lifespan: lifespan,
+                    totalResponseBytes: response.totalResponseBytes,
+                    args: [...args],
+                    envVars: [...envVars],
+                    tags: [...tags],
+                    date: convertDateToString(response.created),
+                    created: `${response.created}`,
+                    status: response.jobStatus,
+                    cronjob: response.cronjob,
+                    requestCount: response.requestCount,
+                    loaded: true,
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
+                });
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
+        this.getProjectSpiders();
+        await this.getItems(1);
+        this.setState({ loadedItemsFirstTime: true });
     }
 
     getProjectSpiders = async (): Promise<void> => {
@@ -389,7 +382,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -418,7 +411,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -488,7 +481,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 location.reload();
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -551,7 +544,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ status: response.status });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -582,7 +575,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -603,7 +596,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ status: response.status, loading_status: false });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 incorrectDataNotification();
             },
         );
@@ -648,7 +641,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 }
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -675,7 +668,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 dataDeletedNotification(response.count);
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -701,7 +694,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ loadedItems: true, loadedItemsFirstTime: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -732,7 +725,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ loadedRequests: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -763,7 +756,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 this.setState({ loadedLogs: true });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -1685,358 +1678,348 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             logsCurrent,
         } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"jobs"} />
-                    <Content className="content-padding">
-                        {loaded && loadedSpiders ? (
-                            <Layout className="white-background">
-                                <Content className="bg-metal rounded-2xl">
-                                    <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
-                                        <Col className="float-left">
-                                            <Text className="text-estela-black-medium font-medium text-xl">
-                                                Job-{this.jobId}
-                                            </Text>
-                                        </Col>
-                                        <Col className="float-right flex gap-1">
-                                            <Button
-                                                onClick={() => {
-                                                    const newTags: Tags[] = [...this.state.tags].map(
-                                                        (tag: TagsData, id: number) => ({
-                                                            name: tag.name,
-                                                            key: id,
-                                                        }),
-                                                    );
-                                                    const newArgs: Args[] = [...this.state.args].map(
-                                                        (arg: ArgsData, id: number) => ({
-                                                            name: arg.name,
-                                                            value: arg.value,
-                                                            key: id,
-                                                        }),
-                                                    );
-                                                    const newEnvVars: EnvVars[] = [...this.state.envVars].map(
-                                                        (tag: EnvVarsData, id: number) => ({
-                                                            name: tag.name,
-                                                            value: tag.value,
-                                                            key: id,
-                                                        }),
-                                                    );
-                                                    this.setState({
-                                                        modalClone: true,
-                                                        newTags: [...newTags],
-                                                        newArgs: [...newArgs],
-                                                        newEnvVars: [...newEnvVars],
-                                                    });
-                                                }}
-                                                icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
-                                                size="large"
-                                                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                            >
-                                                Clone this job
-                                            </Button>
-                                            <Button
-                                                disabled={!(status == SpiderJobUpdateStatusEnum.Running)}
-                                                icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
-                                                onClick={() => {
-                                                    this.setState({ modalStop: true });
-                                                }}
-                                                size="large"
-                                                className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
-                                            >
-                                                Stop this job
-                                            </Button>
-                                            {modalStop && (
-                                                <Modal
-                                                    style={{
-                                                        overflow: "hidden",
-                                                        padding: 0,
-                                                    }}
-                                                    centered
-                                                    width={681}
-                                                    open={modalStop}
-                                                    title={
-                                                        <p className="text-xl text-center mt-2 font-normal">
-                                                            CONFIRM ACTION
-                                                        </p>
-                                                    }
-                                                    onCancel={() => this.setState({ modalStop: false })}
-                                                    footer={null}
-                                                >
-                                                    <Row className="grid sm:grid-cols-1" justify="center">
-                                                        <Col className="text-center text-estela-black-full">
-                                                            Are you sure you want to stop this job?
-                                                        </Col>
-                                                    </Row>
-                                                    <Row justify="center" className="mt-4">
-                                                        <Button
-                                                            size="large"
-                                                            className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
-                                                            onClick={() => {
-                                                                this.updateStatus(SpiderJobUpdateStatusEnum.Stopped);
-                                                                this.setState({ modalStop: false });
-                                                            }}
-                                                        >
-                                                            Confirm
-                                                        </Button>
-                                                        <Button
-                                                            size="large"
-                                                            className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                            onClick={() => this.setState({ modalStop: false })}
-                                                        >
-                                                            Cancel
-                                                        </Button>
-                                                    </Row>
-                                                </Modal>
-                                            )}
-                                            {modalClone && (
-                                                <Modal
-                                                    style={{
-                                                        overflow: "hidden",
-                                                        padding: 0,
-                                                    }}
-                                                    centered
-                                                    width={681}
-                                                    open={modalClone}
-                                                    title={
-                                                        <p className="text-xl text-center mt-2 font-normal">NEW JOB</p>
-                                                    }
-                                                    onCancel={() => this.setState({ modalClone: false })}
-                                                    footer={null}
-                                                >
-                                                    <Row className="grid sm:grid-cols-1">
-                                                        <Col className="mx-4">
-                                                            <Content>
-                                                                <p className="my-2 text-base">Spider</p>
-                                                                <Select
-                                                                    style={{ borderRadius: 16 }}
-                                                                    size="large"
-                                                                    className="w-full"
-                                                                    defaultValue={spiders[0] ? spiders[0].name : ""}
-                                                                    onChange={this.handleSpiderChange}
-                                                                >
-                                                                    {spiders.map((spider: Spider) => (
-                                                                        <Option key={spider.sid} value={spider.name}>
-                                                                            {spider.name}
-                                                                        </Option>
-                                                                    ))}
-                                                                </Select>
-                                                            </Content>
-                                                            <Content>
-                                                                <p className="text-base my-2">Data persistence</p>
-                                                                <Select
-                                                                    onChange={this.handlePersistenceChange}
-                                                                    className="w-full"
-                                                                    size="large"
-                                                                    defaultValue={this.dataPersistenceOptions[0].value}
-                                                                >
-                                                                    {this.dataPersistenceOptions.map(
-                                                                        (option: OptionDataPersistence) => (
-                                                                            <Option
-                                                                                className="text-sm"
-                                                                                key={option.key}
-                                                                                value={option.value}
-                                                                            >
-                                                                                {option.label}
-                                                                            </Option>
-                                                                        ),
-                                                                    )}
-                                                                </Select>
-                                                            </Content>
-                                                            <Content>
-                                                                <p className="text-base my-2">Tags</p>
-                                                                <Space direction="horizontal">
-                                                                    {newTags.map((tag: Tags, id: number) => {
-                                                                        return (
-                                                                            <Tag
-                                                                                className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                                closable
-                                                                                key={tag.key}
-                                                                                onClose={() => this.handleRemoveTag(id)}
-                                                                            >
-                                                                                {tag.name}
-                                                                            </Tag>
-                                                                        );
-                                                                    })}
-                                                                </Space>
-                                                                <Space direction="horizontal">
-                                                                    <Input
-                                                                        size="large"
-                                                                        className="border-estela-blue-full rounded-lg"
-                                                                        name="newTagName"
-                                                                        placeholder="name"
-                                                                        value={newTagName}
-                                                                        onChange={this.handleInputChange}
-                                                                    />
-                                                                    <Button
-                                                                        shape="circle"
-                                                                        size="small"
-                                                                        icon={<Add />}
-                                                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                        onClick={this.addTag}
-                                                                    ></Button>
-                                                                </Space>
-                                                            </Content>
-                                                            <Content>
-                                                                <p className="text-base my-2">Arguments</p>
-                                                                <Space direction="vertical">
-                                                                    {newArgs.map((arg: Args, id) => (
-                                                                        <Tag
-                                                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                            closable
-                                                                            key={arg.key}
-                                                                            onClose={() => this.handleRemoveArg(id)}
-                                                                        >
-                                                                            {arg.name}: {arg.value}
-                                                                        </Tag>
-                                                                    ))}
-                                                                    <Space direction="horizontal">
-                                                                        <Input
-                                                                            size="large"
-                                                                            className="border-estela-blue-full rounded-l-lg"
-                                                                            name="newArgName"
-                                                                            placeholder="name"
-                                                                            value={newArgName}
-                                                                            onChange={this.handleInputChange}
-                                                                        />
-                                                                        <Input
-                                                                            size="large"
-                                                                            className="border-estela-blue-full rounded-r-lg"
-                                                                            name="newArgValue"
-                                                                            placeholder="value"
-                                                                            value={newArgValue}
-                                                                            onChange={this.handleInputChange}
-                                                                        />
-                                                                        <Button
-                                                                            shape="circle"
-                                                                            size="small"
-                                                                            icon={<Add />}
-                                                                            className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                            onClick={this.addArgument}
-                                                                        ></Button>
-                                                                    </Space>
-                                                                </Space>
-                                                            </Content>
-                                                            <Content>
-                                                                <p className="text-base my-2">Environment Variables</p>
-                                                                <Space className="mb-2" direction="horizontal">
-                                                                    {newEnvVars.map((envVar: EnvVars, id: number) => (
-                                                                        <Tag
-                                                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                            closable
-                                                                            key={envVar.key}
-                                                                            onClose={() => this.handleRemoveEnvVar(id)}
-                                                                        >
-                                                                            {envVar.name}: {envVar.value}
-                                                                        </Tag>
-                                                                    ))}
-                                                                </Space>
-                                                                <Space direction="horizontal">
-                                                                    <Input
-                                                                        size="large"
-                                                                        className="border-estela-blue-full rounded-l-lg"
-                                                                        name="newEnvVarName"
-                                                                        placeholder="name"
-                                                                        value={newEnvVarName}
-                                                                        onChange={this.handleInputChange}
-                                                                    />
-                                                                    <Input
-                                                                        size="large"
-                                                                        className="border-estela-blue-full rounded-r-lg"
-                                                                        name="newEnvVarValue"
-                                                                        placeholder="value"
-                                                                        value={newEnvVarValue}
-                                                                        onChange={this.handleInputChange}
-                                                                    />
-                                                                    <Button
-                                                                        shape="circle"
-                                                                        size="small"
-                                                                        icon={<Add />}
-                                                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                        onClick={this.addEnvVar}
-                                                                    ></Button>
-                                                                </Space>
-                                                            </Content>
-                                                        </Col>
-                                                    </Row>
-                                                    <Row justify="center" className="mt-4">
-                                                        <Button
-                                                            onClick={this.handleSubmit}
-                                                            size="large"
-                                                            className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
-                                                        >
-                                                            Confirm
-                                                        </Button>
-                                                        <Button
-                                                            size="large"
-                                                            className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                            onClick={() => this.setState({ modalClone: false })}
-                                                        >
-                                                            Cancel
-                                                        </Button>
-                                                    </Row>
-                                                </Modal>
-                                            )}
-                                        </Col>
-                                    </Row>
-                                    <Row className="lg:mx-10 mx-6">
-                                        <Tabs
-                                            size="middle"
-                                            onChange={(activeKey: string) => {
-                                                this.setState({ activeKey: activeKey });
-                                                if (activeKey === "2" && !loadedItems && !loadedItemsFirstTime) {
-                                                    this.getItems(itemsCurrent);
-                                                }
-                                                if (activeKey === "3" && !loadedRequests) {
-                                                    this.getRequests(requestsCurrent);
-                                                }
-                                                if (activeKey === "4" && !loadedLogs) {
-                                                    this.getLogs(logsCurrent);
-                                                }
-                                                if (activeKey === "5" && !loadedStats) {
-                                                    this.getStats();
-                                                }
+            <Content className="content-padding">
+                {loaded && loadedSpiders ? (
+                    <Layout className="white-background">
+                        <Content className="bg-metal rounded-2xl">
+                            <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
+                                <Col className="float-left">
+                                    <Text className="text-estela-black-medium font-medium text-xl">
+                                        Job-{this.jobId}
+                                    </Text>
+                                </Col>
+                                <Col className="float-right flex gap-1">
+                                    <Button
+                                        onClick={() => {
+                                            const newTags: Tags[] = [...this.state.tags].map(
+                                                (tag: TagsData, id: number) => ({
+                                                    name: tag.name,
+                                                    key: id,
+                                                }),
+                                            );
+                                            const newArgs: Args[] = [...this.state.args].map(
+                                                (arg: ArgsData, id: number) => ({
+                                                    name: arg.name,
+                                                    value: arg.value,
+                                                    key: id,
+                                                }),
+                                            );
+                                            const newEnvVars: EnvVars[] = [...this.state.envVars].map(
+                                                (tag: EnvVarsData, id: number) => ({
+                                                    name: tag.name,
+                                                    value: tag.value,
+                                                    key: id,
+                                                }),
+                                            );
+                                            this.setState({
+                                                modalClone: true,
+                                                newTags: [...newTags],
+                                                newArgs: [...newArgs],
+                                                newEnvVars: [...newEnvVars],
+                                            });
+                                        }}
+                                        icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
+                                        size="large"
+                                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    >
+                                        Clone this job
+                                    </Button>
+                                    <Button
+                                        disabled={!(status == SpiderJobUpdateStatusEnum.Running)}
+                                        icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
+                                        onClick={() => {
+                                            this.setState({ modalStop: true });
+                                        }}
+                                        size="large"
+                                        className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                    >
+                                        Stop this job
+                                    </Button>
+                                    {modalStop && (
+                                        <Modal
+                                            style={{
+                                                overflow: "hidden",
+                                                padding: 0,
                                             }}
-                                            className="w-full"
-                                            activeKey={activeKey}
-                                            defaultActiveKey={"1"}
-                                            items={[
-                                                {
-                                                    label: "Overview",
-                                                    key: "1",
-                                                    children: this.overview(),
-                                                },
-                                                {
-                                                    label: "Items",
-                                                    key: "2",
-                                                    children: this.items(),
-                                                },
-                                                {
-                                                    label: "Requests",
-                                                    key: "3",
-                                                    children: this.requests(),
-                                                },
-                                                {
-                                                    label: "Log",
-                                                    key: "4",
-                                                    children: this.logs(),
-                                                },
-                                                {
-                                                    label: "Stats",
-                                                    key: "5",
-                                                    children: this.stats(),
-                                                },
-                                            ]}
-                                        />
-                                    </Row>
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+                                            centered
+                                            width={681}
+                                            open={modalStop}
+                                            title={
+                                                <p className="text-xl text-center mt-2 font-normal">CONFIRM ACTION</p>
+                                            }
+                                            onCancel={() => this.setState({ modalStop: false })}
+                                            footer={null}
+                                        >
+                                            <Row className="grid sm:grid-cols-1" justify="center">
+                                                <Col className="text-center text-estela-black-full">
+                                                    Are you sure you want to stop this job?
+                                                </Col>
+                                            </Row>
+                                            <Row justify="center" className="mt-4">
+                                                <Button
+                                                    size="large"
+                                                    className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                                    onClick={() => {
+                                                        this.updateStatus(SpiderJobUpdateStatusEnum.Stopped);
+                                                        this.setState({ modalStop: false });
+                                                    }}
+                                                >
+                                                    Confirm
+                                                </Button>
+                                                <Button
+                                                    size="large"
+                                                    className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                                    onClick={() => this.setState({ modalStop: false })}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </Row>
+                                        </Modal>
+                                    )}
+                                    {modalClone && (
+                                        <Modal
+                                            style={{
+                                                overflow: "hidden",
+                                                padding: 0,
+                                            }}
+                                            centered
+                                            width={681}
+                                            open={modalClone}
+                                            title={<p className="text-xl text-center mt-2 font-normal">NEW JOB</p>}
+                                            onCancel={() => this.setState({ modalClone: false })}
+                                            footer={null}
+                                        >
+                                            <Row className="grid sm:grid-cols-1">
+                                                <Col className="mx-4">
+                                                    <Content>
+                                                        <p className="my-2 text-base">Spider</p>
+                                                        <Select
+                                                            style={{ borderRadius: 16 }}
+                                                            size="large"
+                                                            className="w-full"
+                                                            defaultValue={spiders[0] ? spiders[0].name : ""}
+                                                            onChange={this.handleSpiderChange}
+                                                        >
+                                                            {spiders.map((spider: Spider) => (
+                                                                <Option key={spider.sid} value={spider.name}>
+                                                                    {spider.name}
+                                                                </Option>
+                                                            ))}
+                                                        </Select>
+                                                    </Content>
+                                                    <Content>
+                                                        <p className="text-base my-2">Data persistence</p>
+                                                        <Select
+                                                            onChange={this.handlePersistenceChange}
+                                                            className="w-full"
+                                                            size="large"
+                                                            defaultValue={this.dataPersistenceOptions[0].value}
+                                                        >
+                                                            {this.dataPersistenceOptions.map(
+                                                                (option: OptionDataPersistence) => (
+                                                                    <Option
+                                                                        className="text-sm"
+                                                                        key={option.key}
+                                                                        value={option.value}
+                                                                    >
+                                                                        {option.label}
+                                                                    </Option>
+                                                                ),
+                                                            )}
+                                                        </Select>
+                                                    </Content>
+                                                    <Content>
+                                                        <p className="text-base my-2">Tags</p>
+                                                        <Space direction="horizontal">
+                                                            {newTags.map((tag: Tags, id: number) => {
+                                                                return (
+                                                                    <Tag
+                                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                                        closable
+                                                                        key={tag.key}
+                                                                        onClose={() => this.handleRemoveTag(id)}
+                                                                    >
+                                                                        {tag.name}
+                                                                    </Tag>
+                                                                );
+                                                            })}
+                                                        </Space>
+                                                        <Space direction="horizontal">
+                                                            <Input
+                                                                size="large"
+                                                                className="border-estela-blue-full rounded-lg"
+                                                                name="newTagName"
+                                                                placeholder="name"
+                                                                value={newTagName}
+                                                                onChange={this.handleInputChange}
+                                                            />
+                                                            <Button
+                                                                shape="circle"
+                                                                size="small"
+                                                                icon={<Add />}
+                                                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                onClick={this.addTag}
+                                                            ></Button>
+                                                        </Space>
+                                                    </Content>
+                                                    <Content>
+                                                        <p className="text-base my-2">Arguments</p>
+                                                        <Space direction="vertical">
+                                                            {newArgs.map((arg: Args, id) => (
+                                                                <Tag
+                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                                    closable
+                                                                    key={arg.key}
+                                                                    onClose={() => this.handleRemoveArg(id)}
+                                                                >
+                                                                    {arg.name}: {arg.value}
+                                                                </Tag>
+                                                            ))}
+                                                            <Space direction="horizontal">
+                                                                <Input
+                                                                    size="large"
+                                                                    className="border-estela-blue-full rounded-l-lg"
+                                                                    name="newArgName"
+                                                                    placeholder="name"
+                                                                    value={newArgName}
+                                                                    onChange={this.handleInputChange}
+                                                                />
+                                                                <Input
+                                                                    size="large"
+                                                                    className="border-estela-blue-full rounded-r-lg"
+                                                                    name="newArgValue"
+                                                                    placeholder="value"
+                                                                    value={newArgValue}
+                                                                    onChange={this.handleInputChange}
+                                                                />
+                                                                <Button
+                                                                    shape="circle"
+                                                                    size="small"
+                                                                    icon={<Add />}
+                                                                    className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                    onClick={this.addArgument}
+                                                                ></Button>
+                                                            </Space>
+                                                        </Space>
+                                                    </Content>
+                                                    <Content>
+                                                        <p className="text-base my-2">Environment Variables</p>
+                                                        <Space className="mb-2" direction="horizontal">
+                                                            {newEnvVars.map((envVar: EnvVars, id: number) => (
+                                                                <Tag
+                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                                    closable
+                                                                    key={envVar.key}
+                                                                    onClose={() => this.handleRemoveEnvVar(id)}
+                                                                >
+                                                                    {envVar.name}: {envVar.value}
+                                                                </Tag>
+                                                            ))}
+                                                        </Space>
+                                                        <Space direction="horizontal">
+                                                            <Input
+                                                                size="large"
+                                                                className="border-estela-blue-full rounded-l-lg"
+                                                                name="newEnvVarName"
+                                                                placeholder="name"
+                                                                value={newEnvVarName}
+                                                                onChange={this.handleInputChange}
+                                                            />
+                                                            <Input
+                                                                size="large"
+                                                                className="border-estela-blue-full rounded-r-lg"
+                                                                name="newEnvVarValue"
+                                                                placeholder="value"
+                                                                value={newEnvVarValue}
+                                                                onChange={this.handleInputChange}
+                                                            />
+                                                            <Button
+                                                                shape="circle"
+                                                                size="small"
+                                                                icon={<Add />}
+                                                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                                                onClick={this.addEnvVar}
+                                                            ></Button>
+                                                        </Space>
+                                                    </Content>
+                                                </Col>
+                                            </Row>
+                                            <Row justify="center" className="mt-4">
+                                                <Button
+                                                    onClick={this.handleSubmit}
+                                                    size="large"
+                                                    className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                                >
+                                                    Confirm
+                                                </Button>
+                                                <Button
+                                                    size="large"
+                                                    className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                                    onClick={() => this.setState({ modalClone: false })}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </Row>
+                                        </Modal>
+                                    )}
+                                </Col>
+                            </Row>
+                            <Row className="lg:mx-10 mx-6">
+                                <Tabs
+                                    size="middle"
+                                    onChange={(activeKey: string) => {
+                                        this.setState({ activeKey: activeKey });
+                                        if (activeKey === "2" && !loadedItems && !loadedItemsFirstTime) {
+                                            this.getItems(itemsCurrent);
+                                        }
+                                        if (activeKey === "3" && !loadedRequests) {
+                                            this.getRequests(requestsCurrent);
+                                        }
+                                        if (activeKey === "4" && !loadedLogs) {
+                                            this.getLogs(logsCurrent);
+                                        }
+                                        if (activeKey === "5" && !loadedStats) {
+                                            this.getStats();
+                                        }
+                                    }}
+                                    className="w-full"
+                                    activeKey={activeKey}
+                                    defaultActiveKey={"1"}
+                                    items={[
+                                        {
+                                            label: "Overview",
+                                            key: "1",
+                                            children: this.overview(),
+                                        },
+                                        {
+                                            label: "Items",
+                                            key: "2",
+                                            children: this.items(),
+                                        },
+                                        {
+                                            label: "Requests",
+                                            key: "3",
+                                            children: this.requests(),
+                                        },
+                                        {
+                                            label: "Log",
+                                            key: "4",
+                                            children: this.logs(),
+                                        },
+                                        {
+                                            label: "Stats",
+                                            key: "5",
+                                            children: this.stats(),
+                                        },
+                                    ]}
+                                />
+                            </Row>
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }

@@ -1,10 +1,10 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { Button, Layout, Space } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { Project, ApiProjectsReadRequest, ApiProjectsListRequest } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, ProfileSettingsSideNav, Header, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
 
@@ -24,12 +24,8 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
     apiService = ApiService();
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            this.setEmailUser();
-            this.setState({ loaded: true });
-        }
+        this.setEmailUser();
+        this.setState({ loaded: true });
     }
 
     sendRequest = () => {
@@ -62,7 +58,7 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                 this.setState({ email: user_email });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -71,39 +67,31 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
     render(): JSX.Element {
         const { loaded, btnSend, email } = this.state;
         return (
-            <Layout className="h-screen">
-                <Header />
-                <Layout className="bg-metal p-6">
-                    <ProfileSettingsSideNav path={"password"} />
-                    {loaded ? (
-                        <Fragment>
-                            <Content className="mx-32 mr-10">
-                                <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
-                                    <div className="">
-                                        <p className="text-3xl">Change password</p>
-                                        <p className="mt-4 text-base text-estela-black-medium">
-                                            If you want to reset your password, request a password change sending an
-                                            email to {email}. You can change your password every 6 months.
-                                        </p>
-                                        <p className="mt-4 text-base text-estela-black-medium">
-                                            Last change: 01/01/20222
-                                        </p>
-                                    </div>
-                                    {!btnSend ? (
-                                        <Button className="my-8 btn_password" disabled onClick={this.sendRequest}>
-                                            Send request
-                                        </Button>
-                                    ) : (
-                                        <button className="my-8 btn_sendRequest">Request sended</button>
-                                    )}
-                                </Space>
-                            </Content>
-                        </Fragment>
-                    ) : (
-                        <Spin />
-                    )}
-                </Layout>
-            </Layout>
+            <>
+                {loaded ? (
+                    <Content className="mx-6 px-14 bg-white">
+                        <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
+                            <div className="">
+                                <p className="text-3xl">Change password</p>
+                                <p className="mt-4 text-base text-estela-black-medium">
+                                    If you want to reset your password, request a password change sending an email to{" "}
+                                    {email}. You can change your password every 6 months.
+                                </p>
+                                <p className="mt-4 text-base text-estela-black-medium">Last change: 01/01/20222</p>
+                            </div>
+                            {!btnSend ? (
+                                <Button className="my-8 btn_password" disabled onClick={this.sendRequest}>
+                                    Send request
+                                </Button>
+                            ) : (
+                                <button className="my-8 btn_sendRequest">Request sended</button>
+                            )}
+                        </Space>
+                    </Content>
+                ) : (
+                    <Spin />
+                )}
+            </>
         );
     }
 }

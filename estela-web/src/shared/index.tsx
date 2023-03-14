@@ -15,3 +15,5 @@ export {
     emailConfirmationNotification,
     dataDeletedNotification,
 } from "./notifications";
+export { PrivateRoute } from "./privateRoute";
+export * from "./layouts";
