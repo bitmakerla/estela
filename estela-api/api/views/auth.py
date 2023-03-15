@@ -12,19 +12,32 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from api.tokens import account_reset_token
 from django.contrib.auth.models import User
-from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 from django.conf import settings
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
 from django.contrib.auth.password_validation import validate_password
-from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
-from api.serializers.auth import TokenSerializer, UserSerializer, UserProfileSerializer
-from core.views import send_verification_email, send_change_password_email, send_alert_password_changed
+from api.exceptions import (
+    EmailServiceError,
+    UserNotFoundError,
+    ChangePasswordError
+)
+from api.serializers.auth import (
+    TokenSerializer,
+    UserSerializer,
+    UserProfileSerializer
+)
+from core.views import (
+    send_verification_email,
+    send_change_password_email,
+    send_alert_password_changed
+)
 from django.core import exceptions
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 from api.permissions import IsProfileUser
+
+
 class AuthAPIViewSet(viewsets.GenericViewSet):
     serializer_class = AuthTokenSerializer
 
@@ -41,7 +54,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     )
     @action(methods=["POST"], detail=False)
     def login(self, request, *args, **kwargs):
-        serializer:AuthTokenSerializer = self.get_serializer(
+        serializer: AuthTokenSerializer = self.get_serializer(
             data=request.data, context={"request": self.request}
         )
 
@@ -124,6 +137,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
                 {"message": "Activation link is invalid!"},
             )
 
+
 class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
@@ -135,13 +149,15 @@ class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
         if not self.request.user.is_superuser:
             return self.queryset.filter(username=self.request.user.username)
         return self.queryset
+
+
 class ChangePasswordViewSet(viewsets.GenericViewSet):
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
         user_id_base64 = request.query_params.get("pair", "")
         user_id = force_text(urlsafe_base64_decode(user_id_base64))
         return token, user_id
-    
+
     @swagger_auto_schema(
         methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
     )
@@ -166,13 +182,13 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             })
         try:
             send_change_password_email(user, request)
-        except Exception as ex:
+        except Exception:
             raise EmailServiceError({
                 "error": "There was an error sending the verification email. Please try again later."
             })
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
-    
+
     @action(methods=["GET"], detail=False)
     def validate(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
@@ -192,7 +208,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         else:
             try:
                 send_change_password_email(user, request)
-            except Exception as ex:
+            except Exception:
                 raise EmailServiceError({
                     "error": "There was an error sending the verification email. Please try again later."
                 })
@@ -202,6 +218,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
                     "message": "Activation link is invalid. Check your email again."
                 },
             )
+
     @swagger_auto_schema(
         methods=["PATCH"], responses={status.HTTP_200_OK: TokenSerializer()}
     )
@@ -230,10 +247,16 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             user.set_password(new_password)
             user.userprofile.last_password_change = datetime.now(timezone.utc)
             user.save()
+            try:
+                send_alert_password_changed(user, request)
+            except Exception:
+                raise EmailServiceError({
+                    "error": "There was an error sending the verification email. Please try again later."
+                })
         else:
             try:
                 send_change_password_email(user, request)
-            except Exception as ex:
+            except Exception:
                 raise EmailServiceError(
                     {
                         "error": "There was an error sending the verification email. Please try again later."
@@ -241,12 +264,6 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
                 )
             raise ChangePasswordError({
                 "error": "Activation link is invalid. Check your email again."
-            })
-        try:
-            send_alert_password_changed(user, request)
-        except Exception as ex:
-            raise EmailServiceError({
-                "error": "There was an error sending the verification email. Please try again later."
             })
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
