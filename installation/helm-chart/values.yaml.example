@@ -20,6 +20,9 @@ imagePullSecrets: ""
 
 ############ GLOBAL ############
 
+# Deployment stage: DEVELOPMENT, STAGING, PRODUCTION
+STAGE: "DEVELOPMENT"
+
 # Database
 SPIDERDATA_DB_ENGINE: mongodb
 SPIDERDATA_DB_CONNECTION: "" # [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) can be used to set a database
