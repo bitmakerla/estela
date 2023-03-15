@@ -93,10 +93,17 @@ import {
     User,
     UserFromJSON,
     UserToJSON,
+    UserProfile,
+    UserProfileFromJSON,
+    UserProfileToJSON,
 } from '../models';
 
 export interface ApiAuthLoginRequest {
     data: AuthToken;
+}
+
+export interface ApiAuthProfileReadRequest {
+    username: string;
 }
 
 export interface ApiAuthRegisterRequest {
@@ -302,6 +309,85 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiAccountChangePasswordConfirmRaw(): Promise<runtime.ApiResponse<Token>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/account/change_password/confirm`,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAccountChangePasswordConfirm(): Promise<Token> {
+        const response = await this.apiAccountChangePasswordConfirmRaw();
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAccountChangePasswordRequestRaw(): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/account/change_password/request`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAccountChangePasswordRequest(): Promise<void> {
+        await this.apiAccountChangePasswordRequestRaw();
+    }
+
+    /**
+     */
+    async apiAccountChangePasswordValidateRaw(): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/account/change_password/validate`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAccountChangePasswordValidate(): Promise<void> {
+        await this.apiAccountChangePasswordValidateRaw();
+    }
+
+    /**
+     */
     async apiAuthActivateRaw(): Promise<runtime.ApiResponse<Array<AuthToken>>> {
         const queryParameters: any = {};
 
@@ -358,6 +444,64 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiAuthLogin(requestParameters: ApiAuthLoginRequest): Promise<Token> {
         const response = await this.apiAuthLoginRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthProfileListRaw(): Promise<runtime.ApiResponse<Array<UserProfile>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/profile`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(UserProfileFromJSON));
+    }
+
+    /**
+     */
+    async apiAuthProfileList(): Promise<Array<UserProfile>> {
+        const response = await this.apiAuthProfileListRaw();
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthProfileReadRaw(requestParameters: ApiAuthProfileReadRequest): Promise<runtime.ApiResponse<UserProfile>> {
+        if (requestParameters.username === null || requestParameters.username === undefined) {
+            throw new runtime.RequiredError('username','Required parameter requestParameters.username was null or undefined when calling apiAuthProfileRead.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/profile/{username}`.replace(`{${"username"}}`, encodeURIComponent(String(requestParameters.username))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProfileFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthProfileRead(requestParameters: ApiAuthProfileReadRequest): Promise<UserProfile> {
+        const response = await this.apiAuthProfileReadRaw(requestParameters);
         return await response.value();
     }
 

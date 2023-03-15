@@ -12,3 +12,13 @@ class DataBaseError(APIException):
 class EmailServiceError(APIException):
     status_code = 500
     default_code = "unable_send_email"
+
+class UserNotFoundError(APIException):
+    status_code = 404
+    default_detail = errors.USER_NOT_FOUND
+    default_code = "user_not_found"
+
+class ChangePasswordError(APIException):
+    status_code = 400
+    default_detail = errors.UNABLE_CHANGE_PASSWORD
+    default_code = "unable_change_password"

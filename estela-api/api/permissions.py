@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from core.models import Project, Permission
-
+from django.contrib.auth.models import User
 
 class IsProjectUser(BasePermission):
     def has_permission(self, request, view):
@@ -12,6 +12,15 @@ class IsProjectUser(BasePermission):
             or Project.objects.filter(pid=pid, users__in=[request.user]).exists()
         )
 
+class IsProfileUser(BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_superuser:
+            return True
+        username = view.kwargs.get("username")
+        return bool(
+            username is None
+            or User.objects.filter(username=username, id=request.user.id).exists()
+        )
 
 class IsAdminOrReadOnly(BasePermission):
     """
