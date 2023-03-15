@@ -51,8 +51,13 @@ class TokenSerializer(serializers.ModelSerializer):
         model = Token
         fields = ["user", "key"]
 
+
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
-    last_password_change = serializers.ReadOnlyField(source="userprofile.last_password_change", read_only=True)
+    last_password_change = serializers.ReadOnlyField(
+        source="userprofile.last_password_change",
+        read_only=True
+    )
+
     class Meta:
         model = User
         fields = ["username", "email", "last_password_change"]

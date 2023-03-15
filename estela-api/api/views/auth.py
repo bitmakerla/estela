@@ -33,6 +33,7 @@ from core.views import (
     send_alert_password_changed
 )
 from django.core import exceptions
+from core.models import UserProfile
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 from api.permissions import IsProfileUser
@@ -69,6 +70,9 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
+        user_profile = UserProfile.objects.filter(user=user)
+        if not user_profile:
+            UserProfile.objects.create(user=user)
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -79,7 +83,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     def register(self, request, *args, **kwargs):
         if not settings.REGISTER == "True":
             raise MethodNotAllowed({"error": "This action is disabled"})
-        serializer:AuthTokenSerializer = self.get_serializer(data=request.data)
+        serializer: AuthTokenSerializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         user.is_active = False
