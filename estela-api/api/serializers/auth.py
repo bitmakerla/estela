@@ -41,9 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    user = UserDetailSerializer(
-        required=False, help_text="User details."
-    )
+    user = UserDetailSerializer(required=False, help_text="User details.")
     key = serializers.CharField(max_length=40, help_text="User's auth token key.")
 
     class Meta:

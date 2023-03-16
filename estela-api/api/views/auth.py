@@ -38,7 +38,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     )
     @action(methods=["POST"], detail=False)
     def login(self, request, *args, **kwargs):
-        serializer:AuthTokenSerializer = self.get_serializer(
+        serializer: AuthTokenSerializer = self.get_serializer(
             data=request.data, context={"request": self.request}
         )
 
@@ -63,7 +63,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     def register(self, request, *args, **kwargs):
         if not settings.REGISTER == "True":
             raise MethodNotAllowed({"error": "This action is disabled"})
-        serializer:AuthTokenSerializer = self.get_serializer(data=request.data)
+        serializer: AuthTokenSerializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         user.is_active = False
