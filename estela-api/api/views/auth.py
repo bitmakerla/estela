@@ -38,7 +38,6 @@ from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 from api.permissions import IsProfileUser
 
-
 class AuthAPIViewSet(viewsets.GenericViewSet):
     serializer_class = AuthTokenSerializer
 
@@ -55,7 +54,8 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     )
     @action(methods=["POST"], detail=False)
     def login(self, request, *args, **kwargs):
-        serializer: AuthTokenSerializer = self.get_serializer(
+        print(request.data)
+        serializer:AuthTokenSerializer = self.get_serializer(
             data=request.data, context={"request": self.request}
         )
 
@@ -153,7 +153,17 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_superuser:
             return self.queryset.filter(username=self.request.user.username)
         return self.queryset
+    
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK}
+    )
+    def update(self, request, *args, **kwargs):
+        user: User = request.user
+        print(user.__dict__)
+        print(user.password)
+        return Response(status=status.HTTP_200_OK)
 
+    
 class ChangePasswordViewSet(viewsets.GenericViewSet):
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
