@@ -222,11 +222,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             raise UserNotFoundError({"error": "User does not exist."})
         user = user.get()
         if (
-            int(
-                (
-                    datetime.now(timezone.utc) - user.userprofile.last_password_change
-                ).total_seconds()
-            )
+            int((datetime.now(timezone.utc) - user.userprofile.last_password_change).total_seconds())
             < settings.PASSWORD_CHANGE_TIME
         ):
             raise ChangePasswordError(
