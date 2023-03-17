@@ -57,6 +57,7 @@ def send_verification_email(user, request):
     )
     email.send()
 
+
 def send_change_password_email(user, request):
     mail_subject = "Change your estela password."
     to_email = user.email
@@ -74,6 +75,7 @@ def send_change_password_email(user, request):
         mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
     )
     email.send()
+
 
 def send_alert_password_changed(user, request):
     mail_subject = "Your estela password has been changed."

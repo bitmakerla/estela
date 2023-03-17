@@ -9,16 +9,37 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('core', '0023_auto_20230113_0354'),
+        ("core", "0023_auto_20230113_0354"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_password_change', models.DateTimeField(auto_now_add=True, help_text='Date and time of last password change.')),
-                ('user', models.OneToOneField(help_text='User.', on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "last_password_change",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Date and time of last password change.",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        help_text="User.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]
