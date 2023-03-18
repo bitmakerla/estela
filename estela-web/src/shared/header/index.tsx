@@ -31,7 +31,7 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
         });
         const key_logout = this.itemsUser?.length;
         this.itemsUser?.push({
-            key: `${key_logout}`,
+            key: `${key_logout && key_logout + 1}`,
             label: (
                 <Content className="stroke-black hover:stroke-estela hover:bg-button-hover rounded">
                     <Link to={""} className="flex items-center hover:text-estela-blue-full" onClick={this.logout}>

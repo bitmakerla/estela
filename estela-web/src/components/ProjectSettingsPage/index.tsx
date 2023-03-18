@@ -18,7 +18,6 @@ import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
-const { Option } = Select;
 
 interface ProjectSettingsPageState {
     name: string;
@@ -180,50 +179,65 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                     size="large"
                                                     className="border-estela"
                                                     placeholder="Select ..."
-                                                >
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="notspecified"
-                                                    >
-                                                        Not Specified
-                                                    </Option>
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="ecommerce"
-                                                    >
-                                                        E-commerce
-                                                    </Option>
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="logistics"
-                                                    >
-                                                        Logistics
-                                                    </Option>
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="finance"
-                                                    >
-                                                        Finance
-                                                    </Option>
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="educational"
-                                                    >
-                                                        Educational
-                                                    </Option>
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="technology"
-                                                    >
-                                                        Technology
-                                                    </Option>
-                                                    <Option
-                                                        className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela"
-                                                        value="other"
-                                                    >
-                                                        Other Category
-                                                    </Option>
-                                                </Select>
+                                                    options={[
+                                                        {
+                                                            value: "notspecified",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    Not Specified
+                                                                </div>
+                                                            ),
+                                                        },
+                                                        {
+                                                            value: "ecommerce",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    E-commerce
+                                                                </div>
+                                                            ),
+                                                        },
+                                                        {
+                                                            value: "logistics",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    Logistics
+                                                                </div>
+                                                            ),
+                                                        },
+                                                        {
+                                                            value: "finance",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    Finance
+                                                                </div>
+                                                            ),
+                                                        },
+                                                        {
+                                                            value: "educational",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    Educational
+                                                                </div>
+                                                            ),
+                                                        },
+                                                        {
+                                                            value: "technology",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    Technology
+                                                                </div>
+                                                            ),
+                                                        },
+                                                        {
+                                                            value: "other",
+                                                            label: (
+                                                                <div className="text-estela-black-medium hover:bg-button-hover selection:border-estela selection:text-estela">
+                                                                    Other Category
+                                                                </div>
+                                                            ),
+                                                        },
+                                                    ]}
+                                                />
                                             </Form.Item>
                                         </div>
                                         <div className="h-12 w-72">
