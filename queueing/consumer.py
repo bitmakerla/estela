@@ -80,12 +80,9 @@ def consume_from_queue_platform(topic_name):
     else:
         raise Exception("Could not connect to the DB.")
 
-    env = {
-        "QUEUE_PLATFORM_TOPIC": topic_name,
-        "QUEUE_PLATFORM_MAX_TIMEOUT": str(QUEUE_MAX_TIMEOUT),
-    }
-    os.environ.update(env)
-    consumer = get_consumer_interface()
+    consumer = get_consumer_interface(
+        topic=topic_name, max_timeout=str(QUEUE_MAX_TIMEOUT)
+    )
     if consumer.get_connection():
         logging.info("Queue platform: connection established.")
     else:
