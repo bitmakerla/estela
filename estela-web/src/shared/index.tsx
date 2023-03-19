@@ -4,6 +4,7 @@ export { ProfileSettingsSideNav } from "./profileSettingsSidenav";
 export { NotificationsSidenav } from "./notificationsSidenav";
 export { NotificationsList } from "./notificationsList";
 export { CustomSpin as Spin } from "./spin";
+export { PaginationItem } from "./paginationItem";
 export {
     authNotification,
     resourceNotAllowedNotification,
@@ -14,3 +15,5 @@ export {
     emailConfirmationNotification,
     dataDeletedNotification,
 } from "./notifications";
+export { PrivateRoute } from "./privateRoute";
+export * from "./layouts";

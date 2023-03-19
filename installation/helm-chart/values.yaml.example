@@ -2,7 +2,7 @@
 
 local: true
 hostIp: "" # on local dev deploy the value from `$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'` can be used
-registryHost: "" # hostIp:5000
+registryHost: "" # hostIp:5001
 nodeSelector: ""
 
 #################### CLOUD VARIABLES ####################
@@ -19,6 +19,9 @@ imagePullSecrets: ""
 #################### ESTELA VARIABLES ####################
 
 ############ GLOBAL ############
+
+# Deployment stage: DEVELOPMENT, STAGING, PRODUCTION
+STAGE: "DEVELOPMENT"
 
 # Database
 SPIDERDATA_DB_ENGINE: mongodb

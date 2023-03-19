@@ -4,7 +4,7 @@ import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import Play from "../../assets/icons/play.svg";
 import Setting from "../../assets/icons/setting.svg";
@@ -20,7 +20,7 @@ import {
     SpiderJobArg,
     SpiderJobTag,
 } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, Header, ProjectSidenav, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -165,72 +165,68 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     ];
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
-            this.apiService.apiProjectsSpidersRead(requestParams).then(
-                async (response: Spider) => {
-                    const data = await this.getSpiderJobs(1);
-                    const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
-                    const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
-                    const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
-                    const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
-                    const scheduledJobsCount = data.data
-                        .filter((job: SpiderJobData) => job.cronjob !== null && job.cronjob !== undefined)
-                        .map((job: SpiderJobData) => job.cronjob)
-                        .filter((cronjob, index, self) => {
-                            return self.indexOf(cronjob) === index;
-                        }).length;
-                    const tableStatus = [
-                        !(queueJobs.length === 0),
-                        !(runningJobs.length === 0),
-                        !(completedJobs.length === 0),
-                        !(errorJobs.length === 0),
-                    ];
-                    const jobs: SpiderJobData[] = data.data;
-                    this.setState({
-                        name: response.name,
-                        jobs: [...jobs],
-                        count: data.count,
-                        current: data.current,
-                        loaded: true,
-                        tableStatus: [...tableStatus],
-                        queueJobs: [...queueJobs],
-                        runningJobs: [...runningJobs],
-                        completedJobs: [...completedJobs],
-                        errorJobs: [...errorJobs],
-                        scheduledJobsCount: scheduledJobsCount,
-                    });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-            const requestParamsDeploys: ApiProjectsDeploysListRequest = { pid: this.projectId };
-            this.apiService.apiProjectsDeploysList(requestParamsDeploys).then(
-                (results) => {
-                    const deploys: Deploy[] = results.results;
-                    const deploysAssociated = deploys.filter((deploy: Deploy) => {
-                        const spiders: Spider[] = deploy.spiders || [];
-                        return spiders.some((spider: Spider) => spider.sid?.toString() === this.spiderId);
-                    });
-                    const oldestDeployDate: Date =
-                        deploysAssociated.reduce((d1, d2) => {
-                            const date1: Date = d1?.created || new Date();
-                            const date2: Date = d2?.created || new Date();
-                            return date1 < date2 ? d1 : d2;
-                        })?.created || new Date();
+        const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
+        this.apiService.apiProjectsSpidersRead(requestParams).then(
+            async (response: Spider) => {
+                const data = await this.getSpiderJobs(1);
+                const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
+                const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
+                const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
+                const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
+                const scheduledJobsCount = data.data
+                    .filter((job: SpiderJobData) => job.cronjob !== null && job.cronjob !== undefined)
+                    .map((job: SpiderJobData) => job.cronjob)
+                    .filter((cronjob, index, self) => {
+                        return self.indexOf(cronjob) === index;
+                    }).length;
+                const tableStatus = [
+                    !(queueJobs.length === 0),
+                    !(runningJobs.length === 0),
+                    !(completedJobs.length === 0),
+                    !(errorJobs.length === 0),
+                ];
+                const jobs: SpiderJobData[] = data.data;
+                this.setState({
+                    name: response.name,
+                    jobs: [...jobs],
+                    count: data.count,
+                    current: data.current,
+                    loaded: true,
+                    tableStatus: [...tableStatus],
+                    queueJobs: [...queueJobs],
+                    runningJobs: [...runningJobs],
+                    completedJobs: [...completedJobs],
+                    errorJobs: [...errorJobs],
+                    scheduledJobsCount: scheduledJobsCount,
+                });
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
+        const requestParamsDeploys: ApiProjectsDeploysListRequest = { pid: this.projectId };
+        this.apiService.apiProjectsDeploysList(requestParamsDeploys).then(
+            (results) => {
+                const deploys: Deploy[] = results.results;
+                const deploysAssociated = deploys.filter((deploy: Deploy) => {
+                    const spiders: Spider[] = deploy.spiders || [];
+                    return spiders.some((spider: Spider) => spider.sid?.toString() === this.spiderId);
+                });
+                const oldestDeployDate: Date =
+                    deploysAssociated.reduce((d1, d2) => {
+                        const date1: Date = d1?.created || new Date();
+                        const date2: Date = d2?.created || new Date();
+                        return date1 < date2 ? d1 : d2;
+                    })?.created || new Date();
 
-                    this.setState({ spiderCreationDate: convertDateToString(oldestDeployDate) });
-                },
-                (error: unknown) => {
-                    console.error(error);
-                    resourceNotAllowedNotification();
-                },
-            );
-        }
+                this.setState({ spiderCreationDate: convertDateToString(oldestDeployDate) });
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
     }
 
     getSpiderJobs = async (page: number): Promise<{ data: SpiderJobData[]; count: number; current: number }> => {
@@ -569,6 +565,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                 pageSize={this.PAGE_SIZE}
                                 onChange={this.onPageChange}
                                 showSizeChanger={false}
+                                itemRender={PaginationItem}
                             />
                         </Row>
                     </Col>
@@ -679,71 +676,65 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     render(): JSX.Element {
         const { loaded, name, optionTab } = this.state;
         return (
-            <Layout className="general-container">
-                <Header />
-                <Layout className="white-background">
-                    <ProjectSidenav projectId={this.projectId} path={"spiders"} />
-                    <Content className="bg-metal rounded-2xl">
-                        {loaded ? (
-                            <Layout className="white-background">
-                                <Content className="bg-metal rounded-2xl">
-                                    <Content className="lg:m-10 md:mx-6 mx-2">
-                                        <Row className="flow-root my-6 space-x-4">
-                                            <Col className="float-left">
-                                                <Text className="text-estela-black-medium text-xl">{name}</Text>
-                                            </Col>
-                                            <Col className="float-right">
-                                                <Button
-                                                    onClick={() => {
-                                                        history.push(`/projects/${this.projectId}/cronjobs`);
-                                                    }}
-                                                    icon={<Add className="mr-2" width={19} />}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                >
-                                                    Schedule new job
-                                                </Button>
-                                            </Col>
-                                            <Col className="float-right">
-                                                <Button
-                                                    onClick={() => {
-                                                        history.push(`/projects/${this.projectId}/jobs`, {
-                                                            open: true,
-                                                        });
-                                                    }}
-                                                    icon={<Play className="mr-2" width={19} />}
-                                                    size="large"
-                                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                >
-                                                    Run new job
-                                                </Button>
-                                            </Col>
-                                        </Row>
-                                        <Tabs
-                                            defaultActiveKey={optionTab}
-                                            onChange={this.onDetailMenuTabChange}
-                                            items={[
-                                                {
-                                                    label: "Overview",
-                                                    key: "overview",
-                                                    children: this.overview(),
-                                                },
-                                                {
-                                                    label: "Settings",
-                                                    key: "settings",
-                                                    children: this.settings(),
-                                                },
-                                            ]}
-                                        />
-                                    </Content>
-                                </Content>
-                            </Layout>
-                        ) : (
-                            <Spin />
-                        )}
-                    </Content>
-                </Layout>
-            </Layout>
+            <Content className="bg-metal rounded-2xl">
+                {loaded ? (
+                    <Layout className="white-background">
+                        <Content className="bg-metal rounded-2xl">
+                            <Content className="lg:m-10 md:mx-6 mx-2">
+                                <Row className="flow-root my-6 space-x-4">
+                                    <Col className="float-left">
+                                        <Text className="text-estela-black-medium text-xl">{name}</Text>
+                                    </Col>
+                                    <Col className="float-right">
+                                        <Button
+                                            onClick={() => {
+                                                history.push(`/projects/${this.projectId}/cronjobs`);
+                                            }}
+                                            icon={<Add className="mr-2" width={19} />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                        >
+                                            Schedule new job
+                                        </Button>
+                                    </Col>
+                                    <Col className="float-right">
+                                        <Button
+                                            onClick={() => {
+                                                history.push(`/projects/${this.projectId}/jobs`, {
+                                                    open: true,
+                                                });
+                                            }}
+                                            icon={<Play className="mr-2" width={19} />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                        >
+                                            Run new job
+                                        </Button>
+                                    </Col>
+                                </Row>
+                                <Tabs
+                                    defaultActiveKey={optionTab}
+                                    onChange={this.onDetailMenuTabChange}
+                                    items={[
+                                        {
+                                            label: "Overview",
+                                            key: "overview",
+                                            children: this.overview(),
+                                        },
+                                        {
+                                            label: "Settings",
+                                            key: "settings",
+                                            children: this.settings(),
+                                        },
+                                    ]}
+                                />
+                            </Content>
+                        </Content>
+                    </Layout>
+                ) : (
+                    <Spin />
+                )}
+            </Content>
         );
     }
 }

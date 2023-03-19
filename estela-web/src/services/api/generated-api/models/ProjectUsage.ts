@@ -20,23 +20,23 @@ import { exists, mapValues } from '../runtime';
  */
 export interface ProjectUsage {
     /**
-     * A UUID identifying this project.
+     * 
      * @type {string}
      * @memberof ProjectUsage
      */
     readonly pid?: string;
     /**
-     * Project's name.
-     * @type {string}
-     * @memberof ProjectUsage
-     */
-    name: string;
-    /**
      * 
      * @type {string}
      * @memberof ProjectUsage
      */
-    readonly networkUsage?: string;
+    readonly name?: string;
+    /**
+     * Amount of network bytes used.
+     * @type {number}
+     * @memberof ProjectUsage
+     */
+    networkUsage: number;
     /**
      * 
      * @type {string}
@@ -44,35 +44,35 @@ export interface ProjectUsage {
      */
     readonly processingTime?: string;
     /**
-     * 
-     * @type {string}
+     * Amount of items extracted.
+     * @type {number}
      * @memberof ProjectUsage
      */
-    readonly itemCount?: string;
+    itemCount: number;
     /**
-     * 
-     * @type {string}
+     * Amount of requests made.
+     * @type {number}
      * @memberof ProjectUsage
      */
-    readonly requestCount?: string;
+    requestCount: number;
     /**
-     * 
-     * @type {string}
+     * Amount in bytes occupied by items in the database
+     * @type {number}
      * @memberof ProjectUsage
      */
-    readonly itemsDataSize?: string;
+    itemsDataSize: number;
     /**
-     * 
-     * @type {string}
+     * Amount in bytes occupied by requests in the database
+     * @type {number}
      * @memberof ProjectUsage
      */
-    readonly requestsDataSize?: string;
+    requestsDataSize: number;
     /**
-     * 
-     * @type {string}
+     * Amount in bytes occupied by logs in the database
+     * @type {number}
      * @memberof ProjectUsage
      */
-    readonly logsDataSize?: string;
+    logsDataSize: number;
 }
 
 export function ProjectUsageFromJSON(json: any): ProjectUsage {
@@ -86,14 +86,14 @@ export function ProjectUsageFromJSONTyped(json: any, ignoreDiscriminator: boolea
     return {
         
         'pid': !exists(json, 'pid') ? undefined : json['pid'],
-        'name': json['name'],
-        'networkUsage': !exists(json, 'network_usage') ? undefined : json['network_usage'],
+        'name': !exists(json, 'name') ? undefined : json['name'],
+        'networkUsage': json['network_usage'],
         'processingTime': !exists(json, 'processing_time') ? undefined : json['processing_time'],
-        'itemCount': !exists(json, 'item_count') ? undefined : json['item_count'],
-        'requestCount': !exists(json, 'request_count') ? undefined : json['request_count'],
-        'itemsDataSize': !exists(json, 'items_data_size') ? undefined : json['items_data_size'],
-        'requestsDataSize': !exists(json, 'requests_data_size') ? undefined : json['requests_data_size'],
-        'logsDataSize': !exists(json, 'logs_data_size') ? undefined : json['logs_data_size'],
+        'itemCount': json['item_count'],
+        'requestCount': json['request_count'],
+        'itemsDataSize': json['items_data_size'],
+        'requestsDataSize': json['requests_data_size'],
+        'logsDataSize': json['logs_data_size'],
     };
 }
 
@@ -106,7 +106,12 @@ export function ProjectUsageToJSON(value?: ProjectUsage | null): any {
     }
     return {
         
-        'name': value.name,
+        'network_usage': value.networkUsage,
+        'item_count': value.itemCount,
+        'request_count': value.requestCount,
+        'items_data_size': value.itemsDataSize,
+        'requests_data_size': value.requestsDataSize,
+        'logs_data_size': value.logsDataSize,
     };
 }
 

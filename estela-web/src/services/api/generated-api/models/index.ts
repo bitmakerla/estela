@@ -29,3 +29,4 @@ export * from './Token';
 export * from './UsageRecord';
 export * from './User';
 export * from './UserDetail';
+export * from './UserProfile';

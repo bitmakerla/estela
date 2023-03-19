@@ -58,16 +58,12 @@ class UsageRecordSerializer(serializers.ModelSerializer):
 
 
 class ProjectUsageSerializer(serializers.ModelSerializer):
-    network_usage = serializers.SerializerMethodField()
+    pid = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
     processing_time = serializers.SerializerMethodField()
-    item_count = serializers.SerializerMethodField()
-    request_count = serializers.SerializerMethodField()
-    items_data_size = serializers.SerializerMethodField()
-    requests_data_size = serializers.SerializerMethodField()
-    logs_data_size = serializers.SerializerMethodField()
 
     class Meta:
-        model = Project
+        model = UsageRecord
         fields = (
             "pid",
             "name",
@@ -80,38 +76,14 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
             "logs_data_size",
         )
 
-    def get_network_usage(self, project):
-        return self.get_aggregate_sum(project, "total_response_bytes")
+    def get_pid(self, usage_record: UsageRecord):
+        return usage_record.project.pid
 
-    def get_processing_time(self, project):
-        return self.get_aggregate_sum(project, "lifespan")
-
-    def get_item_count(self, project):
-        return self.get_aggregate_sum(project, "item_count")
-
-    def get_request_count(self, project):
-        return self.get_aggregate_sum(project, "request_count")
-
-    def get_aggregate_sum(self, project, field):
-        project_jobs = SpiderJob.objects.filter(spider__project=project)
-        total_sum = project_jobs.aggregate(Sum(field))
-        return total_sum[f"{field}__sum"]
-
-    def get_items_data_size(self, project):
-        return self.get_datatype_data_size(project, "items")
-
-    def get_requests_data_size(self, project):
-        return self.get_datatype_data_size(project, "requests")
-
-    def get_logs_data_size(self, project):
-        return self.get_datatype_data_size(project, "logs")
-
-    def get_datatype_data_size(self, project, datatype):
-        if not spiderdata_db_client.get_connection():
-            raise APIException(
-                f"Could not connect to the database to get {datatype} data size."
-            )
-        return spiderdata_db_client.get_database_size(str(project.pid), datatype)
+    def get_name(self, usage_record: UsageRecord):
+        return usage_record.project.name
+    
+    def get_processing_time(self, usage_record: UsageRecord):
+        return usage_record.processing_time.total_seconds()
 
 
 class ProjectUpdateSerializer(serializers.ModelSerializer):

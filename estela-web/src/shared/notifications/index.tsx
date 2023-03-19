@@ -8,7 +8,6 @@ export const authNotification = (): void => {
         message: "Authenticated Resource",
         description: "You need to be logged to enter to this resource.",
     });
-    history.push("/login");
 };
 
 export const resourceNotAllowedNotification = (): void => {
@@ -22,7 +21,7 @@ export const resourceNotAllowedNotification = (): void => {
 export const dataDeletedNotification = (n: number): void => {
     notification.open({
         message: "Data Successfully Deleted",
-        description: `${n} Item have been deleted`,
+        description: `${n} Items have been deleted`,
     });
 };
 

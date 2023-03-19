@@ -1,10 +1,10 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { Button, Layout, Space, Row, Input } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { Project, ApiProjectsReadRequest, ApiProjectsListRequest } from "../../services/api";
-import { authNotification, resourceNotAllowedNotification, ProfileSettingsSideNav, Header, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
 
@@ -22,12 +22,8 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
     apiService = ApiService();
 
     async componentDidMount(): Promise<void> {
-        if (!AuthService.getAuthToken()) {
-            authNotification();
-        } else {
-            this.setEmailUser();
-            this.setState({ loaded: true });
-        }
+        this.setEmailUser();
+        this.setState({ loaded: true });
     }
 
     getUser = (): string => {
@@ -52,7 +48,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                 this.setState({ email: user_email });
             },
             (error: unknown) => {
-                console.error(error);
+                error;
                 resourceNotAllowedNotification();
             },
         );
@@ -61,54 +57,40 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
     render(): JSX.Element {
         const { loaded, email } = this.state;
         return (
-            <Layout className="h-screen">
-                <Header />
-                <Layout className="bg-metal p-6">
-                    <ProfileSettingsSideNav path={"profile"} />
-                    {loaded ? (
-                        <Fragment>
-                            <Content className="mx-32 mr-10">
-                                <Row className="w-full my-4">
-                                    <div className="float-left">
-                                        <p className="text-3xl">Profile settings</p>
-                                    </div>
-                                </Row>
-                                <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
-                                    <div className="float-left">
-                                        <p className="text-lg">Username</p>
-                                    </div>
-                                    <div className="bg-white">
-                                        <Input
-                                            value={this.getUser()}
-                                            className="input_profile"
-                                            placeholder="username"
-                                        ></Input>
-                                    </div>
-                                    <div className="float-left">
-                                        <p className="text-lg text-estela-black-low mt-2">Email address</p>
-                                    </div>
-                                    <div className="bg-white">
-                                        <Input
-                                            value={email}
-                                            className="input_profile"
-                                            placeholder="scraper@domain.com"
-                                        ></Input>
-                                    </div>
-                                </Space>
-                                <Row className="w-full 2xl:w-9/12 my-8 ">
-                                    <div className="float-left  w-full">
-                                        <Button className="btn_profile" disabled>
-                                            Save changes
-                                        </Button>
-                                    </div>
-                                </Row>
-                            </Content>
-                        </Fragment>
-                    ) : (
-                        <Spin />
-                    )}
-                </Layout>
-            </Layout>
+            <>
+                {loaded ? (
+                    <Content className="mx-6 px-14 bg-white">
+                        <Row className="w-full my-4">
+                            <div className="float-left">
+                                <p className="text-3xl">Profile settings</p>
+                            </div>
+                        </Row>
+                        <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
+                            <div className="float-left">
+                                <p className="text-lg">Username</p>
+                            </div>
+                            <div className="bg-white">
+                                <Input value={this.getUser()} className="input_profile" placeholder="username"></Input>
+                            </div>
+                            <div className="float-left">
+                                <p className="text-lg text-estela-black-low mt-2">Email address</p>
+                            </div>
+                            <div className="bg-white">
+                                <Input value={email} className="input_profile" placeholder="scraper@domain.com"></Input>
+                            </div>
+                        </Space>
+                        <Row className="w-full 2xl:w-9/12 my-8 ">
+                            <div className="float-left  w-full">
+                                <Button className="btn_profile" disabled>
+                                    Save changes
+                                </Button>
+                            </div>
+                        </Row>
+                    </Content>
+                ) : (
+                    <Spin />
+                )}
+            </>
         );
     }
 }

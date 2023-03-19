@@ -13,4 +13,4 @@ class TokenGenerator(PasswordResetTokenGenerator):
         return f"{user.pk}{user.password}{login_timestamp}{timestamp}{email}"
 
 
-account_activation_token = TokenGenerator()
+account_reset_token = TokenGenerator()

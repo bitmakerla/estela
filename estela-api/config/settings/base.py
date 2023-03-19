@@ -46,6 +46,7 @@ env = environ.Env(
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
+    STAGE=(str, "DEVELOPMENT"),
     SPIDERDATA_DB_ENGINE=(str, "dummy"),
     SPIDERDATA_DB_CONNECTION=(str, "dummy"),
     SPIDERDATA_DB_CERTIFICATE_PATH=(str, "dummy"),
@@ -69,6 +70,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+STAGE = env("STAGE")
 
 DJANGO_API_HOST = env("DJANGO_API_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
@@ -178,7 +180,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-PASSWORD_RESET_TIMEOUT = 60  # In seconds
+PASSWORD_RESET_TIMEOUT = 180  # In seconds (3 minutes)
+PASSWORD_CHANGE_TIME = 15780000  # In seconds (6 months)
 
 
 # Internationalization

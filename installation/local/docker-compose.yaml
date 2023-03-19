@@ -17,7 +17,7 @@ services:
     container_name: estela_registry
     image: registry:2
     ports:
-      - 5000:5000
+      - 5001:5000
     volumes:
       - registry_data:/var/lib/registry
   
