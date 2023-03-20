@@ -59,7 +59,12 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
                 )
                 project.spiders.exclude(name__in=spiders_names).update(deleted=True)
                 new_spiders = [
-                    Spider(name=spider_name, project=project)
+                    Spider(
+                        name=spider_name,
+                        project=project,
+                        data_status=project.data_status,
+                        data_expiry_days=project.data_expiry_days,
+                    )
                     for spider_name in spiders_names
                     if not project.spiders.filter(name=spider_name).exists()
                 ]

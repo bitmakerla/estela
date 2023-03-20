@@ -82,6 +82,8 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         user_permision = serializer.validated_data.pop("user", "")
         action = serializer.validated_data.pop("action", "")
         permission = serializer.validated_data.pop("permission", "")
+        data_status = serializer.validated_data.pop("data_status", "")
+        data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
 
         if name:
             instance.name = name
@@ -115,6 +117,10 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                     raise ParseError({"error": "Action not supported."})
             else:
                 raise NotFound({"email": "User does not exist."})
+        if data_status:
+            instance.data_status = data_status
+            if data_status == Project.PENDING_STATUS and data_expiry_days > 0:
+                instance.data_expiry_days = data_expiry_days
         serializer.save()
 
         headers = self.get_success_headers(serializer.data)
@@ -215,7 +221,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     @action(methods=["GET"], detail=True)
     def current_usage(self, request, *args, **kwargs):
-        instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
         serializer = ProjectUsageSerializer(
             UsageRecord.objects.filter(project=project).first()
@@ -247,7 +252,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     @action(methods=["GET"], detail=True)
     def usage(self, request, *args, **kwargs):
-        instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
         start_date = request.query_params.get(
             "start_date", datetime.today().replace(day=1)

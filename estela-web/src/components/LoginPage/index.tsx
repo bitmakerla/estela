@@ -13,7 +13,14 @@ import { UserContext, UserContextProps } from "../../context";
 const { Content } = Layout;
 const { Text } = Typography;
 
-export class LoginPage extends Component<unknown> {
+interface LoginState {
+    loading: boolean;
+}
+
+export class LoginPage extends Component<unknown, LoginState> {
+    state: LoginState = {
+        loading: false,
+    };
     apiService = ApiService();
     static contextType = UserContext;
 
@@ -31,6 +38,7 @@ export class LoginPage extends Component<unknown> {
     }
 
     handleSubmit = (data: { username: string; password: string }): void => {
+        this.setState({ loading: true });
         const request: ApiAuthLoginRequest = { data };
         const { updateUsername, updateEmail, updateAccessToken } = this.context as UserContextProps;
         this.apiService.apiAuthLogin(request).then(
@@ -43,6 +51,7 @@ export class LoginPage extends Component<unknown> {
                     AuthService.setUserEmail(response.user.email ?? "");
                     updateEmail(response.user.email ?? "");
                 }
+                this.setState({ loading: false });
                 history.push("/projects");
             },
             (error: unknown) => {
@@ -52,6 +61,7 @@ export class LoginPage extends Component<unknown> {
     };
 
     render(): JSX.Element {
+        const { loading } = this.state;
         return (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
@@ -89,6 +99,7 @@ export class LoginPage extends Component<unknown> {
                             </Form.Item>
                         </Content>
                         <Button
+                            loading={loading}
                             block
                             htmlType="submit"
                             className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm"

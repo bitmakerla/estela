@@ -56,6 +56,18 @@ export interface Project {
      * @memberof Project
      */
     users?: Array<Permission>;
+    /**
+     * Data status.
+     * @type {string}
+     * @memberof Project
+     */
+    dataStatus?: ProjectDataStatusEnum;
+    /**
+     * Days before data expires.
+     * @type {number}
+     * @memberof Project
+     */
+    dataExpiryDays?: number;
 }
 
 /**
@@ -70,6 +82,13 @@ export enum ProjectCategoryEnum {
     Educational = 'EDUCATIONAL',
     Technology = 'TECHNOLOGY',
     OtherCategory = 'OTHER_CATEGORY'
+}/**
+* @export
+* @enum {string}
+*/
+export enum ProjectDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Pending = 'PENDING'
 }
 
 export function ProjectFromJSON(json: any): Project {
@@ -87,6 +106,8 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'category': !exists(json, 'category') ? undefined : json['category'],
         'containerImage': !exists(json, 'container_image') ? undefined : json['container_image'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(PermissionFromJSON)),
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
@@ -102,6 +123,8 @@ export function ProjectToJSON(value?: Project | null): any {
         'name': value.name,
         'category': value.category,
         'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(PermissionToJSON)),
+        'data_status': value.dataStatus,
+        'data_expiry_days': value.dataExpiryDays,
     };
 }
 

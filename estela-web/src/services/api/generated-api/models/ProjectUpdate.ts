@@ -68,6 +68,18 @@ export interface ProjectUpdate {
      * @memberof ProjectUpdate
      */
     permission?: ProjectUpdatePermissionEnum;
+    /**
+     * New data status.
+     * @type {string}
+     * @memberof ProjectUpdate
+     */
+    dataStatus?: ProjectUpdateDataStatusEnum;
+    /**
+     * New data expiry days.
+     * @type {number}
+     * @memberof ProjectUpdate
+     */
+    dataExpiryDays?: number;
 }
 
 /**
@@ -86,6 +98,13 @@ export enum ProjectUpdatePermissionEnum {
     Admin = 'ADMIN',
     Developer = 'DEVELOPER',
     Viewer = 'VIEWER'
+}/**
+* @export
+* @enum {string}
+*/
+export enum ProjectUpdateDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Pending = 'PENDING'
 }
 
 export function ProjectUpdateFromJSON(json: any): ProjectUpdate {
@@ -105,6 +124,8 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
         'email': !exists(json, 'email') ? undefined : json['email'],
         'action': !exists(json, 'action') ? undefined : json['action'],
         'permission': !exists(json, 'permission') ? undefined : json['permission'],
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
@@ -123,6 +144,8 @@ export function ProjectUpdateToJSON(value?: ProjectUpdate | null): any {
         'email': value.email,
         'action': value.action,
         'permission': value.permission,
+        'data_status': value.dataStatus,
+        'data_expiry_days': value.dataExpiryDays,
     };
 }
 

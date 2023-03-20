@@ -333,7 +333,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                             className="hover:bg-button-hover hover:text-estela"
                                                             value={ProjectCategoryEnum.NotEspecified}
                                                         >
-                                                            Not Especified
+                                                            Not Specified
                                                         </Option>
                                                         <Option
                                                             key={2}

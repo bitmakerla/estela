@@ -138,7 +138,7 @@ class SpiderCronJobViewSet(
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
 
-        cronjob = SpiderCronJobSerializer(instance)
+        cronjob = SpiderCronJobSerializer(instance, partial=partial)
 
         run_cronjob_once(cronjob.data)
         return Response(cronjob.data, status=status.HTTP_200_OK)

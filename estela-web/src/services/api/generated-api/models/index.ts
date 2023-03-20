@@ -25,6 +25,7 @@ export * from './SpiderJobCreate';
 export * from './SpiderJobEnvVar';
 export * from './SpiderJobTag';
 export * from './SpiderJobUpdate';
+export * from './SpiderUpdate';
 export * from './Token';
 export * from './UsageRecord';
 export * from './User';

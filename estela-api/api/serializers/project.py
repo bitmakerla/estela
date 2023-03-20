@@ -1,10 +1,6 @@
 from django.contrib.auth.models import User
-from django.db.models import Sum
 from rest_framework import serializers
-from rest_framework.exceptions import APIException
-
-from config.job_manager import spiderdata_db_client
-from core.models import Permission, Project, SpiderJob, UsageRecord
+from core.models import Permission, Project, UsageRecord
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -39,7 +35,15 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ("pid", "name", "category", "container_image", "users")
+        fields = (
+            "pid",
+            "name",
+            "category",
+            "container_image",
+            "users",
+            "data_status",
+            "data_expiry_days",
+        )
 
 
 class UsageRecordSerializer(serializers.ModelSerializer):
@@ -97,7 +101,10 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         ("DEVELOPER", "Developer"),
         ("VIEWER", "Viewer"),
     ]
-
+    DATA_STATUS_OPTIONS = [
+        ("PERSISTENT", "Persistent"),
+        ("PENDING", "Pending"),
+    ]
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."
     )
@@ -120,7 +127,28 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="New permission.",
     )
+    data_status = serializers.ChoiceField(
+        write_only=True,
+        choices=DATA_STATUS_OPTIONS,
+        required=False,
+        help_text="New data status.",
+    )
+    data_expiry_days = serializers.IntegerField(
+        write_only=True,
+        required=False,
+        help_text="New data expiry days.",
+    )
 
     class Meta:
         model = Project
-        fields = ("pid", "name", "users", "user", "email", "action", "permission")
+        fields = (
+            "pid",
+            "name",
+            "users",
+            "user",
+            "email",
+            "action",
+            "permission",
+            "data_status",
+            "data_expiry_days",
+        )

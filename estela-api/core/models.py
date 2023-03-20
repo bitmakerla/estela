@@ -28,6 +28,12 @@ class Project(models.Model):
         (TECHNOLOGY, "Technology"),
         (OTHER_CATEGORY, "Other category"),
     ]
+    PERSISTENT_STATUS = "PERSISTENT"
+    PENDING_STATUS = "PENDING"
+    DATA_STATUS_OPTIONS = [
+        (PERSISTENT_STATUS, "Persistent"),
+        (PENDING_STATUS, "Pending"),
+    ]
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
     users = models.ManyToManyField(User, through="Permission")
@@ -46,6 +52,15 @@ class Project(models.Model):
     )
     users = models.ManyToManyField(
         User, through="Permission", help_text="Users with permissions on this project."
+    )
+    data_status = models.CharField(
+        max_length=20,
+        choices=DATA_STATUS_OPTIONS,
+        default=PERSISTENT_STATUS,
+        help_text="Data status.",
+    )
+    data_expiry_days = models.PositiveSmallIntegerField(
+        default=1, help_text="Days before data expires."
     )
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
@@ -86,6 +101,12 @@ class Permission(models.Model):
 
 
 class Spider(models.Model):
+    PERSISTENT_STATUS = "PERSISTENT"
+    PENDING_STATUS = "PENDING"
+    DATA_STATUS_OPTIONS = [
+        (PERSISTENT_STATUS, "Persistent"),
+        (PENDING_STATUS, "Pending"),
+    ]
     sid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this spider."
     )
@@ -95,6 +116,15 @@ class Spider(models.Model):
         on_delete=models.CASCADE,
         related_name="spiders",
         help_text="Project UUID.",
+    )
+    data_status = models.CharField(
+        max_length=20,
+        choices=DATA_STATUS_OPTIONS,
+        default=PERSISTENT_STATUS,
+        help_text="Data status.",
+    )
+    data_expiry_days = models.PositiveSmallIntegerField(
+        default=1, help_text="Days before data expires."
     )
     deleted = models.BooleanField(
         default=False, help_text="True if the spider has been deleted."

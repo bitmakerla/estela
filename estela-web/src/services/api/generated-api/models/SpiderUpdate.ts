@@ -14,39 +14,33 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * Spiders in this deploy.
+ * 
  * @export
- * @interface Spider
+ * @interface SpiderUpdate
  */
-export interface Spider {
+export interface SpiderUpdate {
     /**
-     * A unique integer value identifying this spider.
-     * @type {number}
-     * @memberof Spider
+     * A UUID identifying this spider.
+     * @type {string}
+     * @memberof SpiderUpdate
      */
-    readonly sid?: number;
+    readonly sid?: string;
     /**
      * Spider's name.
      * @type {string}
-     * @memberof Spider
+     * @memberof SpiderUpdate
      */
     name: string;
     /**
-     * Project UUID.
+     * New data status.
      * @type {string}
-     * @memberof Spider
+     * @memberof SpiderUpdate
      */
-    project: string;
+    dataStatus?: SpiderUpdateDataStatusEnum;
     /**
-     * Data status.
-     * @type {string}
-     * @memberof Spider
-     */
-    dataStatus?: SpiderDataStatusEnum;
-    /**
-     * Days before data expires.
+     * New data expiry days.
      * @type {number}
-     * @memberof Spider
+     * @memberof SpiderUpdate
      */
     dataExpiryDays?: number;
 }
@@ -55,16 +49,16 @@ export interface Spider {
 * @export
 * @enum {string}
 */
-export enum SpiderDataStatusEnum {
+export enum SpiderUpdateDataStatusEnum {
     Persistent = 'PERSISTENT',
     Pending = 'PENDING'
 }
 
-export function SpiderFromJSON(json: any): Spider {
-    return SpiderFromJSONTyped(json, false);
+export function SpiderUpdateFromJSON(json: any): SpiderUpdate {
+    return SpiderUpdateFromJSONTyped(json, false);
 }
 
-export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Spider {
+export function SpiderUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpiderUpdate {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -72,13 +66,12 @@ export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sp
         
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
         'name': json['name'],
-        'project': json['project'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
-export function SpiderToJSON(value?: Spider | null): any {
+export function SpiderUpdateToJSON(value?: SpiderUpdate | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -88,7 +81,6 @@ export function SpiderToJSON(value?: Spider | null): any {
     return {
         
         'name': value.name,
-        'project': value.project,
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
     };

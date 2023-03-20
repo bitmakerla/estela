@@ -1,11 +1,13 @@
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 
 from api.mixins import BaseViewSet
-from api.serializers.spider import SpiderSerializer
+from api.serializers.spider import SpiderSerializer, SpiderUpdateSerializer
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.response import Response
 from core.models import Spider
 
 
-class SpiderViewSet(BaseViewSet, viewsets.ReadOnlyModelViewSet):
+class SpiderViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Spider
     serializer_class = SpiderSerializer
     lookup_field = "sid"
@@ -15,3 +17,22 @@ class SpiderViewSet(BaseViewSet, viewsets.ReadOnlyModelViewSet):
         return self.model_class.objects.filter(
             project__pid=self.kwargs["pid"], deleted=False
         )
+
+    @swagger_auto_schema(
+        request_body=SpiderUpdateSerializer,
+        responses={status.HTTP_200_OK: SpiderUpdateSerializer()},
+    )
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = SpiderUpdateSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, "_prefetched_objects_cache", None):
+            instance._prefetched_objects_cache = {}
+        print(serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
