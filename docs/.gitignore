@@ -10,7 +10,3 @@ vendor/
 
 # Swagger
 estela/api/endpoints.html
-
-# Ruby
-.ruby-version
-Gemfile.lock

@@ -1058,21 +1058,17 @@ definitions:
   UserProfile:
     required:
       - username
+      - email
     type: object
     properties:
       username:
         title: Username
-        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-          only.
         type: string
-        pattern: ^[\w.@+-]+$
-        maxLength: 150
         minLength: 1
       email:
-        title: Email address
+        title: Email
         type: string
-        format: email
-        maxLength: 254
+        minLength: 1
       last_password_change:
         title: Last password change
         type: string
