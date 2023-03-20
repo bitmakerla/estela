@@ -20,7 +20,7 @@ import { exists, mapValues } from '../runtime';
  */
 export interface UserProfile {
     /**
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     * 
      * @type {string}
      * @memberof UserProfile
      */
@@ -30,7 +30,7 @@ export interface UserProfile {
      * @type {string}
      * @memberof UserProfile
      */
-    email?: string;
+    email: string;
     /**
      * 
      * @type {string}
@@ -50,7 +50,7 @@ export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean
     return {
         
         'username': json['username'],
-        'email': !exists(json, 'email') ? undefined : json['email'],
+        'email': json['email'],
         'lastPasswordChange': !exists(json, 'last_password_change') ? undefined : json['last_password_change'],
     };
 }

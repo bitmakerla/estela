@@ -405,14 +405,9 @@ class UsageRecord(models.Model):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        help_text="User."
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, help_text="User.")
     last_password_change = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Date and time of last password change."
+        auto_now_add=True, help_text="Date and time of last password change."
     )
 
     def save(self, *args, **kwargs):

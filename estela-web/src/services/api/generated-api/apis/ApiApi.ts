@@ -102,8 +102,26 @@ export interface ApiAuthLoginRequest {
     data: AuthToken;
 }
 
+export interface ApiAuthProfileCreateRequest {
+    data: UserProfile;
+}
+
+export interface ApiAuthProfileDeleteRequest {
+    username: string;
+}
+
+export interface ApiAuthProfilePartialUpdateRequest {
+    username: string;
+    data: UserProfile;
+}
+
 export interface ApiAuthProfileReadRequest {
     username: string;
+}
+
+export interface ApiAuthProfileUpdateRequest {
+    username: string;
+    data: UserProfile;
 }
 
 export interface ApiAuthRegisterRequest {
@@ -449,6 +467,70 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiAuthProfileCreateRaw(requestParameters: ApiAuthProfileCreateRequest): Promise<runtime.ApiResponse<UserProfile>> {
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthProfileCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/profile`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserProfileToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProfileFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthProfileCreate(requestParameters: ApiAuthProfileCreateRequest): Promise<UserProfile> {
+        const response = await this.apiAuthProfileCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthProfileDeleteRaw(requestParameters: ApiAuthProfileDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.username === null || requestParameters.username === undefined) {
+            throw new runtime.RequiredError('username','Required parameter requestParameters.username was null or undefined when calling apiAuthProfileDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/profile/{username}`.replace(`{${"username"}}`, encodeURIComponent(String(requestParameters.username))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAuthProfileDelete(requestParameters: ApiAuthProfileDeleteRequest): Promise<void> {
+        await this.apiAuthProfileDeleteRaw(requestParameters);
+    }
+
+    /**
+     */
     async apiAuthProfileListRaw(): Promise<runtime.ApiResponse<Array<UserProfile>>> {
         const queryParameters: any = {};
 
@@ -471,6 +553,44 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiAuthProfileList(): Promise<Array<UserProfile>> {
         const response = await this.apiAuthProfileListRaw();
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthProfilePartialUpdateRaw(requestParameters: ApiAuthProfilePartialUpdateRequest): Promise<runtime.ApiResponse<UserProfile>> {
+        if (requestParameters.username === null || requestParameters.username === undefined) {
+            throw new runtime.RequiredError('username','Required parameter requestParameters.username was null or undefined when calling apiAuthProfilePartialUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthProfilePartialUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/profile/{username}`.replace(`{${"username"}}`, encodeURIComponent(String(requestParameters.username))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserProfileToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProfileFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthProfilePartialUpdate(requestParameters: ApiAuthProfilePartialUpdateRequest): Promise<UserProfile> {
+        const response = await this.apiAuthProfilePartialUpdateRaw(requestParameters);
         return await response.value();
     }
 
@@ -502,6 +622,44 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiAuthProfileRead(requestParameters: ApiAuthProfileReadRequest): Promise<UserProfile> {
         const response = await this.apiAuthProfileReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthProfileUpdateRaw(requestParameters: ApiAuthProfileUpdateRequest): Promise<runtime.ApiResponse<UserProfile>> {
+        if (requestParameters.username === null || requestParameters.username === undefined) {
+            throw new runtime.RequiredError('username','Required parameter requestParameters.username was null or undefined when calling apiAuthProfileUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthProfileUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/profile/{username}`.replace(`{${"username"}}`, encodeURIComponent(String(requestParameters.username))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserProfileToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProfileFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthProfileUpdate(requestParameters: ApiAuthProfileUpdateRequest): Promise<UserProfile> {
+        const response = await this.apiAuthProfileUpdateRaw(requestParameters);
         return await response.value();
     }
 

@@ -81,7 +81,7 @@ class ProjectUsageSerializer(serializers.ModelSerializer):
 
     def get_name(self, usage_record: UsageRecord):
         return usage_record.project.name
-    
+
     def get_processing_time(self, usage_record: UsageRecord):
         return usage_record.processing_time.total_seconds()
 

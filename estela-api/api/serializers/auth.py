@@ -3,6 +3,7 @@ from core.models import UserProfile
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework.authtoken.models import Token
 from api.serializers.project import UserDetailSerializer
 
@@ -52,8 +53,24 @@ class TokenSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
     last_password_change = serializers.ReadOnlyField(
-        source="userprofile.last_password_change",
-        read_only=True
+        source="userprofile.last_password_change", read_only=True
+    )
+
+    username = serializers.CharField(
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="A user with that username already exists",
+            )
+        ]
+    )
+    email = serializers.CharField(
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="A user with that email already exists",
+            )
+        ]
     )
 
     class Meta:
