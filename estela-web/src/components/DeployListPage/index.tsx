@@ -237,7 +237,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                     >
                                         <Row className="gap-4 px-5">
                                             <p className="text-estela-black-full text-sm font-normal">
-                                                Copy project ID to deploy your spiders:
+                                                Copy your project ID to deploy your spiders:
                                             </p>
                                             <Link
                                                 id="id_project"
@@ -260,15 +260,15 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             Deploy a demo
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
-                                            <p className=" text-white">
+                                            <p className="break-words text-white">
                                                 $ git clone https://github.com/scrapy/quotesbot.git
                                             </p>
-                                            <p className=" text-white ">$ estela login</p>
-                                            <p className=" text-white ">Host [http://localhost]:</p>
-                                            <p className=" text-white ">Username: admin</p>
-                                            <p className=" text-white ">Password:</p>
-                                            <p className=" text-white ">$ estela init {this.projectId}</p>
-                                            <p className=" text-white ">$ estela deploy</p>
+                                            <p className="text-white">$ estela login</p>
+                                            <p className="text-white">Host [http://localhost]:</p>
+                                            <p className="text-white">Username: admin</p>
+                                            <p className="text-white">Password:</p>
+                                            <p className="break-words text-white">$ estela init {this.projectId}</p>
+                                            <p className="text-white">$ estela deploy</p>
                                         </div>
                                     </div>
                                     <div className="col-span-1 text-base my-auto">
@@ -279,14 +279,16 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             Deploy your spider
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
-                                            <p className="text-white ">$ estela create project &lt;project_name&gt;</p>
-                                            <p className=" text-white ">$ cd &lt;project_name&gt;</p>
-                                            <p className=" text-white ">$ estela login</p>
-                                            <p className=" text-white ">Host [http://localhost]:</p>
-                                            <p className=" text-white ">Username: admin</p>
-                                            <p className=" text-white ">Password:</p>
-                                            <p className=" text-white ">$ estela init {this.projectId}</p>
-                                            <p className=" text-white ">$ estela deploy</p>
+                                            <p className="break-words text-white">
+                                                $ estela create project &lt;project_name&gt;
+                                            </p>
+                                            <p className="text-white">$ cd &lt;project_name&gt;</p>
+                                            <p className="text-white">$ estela login</p>
+                                            <p className="text-white">Host [http://localhost]:</p>
+                                            <p className="text-white">Username: admin</p>
+                                            <p className="text-white">Password:</p>
+                                            <p className="break-words text-white">$ estela init {this.projectId}</p>
+                                            <p className="text-white">$ estela deploy</p>
                                         </div>
                                     </div>
                                 </Row>
