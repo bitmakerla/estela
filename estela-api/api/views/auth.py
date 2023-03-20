@@ -17,20 +17,12 @@ from django.conf import settings
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
 from django.contrib.auth.password_validation import validate_password
-from api.exceptions import (
-    EmailServiceError,
-    UserNotFoundError,
-    ChangePasswordError
-)
-from api.serializers.auth import (
-    TokenSerializer,
-    UserSerializer,
-    UserProfileSerializer
-)
+from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
+from api.serializers.auth import TokenSerializer, UserSerializer, UserProfileSerializer
 from core.views import (
     send_verification_email,
     send_change_password_email,
-    send_alert_password_changed
+    send_alert_password_changed,
 )
 from django.core import exceptions
 from core.models import UserProfile
@@ -222,7 +214,11 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             raise UserNotFoundError({"error": "User does not exist."})
         user = user.get()
         if (
-            int((datetime.now(timezone.utc) - user.userprofile.last_password_change).total_seconds())
+            int(
+                (
+                    datetime.now(timezone.utc) - user.userprofile.last_password_change
+                ).total_seconds()
+            )
             < settings.PASSWORD_CHANGE_TIME
         ):
             raise ChangePasswordError(
@@ -233,9 +229,11 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         try:
             send_change_password_email(user, request)
         except Exception:
-            raise EmailServiceError({
-                "error": "There was an error sending the verification email. Please try again later."
-            })
+            raise EmailServiceError(
+                {
+                    "error": "There was an error sending the verification email. Please try again later."
+                }
+            )
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -257,9 +255,11 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             try:
                 send_change_password_email(user, request)
             except Exception:
-                raise EmailServiceError({
-                    "error": "There was an error sending the verification email. Please try again later."
-                })
+                raise EmailServiceError(
+                    {
+                        "error": "There was an error sending the verification email. Please try again later."
+                    }
+                )
             return redirect(
                 settings.CORS_ORIGIN_WHITELIST[0],
                 {"message": "Activation link is invalid. Check your email again."},
@@ -296,9 +296,11 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             try:
                 send_alert_password_changed(user, request)
             except Exception:
-                raise EmailServiceError({
-                    "error": "There was an error sending the verification email. Please try again later."
-                })
+                raise EmailServiceError(
+                    {
+                        "error": "There was an error sending the verification email. Please try again later."
+                    }
+                )
         else:
             try:
                 send_change_password_email(user, request)
@@ -308,8 +310,8 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
                         "error": "There was an error sending the verification email. Please try again later."
                     }
                 )
-            raise ChangePasswordError({
-                "error": "Activation link is invalid. Check your email again."
-            })
+            raise ChangePasswordError(
+                {"error": "Activation link is invalid. Check your email again."}
+            )
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)

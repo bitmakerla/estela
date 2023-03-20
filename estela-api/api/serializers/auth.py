@@ -41,24 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
-    # def update(self, instance, validated_data):
-    #     super().update(instance, validated_data)
-    #     """Update and return a user."""
-    #     user = User(
-    #         email=validated_data["email"],
-    #         username=validated_data["username"],
-    #     )
-
-    #     try:
-    #         validate_password(validated_data["password"], user)
-    #     except ValidationError as e:
-    #         raise serializers.ValidationError({"password": str(e)})
-
-    #     user.set_password(validated_data["password"])
-    #     user.save()
-
-    #     return user
-
 
 class TokenSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(required=False, help_text="User details.")
@@ -71,12 +53,25 @@ class TokenSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
     last_password_change = serializers.ReadOnlyField(
-        source="userprofile.last_password_change",
-        read_only=True
+        source="userprofile.last_password_change", read_only=True
     )
 
-    username = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all(), message="A user with that username already exists")])
-    email = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all(), message="A user with that email already exists")])
+    username = serializers.CharField(
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="A user with that username already exists",
+            )
+        ]
+    )
+    email = serializers.CharField(
+        validators=[
+            UniqueValidator(
+                queryset=User.objects.all(),
+                message="A user with that email already exists",
+            )
+        ]
+    )
 
     class Meta:
         model = User
