@@ -1,4 +1,4 @@
 pip-tools
 pymongo[srv]
 black
-git+https://github.com/bitmakerla/estela-queue-adapter.git@BITMAKER-2425
+git+https://github.com/bitmakerla/estela-queue-adapter.git

@@ -127,7 +127,7 @@ eks-token==0.1.1
     # via -r requirements/base.txt
 elasticsearch==7.13.4
     # via -r requirements/base.txt
-estela-queue-adapter @ git+https://github.com/bitmakerla/estela-queue-adapter.git@BITMAKER-2425
+estela-queue-adapter @ git+https://github.com/bitmakerla/estela-queue-adapter.git
     # via -r requirements/base.txt
 google-auth==1.28.0
     # via

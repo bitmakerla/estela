@@ -53,8 +53,8 @@ If you are not using AWS, skip this section.
 
 These variables define the estela behavior.
 
-_Note_: The variables that already have an assigned value should not be modified, unless
-you have a deep understanding of estela.
+{: .highlight }
+> The variables that already have an assigned value should not be modified, unless you have a deep understanding of estela.
 
 ### Global variables
 
@@ -63,8 +63,8 @@ you have a deep understanding of estela.
 * _<SPIDERDATA\_DB\_ENGINE>_ (Required): Document oriented database where the data produced 
   by the spiders is stored. Currently, estela supports the _mongodb_ engine.
 
-  > **NOTE:**
-  >  For dev a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can be used to set a database, as mentioned on [Estela Resources Guide](./resources.md).
+  {: .note }
+  >  For dev a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can be used to set a database, as mentioned on [Estela Resources Guide](./resources.html).
   >  Or a mongodb can be setup on a local cluster on a docker image.
 
 * _<SPIDERDATA\_DB\_CONNECTION>_ (Required): The connection URL to your database instance.
@@ -72,11 +72,18 @@ you have a deep understanding of estela.
 * _<SPIDERDATA\_DB\_CERTIFICATE\_PATH>_ (Required): Path where the database certificate is
   located. This value will be taken into account if your connection requires a certificate.
   
-#### Kafka
+#### Queue Platform
 
-* _<KAFKA\_HOSTS>_ (Required): Host of the Kafka service.
+All the queue platform variables should be written as children of the _<QUEUE\_PARAMETERS>_ object.
 
-* _<KAFKA\_PORT>_ (Required): Port of the Kafka service.
+* _<QUEUE\_PLATFORM>_ (Required): The queue platform used by estela.
+
+* _<QUEUE\_PLATFORM\_LISTENERS>_ (Required): List of the queuing advertised hosts in a comma-separated style.
+
+* _<QUEUE\_PLATFORM\_PORT>_ (Required): The port number of the aforementioned listeners.
+
+{: .highlight }
+> Refer to the [estela Queue Adapter](./../queueing.html#estela-queue-adapter) documentation to fill in any additional variables needed for the selected queue platform.
 
 ### estela API variables
 
@@ -143,8 +150,6 @@ you have a deep understanding of estela.
 
 #### Mailing
 
-  > **Note:** The mailing configuration is used to send email regarding users creation on the estela system.
-
 * _<EMAIL\_HOST>_ (Required): Host of the SMTP email server.
 
 * _<EMAIL\_PORT>_ (Required): Port of the SMTP email server.
@@ -161,9 +166,12 @@ you have a deep understanding of estela.
 
 * _\<REGISTER\>_ (Required): Set this value to `"False"` to disable the user registration.
 
+{: .note }
+> The mailing configuration is used to send email regarding users creation on the estela system.
+
 ### estela queueing variables
 
-* _<KAFKA\_CONSUMER\_PRODUCTION>_ (Required): Set this value to `"False"` if the database
+* _<CONSUMER\_PRODUCTION>_ (Required): Set this value to `"False"` if the database
   used by the consumers does not require a certificate for the connection. Otherwise, set it
   to `"True"`.
   

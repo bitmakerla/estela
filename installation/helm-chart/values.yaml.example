@@ -30,10 +30,10 @@ SPIDERDATA_DB_CERTIFICATE_PATH: config/ca-certificate.crt
 
 # Queue Platform
 QUEUE_PARAMETERS:
-- QUEUE_PLATFORM: kafka
-- QUEUE_PLATFORM_LISTENERS: "" # kafka
-- QUEUE_PLATFORM_PORT: "" # 9092
-# keep adding all the needed env variables, check: 
+  QUEUE_PLATFORM: kafka
+  QUEUE_PLATFORM_LISTENERS: "" # kafka
+  QUEUE_PLATFORM_PORT: "" # 9092
+  # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/docs/estela/queueing.html#estela-queue-adapter
 
 ############ API ############
 
