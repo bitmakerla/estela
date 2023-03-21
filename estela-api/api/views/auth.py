@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets, permissions, serializers
+from drf_yasg import openapi
+from rest_framework import status, viewsets, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
@@ -16,18 +17,19 @@ from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 from django.conf import settings
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
-from django.contrib.auth.password_validation import validate_password
 from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
-from api.serializers.auth import TokenSerializer, UserSerializer, UserProfileSerializer
+from api.serializers.auth import (
+    TokenSerializer,
+    UserSerializer,
+    UserProfileSerializer,
+    ChangePasswordRequestSerializer,
+    ChangePasswordConfirmSerializer
+)
 from core.views import (
     send_verification_email,
     send_change_password_email,
     send_alert_password_changed,
 )
-from django.core import exceptions
-from core.models import UserProfile
-from django.contrib.auth import authenticate
-from django.utils.translation import gettext_lazy as _
 from api.permissions import IsProfileUser
 
 
@@ -62,9 +64,6 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
-        user_profile = UserProfile.objects.filter(user=user)
-        if not user_profile:
-            UserProfile.objects.create(user=user)
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -206,26 +205,16 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         detail=False,
         permission_classes=[permissions.IsAuthenticated],
         authentication_classes=[TokenAuthentication],
+        serializer_class=ChangePasswordRequestSerializer,
     )
     def request(self, request, *args, **kwargs):
-        email = request.data["email"]
+        serializer = ChangePasswordRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
         user = User.objects.filter(email=email)
         if not user:
             raise UserNotFoundError({"error": "User does not exist."})
         user = user.get()
-        if (
-            int(
-                (
-                    datetime.now(timezone.utc) - user.userprofile.last_password_change
-                ).total_seconds()
-            )
-            < settings.PASSWORD_CHANGE_TIME
-        ):
-            raise ChangePasswordError(
-                {
-                    "error": "You can only change your password every 6 months. Try again later."
-                }
-            )
         try:
             send_change_password_email(user, request)
         except Exception:
@@ -266,32 +255,42 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             )
 
     @swagger_auto_schema(
-        methods=["PATCH"], responses={status.HTTP_200_OK: TokenSerializer()}
+        methods=["PATCH"],
+        manual_parameters=[
+            openapi.Parameter(
+                "token",
+                openapi.IN_QUERY,
+                description="Token",
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+            openapi.Parameter(
+                "pair",
+                openapi.IN_QUERY,
+                description="Pair",
+                type=openapi.TYPE_STRING,
+                required=True,
+            ),
+        ],
+        responses={status.HTTP_200_OK: TokenSerializer()},
     )
-    @action(methods=["PATCH"], detail=False)
+    @action(
+        methods=["PATCH"],
+        detail=False,
+        serializer_class=ChangePasswordConfirmSerializer
+    )
     def confirm(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
-        old_password = request.data["old_password"]
-        new_password = request.data["new_password"]
-        new_password_repeat = request.data["new_password_repeat"]
         user = User.objects.filter(pk=user_id)
         if not user:
-            raise UserNotFoundError({"error": "User does not exist."})
+            raise UserNotFoundError({
+                "error": "User not found."
+            })
         user = user.get()
+        serializer = ChangePasswordConfirmSerializer(data=request.data, context={'user': user})
         if account_reset_token.check_token(user, token):
-            try:
-                validate_password(new_password, user)
-            except exceptions.ValidationError as exception:
-                raise exception
-            user = authenticate(username=user.username, password=old_password)
-            if not user:
-                msg = _("Unable to log in with provided credentials.")
-                raise serializers.ValidationError(msg, code="authorization")
-            if new_password != new_password_repeat:
-                msg = _("Passwords do not match.")
-                raise serializers.ValidationError(msg, code="not_match_passwords")
-            user.set_password(new_password)
-            user.userprofile.last_password_change = datetime.now(timezone.utc)
+            serializer.is_valid(raise_exception=True)
+            user.set_password(serializer.validated_data['new_password'])
             user.save()
             try:
                 send_alert_password_changed(user, request)
@@ -304,7 +303,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         else:
             try:
                 send_change_password_email(user, request)
-            except Exception as ex:
+            except Exception:
                 raise EmailServiceError(
                     {
                         "error": "There was an error sending the verification email. Please try again later."

@@ -1,11 +1,11 @@
 from django.contrib.auth.models import User
-from core.models import UserProfile
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework.authtoken.models import Token
 from api.serializers.project import UserDetailSerializer
+from django.utils.translation import gettext_lazy as _
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -52,9 +52,6 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
-    last_password_change = serializers.ReadOnlyField(
-        source="userprofile.last_password_change", read_only=True
-    )
 
     username = serializers.CharField(
         validators=[
@@ -75,4 +72,30 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "last_password_change"]
+        fields = ["username", "email"]
+
+
+class ChangePasswordRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+class ChangePasswordConfirmSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, style={'input_type': 'password'})
+    new_password = serializers.CharField(required=True, style={'input_type': 'password'})
+    new_password_confirm = serializers.CharField(required=True, style={'input_type': 'password'})
+
+    def validate(serlf, attrs):
+        if attrs['new_password'] != attrs['new_password_confirm']:
+            raise serializers.ValidationError(
+                {"new_password": "New passwords do not match."}
+            )
+        return attrs
+
+    def validate_old_password(self, value):
+        try:
+            validate_password(value, self.context['user'])
+        except ValidationError as e:
+            raise serializers.ValidationError({"old_password": str(e)})
+        if not self.context['user'].check_password(value):
+            msg = _("Invalid credentials.")
+            raise serializers.ValidationError(msg, code="authorization")
+        return value
