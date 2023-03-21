@@ -1,4 +1,6 @@
 export * from './AuthToken';
+export * from './ChangePasswordConfirm';
+export * from './ChangePasswordRequest';
 export * from './DeleteJobData';
 export * from './Deploy';
 export * from './DeployCreate';

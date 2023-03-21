@@ -21,7 +21,22 @@ paths:
     patch:
       operationId: api_account_change_password_confirm
       description: ''
-      parameters: []
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ChangePasswordConfirm'
+        - name: token
+          in: query
+          description: Token
+          required: true
+          type: string
+        - name: pair
+          in: query
+          description: Pair
+          required: true
+          type: string
       responses:
         '200':
           description: ''
@@ -34,10 +49,17 @@ paths:
     post:
       operationId: api_account_change_password_request
       description: ''
-      parameters: []
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ChangePasswordRequest'
       responses:
         '201':
           description: ''
+          schema:
+            $ref: '#/definitions/ChangePasswordRequest'
       tags:
         - api
     parameters: []
@@ -1009,6 +1031,25 @@ paths:
         type: string
         format: uuid
 definitions:
+  ChangePasswordConfirm:
+    required:
+      - old_password
+      - new_password
+      - new_password_confirm
+    type: object
+    properties:
+      old_password:
+        title: Old password
+        type: string
+        minLength: 1
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+      new_password_confirm:
+        title: New password confirm
+        type: string
+        minLength: 1
   UserDetail:
     description: User details.
     required:
@@ -1041,6 +1082,16 @@ definitions:
         type: string
         maxLength: 40
         minLength: 1
+  ChangePasswordRequest:
+    required:
+      - email
+    type: object
+    properties:
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
   AuthToken:
     required:
       - username
@@ -1069,10 +1120,6 @@ definitions:
         title: Email
         type: string
         minLength: 1
-      last_password_change:
-        title: Last password change
-        type: string
-        readOnly: true
   User:
     required:
       - username

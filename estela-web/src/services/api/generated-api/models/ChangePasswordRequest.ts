@@ -16,39 +16,32 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface UserProfile
+ * @interface ChangePasswordRequest
  */
-export interface UserProfile {
+export interface ChangePasswordRequest {
     /**
      * 
      * @type {string}
-     * @memberof UserProfile
-     */
-    username: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UserProfile
+     * @memberof ChangePasswordRequest
      */
     email: string;
 }
 
-export function UserProfileFromJSON(json: any): UserProfile {
-    return UserProfileFromJSONTyped(json, false);
+export function ChangePasswordRequestFromJSON(json: any): ChangePasswordRequest {
+    return ChangePasswordRequestFromJSONTyped(json, false);
 }
 
-export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserProfile {
+export function ChangePasswordRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): ChangePasswordRequest {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'username': json['username'],
         'email': json['email'],
     };
 }
 
-export function UserProfileToJSON(value?: UserProfile | null): any {
+export function ChangePasswordRequestToJSON(value?: ChangePasswordRequest | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -57,7 +50,6 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
     }
     return {
         
-        'username': value.username,
         'email': value.email,
     };
 }

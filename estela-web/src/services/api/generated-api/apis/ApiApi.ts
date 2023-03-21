@@ -18,6 +18,12 @@ import {
     AuthToken,
     AuthTokenFromJSON,
     AuthTokenToJSON,
+    ChangePasswordConfirm,
+    ChangePasswordConfirmFromJSON,
+    ChangePasswordConfirmToJSON,
+    ChangePasswordRequest,
+    ChangePasswordRequestFromJSON,
+    ChangePasswordRequestToJSON,
     DeleteJobData,
     DeleteJobDataFromJSON,
     DeleteJobDataToJSON,
@@ -97,6 +103,16 @@ import {
     UserProfileFromJSON,
     UserProfileToJSON,
 } from '../models';
+
+export interface ApiAccountChangePasswordConfirmRequest {
+    token: string;
+    pair: string;
+    data: ChangePasswordConfirm;
+}
+
+export interface ApiAccountChangePasswordRequestRequest {
+    data: ChangePasswordRequest;
+}
 
 export interface ApiAuthLoginRequest {
     data: AuthToken;
@@ -327,10 +343,32 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiAccountChangePasswordConfirmRaw(): Promise<runtime.ApiResponse<Token>> {
+    async apiAccountChangePasswordConfirmRaw(requestParameters: ApiAccountChangePasswordConfirmRequest): Promise<runtime.ApiResponse<Token>> {
+        if (requestParameters.token === null || requestParameters.token === undefined) {
+            throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling apiAccountChangePasswordConfirm.');
+        }
+
+        if (requestParameters.pair === null || requestParameters.pair === undefined) {
+            throw new runtime.RequiredError('pair','Required parameter requestParameters.pair was null or undefined when calling apiAccountChangePasswordConfirm.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAccountChangePasswordConfirm.');
+        }
+
         const queryParameters: any = {};
 
+        if (requestParameters.token !== undefined) {
+            queryParameters['token'] = requestParameters.token;
+        }
+
+        if (requestParameters.pair !== undefined) {
+            queryParameters['pair'] = requestParameters.pair;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
             headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
@@ -340,6 +378,7 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
+            body: ChangePasswordConfirmToJSON(requestParameters.data),
         });
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
@@ -347,17 +386,23 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiAccountChangePasswordConfirm(): Promise<Token> {
-        const response = await this.apiAccountChangePasswordConfirmRaw();
+    async apiAccountChangePasswordConfirm(requestParameters: ApiAccountChangePasswordConfirmRequest): Promise<Token> {
+        const response = await this.apiAccountChangePasswordConfirmRaw(requestParameters);
         return await response.value();
     }
 
     /**
      */
-    async apiAccountChangePasswordRequestRaw(): Promise<runtime.ApiResponse<void>> {
+    async apiAccountChangePasswordRequestRaw(requestParameters: ApiAccountChangePasswordRequestRequest): Promise<runtime.ApiResponse<ChangePasswordRequest>> {
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAccountChangePasswordRequest.');
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
             headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
@@ -367,15 +412,17 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: ChangePasswordRequestToJSON(requestParameters.data),
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => ChangePasswordRequestFromJSON(jsonValue));
     }
 
     /**
      */
-    async apiAccountChangePasswordRequest(): Promise<void> {
-        await this.apiAccountChangePasswordRequestRaw();
+    async apiAccountChangePasswordRequest(requestParameters: ApiAccountChangePasswordRequestRequest): Promise<ChangePasswordRequest> {
+        const response = await this.apiAccountChangePasswordRequestRaw(requestParameters);
+        return await response.value();
     }
 
     /**

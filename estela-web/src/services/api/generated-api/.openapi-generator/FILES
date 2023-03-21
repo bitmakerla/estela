@@ -3,6 +3,8 @@ apis/ApiApi.ts
 apis/index.ts
 index.ts
 models/AuthToken.ts
+models/ChangePasswordConfirm.ts
+models/ChangePasswordRequest.ts
 models/DeleteJobData.ts
 models/Deploy.ts
 models/DeployCreate.ts

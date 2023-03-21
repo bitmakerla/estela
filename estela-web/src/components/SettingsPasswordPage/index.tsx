@@ -3,69 +3,48 @@ import { Button, Layout, Space } from "antd";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { Project, ApiProjectsReadRequest, ApiProjectsListRequest } from "../../services/api";
-import { resourceNotAllowedNotification, Spin } from "../../shared";
+import { ApiAccountChangePasswordRequestRequest } from "../../services/api";
+import { Spin } from "../../shared";
 
 const { Content } = Layout;
 
 interface PasswordSettingsPageState {
     loaded: boolean;
-    btnSend: boolean;
     email: string;
+    requestSended: boolean;
 }
 
 export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPageState> {
     state: PasswordSettingsPageState = {
         loaded: false,
-        btnSend: false,
-        email: "********",
+        email: "",
+        requestSended: false,
     };
 
     apiService = ApiService();
 
     async componentDidMount(): Promise<void> {
-        this.setEmailUser();
-        this.setState({ loaded: true });
+        this.setState({ loaded: true, email: AuthService.getUserEmail() || "" });
     }
 
     sendRequest = () => {
-        this.setState({ btnSend: true });
-    };
-
-    async setEmailUser() {
-        const requestParamsP: ApiProjectsListRequest = { page: 1, pageSize: 10 };
-        const data = await this.apiService.apiProjectsList(requestParamsP);
-        const project: Project = data.results[0];
-        let projectId = project.pid;
-        if (!projectId) projectId = "";
-        const requestParams: ApiProjectsReadRequest = { pid: projectId };
-        this.apiService.apiProjectsRead(requestParams).then(
-            (response: Project) => {
-                let users = response.users;
-                if (users === undefined) {
-                    users = [];
+        const requestParameters: ApiAccountChangePasswordRequestRequest = {
+            data: { email: this.state.email },
+        };
+        this.apiService.apiAccountChangePasswordRequest(requestParameters).then(
+            (response) => {
+                if (response) {
+                    this.setState({ requestSended: true });
                 }
-                let user_email = users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
-                    ?.email;
-                if (!user_email) user_email = "";
-                const div: number = Math.trunc(user_email.length / 4);
-                user_email = user_email.slice(div);
-                let hidden_email = "";
-                for (let index = 0; index < div; index++) {
-                    hidden_email += "*";
-                }
-                user_email = hidden_email.concat(user_email);
-                this.setState({ email: user_email });
             },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
+            (error) => {
+                console.log(error);
             },
         );
-    }
+    };
 
     render(): JSX.Element {
-        const { loaded, btnSend, email } = this.state;
+        const { loaded, requestSended, email } = this.state;
         return (
             <>
                 {loaded ? (
@@ -75,12 +54,11 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                                 <p className="text-3xl">Change password</p>
                                 <p className="mt-4 text-base text-estela-black-medium">
                                     If you want to reset your password, request a password change sending an email to{" "}
-                                    {email}. You can change your password every 6 months.
+                                    {"***".concat(email.slice(3))}
                                 </p>
-                                <p className="mt-4 text-base text-estela-black-medium">Last change: 01/01/20222</p>
                             </div>
-                            {!btnSend ? (
-                                <Button className="my-8 btn_password" disabled onClick={this.sendRequest}>
+                            {!requestSended ? (
+                                <Button className="my-8 btn_password" onClick={this.sendRequest}>
                                     Send request
                                 </Button>
                             ) : (
