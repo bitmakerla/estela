@@ -51,7 +51,8 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
     };
 
     getUser = (): string => {
-        return String(AuthService.getUserUsername());
+        const { username } = this.context as UserContextProps;
+        return username;
     };
 
     getUserRole = (): string => {
