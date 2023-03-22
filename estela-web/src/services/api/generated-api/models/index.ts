@@ -11,6 +11,8 @@ export * from './InlineResponse2002';
 export * from './InlineResponse2003';
 export * from './InlineResponse2004';
 export * from './InlineResponse2005';
+export * from './InlineResponse2006';
+export * from './InlineResponse401';
 export * from './Permission';
 export * from './Project';
 export * from './ProjectCronJob';

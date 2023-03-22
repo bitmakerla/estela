@@ -66,3 +66,10 @@ export const emailConfirmationNotification = (): void => {
         description: `The confirmation email was sent to the email you provided.`,
     });
 };
+
+export const passwordChangedNotification = (): void => {
+    notification.success({
+        message: "Password changed",
+        description: `Your password has been changed.`,
+    });
+};

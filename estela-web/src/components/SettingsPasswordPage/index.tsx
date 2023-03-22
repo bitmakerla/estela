@@ -12,6 +12,7 @@ interface PasswordSettingsPageState {
     loaded: boolean;
     email: string;
     requestSended: boolean;
+    loadingSendRequest: boolean;
 }
 
 export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPageState> {
@@ -19,6 +20,7 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
         loaded: false,
         email: "",
         requestSended: false,
+        loadingSendRequest: false,
     };
 
     apiService = ApiService();
@@ -27,24 +29,26 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
         this.setState({ loaded: true, email: AuthService.getUserEmail() || "" });
     }
 
-    sendRequest = () => {
+    handleSendRequest = () => {
+        this.setState({ loadingSendRequest: true });
         const requestParameters: ApiAccountChangePasswordRequestRequest = {
             data: { email: this.state.email },
         };
         this.apiService.apiAccountChangePasswordRequest(requestParameters).then(
             (response) => {
                 if (response) {
-                    this.setState({ requestSended: true });
+                    this.setState({ requestSended: true, loadingSendRequest: false });
                 }
             },
             (error) => {
                 console.log(error);
+                this.setState({ loadingSendRequest: false });
             },
         );
     };
 
     render(): JSX.Element {
-        const { loaded, requestSended, email } = this.state;
+        const { loaded, requestSended, loadingSendRequest, email } = this.state;
         return (
             <>
                 {loaded ? (
@@ -58,11 +62,21 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                                 </p>
                             </div>
                             {!requestSended ? (
-                                <Button className="my-8 btn_password" onClick={this.sendRequest}>
+                                <Button
+                                    block
+                                    loading={loadingSendRequest}
+                                    className="my-8 border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md h-12"
+                                    onClick={this.handleSendRequest}
+                                >
                                     Send request
                                 </Button>
                             ) : (
-                                <button className="my-8 btn_sendRequest">Request sended</button>
+                                <Button
+                                    block
+                                    className="my-8 border-estela-black-low bg-estela-black-low hover:border-estela-black-low hover:bg-estela-black-low hover:text-white text-white rounded-md h-12"
+                                >
+                                    Request sended
+                                </Button>
                             )}
                         </Space>
                     </Content>

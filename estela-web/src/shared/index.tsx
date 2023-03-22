@@ -14,6 +14,7 @@ export {
     nonExistentUserNotification,
     emailConfirmationNotification,
     dataDeletedNotification,
+    passwordChangedNotification,
 } from "./notifications";
 export { PrivateRoute } from "./privateRoute";
 export * from "./layouts";
