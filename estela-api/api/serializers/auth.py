@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueValidator
 from rest_framework.authtoken.models import Token
 from api.serializers.project import UserDetailSerializer
 from django.utils.translation import gettext_lazy as _
-
+from rest_framework.exceptions import AuthenticationFailed
 
 class UserSerializer(serializers.ModelSerializer):
     """A serializer for our user objects."""
@@ -96,6 +96,6 @@ class ChangePasswordConfirmSerializer(serializers.Serializer):
         except ValidationError as e:
             raise serializers.ValidationError({"old_password": str(e)})
         if not self.context['user'].check_password(value):
-            msg = _("Invalid credentials.")
-            raise serializers.ValidationError(msg, code="authorization")
+            msg = _('Incorrect authentication credentials.')
+            raise AuthenticationFailed(msg, code="authentication_failed")
         return value

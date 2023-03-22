@@ -191,6 +191,22 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
 class ChangePasswordViewSet(viewsets.GenericViewSet):
+    manual_parameters=[
+        openapi.Parameter(
+            "token",
+            openapi.IN_QUERY,
+            description="Token",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+        openapi.Parameter(
+            "pair",
+            openapi.IN_QUERY,
+            description="Pair",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+    ]
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
         user_id_base64 = request.query_params.get("pair", "")
@@ -226,53 +242,48 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=manual_parameters,
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                }
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                }
+            ),
+        },
+    )
     @action(methods=["GET"], detail=False)
     def validate(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
         user = User.objects.filter(pk=user_id)
         if not user:
-            return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0], {"error": "User does not exist."}
-            )
+            raise UserNotFoundError({"error": "User does not exist."})
         user = user.get()
         if account_reset_token.check_token(user, token):
-            return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0] + "/change_password",
-                {"message": "You can now change your password."},
-            )
+            return Response(data={"message": "Token is valid."}, status=status.HTTP_200_OK)
         else:
-            try:
-                send_change_password_email(user, request)
-            except Exception:
-                raise EmailServiceError(
-                    {
-                        "error": "There was an error sending the verification email. Please try again later."
-                    }
-                )
-            return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0],
-                {"message": "Activation link is invalid. Check your email again."},
-            )
+            return Response(data={"message": "Token is invalid."}, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         methods=["PATCH"],
-        manual_parameters=[
-            openapi.Parameter(
-                "token",
-                openapi.IN_QUERY,
-                description="Token",
-                type=openapi.TYPE_STRING,
-                required=True,
+        manual_parameters=manual_parameters,
+        responses={
+            status.HTTP_200_OK: TokenSerializer(),
+            status.HTTP_401_UNAUTHORIZED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
             ),
-            openapi.Parameter(
-                "pair",
-                openapi.IN_QUERY,
-                description="Pair",
-                type=openapi.TYPE_STRING,
-                required=True,
-            ),
-        ],
-        responses={status.HTTP_200_OK: TokenSerializer()},
+        },
     )
     @action(
         methods=["PATCH"],
@@ -288,29 +299,16 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             })
         user = user.get()
         serializer = ChangePasswordConfirmSerializer(data=request.data, context={'user': user})
-        if account_reset_token.check_token(user, token):
-            serializer.is_valid(raise_exception=True)
-            user.set_password(serializer.validated_data['new_password'])
-            user.save()
-            try:
-                send_alert_password_changed(user, request)
-            except Exception:
-                raise EmailServiceError(
-                    {
-                        "error": "There was an error sending the verification email. Please try again later."
-                    }
-                )
-        else:
-            try:
-                send_change_password_email(user, request)
-            except Exception:
-                raise EmailServiceError(
-                    {
-                        "error": "There was an error sending the verification email. Please try again later."
-                    }
-                )
-            raise ChangePasswordError(
-                {"error": "Activation link is invalid. Check your email again."}
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        try:
+            send_alert_password_changed(user, request)
+        except Exception:
+            raise EmailServiceError(
+                {
+                    "error": "There was an error sending the verification email. Please try again later."
+                }
             )
         token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)

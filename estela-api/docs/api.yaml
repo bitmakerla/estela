@@ -42,6 +42,13 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/Token'
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
       tags:
         - api
     parameters: []
@@ -67,10 +74,32 @@ paths:
     get:
       operationId: api_account_change_password_validate
       description: ''
-      parameters: []
+      parameters:
+        - name: token
+          in: query
+          description: Token
+          required: true
+          type: string
+        - name: pair
+          in: query
+          description: Pair
+          required: true
+          type: string
       responses:
         '200':
           description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
       tags:
         - api
     parameters: []
