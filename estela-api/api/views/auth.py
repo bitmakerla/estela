@@ -17,7 +17,7 @@ from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
 from django.conf import settings
 from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
-from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
+from api.exceptions import EmailServiceError, UserNotFoundError
 from api.serializers.auth import (
     TokenSerializer,
     UserSerializer,
@@ -191,7 +191,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
 class ChangePasswordViewSet(viewsets.GenericViewSet):
-    manual_parameters=[
+    manual_parameters = [
         openapi.Parameter(
             "token",
             openapi.IN_QUERY,
@@ -207,6 +207,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
             required=True,
         ),
     ]
+
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
         user_id_base64 = request.query_params.get("pair", "")
@@ -300,7 +301,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         user = user.get()
         serializer = ChangePasswordConfirmSerializer(data=request.data, context={'user': user})
         serializer.is_valid(raise_exception=True)
-        user.set_password(serializer.validated_data['new_password'])
+        user.set_password(serializer.validated_data["new_password"])
         user.save()
         try:
             send_alert_password_changed(user, request)

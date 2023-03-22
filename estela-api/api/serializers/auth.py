@@ -78,13 +78,14 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
 class ChangePasswordRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
+
 class ChangePasswordConfirmSerializer(serializers.Serializer):
-    old_password = serializers.CharField(required=True, style={'input_type': 'password'})
-    new_password = serializers.CharField(required=True, style={'input_type': 'password'})
-    new_password_confirm = serializers.CharField(required=True, style={'input_type': 'password'})
+    old_password = serializers.CharField(required=True, style={"input_type": "password"})
+    new_password = serializers.CharField(required=True, style={"input_type": "password"})
+    new_password_confirm = serializers.CharField(required=True, style={"input_type": "password"})
 
     def validate(serlf, attrs):
-        if attrs['new_password'] != attrs['new_password_confirm']:
+        if attrs["new_password"] != attrs["new_password_confirm"]:
             raise serializers.ValidationError(
                 {"new_password": "New passwords do not match."}
             )
@@ -92,10 +93,10 @@ class ChangePasswordConfirmSerializer(serializers.Serializer):
 
     def validate_old_password(self, value):
         try:
-            validate_password(value, self.context['user'])
+            validate_password(value, self.context["user"])
         except ValidationError as e:
             raise serializers.ValidationError({"old_password": str(e)})
-        if not self.context['user'].check_password(value):
-            msg = _('Incorrect authentication credentials.')
+        if not self.context["user"].check_password(value):
+            msg = _("Incorrect authentication credentials.")
             raise AuthenticationFailed(msg, code="authentication_failed")
         return value
