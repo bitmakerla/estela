@@ -78,8 +78,8 @@ def delete_expired_jobs_data():
     )
 
     for job in pending_data_delete_jobs:
-        # if job.created < timezone.now() - timedelta(days=job.data_expiry_days):
-        delete_job_data.s(job.key).delay()
+        if job.created < timezone.now() - timedelta(days=job.data_expiry_days):
+            delete_job_data.s(job.key).delay()
 
 
 @celery_app.task(name="core.tasks.launch_job")
