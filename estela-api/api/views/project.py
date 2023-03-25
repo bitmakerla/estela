@@ -25,7 +25,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -79,42 +79,38 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         name = serializer.validated_data.get("name", "")
         user_email = serializer.validated_data.pop("email", "")
-        user_permision = serializer.validated_data.pop("user", "")
         action = serializer.validated_data.pop("action", "")
         permission = serializer.validated_data.pop("permission", "")
-
         if name:
             instance.name = name
-        if user_email and user_email != user_permision:
+        if user_email and user_email != request.user.email:
             user = User.objects.filter(email=user_email)
-            user_instance = User.objects.filter(email=user_permision)
-            if user:
-                user = user.get()
-                user_instance = user_instance.get()
-                if (
-                    user_instance.permission_set.get(project=instance).permission
-                    in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
-                ) and permission != Permission.OWNER_PERMISSION:
-                    if action == "add":
-                        instance.users.add(
-                            user, through_defaults={"permission": permission}
-                        )
-                    elif action == "remove" and (
-                        user.permission_set.get(project=instance).permission
-                        != Permission.OWNER_PERMISSION
-                    ):
-                        instance.users.remove(user)
-                    elif action == "update":
-                        instance.users.remove(user)
-                        instance.users.add(
-                            user, through_defaults={"permission": permission}
-                        )
-                    else:
-                        raise ParseError({"error": "Action not supported."})
-                else:
-                    raise ParseError({"error": "Action not supported."})
-            else:
+            if not user:
                 raise NotFound({"email": "User does not exist."})
+            user = user.get()
+            if not (
+                request.user.permission_set.get(project=instance).permission
+                in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
+            ) and permission != Permission.OWNER_PERMISSION:
+                raise PermissionDenied(
+                    {"permission": "You do not have permission to do this."}
+                )
+            if action == "add":
+                instance.users.add(
+                    user, through_defaults={"permission": permission}
+                )
+            elif action == "remove" and (
+                user.permission_set.get(project=instance).permission
+                != Permission.OWNER_PERMISSION
+            ):
+                instance.users.remove(user)
+            elif action == "update":
+                instance.users.remove(user)
+                instance.users.add(
+                    user, through_defaults={"permission": permission}
+                )
+            else:
+                raise ParseError({"error": "Action not supported."})
         serializer.save()
 
         headers = self.get_success_headers(serializer.data)

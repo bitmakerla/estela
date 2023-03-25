@@ -127,10 +127,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                 : option == 1
                 ? ProjectUpdateActionEnum.Add
                 : ProjectUpdateActionEnum.Update;
-        const user_email = this.state.users.find((item) => item.user?.username === AuthService.getUserUsername())?.user
-            ?.email;
         const requestData: ProjectUpdate = {
-            user: user_email,
             email: email,
             action: action,
             permission: this.state.permission,
