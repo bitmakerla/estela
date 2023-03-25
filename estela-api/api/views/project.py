@@ -46,7 +46,13 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         return page, page_size
 
     def get_queryset(self):
-        return self.request.user.project_set.filter(deleted=False)
+        # print(self.request.user.is_superuser)
+        # return self.request.user.project_set.filter(deleted=False)
+        return (
+            Project.objects.filter(deleted=False)
+            if self.request.user.is_superuser
+            else self.request.user.project_set.filter(deleted=False)
+        )
 
     def perform_create(self, serializer):
         instance = serializer.save()
