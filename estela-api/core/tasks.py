@@ -66,7 +66,6 @@ def delete_job_data(job_key):
     delete_data(pid, sid, jid, "items")
     delete_data(pid, sid, jid, "requests")
     delete_data(pid, sid, jid, "logs")
-    delete_data(pid, sid, jid, "stats")
     SpiderJob.objects.filter(jid=jid).update(data_status=SpiderJob.DELETED_STATUS)
 
 

@@ -1041,7 +1041,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 ) : dataStatus == "PERSISTENT" ? (
                                     "Forever"
                                 ) : (
-                                    <p className="text-estela-red-full">Data deleted automatically</p>
+                                    <p className="text-estela-red-full">Job data was automatically deleted</p>
                                 )}
                             </Col>
                         </Row>
