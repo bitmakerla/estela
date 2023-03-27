@@ -1016,7 +1016,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     </Tag>
                                 </Col>
                             )}
-                            {status == "INCOMPLETED" && (
+                            {status == "INCOMPLETE" && (
                                 <Col className="col-span-2 px-2">
                                     <Tag className="bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md">
                                         {status}
@@ -1035,8 +1035,15 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Data Persistence</Text>
                             </Col>
-                            {dataStatus == "PENDING" && <Col className="col-span-2 px-2">{dataExpiryDays} days</Col>}
-                            {dataStatus == "PERSISTENT" && <Col className="col-span-2 px-2">Forever</Col>}
+                            <Col className="col-span-2 px-2">
+                                {dataStatus == "PENDING" ? (
+                                    `${dataExpiryDays} days`
+                                ) : dataStatus == "PERSISTENT" ? (
+                                    "Forever"
+                                ) : (
+                                    <p className="text-estela-red-full">Job data was automatically deleted</p>
+                                )}
+                            </Col>
                         </Row>
                     </Card>
                 </Content>
