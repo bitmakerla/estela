@@ -48,7 +48,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     def get_queryset(self):
         return (
             Project.objects.filter(deleted=False)
-            if self.request.user.is_superuser
+            if self.request.user.is_superuser or self.request.user.is_staff
             else self.request.user.project_set.filter(deleted=False)
         )
 
