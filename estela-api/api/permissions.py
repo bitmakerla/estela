@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from core.models import Project, Permission
 from django.contrib.auth.models import User
