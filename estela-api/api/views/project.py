@@ -72,8 +72,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
             requests_data_size=0,
             logs_data_size=0,
         )
-        # project = get_object_or_404(Project, pid=instance.pid)
-        self.save_notfication(
+        self.save_notification(
             user=self.request.user,
             message=f"{self.request.user} created a new Project: {instance.name}.",
             project=instance,
@@ -149,7 +148,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notfication(
+        self.save_notification(
             user=self.request.user,
             message=f"{self.request.user} deleted Project: {instance.name}.",
             project=project,

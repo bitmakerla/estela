@@ -141,7 +141,7 @@ class SpiderJobViewSet(
 
         # Send action notification
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notfication(
+        self.save_notification(
             user=request.user,
             message=f"{request.user} has created a new job for {spider.name} spider.",
             project=project,

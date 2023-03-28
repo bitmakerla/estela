@@ -97,7 +97,7 @@ class SpiderCronJobViewSet(
 
         # Send action notification
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notfication(
+        self.save_notification(
             user=request.user,
             message=f"{request.user} has scheduled a new job at {spider.name} spider",
             project=project,
@@ -127,7 +127,8 @@ class SpiderCronJobViewSet(
         )
         schedule_changed = (
             True
-            if "schedule" in request.data or instance.schedule != request.data["schedule"]
+            if "schedule" in request.data
+            or instance.schedule != request.data["schedule"]
             else False
         )
 
@@ -135,14 +136,14 @@ class SpiderCronJobViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         if status_changed:
             message = f"{request.user.get_username()} has updated the status of a cronjob at {instance.spider.name} spider: {request.data['status']}"
-            self.save_notfication(
+            self.save_notification(
                 user=request.user,
                 message=message,
                 project=project,
             )
         if schedule_changed:
             message = f"{request.user.get_username()} has updated the schedule of a cronjob at {instance.spider.name} spider: {request.data['schedule']}"
-            self.save_notfication(
+            self.save_notification(
                 user=request.user,
                 message=message,
                 project=project,

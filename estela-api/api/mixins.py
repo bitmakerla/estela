@@ -24,7 +24,6 @@ class BaseViewSet(viewsets.GenericViewSet):
 
 
 class NotificationsHandler(viewsets.GenericViewSet):
-
     def get_users_email(self, project):
         email_list = []
         for user in project.users.all():
@@ -32,12 +31,12 @@ class NotificationsHandler(viewsets.GenericViewSet):
 
         return email_list
 
-    def save_notfication(self, user, message, project):
+    def save_notification(self, user, message, project):
         email_list = self.get_users_email(project)
         email_body = f"""
         Dear User
         {message}
-        
+
         Estela Notification Service.
         """
         notification = Notification(
