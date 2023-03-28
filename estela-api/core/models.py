@@ -411,3 +411,28 @@ class UsageRecord(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class Notification(models.Model):
+    nid = models.AutoField(
+        primary_key=True,
+        help_text="A unique integer value identifying each notification",
+    )
+    message = models.CharField(max_length=1000, help_text="Notifications message.")
+    notify_to = models.CharField(
+        max_length=100, help_text="The direction where the notification will redirect."
+    )
+    seen = models.BooleanField(
+        default=False, help_text="Whether the notification was seen."
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="User whose this notification belongs to.",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Notification send date."
+    )
+
+    class Meta:
+        ordering = ["-created_at"]

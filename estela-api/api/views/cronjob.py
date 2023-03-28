@@ -8,7 +8,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
-from api.mixins import BaseViewSet
+from api.mixins import BaseViewSet, NotificationsHandler
 from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobSerializer,
@@ -20,6 +20,7 @@ from core.models import DataStatus, Spider, SpiderCronJob
 
 class SpiderCronJobViewSet(
     BaseViewSet,
+    NotificationsHandler,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -93,6 +94,15 @@ class SpiderCronJobViewSet(
             cronjob.schedule,
             data_expiry_days=data_expiry_days,
         )
+
+        # Send action notification
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        self.save_notfication(
+            user=request.user,
+            message=f"{request.user} has scheduled a new job at {spider.name} spider",
+            project=project,
+        )
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -109,6 +119,35 @@ class SpiderCronJobViewSet(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
+
+        status_changed = (
+            True
+            if "status" in request.data or instance.status == request.data["status"]
+            else False
+        )
+        schedule_changed = (
+            True
+            if "schedule" in request.data or instance.schedule != request.data["schedule"]
+            else False
+        )
+
+        # Send action notification
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        if status_changed:
+            message = f"{request.user.get_username()} has updated the status of a cronjob at {instance.spider.name} spider: {request.data['status']}"
+            self.save_notfication(
+                user=request.user,
+                message=message,
+                project=project,
+            )
+        if schedule_changed:
+            message = f"{request.user.get_username()} has updated the schedule of a cronjob at {instance.spider.name} spider: {request.data['schedule']}"
+            self.save_notfication(
+                user=request.user,
+                message=message,
+                project=project,
+            )
+
         self.perform_update(serializer)
 
         if getattr(instance, "_prefetched_objects_cache", None):

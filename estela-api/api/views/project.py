@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from django.shortcuts import get_object_or_404
 
 from django.core.paginator import Paginator
 from drf_yasg import openapi
@@ -9,7 +10,8 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet
+from api.mixins import BaseViewSet, NotificationsHandler
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
@@ -30,7 +32,7 @@ from core.models import (
 )
 
 
-class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
+class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -69,6 +71,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             items_data_size=0,
             requests_data_size=0,
             logs_data_size=0,
+        )
+        # project = get_object_or_404(Project, pid=instance.pid)
+        self.save_notfication(
+            user=self.request.user,
+            message=f"{self.request.user} created a new Project: {instance.name}.",
+            project=instance,
         )
 
     @swagger_auto_schema(
@@ -140,6 +148,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        self.save_notfication(
+            user=self.request.user,
+            message=f"{self.request.user} deleted Project: {instance.name}.",
+            project=project,
+        )
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
