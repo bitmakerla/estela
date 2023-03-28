@@ -161,10 +161,14 @@ class JobDataViewSet(
                 if next_chunk:
                     response["next_chunk"] = next_chunk
                 return Response(response)
-
-            result = spiderdata_db_client.get_paginated_collection_data(
-                kwargs["pid"], job_collection_name, page, page_size
-            )
+            if data_type == "stats":
+                result = spiderdata_db_client.get_job_stats(
+                    kwargs["pid"], job_collection_name
+                )
+            else:
+                result = spiderdata_db_client.get_paginated_collection_data(
+                    kwargs["pid"], job_collection_name, page, page_size
+                )
             return Response(
                 {
                     "count": count,

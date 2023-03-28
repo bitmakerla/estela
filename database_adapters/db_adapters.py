@@ -88,7 +88,7 @@ class MongoAdapter(DatabaseInterface):
     def delete_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
         count = collection.delete_many({}).deleted_count
-        return count if collection.drop() else 0
+        return 0 if collection.drop() else count
 
     def get_all_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
@@ -109,6 +109,12 @@ class MongoAdapter(DatabaseInterface):
         for item in data:
             del item["_id"]
         return data, next_chunk
+
+    def get_job_stats(self, database_name, collection_name):
+        result = (
+            self.client[database_name]["job_stats"].find({"_id": collection_name}, {"_id": False})
+        )
+        return list(result)
 
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
