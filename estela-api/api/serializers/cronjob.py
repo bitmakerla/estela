@@ -2,6 +2,9 @@ from croniter import croniter
 from rest_framework import serializers
 
 from api import errors
+
+from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
+from api.mixins import NotificationsHandler
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
@@ -110,7 +113,7 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
         return cronjob
 
 
-class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
+class SpiderCronJobUpdateSerializer(serializers.ModelSerializer, NotificationsHandler):
     def validate(self, attrs):
         attrs = super(SpiderCronJobUpdateSerializer, self).validate(attrs)
         if "schedule" in attrs and not croniter.is_valid(attrs.get("schedule")):
@@ -131,21 +134,27 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
+        user = instance["user"]
+        instance = instance["object"]
         status = validated_data.get("status", "")
         schedule = validated_data.get("schedule", "")
         unique_collection = validated_data.get("unique_collection", False)
         data_status = validated_data.get("data_status", "")
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
         name = instance.name
+        message = ""
         if "schedule" in validated_data:
             instance.schedule = schedule
             update_schedule(name, schedule)
+            message = f"changed the schedule of scheduled-job {instance.cjid}"
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
                 enable_cronjob(name)
+                message = f"enabled scheduled-job {instance.cjid}"
             elif status == SpiderCronJob.DISABLED_STATUS:
                 disable_cronjob(name)
+                message = f"disabled scheduled-job {instance.cjid}"
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
@@ -159,9 +168,17 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
                     )
                 else:
                     instance.data_expiry_days = data_expiry_days
+                    message = "changed data persistence of scheduled-job {} to {} days".format(
+                        instance.cjid, data_expiry_days
+                    )
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 
+        self.save_notification(
+            user=user,
+            message=message,
+            project=instance.spider.project,
+        )
         instance.save()
         return instance
 

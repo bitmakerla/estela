@@ -419,8 +419,11 @@ class Notification(models.Model):
         help_text="A unique integer value identifying each notification",
     )
     message = models.CharField(max_length=1000, help_text="Notifications message.")
-    notify_to = models.CharField(
-        max_length=100, help_text="The direction where the notification will redirect."
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        help_text="Project to which the notifications corresponds.",
     )
     seen = models.BooleanField(
         default=False, help_text="Whether the notification was seen."

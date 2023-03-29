@@ -74,7 +74,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         )
         self.save_notification(
             user=self.request.user,
-            message=f"{self.request.user} created a new Project: {instance.name}.",
+            message=f"created {instance.name} project.",
             project=instance,
         )
 
@@ -98,6 +98,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
 
         if name:
+            old_name = instance.name
             instance.name = name
 
         if user_email and user_email != request.user.email:
@@ -150,7 +151,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=self.request.user,
-            message=f"{self.request.user} deleted Project: {instance.name}.",
+            message=f"deleted {instance.name} project.",
             project=project,
         )
         self.perform_destroy(instance)

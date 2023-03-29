@@ -99,7 +99,7 @@ class SpiderCronJobViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=request.user,
-            message=f"{request.user} has scheduled a new job at {spider.name} spider",
+            message=f"scheduled a new scheduled-job in {spider.name} spider",
             project=project,
         )
 
@@ -115,40 +115,11 @@ class SpiderCronJobViewSet(
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        instance = {"object": self.get_object(), "user": request.user}
         serializer = SpiderCronJobUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
-
-        status_changed = (
-            True
-            if "status" in request.data or instance.status == request.data["status"]
-            else False
-        )
-        schedule_changed = (
-            True
-            if "schedule" in request.data
-            or instance.schedule != request.data["schedule"]
-            else False
-        )
-
-        # Send action notification
-        project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        if status_changed:
-            message = f"{request.user.get_username()} has updated the status of a cronjob at {instance.spider.name} spider: {request.data['status']}"
-            self.save_notification(
-                user=request.user,
-                message=message,
-                project=project,
-            )
-        if schedule_changed:
-            message = f"{request.user.get_username()} has updated the schedule of a cronjob at {instance.spider.name} spider: {request.data['schedule']}"
-            self.save_notification(
-                user=request.user,
-                message=message,
-                project=project,
-            )
-
         self.perform_update(serializer)
 
         if getattr(instance, "_prefetched_objects_cache", None):

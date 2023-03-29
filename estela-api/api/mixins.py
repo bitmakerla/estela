@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.mail import EmailMessage
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
@@ -24,31 +23,10 @@ class BaseViewSet(viewsets.GenericViewSet):
 
 
 class NotificationsHandler(viewsets.GenericViewSet):
-    def get_users_email(self, project):
-        email_list = []
-        for user in project.users.all():
-            email_list.append(user.email)
-
-        return email_list
-
     def save_notification(self, user, message, project):
-        email_list = self.get_users_email(project)
-        email_body = f"""
-        Dear User
-        {message}
-
-        Estela Notification Service.
-        """
         notification = Notification(
             message=message,
             user=user,
-            notify_to=", ".join(email_list),
+            project=project,
         )
         notification.save()
-        email = EmailMessage(
-            subject=f"NO REPLY: Notification alert on {project.name} project.",
-            body=email_body,
-            from_email=settings.VERIFICATION_EMAIL,
-            to=email_list,
-        )
-        email.send()
