@@ -85,11 +85,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         try:
             send_verification_email(user, request)
         except Exception:
-            raise EmailServiceError(
-                {
-                    "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
-                }
-            )
+            raise EmailServiceError({"error": errors.ERROR_SEND_VERIFICATION_EMAIL})
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -123,9 +119,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             email.send()
             return redirect(
                 settings.CORS_ORIGIN_WHITELIST[0],
-                {
-                    "message": "Thank you for your email confirmation. You can now log in to your account."
-                },
+                {"message": errors.CONFIRMATION_EMAIL_SENT},
             )
         else:
             self.retry_send_verification_email(user, request)
@@ -161,9 +155,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             )
         if user != requested_user:
             return Response(
-                data={
-                    "error": "Unauthorized to see this profile, you are allowed to see only your profile."
-                },
+                data={"error": errors.UNAUTHORIZED_PROFILE},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -263,12 +255,8 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
         try:
             send_change_password_email(user)
         except Exception:
-            raise EmailServiceError(
-                {
-                    "error": "There was an error sending the password reset email. Please try again later."
-                }
-            )
-        token, _ = Token.objects.get_or_create(user=user)
+            raise EmailServiceError({"error": errors.SEND_EMAIL_LATER})
+        token, created = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @swagger_auto_schema(

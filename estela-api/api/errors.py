@@ -15,3 +15,17 @@ INVALID_JOB_DATA_TYPE = "Invalid job data type parameter."
 PAGE_NOT_FOUND = "Page not found."
 INSUFFICIENT_PERMISSIONS = "You do not have the {} permissions to perform this action."
 USER_NOT_FOUND = "User not found."
+UNABLE_CHANGE_PASSWORD = "Unable to change password."
+ERROR_SEND_VERIFICATION_EMAIL = (
+    "Your user was created but there was an error sending"
+    " the verification email. Please try to log in later."
+)
+CONFIRMATION_EMAIL_SENT = (
+    "Thank you for your email confirmation. You can now log in to your account."
+)
+UNAUTHORIZED_PROFILE = (
+    "Unauthorized to see this profile, you are allowed to see only your profile."
+)
+SEND_EMAIL_LATER = (
+    "There was an error sending the verification email. Please try again later."
+)
