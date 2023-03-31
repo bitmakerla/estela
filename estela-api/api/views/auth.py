@@ -158,7 +158,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user: User = request.user
         requested_user: User = User.objects.filter(username=kwargs["username"]).first()
 
-        if requested_user == None:
+        if requested_user is None:
             return Response(
                 data={"error": "This user doesn't exist in estela."},
                 status=status.HTTP_404_NOT_FOUND,

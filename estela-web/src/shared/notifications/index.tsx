@@ -10,13 +10,6 @@ export const authNotification = (): void => {
     });
 };
 
-export const apiCallFail = (): void => {
-    notification.error({
-        message: "An unexpected error ocurred",
-        description: "Please try again later or communicate with support.",
-    });
-};
-
 export const resourceNotAllowedNotification = (): void => {
     notification.error({
         message: "Resource Not Allowed",
