@@ -16,6 +16,7 @@ export * from './Notification';
 export * from './Permission';
 export * from './Project';
 export * from './ProjectCronJob';
+export * from './ProjectDetail';
 export * from './ProjectJob';
 export * from './ProjectUpdate';
 export * from './ProjectUsage';

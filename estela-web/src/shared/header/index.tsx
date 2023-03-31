@@ -67,7 +67,6 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                 this.setState({ news: false });
             }
             this.setState({ notifications: response.results, loaded: true });
-            console.log(response.results);
         });
     };
 
@@ -165,7 +164,9 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                 </span>
                                 {AuthService.getUserEmail() == notification.user.email ? " have " : " has "}
                                 {notification.message}
-                                <p className="text-xs font-light">{notification.createdAt?.toDateString()}</p>
+                                <p className="text-xs text-estela-black-low">
+                                    {notification.createdAt?.toDateString()}
+                                </p>
                             </div>
                         </div>
                     ))}

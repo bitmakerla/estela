@@ -1305,6 +1305,22 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
+  ProjectDetail:
+    description: Project where the action was performed.
+    type: object
+    properties:
+      pid:
+        title: Pid
+        description: A UUID identifying this project.
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Project name.
+        type: string
+        readOnly: true
+        minLength: 1
   Notification:
     required:
       - user
@@ -1326,10 +1342,7 @@ definitions:
         maxLength: 1000
         minLength: 1
       project:
-        title: Project
-        description: Project to which the notifications corresponds.
-        type: string
-        format: uuid
+        $ref: '#/definitions/ProjectDetail'
       seen:
         title: Seen
         description: Whether the notification was seen.
@@ -1409,8 +1422,6 @@ definitions:
         maximum: 65535
         minimum: 0
   ProjectUpdate:
-    required:
-      - name
     type: object
     properties:
       pid:
@@ -1421,9 +1432,8 @@ definitions:
         readOnly: true
       name:
         title: Name
-        description: Project's name.
+        description: Project name.
         type: string
-        maxLength: 1000
         minLength: 1
       users:
         description: Affected users.

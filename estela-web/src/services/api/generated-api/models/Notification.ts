@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    ProjectDetail,
+    ProjectDetailFromJSON,
+    ProjectDetailFromJSONTyped,
+    ProjectDetailToJSON,
     UserDetail,
     UserDetailFromJSON,
     UserDetailFromJSONTyped,
@@ -45,11 +49,11 @@ export interface Notification {
      */
     message: string;
     /**
-     * Project to which the notifications corresponds.
-     * @type {string}
+     * 
+     * @type {ProjectDetail}
      * @memberof Notification
      */
-    project: string;
+    project: ProjectDetail;
     /**
      * Whether the notification was seen.
      * @type {boolean}
@@ -77,7 +81,7 @@ export function NotificationFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'nid': !exists(json, 'nid') ? undefined : json['nid'],
         'user': UserDetailFromJSON(json['user']),
         'message': json['message'],
-        'project': json['project'],
+        'project': ProjectDetailFromJSON(json['project']),
         'seen': !exists(json, 'seen') ? undefined : json['seen'],
         'createdAt': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
     };
@@ -94,7 +98,7 @@ export function NotificationToJSON(value?: Notification | null): any {
         
         'user': UserDetailToJSON(value.user),
         'message': value.message,
-        'project': value.project,
+        'project': ProjectDetailToJSON(value.project),
         'seen': value.seen,
     };
 }

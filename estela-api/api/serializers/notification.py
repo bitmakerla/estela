@@ -1,11 +1,14 @@
 from core.models import Notification
 from rest_framework import serializers
-from api.serializers.project import UserDetailSerializer
+from api.serializers.project import UserDetailSerializer, ProjectDetailSerializer
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(
         required=True, help_text="User who performed the action."
+    )
+    project = ProjectDetailSerializer(
+        required=True, help_text="Project where the action was performed."
     )
 
     class Meta:
@@ -18,12 +21,3 @@ class NotificationSerializer(serializers.ModelSerializer):
             "seen",
             "created_at",
         )
-
-
-class UserNotificationSerializer(serializers.Serializer):
-    results = NotificationSerializer(
-        many=True, required=True, help_text="Project notifications."
-    )
-    count = serializers.IntegerField(
-        required=True, help_text="Project notifications count."
-    )
