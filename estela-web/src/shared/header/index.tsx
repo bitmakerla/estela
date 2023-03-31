@@ -4,12 +4,11 @@ import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
-import { AuthService } from "../../services";
-import { NotificationsList } from "../../shared";
+import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
 import { UserContext, UserContextProps } from "../../context";
 
 import User from "../../assets/icons/user.svg";
-import Notification from "../../assets/icons/notification.svg";
+import Message from "../../assets/icons/notification.svg";
 import ArrowDown from "../../assets/icons/arrowDown.svg";
 import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
@@ -23,9 +22,19 @@ interface HeaderInterface {
     path?: string;
 }
 
-export class CustomHeader extends Component<HeaderInterface, unknown> {
-    constructor(props: HeaderInterface) {
-        super(props);
+interface HeaderState {
+    notifications: Notification[];
+    loaded: boolean;
+}
+
+export class CustomHeader extends Component<HeaderInterface, HeaderState> {
+    state: HeaderState = {
+        notifications: [],
+        loaded: false,
+    };
+
+    async componentDidMount() {
+        // super(props);
         userDropdownSidenavItems.forEach((element: MenuItem) => {
             this.itemsUser?.push(element);
         });
@@ -42,9 +51,26 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
             ),
             style: { backgroundColor: "white" },
         });
+        this.getNotifications();
     }
+
+    // async componentDidMount() {
+    //     this.getNotifications();
+    // }
+
+    apiService = ApiService();
     path = this.props.path;
     static contextType = UserContext;
+
+    getNotifications = async (): Promise<void> => {
+        const requestParams: ApiNotificationsListRequest = {
+            pageSize: 3,
+        };
+        this.apiService.apiNotificationsList(requestParams).then((response) => {
+            this.setState({ notifications: response.results, loaded: true });
+            console.log(response.results);
+        });
+    };
 
     isLogged = (): boolean => {
         return Boolean(AuthService.getAuthToken());
@@ -114,12 +140,14 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
         },
     ];
 
-    itemsNotification: MenuProps["items"] = [
+    notificationItems = (): MenuProps["items"] => [
         {
             key: "1",
             label: (
                 <Content className="bg-white w-96">
-                    <NotificationsList />
+                    {this.state.notifications.map((notification) => (
+                        <p key={notification.nid}>{notification.message}</p>
+                    ))}
                 </Content>
             ),
             style: { backgroundColor: "white" },
@@ -129,64 +157,68 @@ export class CustomHeader extends Component<HeaderInterface, unknown> {
             label: (
                 <Content className="bg-white w-96">
                     <Link
-                        className="text-estela-blue-full opacity-40 h-8 items-center text-center rounded-md hover:text-estela-blue-full hover:bg-estela-blue-low font-semibold flex justify-center"
+                        className="text-estela-blue-full h-8 items-center text-center rounded-md hover:text-estela-blue-full hover:bg-estela-blue-low font-semibold flex justify-center"
                         to={"/notifications/inbox"}
                     >
                         See all
                     </Link>
                 </Content>
             ),
-            disabled: true,
             style: { backgroundColor: "white" },
         },
     ];
 
     render(): JSX.Element {
+        const { loaded } = this.state;
         return (
-            <Header className="bg-white h-[72px]">
-                <Row justify="center" align="middle" className="flex justify-center">
-                    <Col flex={1} className="my-1">
-                        <Link to="/" className="text-xl hover:text-estela">
-                            estela
-                        </Link>
-                    </Col>
-                    <Col flex={0.06}>
-                        <Dropdown menu={{ items: this.itemsNotification }} trigger={["click"]}>
-                            {this.path === "/notifications/inbox" ? (
-                                <a className="flex justify-center items-center border border-estela stroke-estela rounded-lg bg-estela-blue-low w-10 p-2 m-1">
-                                    <Notification className="w-8 h-8" />
-                                </a>
-                            ) : (
-                                <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-10 p-2 m-1">
-                                    <Notification className="w-8 h-8" />
-                                </a>
-                            )}
-                        </Dropdown>
-                    </Col>
-                    <Col>
-                        <Dropdown menu={{ items: this.itemsUser }} trigger={["click"]}>
-                            <a className="flex items-center px-2 hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full rounded-lg">
-                                <Row className="flex grid-cols-3 justify-center gap-3">
-                                    <Col className="my-5">
-                                        <User className="stroke-estela h-6 w-6" />
-                                    </Col>
-                                    <Row className="grid grid-cols-1 my-3" align="middle">
-                                        <Col className="font-medium text-sm h-6">{this.getUser()}</Col>
-                                        {this.getUserRole() !== "" && (
-                                            <Col className="text-estela-black-medium text-xs h-4">
-                                                {this.getUserRole()}
+            <>
+                {loaded && (
+                    <Header className="bg-white h-[72px]">
+                        <Row justify="center" align="middle" className="flex justify-center">
+                            <Col flex={1} className="my-1">
+                                <Link to="/" className="text-xl hover:text-estela">
+                                    estela
+                                </Link>
+                            </Col>
+                            <Col flex={0.06}>
+                                <Dropdown menu={{ items: this.notificationItems() }} trigger={["click"]}>
+                                    {this.path === "/notifications/inbox" ? (
+                                        <a className="flex justify-center items-center border border-estela stroke-estela rounded-lg bg-estela-blue-low w-10 p-2 m-1">
+                                            <Message className="w-8 h-8" />
+                                        </a>
+                                    ) : (
+                                        <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-10 p-2 m-1">
+                                            <Message className="w-8 h-8" />
+                                        </a>
+                                    )}
+                                </Dropdown>
+                            </Col>
+                            <Col>
+                                <Dropdown menu={{ items: this.itemsUser }} trigger={["click"]}>
+                                    <a className="flex items-center px-2 hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full rounded-lg">
+                                        <Row className="flex grid-cols-3 justify-center gap-3">
+                                            <Col className="my-5">
+                                                <User className="stroke-estela h-6 w-6" />
                                             </Col>
-                                        )}
-                                    </Row>
-                                    <Col className="my-5">
-                                        <ArrowDown className="stroke-estela h-5 w-5" />
-                                    </Col>
-                                </Row>
-                            </a>
-                        </Dropdown>
-                    </Col>
-                </Row>
-            </Header>
+                                            <Row className="grid grid-cols-1 my-3" align="middle">
+                                                <Col className="font-medium text-sm h-6">{this.getUser()}</Col>
+                                                {this.getUserRole() !== "" && (
+                                                    <Col className="text-estela-black-medium text-xs h-4">
+                                                        {this.getUserRole()}
+                                                    </Col>
+                                                )}
+                                            </Row>
+                                            <Col className="my-5">
+                                                <ArrowDown className="stroke-estela h-5 w-5" />
+                                            </Col>
+                                        </Row>
+                                    </a>
+                                </Dropdown>
+                            </Col>
+                        </Row>
+                    </Header>
+                )}
+            </>
         );
     }
 }

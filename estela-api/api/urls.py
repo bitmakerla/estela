@@ -8,6 +8,7 @@ from api.views import (
     auth as auth_views,
     cronjob as cronjob_views,
     job_data as job_data_views,
+    notification as notification_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -15,6 +16,11 @@ router.register(
     prefix=r"projects",
     viewset=project_views.ProjectViewSet,
     basename="project",
+)
+router.register(
+    prefix=r"notifications",
+    viewset=notification_views.NotificationViewSet,
+    basename="notification",
 )
 router.register(
     prefix=r"projects/(?P<pid>[0-9a-z-]+)/deploys",

@@ -70,7 +70,7 @@ class DeployViewSet(
         # Send action notification
         self.save_notification(
             user=user,
-            message="deployed a new spider",
+            message=f"deployed a new spider in Deploy {serializer.data['did']}",
             project=project,
         )
 
@@ -103,7 +103,7 @@ class DeployViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=instance.user,
-            message=f"updated a spider deployment {instance.spiders[0].name}",
+            message=f"updated a spider in Deploy {instance.did}",
             project=project,
         )
 

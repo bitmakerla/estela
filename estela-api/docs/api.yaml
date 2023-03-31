@@ -264,6 +264,65 @@ paths:
       tags:
         - api
     parameters: []
+  /api/notifications:
+    get:
+      operationId: api_notifications_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/Notification'
+      tags:
+        - api
+    parameters: []
+  /api/notifications/{nid}:
+    get:
+      operationId: api_notifications_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Notification'
+      tags:
+        - api
+    parameters:
+      - name: nid
+        in: path
+        description: A unique integer value identifying each notification
+        required: true
+        type: integer
   /api/projects:
     get:
       operationId: api_projects_list
@@ -1246,6 +1305,41 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
+  Notification:
+    required:
+      - user
+      - message
+      - project
+    type: object
+    properties:
+      nid:
+        title: Nid
+        description: A unique integer value identifying each notification
+        type: integer
+        readOnly: true
+      user:
+        $ref: '#/definitions/UserDetail'
+      message:
+        title: Message
+        description: Notifications message.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      project:
+        title: Project
+        description: Project to which the notifications corresponds.
+        type: string
+        format: uuid
+      seen:
+        title: Seen
+        description: Whether the notification was seen.
+        type: boolean
+      created_at:
+        title: Created at
+        description: Notification send date.
+        type: string
+        format: date-time
+        readOnly: true
   Permission:
     description: Users with permissions on this project.
     type: object
