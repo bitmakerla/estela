@@ -79,8 +79,15 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                 this.passwordFormRef.current?.resetFields();
                 this.setState({ showPasswordModal: false, updatedProfile: false });
             },
-            () => {
-                invalidDataNotification("An unexpected error ocurred, try again later.");
+            async (error) => {
+                try {
+                    const data = await error.json();
+                    if (data.non_field_errors && data.non_field_errors.length > 0) {
+                        invalidDataNotification(data.non_field_errors[0]);
+                    }
+                } catch (err) {
+                    invalidDataNotification("An unexpected error ocurred, try again later.");
+                }
             },
         );
     };
