@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Layout, Row, Col, Dropdown } from "antd";
+import { Layout, Row, Col, Dropdown, Badge } from "antd";
 import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
@@ -13,28 +13,28 @@ import ArrowDown from "../../assets/icons/arrowDown.svg";
 import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
 import Logout from "../../assets/icons/logout.svg";
+import Circle from "../../assets/icons/ellipse.svg";
 import userDropdownSidenavItems from "ExternalComponents/DropdownComponent";
 
 const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 
-interface HeaderInterface {
-    path?: string;
-}
-
 interface HeaderState {
     notifications: Notification[];
     loaded: boolean;
+    path: string;
+    news: boolean;
 }
 
-export class CustomHeader extends Component<HeaderInterface, HeaderState> {
+export class CustomHeader extends Component<unknown, HeaderState> {
     state: HeaderState = {
         notifications: [],
         loaded: false,
+        path: "",
+        news: true,
     };
 
     async componentDidMount() {
-        // super(props);
         userDropdownSidenavItems.forEach((element: MenuItem) => {
             this.itemsUser?.push(element);
         });
@@ -52,14 +52,10 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
             style: { backgroundColor: "white" },
         });
         this.getNotifications();
+        this.setState({ path: document.location.pathname });
     }
 
-    // async componentDidMount() {
-    //     this.getNotifications();
-    // }
-
     apiService = ApiService();
-    path = this.props.path;
     static contextType = UserContext;
 
     getNotifications = async (): Promise<void> => {
@@ -67,6 +63,9 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
             pageSize: 3,
         };
         this.apiService.apiNotificationsList(requestParams).then((response) => {
+            if (response.results[0].seen && response.results[1].seen && response.results[2].seen) {
+                this.setState({ news: false });
+            }
             this.setState({ notifications: response.results, loaded: true });
             console.log(response.results);
         });
@@ -144,9 +143,31 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
         {
             key: "1",
             label: (
-                <Content className="bg-white w-96">
+                <Content className="w-[360px] mt-1">
                     {this.state.notifications.map((notification) => (
-                        <p key={notification.nid}>{notification.message}</p>
+                        <div
+                            onClick={() => {
+                                history.push("/notifications/inbox");
+                            }}
+                            className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
+                            key={notification.nid}
+                        >
+                            {!notification.seen ? (
+                                <Badge count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}></Badge>
+                            ) : (
+                                <Badge count={<Circle className="fill-estela-blue-low h-2 mr-2 my-1" />}></Badge>
+                            )}
+                            <div>
+                                <span className="font-semibold text-sm capitalize">
+                                    {notification.user.email == AuthService.getUserEmail()
+                                        ? "You"
+                                        : notification.user.username}
+                                </span>
+                                {AuthService.getUserEmail() == notification.user.email ? " have " : " has "}
+                                {notification.message}
+                                <p className="text-xs font-light">{notification.createdAt?.toDateString()}</p>
+                            </div>
+                        </div>
                     ))}
                 </Content>
             ),
@@ -155,7 +176,7 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
         {
             key: "2",
             label: (
-                <Content className="bg-white w-96">
+                <Content>
                     <Link
                         className="text-estela-blue-full h-8 items-center text-center rounded-md hover:text-estela-blue-full hover:bg-estela-blue-low font-semibold flex justify-center"
                         to={"/notifications/inbox"}
@@ -169,7 +190,7 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
     ];
 
     render(): JSX.Element {
-        const { loaded } = this.state;
+        const { loaded, path, news } = this.state;
         return (
             <>
                 {loaded && (
@@ -182,13 +203,22 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
                             </Col>
                             <Col flex={0.06}>
                                 <Dropdown menu={{ items: this.notificationItems() }} trigger={["click"]}>
-                                    {this.path === "/notifications/inbox" ? (
-                                        <a className="flex justify-center items-center border border-estela stroke-estela rounded-lg bg-estela-blue-low w-10 p-2 m-1">
-                                            <Message className="w-8 h-8" />
+                                    {path === "/notifications/inbox" ? (
+                                        <a className="flex justify-center items-center border-estela stroke-estela rounded-lg bg-estela-blue-low w-12 h-12">
+                                            <Message className="w-6 h-6" />
                                         </a>
                                     ) : (
-                                        <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-10 p-2 m-1">
-                                            <Message className="w-8 h-8" />
+                                        <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-12 h-12">
+                                            <Badge
+                                                offset={[0, 2]}
+                                                count={
+                                                    news ? (
+                                                        <Circle className="fill-estela-red-full stroke-estela-red-full h-2" />
+                                                    ) : null
+                                                }
+                                            >
+                                                <Message className="w-6 h-6" />
+                                            </Badge>
                                         </a>
                                     )}
                                 </Dropdown>
@@ -202,10 +232,10 @@ export class CustomHeader extends Component<HeaderInterface, HeaderState> {
                                             </Col>
                                             <Row className="grid grid-cols-1 my-3" align="middle">
                                                 <Col className="font-medium text-sm h-6">{this.getUser()}</Col>
-                                                {this.getUserRole() !== "" && (
-                                                    <Col className="text-estela-black-medium text-xs h-4">
+                                                {this.getUserRole() && (
+                                                    <p className="text-estela-black-medium capitalize text-xs h-4">
                                                         {this.getUserRole()}
-                                                    </Col>
+                                                    </p>
                                                 )}
                                             </Row>
                                             <Col className="my-5">
