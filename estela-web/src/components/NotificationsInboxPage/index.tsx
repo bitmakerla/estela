@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import { Layout, Badge } from "antd";
+import { Layout, Badge, Pagination } from "antd";
 import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
-import { Spin } from "../../shared";
+import { Spin, PaginationItem } from "../../shared";
 import Circle from "../../assets/icons/ellipse.svg";
 import "./styles.scss";
 
@@ -10,6 +10,8 @@ const { Content } = Layout;
 interface NotificationInboxState {
     notifications: Notification[];
     loaded: boolean;
+    count: number;
+    current: number;
 }
 
 export class NotificationsInboxPage extends Component<unknown, NotificationInboxState> {
@@ -17,34 +19,52 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
     state: NotificationInboxState = {
         notifications: [],
         loaded: false,
+        count: 0,
+        current: 1,
     };
 
     apiService = ApiService();
 
     async componentDidMount(): Promise<void> {
-        this.getNotifications();
+        this.getNotifications(1);
     }
 
-    getNotifications = async (): Promise<void> => {
+    getNotifications = async (page: number): Promise<void> => {
         const requestParams: ApiNotificationsListRequest = {
             pageSize: this.PAGE_SIZE,
+            page: page,
         };
         this.apiService.apiNotificationsList(requestParams).then((response) => {
-            this.setState({ notifications: response.results, loaded: true });
-            console.log(response.results);
+            this.setState({ notifications: response.results, loaded: true, count: response.count, current: page });
+            // console.log(response);
         });
     };
 
+    onPageChange = async (page: number): Promise<void> => {
+        await this.getNotifications(page);
+    };
+
+    changeNotificationStatus(nid: number | undefined): void {
+        // this.apiService.apiNotificationsUpdate(nid, { seen: true }).then((response) => {
+        //     console.log(response);
+        // });
+        const notifications = this.state.notifications;
+        const index = notifications.findIndex((notification) => notification.nid == nid);
+        notifications[index].seen = true;
+        this.setState({ notifications: notifications });
+    }
+
     render(): JSX.Element {
-        const { loaded, notifications } = this.state;
+        const { loaded, notifications, count, current } = this.state;
         return (
-            <Layout className="bg-white rounded-2xl">
+            <Layout className="bg-white rounded-r-2xl">
                 <Content className="m-10">
                     <p className="text-2xl mb-6 text-black">Inbox</p>
                     {loaded ? (
                         <Content>
                             {notifications.map((notification) => (
                                 <div
+                                    onClick={() => this.changeNotificationStatus(notification.nid)}
                                     className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
                                     key={notification.nid}
                                 >
@@ -71,6 +91,16 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                     </div>
                                 </div>
                             ))}
+                            <Pagination
+                                className="pagination"
+                                defaultCurrent={1}
+                                total={count}
+                                current={current}
+                                pageSize={this.PAGE_SIZE}
+                                onChange={this.onPageChange}
+                                showSizeChanger={false}
+                                itemRender={PaginationItem}
+                            />
                         </Content>
                     ) : (
                         <Spin />
