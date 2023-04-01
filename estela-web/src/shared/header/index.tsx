@@ -97,6 +97,21 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         history.push("/login");
     };
 
+    renderNotificationIcon = (inbox: boolean): React.ReactNode => {
+        const { news } = this.state;
+        const color = inbox
+            ? "stroke-estela-blue-full bg-estela-blue-low border border-estela-blue-full"
+            : "hover:stroke-estela-blue-full stroke-estela-black-full hover:bg-estela-blue-low";
+        const circleStyle = "fill-estela-red-full stroke-estela-red-full h-2";
+        return (
+            <a className={`flex justify-center items-center rounded-lg w-14 h-14 ${color}`}>
+                <Badge offset={[0, 2]} count={news ? <Circle className={circleStyle} /> : null}>
+                    <Message className="w-6 h-6" />
+                </Badge>
+            </a>
+        );
+    };
+
     itemsUser: MenuProps["items"] = [
         {
             key: "1",
@@ -146,6 +161,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                     {this.state.notifications.map((notification) => (
                         <div
                             onClick={() => {
+                                this.setState({ path: "/notifications/inbox" });
                                 history.push("/notifications/inbox");
                             }}
                             className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
@@ -154,7 +170,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                             {!notification.seen ? (
                                 <Badge count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}></Badge>
                             ) : (
-                                <Badge count={<Circle className="fill-estela-blue-low h-2 mr-2 my-1" />}></Badge>
+                                <div className="mr-[22px]"></div>
                             )}
                             <div>
                                 <span className="font-semibold text-sm capitalize">
@@ -177,7 +193,11 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         {
             key: "2",
             label: (
-                <Content>
+                <Content
+                    onClick={() => {
+                        this.setState({ path: "/notifications/inbox" });
+                    }}
+                >
                     <Link
                         className="text-estela-blue-full h-8 items-center text-center rounded-md hover:text-estela-blue-full hover:bg-estela-blue-low font-semibold flex justify-center"
                         to={"/notifications/inbox"}
@@ -191,7 +211,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     ];
 
     render(): JSX.Element {
-        const { loaded, path, news } = this.state;
+        const { loaded, path } = this.state;
         return (
             <>
                 {loaded && (
@@ -204,45 +224,24 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                             </Col>
                             <Col flex={0.06}>
                                 <Dropdown menu={{ items: this.notificationItems() }} trigger={["click"]}>
-                                    {path === "/notifications/inbox" ? (
-                                        <a className="flex justify-center items-center border-estela stroke-estela rounded-lg bg-estela-blue-low w-12 h-12">
-                                            <Message className="w-6 h-6" />
-                                        </a>
-                                    ) : (
-                                        <a className="flex justify-center items-center hover:stroke-estela stroke-black hover:bg-button-hover rounded-lg w-12 h-12">
-                                            <Badge
-                                                offset={[0, 2]}
-                                                count={
-                                                    news ? (
-                                                        <Circle className="fill-estela-red-full stroke-estela-red-full h-2" />
-                                                    ) : null
-                                                }
-                                            >
-                                                <Message className="w-6 h-6" />
-                                            </Badge>
-                                        </a>
-                                    )}
+                                    {this.renderNotificationIcon(path === "/notifications/inbox")}
                                 </Dropdown>
                             </Col>
                             <Col>
                                 <Dropdown menu={{ items: this.itemsUser }} trigger={["click"]}>
-                                    <a className="flex items-center px-2 hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full rounded-lg">
-                                        <Row className="flex grid-cols-3 justify-center gap-3">
-                                            <Col className="my-5">
-                                                <User className="stroke-estela h-6 w-6" />
-                                            </Col>
-                                            <Row className="grid grid-cols-1 my-3" align="middle">
-                                                <Col className="font-medium text-sm h-6">{this.getUser()}</Col>
-                                                {this.getUserRole() && (
-                                                    <p className="text-estela-black-medium capitalize text-xs h-4">
+                                    <a className="flex hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full h-14 px-5 rounded-lg">
+                                        <div className="flex gap-5">
+                                            <User className="stroke-estela rounded-full bg-white h-9 w-9 p-1 my-auto" />
+                                            <Row className="grid grid-cols-1 my-auto" align="middle">
+                                                <Col className="font-medium text-base h-6">{this.getUser()}</Col>
+                                                {this.getUserRole() !== "" && (
+                                                    <Col className="text-estela-black-medium capitalize text-sm h-6">
                                                         {this.getUserRole()}
-                                                    </p>
+                                                    </Col>
                                                 )}
                                             </Row>
-                                            <Col className="my-5">
-                                                <ArrowDown className="stroke-estela h-5 w-5" />
-                                            </Col>
-                                        </Row>
+                                            <ArrowDown className="stroke-estela h-5 w-4 my-auto" />
+                                        </div>
                                     </a>
                                 </Dropdown>
                             </Col>

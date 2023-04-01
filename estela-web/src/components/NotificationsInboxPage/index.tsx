@@ -73,9 +73,7 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                             count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}
                                         ></Badge>
                                     ) : (
-                                        <Badge
-                                            count={<Circle className="fill-estela-blue-low h-2 mr-2 my-1" />}
-                                        ></Badge>
+                                        <div className="mr-[22px]"></div>
                                     )}
                                     <div className="text-estela-black-medium">
                                         <span className="font-semibold text-estela-black-full text-sm capitalize">
