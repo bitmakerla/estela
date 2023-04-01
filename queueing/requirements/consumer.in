@@ -1,6 +1,4 @@
 pip-tools
-kafka-python
 pymongo[srv]
 black
-boto3<=1.17
-botocore
+git+https://github.com/bitmakerla/estela-queue-adapter.git
