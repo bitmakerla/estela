@@ -23,7 +23,8 @@ import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
 import { SettingsProfilePage } from "../components/SettingsProfilePage";
 import { SettingsPasswordPage } from "../components/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../components/SettingsDataPersistencePage";
-import { ChangePasswordPage } from "../components/ChangePasswordPage";
+import { ForgotPasswordPage } from "../components/ForgotPasswordPage";
+import { ResetPasswordPage } from "../components/ResetPasswordPage";
 import { ProjectLayout, AuthLayout, MainLayout, NotificationsLayout, SettingsLayout } from "../shared";
 import { PrivateRoute } from "../shared";
 
@@ -34,11 +35,12 @@ export const MainRoutes: React.FC = () => {
                 <Redirect to="/login" />
             </Route>
 
-            <Route path={["/login", "/register", "/change_password"]} exact>
+            <Route path={["/login", "/register", "/forgotPassword", "/resetPassword"]} exact>
                 <AuthLayout>
                     <Route path="/login" component={LoginPage} exact />
                     <Route path="/register" component={RegisterPage} exact />
-                    <Route path="/change_password" component={ChangePasswordPage} exact />
+                    <Route path="/forgotPassword" component={ForgotPasswordPage} exact />
+                    <Route path="/resetPassword" component={ResetPasswordPage} exact />
                 </AuthLayout>
             </Route>
 
