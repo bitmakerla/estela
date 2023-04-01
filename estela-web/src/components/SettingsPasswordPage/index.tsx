@@ -1,84 +1,196 @@
 import React, { Component } from "react";
-import { Button, Layout, Space } from "antd";
-
+import { Button, Layout, Space, Modal, Typography, Form, Row, Col, Input } from "antd";
+import type { FormInstance } from "antd/es/form/Form";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiAccountChangePasswordRequestRequest } from "../../services/api";
-import { Spin } from "../../shared";
+import { ApiAccountChangePasswordChangeRequest } from "../../services/api";
+import { nonExistentUserNotification, passwordChangedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
+const { Text } = Typography;
 
 interface PasswordSettingsPageState {
     loaded: boolean;
     email: string;
-    requestSended: boolean;
+    successfullyChanged: boolean;
     loadingSendRequest: boolean;
+    showPasswordModal: boolean;
+    newPassword: string;
+    confirmNewPassword: string;
 }
 
 export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPageState> {
     state: PasswordSettingsPageState = {
         loaded: false,
         email: "",
-        requestSended: false,
+        successfullyChanged: false,
         loadingSendRequest: false,
+        showPasswordModal: false,
+        newPassword: "",
+        confirmNewPassword: "",
     };
 
     apiService = ApiService();
+    newPasswordsForm = React.createRef<FormInstance<{ newPassword: string; confirmNewPassword: string }>>();
+    oldPasswordForm = React.createRef<FormInstance<{ password: string }>>();
 
     async componentDidMount(): Promise<void> {
         this.setState({ loaded: true, email: AuthService.getUserEmail() || "" });
     }
 
-    handleSendRequest = () => {
+    onFinishNewPasswordsHandler = () => {
+        this.setState({
+            showPasswordModal: true,
+        });
+    };
+
+    onValuesChangeNewPasswordsHandler = ({
+        newPassword,
+        confirmNewPassword,
+    }: {
+        newPassword: string;
+        confirmNewPassword: string;
+    }) => {
+        if (newPassword) this.setState({ newPassword });
+        if (confirmNewPassword) this.setState({ confirmNewPassword });
+        this.newPasswordsForm.current?.validateFields();
+    };
+
+    onFinishPasswordFormHandler = (values: { password: string }) => {
         this.setState({ loadingSendRequest: true });
-        const requestParameters: ApiAccountChangePasswordRequestRequest = {
-            data: { email: this.state.email },
+        const requestParams: ApiAccountChangePasswordChangeRequest = {
+            data: {
+                newPassword: this.state.newPassword,
+                confirmNewPassword: this.state.confirmNewPassword,
+                oldPassword: values.password,
+            },
         };
-        this.apiService.apiAccountChangePasswordRequest(requestParameters).then(
+        this.apiService.apiAccountChangePasswordChange(requestParams).then(
             (response) => {
                 if (response) {
-                    this.setState({ requestSended: true, loadingSendRequest: false });
+                    passwordChangedNotification();
+                    this.setState({ loadingSendRequest: false, successfullyChanged: true, showPasswordModal: false });
                 }
             },
             (error) => {
-                console.log(error);
+                console.error(error);
+                nonExistentUserNotification();
+                this.oldPasswordForm.current?.resetFields();
                 this.setState({ loadingSendRequest: false });
             },
         );
     };
 
     render(): JSX.Element {
-        const { loaded, requestSended, loadingSendRequest, email } = this.state;
+        const { loaded, successfullyChanged, showPasswordModal, loadingSendRequest } = this.state;
         return (
             <>
                 {loaded ? (
                     <Content className="mx-6 px-14 bg-white">
-                        <Space direction="vertical" className="w-full 2xl:w-9/12 my-4">
-                            <div className="">
+                        <Row className="w-full my-4">
+                            <div className="float-left">
                                 <p className="text-3xl">Change password</p>
-                                <p className="mt-4 text-base text-estela-black-medium">
-                                    If you want to reset your password, request a password change sending an email to{" "}
-                                    {"***".concat(email.slice(3))}
-                                </p>
                             </div>
-                            {!requestSended ? (
+                        </Row>
+                        <Form
+                            layout="vertical"
+                            onFinish={this.onFinishNewPasswordsHandler}
+                            onValuesChange={this.onValuesChangeNewPasswordsHandler}
+                            ref={this.newPasswordsForm}
+                        >
+                            <Space direction="vertical" className="w-full 2xl:w-9/12 my-2">
+                                <Form.Item
+                                    label={<p className="text-estela-black-low">New password</p>}
+                                    name="newPassword"
+                                    rules={[{ required: true, message: "Please enter new password." }]}
+                                >
+                                    <Input.Password className="border-estela-black-low rounded-md py-3" />
+                                </Form.Item>
+                                <Form.Item
+                                    label={<p className="text-estela-black-low">Confirm new password</p>}
+                                    name="confirmNewPassword"
+                                    rules={[
+                                        { required: true, message: "Please confirm new password." },
+                                        {
+                                            message: "Passwords do not match.",
+                                            validator: (_, value) => {
+                                                if (
+                                                    value === this.state.newPassword ||
+                                                    value === undefined ||
+                                                    value === ""
+                                                )
+                                                    return Promise.resolve();
+                                                return Promise.reject();
+                                            },
+                                        },
+                                    ]}
+                                >
+                                    <Input.Password className="border-estela-black-low rounded-md py-3" />
+                                </Form.Item>
                                 <Button
                                     block
-                                    loading={loadingSendRequest}
-                                    className="my-8 border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md h-12"
-                                    onClick={this.handleSendRequest}
+                                    htmlType="submit"
+                                    className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-12"
+                                    disabled={successfullyChanged}
                                 >
-                                    Send request
+                                    Save changes
                                 </Button>
-                            ) : (
-                                <Button
-                                    block
-                                    className="my-8 border-estela-black-low bg-estela-black-low hover:border-estela-black-low hover:bg-estela-black-low hover:text-white text-white rounded-md h-12"
+                            </Space>
+                        </Form>
+                        <Modal
+                            open={showPasswordModal}
+                            footer={false}
+                            width={600}
+                            title={
+                                <p className="text-xl text-center text-estela-black-medium font-normal">
+                                    CONFIRM ACTION
+                                </p>
+                            }
+                            onCancel={() => this.setState({ showPasswordModal: false })}
+                        >
+                            <div className="p-2 grid justify-items-center">
+                                <Text className="text-estela-black-full text-base">
+                                    Enter your current password to save your changes.
+                                </Text>
+                            </div>
+                            <div className="py-4 px-8">
+                                <Form
+                                    labelCol={{ span: 24 }}
+                                    wrapperCol={{ span: 24 }}
+                                    onFinish={this.onFinishPasswordFormHandler}
+                                    ref={this.oldPasswordForm}
                                 >
-                                    Request sended
-                                </Button>
-                            )}
-                        </Space>
+                                    <Form.Item
+                                        label={<p className="text-estela-black-full text-base">Password</p>}
+                                        name="password"
+                                        rules={[{ required: true, message: "Please enter your Password!" }]}
+                                    >
+                                        <Input.Password className="border-estela-black-low rounded-md py-3" />
+                                    </Form.Item>
+                                    <Row className="mt-4 grid grid-cols-2 gap-2" align="middle" justify="center">
+                                        <Col>
+                                            <Button
+                                                size="large"
+                                                loading={loadingSendRequest}
+                                                className="w-full h-12 items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                                htmlType="submit"
+                                            >
+                                                Confirm
+                                            </Button>
+                                        </Col>
+                                        <Col>
+                                            <Button
+                                                size="large"
+                                                className="w-full h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                                onClick={() => this.setState({ showPasswordModal: false })}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            </div>
+                        </Modal>
                     </Content>
                 ) : (
                     <Spin />

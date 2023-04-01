@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Form, Space, Typography, Input, Layout } from "antd";
+import { Button, Form, Space, Typography, Input, Layout, Row } from "antd";
 import { Link } from "react-router-dom";
 
 import "./styles.scss";
@@ -7,6 +7,7 @@ import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthRegisterRequest, Token } from "../../services/api";
 import Bitmaker from "../../assets/logo/bitmaker.svg";
+import Estela from "../../assets/icons/estela.svg";
 import { insecurePasswordNotification, emailConfirmationNotification } from "../../shared";
 
 import { handleInvalidDataError } from "../../utils";
@@ -80,16 +81,17 @@ export class RegisterPage extends Component<unknown> {
         return (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
-                    <Content className="">
+                    <Content>
+                        <Bitmaker className="w-64 h-48" />
                         <p className="text-5xl font-bold">
-                            Stable, reliable and <span className="text-estela">open source</span>
+                            Stable, reliable and <span className="text-estela">open source</span>.
                         </p>
-                        <p className="text-3xl font-normal py-2 sm:p-auto">
-                            Scraped <span className="text-estela">when</span> you want it.
+                        <p className="text-3xl font-normal py-6 sm:p-auto">
+                            Scrape <span className="text-estela">when </span>you want it.
                         </p>
                         <Space className="my-4">
                             <Text className="text-sm font-normal">Powered by&nbsp;</Text>
-                            <Bitmaker className="w-28 h-12" />
+                            <Estela className="w-24 h-8" />
                         </Space>
                     </Content>
                 </Content>
@@ -102,7 +104,7 @@ export class RegisterPage extends Component<unknown> {
                                 required
                                 rules={[{ required: true, message: "Please input your email", type: "email" }]}
                             >
-                                <Input autoComplete="email" className="border-estela rounded-md" />
+                                <Input autoComplete="email" className="border-estela rounded-md py-2" />
                             </Form.Item>
                             <Form.Item
                                 label="Username"
@@ -110,7 +112,7 @@ export class RegisterPage extends Component<unknown> {
                                 required
                                 rules={[{ required: true, message: "Please input your username" }]}
                             >
-                                <Input autoComplete="username" className="border-estela rounded-md" />
+                                <Input autoComplete="username" className="border-estela rounded-md py-2" />
                             </Form.Item>
                             <Form.Item
                                 label="Password"
@@ -118,20 +120,28 @@ export class RegisterPage extends Component<unknown> {
                                 required
                                 rules={[{ required: true, message: "Please input your password" }]}
                             >
-                                <Input.Password autoComplete="current-password" className="border-estela rounded-md" />
+                                <Input.Password
+                                    autoComplete="current-password"
+                                    className="border-estela rounded-md py-2"
+                                />
                             </Form.Item>
+                            <Row justify="end" className="mb-4">
+                                <Link to="/forgotPassword" className="text-estela text-base font-bold text-right">
+                                    Forgot password?
+                                </Link>
+                            </Row>
                         </Content>
                         <Button
                             block
                             htmlType="submit"
-                            className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm"
+                            className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10"
                         >
                             Register
                         </Button>
                         <Content className="text-center text-base m-5">
                             <p>If you already have an account. You can</p>
                             <p>
-                                <Link className="text-estela text-base underline" to="/login">
+                                <Link className="text-estela text-base font-bold underline" to="/login">
                                     login here
                                 </Link>
                             </p>
