@@ -8,6 +8,7 @@ from api.serializers.project import UserDetailSerializer
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import AuthenticationFailed
 
+
 class UserSerializer(serializers.ModelSerializer):
     """A serializer for our user objects."""
 
@@ -75,17 +76,19 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
         fields = ["username", "email"]
 
 
-class ChangePasswordRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-
-
-class ChangePasswordConfirmSerializer(serializers.Serializer):
-    old_password = serializers.CharField(required=True, style={"input_type": "password"})
-    new_password = serializers.CharField(required=True, style={"input_type": "password"})
-    new_password_confirm = serializers.CharField(required=True, style={"input_type": "password"})
+class ChangePasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(
+        required=True, style={"input_type": "password"}
+    )
+    confirm_new_password = serializers.CharField(
+        required=True, style={"input_type": "password"}
+    )
+    old_password = serializers.CharField(
+        required=True, style={"input_type": "password"}
+    )
 
     def validate(serlf, attrs):
-        if attrs["new_password"] != attrs["new_password_confirm"]:
+        if attrs["new_password"] != attrs["confirm_new_password"]:
             raise serializers.ValidationError(
                 {"new_password": "New passwords do not match."}
             )
@@ -100,3 +103,23 @@ class ChangePasswordConfirmSerializer(serializers.Serializer):
             msg = _("Incorrect authentication credentials.")
             raise AuthenticationFailed(msg, code="authentication_failed")
         return value
+
+
+class ResetPasswordRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class ResetPasswordConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(
+        required=True, style={"input_type": "password"}
+    )
+    confirm_new_password = serializers.CharField(
+        required=True, style={"input_type": "password"}
+    )
+
+    def validate(serlf, attrs):
+        if attrs["new_password"] != attrs["confirm_new_password"]:
+            raise serializers.ValidationError(
+                {"new_password": "New passwords do not match."}
+            )
+        return attrs

@@ -22,8 +22,9 @@ from api.serializers.auth import (
     TokenSerializer,
     UserSerializer,
     UserProfileSerializer,
-    ChangePasswordRequestSerializer,
-    ChangePasswordConfirmSerializer
+    ChangePasswordSerializer,
+    ResetPasswordRequestSerializer,
+    ResetPasswordConfirmSerializer
 )
 from core.views import (
     send_verification_email,
@@ -191,6 +192,31 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
 class ChangePasswordViewSet(viewsets.GenericViewSet):
+    @swagger_auto_schema(
+        request_body=ChangePasswordSerializer,
+        responses={status.HTTP_200_OK: TokenSerializer()},
+    )
+    @action(
+        methods=["PATCH"],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        authentication_classes=[TokenAuthentication],
+        serializer_class=ChangePasswordSerializer,
+    )
+    def change(self, request, *args, **kwargs):
+        user = request.user
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={"user": user}
+        )
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.data["new_password"])
+        user.save()
+        send_alert_password_changed(user, request)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+
+
+class ResetPasswordViewSet(viewsets.GenericViewSet):
     manual_parameters = [
         openapi.Parameter(
             "token",
@@ -220,17 +246,15 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.IsAuthenticated],
-        authentication_classes=[TokenAuthentication],
-        serializer_class=ChangePasswordRequestSerializer,
+        serializer_class=ResetPasswordRequestSerializer,
     )
     def request(self, request, *args, **kwargs):
-        serializer = ChangePasswordRequestSerializer(data=request.data)
+        serializer = ResetPasswordRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
+        email = serializer.validated_data["email"]
         user = User.objects.filter(email=email)
         if not user:
-            raise UserNotFoundError({"error": "User does not exist."})
+            raise UserNotFoundError()
         user = user.get()
         try:
             send_change_password_email(user, request)
@@ -266,7 +290,7 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
         token, user_id = self.get_parameters(request)
         user = User.objects.filter(pk=user_id)
         if not user:
-            raise UserNotFoundError({"error": "User does not exist."})
+            raise UserNotFoundError()
         user = user.get()
         if account_reset_token.check_token(user, token):
             return Response(data={"message": "Token is valid."}, status=status.HTTP_200_OK)
@@ -289,27 +313,18 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
     @action(
         methods=["PATCH"],
         detail=False,
-        serializer_class=ChangePasswordConfirmSerializer
+        serializer_class=ResetPasswordConfirmSerializer
     )
     def confirm(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
         user = User.objects.filter(pk=user_id)
         if not user:
-            raise UserNotFoundError({
-                "error": "User not found."
-            })
+            raise UserNotFoundError()
         user = user.get()
-        serializer = ChangePasswordConfirmSerializer(data=request.data, context={'user': user})
+        serializer = ResetPasswordConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user.set_password(serializer.validated_data["new_password"])
         user.save()
-        try:
-            send_alert_password_changed(user, request)
-        except Exception:
-            raise EmailServiceError(
-                {
-                    "error": "There was an error sending the verification email. Please try again later."
-                }
-            )
-        token, created = Token.objects.get_or_create(user=user)
+        send_alert_password_changed(user, request)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
