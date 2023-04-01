@@ -4,7 +4,7 @@ import type { FormInstance } from "antd/es/form/Form";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiAccountChangePasswordChangeRequest } from "../../services/api";
-import { nonExistentUserNotification, passwordChangedNotification, Spin } from "../../shared";
+import { wrongPasswordNotification, passwordChangedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -69,12 +69,13 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
             (response) => {
                 if (response) {
                     passwordChangedNotification();
+                    this.newPasswordsForm.current?.resetFields();
                     this.setState({ loadingSendRequest: false, successfullyChanged: true, showPasswordModal: false });
                 }
             },
             (error) => {
                 console.error(error);
-                nonExistentUserNotification();
+                wrongPasswordNotification();
                 this.oldPasswordForm.current?.resetFields();
                 this.setState({ loadingSendRequest: false });
             },

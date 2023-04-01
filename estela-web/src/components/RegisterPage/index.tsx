@@ -97,6 +97,9 @@ export class RegisterPage extends Component<unknown> {
                 </Content>
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                     <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
+                        <Row justify="center" className="w-96 my-7">
+                            <Text className="text-3xl font-bold">Sign up</Text>
+                        </Row>
                         <Content className="">
                             <Form.Item
                                 label="Email"
@@ -125,11 +128,6 @@ export class RegisterPage extends Component<unknown> {
                                     className="border-estela rounded-md py-2"
                                 />
                             </Form.Item>
-                            <Row justify="end" className="mb-4">
-                                <Link to="/forgotPassword" className="text-estela text-base font-bold text-right">
-                                    Forgot password?
-                                </Link>
-                            </Row>
                         </Content>
                         <Button
                             block

@@ -73,3 +73,10 @@ export const passwordChangedNotification = (): void => {
         description: `Your password has been changed.`,
     });
 };
+
+export const wrongPasswordNotification = (): void => {
+    notification.error({
+        message: "Wrong Password",
+        description: `The password you provided is wrong.`,
+    });
+};

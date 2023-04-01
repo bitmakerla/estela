@@ -5,8 +5,9 @@ import { ApiService } from "../../services";
 import { ApiAccountResetPasswordRequestRequest } from "../../services/api";
 import Bitmaker from "../../assets/logo/bitmaker.svg";
 import Estela from "../../assets/icons/estela.svg";
-import { nonExistentUserNotification, Spin } from "../../shared";
+import { Spin } from "../../shared";
 import { Link } from "react-router-dom";
+import { handleInvalidDataError } from "../../utils";
 const { Text } = Typography;
 const { Content } = Layout;
 
@@ -33,16 +34,16 @@ export class ForgotPasswordPage extends Component<unknown, ForgotPasswordPageSta
     handleSubmit = ({ email }: { email: string }): void => {
         this.setState({ sendingRequest: true });
         const requestParams: ApiAccountResetPasswordRequestRequest = { data: { email } };
-        this.apiService.apiAccountResetPasswordRequest(requestParams).then(
-            () => {
+        this.apiService
+            .apiAccountResetPasswordRequest(requestParams)
+            .then(() => {
                 this.setState({ requestSended: true, email, sendingRequest: false });
-            },
-            () => {
-                nonExistentUserNotification();
+            })
+            .catch((error: unknown) => {
+                handleInvalidDataError(error);
                 this.formRef.current?.resetFields();
                 this.setState({ sendingRequest: false });
-            },
-        );
+            });
     };
 
     handleChangeEmail = (): void => {

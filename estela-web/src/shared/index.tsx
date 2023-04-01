@@ -15,6 +15,7 @@ export {
     emailConfirmationNotification,
     dataDeletedNotification,
     passwordChangedNotification,
+    wrongPasswordNotification,
 } from "./notifications";
 export { PrivateRoute } from "./privateRoute";
 export * from "./layouts";

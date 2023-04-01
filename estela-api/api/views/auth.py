@@ -261,7 +261,7 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
         except Exception:
             raise EmailServiceError(
                 {
-                    "error": "There was an error sending the verification email. Please try again later."
+                    "error": "There was an error sending the password reset email. Please try again later."
                 }
             )
         token, created = Token.objects.get_or_create(user=user)

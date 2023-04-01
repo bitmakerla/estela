@@ -25,6 +25,7 @@ interface ResetPasswordPageState {
     linkExpired: boolean;
     newPassword: string;
     confirmNewPassword: string;
+    sendingRequest: boolean;
 }
 
 export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPasswordPageState> {
@@ -36,6 +37,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
         pair: "",
         newPassword: "",
         confirmNewPassword: "",
+        sendingRequest: false,
     };
     private formRef = React.createRef<FormInstance>();
     apiService = ApiService();
@@ -48,35 +50,38 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
             token: query.get("token") || "",
             pair: query.get("pair") || "",
         };
-        this.apiService.apiAccountResetPasswordValidate(requestParameters).then(
-            () => {
+        this.apiService
+            .apiAccountResetPasswordValidate(requestParameters)
+            .then(() => {
                 this.setState({
                     token: query.get("token") || "",
                     pair: query.get("pair") || "",
                     loaded: true,
                 });
-            },
-            (error: unknown) => {
+            })
+            .catch((error: unknown) => {
                 handleInvalidDataError(error);
                 this.setState({ linkExpired: true, loaded: true });
-            },
-        );
+            });
     }
 
     handleSubmit = (data: { newPassword: string; confirmNewPassword: string }): void => {
+        this.setState({ sendingRequest: true });
         const requestParameters: ApiAccountResetPasswordConfirmRequest = {
             token: this.state.token,
             pair: this.state.pair,
             data,
         };
-        this.apiService.apiAccountResetPasswordConfirm(requestParameters).then(
-            () => {
-                this.setState({ succesfullyChanged: true });
-            },
-            (error: unknown) => {
+        this.apiService
+            .apiAccountResetPasswordConfirm(requestParameters)
+            .then(() => {
+                this.setState({ succesfullyChanged: true, sendingRequest: false });
+            })
+            .catch((error: unknown) => {
                 handleInvalidDataError(error);
-            },
-        );
+                this.setState({ sendingRequest: false });
+                this.formRef.current?.resetFields();
+            });
     };
 
     onValuesChangeHandler = ({
@@ -96,7 +101,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
     };
 
     render(): JSX.Element {
-        const { loaded, succesfullyChanged, linkExpired } = this.state;
+        const { loaded, succesfullyChanged, linkExpired, sendingRequest } = this.state;
         return loaded ? (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
@@ -167,7 +172,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
                                         </Form.Item>
                                         <Form.Item
                                             label="Confirm new password"
-                                            name="ConfirmNewPassword"
+                                            name="confirmNewPassword"
                                             required
                                             rules={[
                                                 { required: true, message: "Plase, enter your new password." },
@@ -189,6 +194,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
                                         </Form.Item>
                                     </Content>
                                     <Button
+                                        loading={sendingRequest}
                                         block
                                         htmlType="submit"
                                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10 mt-5"
