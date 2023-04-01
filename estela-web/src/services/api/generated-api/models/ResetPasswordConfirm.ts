@@ -16,46 +16,39 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface ChangePasswordConfirm
+ * @interface ResetPasswordConfirm
  */
-export interface ChangePasswordConfirm {
+export interface ResetPasswordConfirm {
     /**
      * 
      * @type {string}
-     * @memberof ChangePasswordConfirm
-     */
-    oldPassword: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ChangePasswordConfirm
+     * @memberof ResetPasswordConfirm
      */
     newPassword: string;
     /**
      * 
      * @type {string}
-     * @memberof ChangePasswordConfirm
+     * @memberof ResetPasswordConfirm
      */
-    newPasswordConfirm: string;
+    confirmNewPassword: string;
 }
 
-export function ChangePasswordConfirmFromJSON(json: any): ChangePasswordConfirm {
-    return ChangePasswordConfirmFromJSONTyped(json, false);
+export function ResetPasswordConfirmFromJSON(json: any): ResetPasswordConfirm {
+    return ResetPasswordConfirmFromJSONTyped(json, false);
 }
 
-export function ChangePasswordConfirmFromJSONTyped(json: any, ignoreDiscriminator: boolean): ChangePasswordConfirm {
+export function ResetPasswordConfirmFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResetPasswordConfirm {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'oldPassword': json['old_password'],
         'newPassword': json['new_password'],
-        'newPasswordConfirm': json['new_password_confirm'],
+        'confirmNewPassword': json['confirm_new_password'],
     };
 }
 
-export function ChangePasswordConfirmToJSON(value?: ChangePasswordConfirm | null): any {
+export function ResetPasswordConfirmToJSON(value?: ResetPasswordConfirm | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -64,9 +57,8 @@ export function ChangePasswordConfirmToJSON(value?: ChangePasswordConfirm | null
     }
     return {
         
-        'old_password': value.oldPassword,
         'new_password': value.newPassword,
-        'new_password_confirm': value.newPasswordConfirm,
+        'confirm_new_password': value.confirmNewPassword,
     };
 }
 

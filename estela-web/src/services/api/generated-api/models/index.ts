@@ -1,6 +1,5 @@
 export * from './AuthToken';
-export * from './ChangePasswordConfirm';
-export * from './ChangePasswordRequest';
+export * from './ChangePassword';
 export * from './DeleteJobData';
 export * from './Deploy';
 export * from './DeployCreate';
@@ -19,6 +18,8 @@ export * from './ProjectCronJob';
 export * from './ProjectJob';
 export * from './ProjectUpdate';
 export * from './ProjectUsage';
+export * from './ResetPasswordConfirm';
+export * from './ResetPasswordRequest';
 export * from './Spider';
 export * from './SpiderCronJob';
 export * from './SpiderCronJobCreate';

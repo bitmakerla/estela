@@ -16,22 +16,22 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface ChangePasswordRequest
+ * @interface ResetPasswordRequest
  */
-export interface ChangePasswordRequest {
+export interface ResetPasswordRequest {
     /**
      * 
      * @type {string}
-     * @memberof ChangePasswordRequest
+     * @memberof ResetPasswordRequest
      */
     email: string;
 }
 
-export function ChangePasswordRequestFromJSON(json: any): ChangePasswordRequest {
-    return ChangePasswordRequestFromJSONTyped(json, false);
+export function ResetPasswordRequestFromJSON(json: any): ResetPasswordRequest {
+    return ResetPasswordRequestFromJSONTyped(json, false);
 }
 
-export function ChangePasswordRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): ChangePasswordRequest {
+export function ResetPasswordRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResetPasswordRequest {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -41,7 +41,7 @@ export function ChangePasswordRequestFromJSONTyped(json: any, ignoreDiscriminato
     };
 }
 
-export function ChangePasswordRequestToJSON(value?: ChangePasswordRequest | null): any {
+export function ResetPasswordRequestToJSON(value?: ResetPasswordRequest | null): any {
     if (value === undefined) {
         return undefined;
     }

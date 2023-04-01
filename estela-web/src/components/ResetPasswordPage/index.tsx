@@ -64,12 +64,12 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
     }
 
     handleSubmit = (data: { newPassword: string; confirmNewPassword: string }): void => {
-        const requestParams: ApiAccountResetPasswordConfirmRequest = {
+        const requestParameters: ApiAccountResetPasswordConfirmRequest = {
             token: this.state.token,
             pair: this.state.pair,
             data,
         };
-        this.apiService.apiAccountResetPasswordConfirm(requestParams).then(
+        this.apiService.apiAccountResetPasswordConfirm(requestParameters).then(
             () => {
                 this.setState({ succesfullyChanged: true });
             },
