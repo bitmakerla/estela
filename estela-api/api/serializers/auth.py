@@ -54,7 +54,6 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
     last_password_change = serializers.ReadOnlyField(
         source="userprofile.last_password_change", read_only=True
     )
-
     username = serializers.CharField(
         validators=[
             UniqueValidator(
@@ -71,34 +70,17 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
             )
         ]
     )
-
-    class Meta:
-        model = User
-        fields = ["username", "email", "last_password_change"]
-
-
-class UserProfileUpdateSerializer(serializers.HyperlinkedModelSerializer):
-    last_password_change = serializers.ReadOnlyField(
-        source="userprofile.last_password_change", read_only=True
-    )
-
-    username = serializers.CharField(
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(),
-                message="A user with that username already exists",
-            )
-        ]
-    )
-    email = serializers.CharField(
-        validators=[
-            UniqueValidator(
-                queryset=User.objects.all(),
-                message="A user with that email already exists",
-            )
-        ]
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
     )
 
     class Meta:
         model = User
         fields = ["username", "email", "password", "last_password_change"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields.pop('password')
+

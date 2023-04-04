@@ -96,9 +96,6 @@ import {
     UserProfile,
     UserProfileFromJSON,
     UserProfileToJSON,
-    UserProfileUpdate,
-    UserProfileUpdateFromJSON,
-    UserProfileUpdateToJSON,
 } from '../models';
 
 export interface ApiAuthLoginRequest {
@@ -124,7 +121,7 @@ export interface ApiAuthProfileReadRequest {
 
 export interface ApiAuthProfileUpdateRequest {
     username: string;
-    data: UserProfileUpdate;
+    data: UserProfile;
 }
 
 export interface ApiAuthRegisterRequest {
@@ -653,7 +650,7 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
-            body: UserProfileUpdateToJSON(requestParameters.data),
+            body: UserProfileToJSON(requestParameters.data),
         });
 
         return new runtime.JSONApiResponse(response, (jsonValue) => UserProfileFromJSON(jsonValue));

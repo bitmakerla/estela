@@ -34,6 +34,5 @@ models/UsageRecord.ts
 models/User.ts
 models/UserDetail.ts
 models/UserProfile.ts
-models/UserProfileUpdate.ts
 models/index.ts
 runtime.ts

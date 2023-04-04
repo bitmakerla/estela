@@ -136,7 +136,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserProfileUpdate'
+            $ref: '#/definitions/UserProfile'
       responses:
         '200':
           description: ''
@@ -1059,24 +1059,6 @@ definitions:
     required:
       - username
       - email
-    type: object
-    properties:
-      username:
-        title: Username
-        type: string
-        minLength: 1
-      email:
-        title: Email
-        type: string
-        minLength: 1
-      last_password_change:
-        title: Last password change
-        type: string
-        readOnly: true
-  UserProfileUpdate:
-    required:
-      - username
-      - email
       - password
     type: object
     properties:
@@ -1091,7 +1073,6 @@ definitions:
       password:
         title: Password
         type: string
-        maxLength: 128
         minLength: 1
       last_password_change:
         title: Last password change

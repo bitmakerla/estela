@@ -22,7 +22,6 @@ from api.serializers.auth import (
     TokenSerializer,
     UserSerializer,
     UserProfileSerializer,
-    UserProfileUpdateSerializer,
 )
 from core.views import (
     send_verification_email,
@@ -175,7 +174,6 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=UserProfileUpdateSerializer,
         responses={status.HTTP_200_OK: UserProfileSerializer()},
     )
     def update(self, request, *args, **kwargs):
