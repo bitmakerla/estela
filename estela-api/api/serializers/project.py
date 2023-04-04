@@ -24,9 +24,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."
     )
-    name = serializers.CharField(
-        read_only=True, help_text="Project name."
-    )
+    name = serializers.CharField(read_only=True, help_text="Project name.")
 
     class Meta:
         model = Project

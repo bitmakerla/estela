@@ -31,7 +31,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         notifications: [],
         loaded: false,
         path: "",
-        news: true,
+        news: false,
     };
 
     async componentDidMount() {
@@ -63,9 +63,14 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             pageSize: 3,
         };
         this.apiService.apiNotificationsList(requestParams).then((response) => {
-            if (response.results[0].seen && response.results[1].seen && response.results[2].seen) {
-                this.setState({ news: false });
+            if (response.count === 0) {
+                this.setState({ news: false, loaded: true });
+                return;
             }
+            response.results.find((notification) => {
+                notification.seen === false;
+                this.setState({ news: true });
+            });
             this.setState({ notifications: response.results, loaded: true });
         });
     };
@@ -210,11 +215,25 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         },
     ];
 
+    noNotifications = (): MenuProps["items"] => [
+        {
+            key: "1",
+            label: (
+                <Content className="w-[320px] rounded-md p-2 hover:bg-estela-blue-low m-0">
+                    <p className="text-sm text-estela-blue-full font-medium">
+                        You don&apos;t have any notifications yet.
+                    </p>
+                </Content>
+            ),
+            style: { backgroundColor: "white" },
+        },
+    ];
+
     render(): JSX.Element {
-        const { loaded, path } = this.state;
+        const { path, loaded, notifications } = this.state;
         return (
             <>
-                {loaded && (
+                {loaded ? (
                     <Header className="bg-white h-[72px]">
                         <Row justify="center" align="middle" className="flex justify-center">
                             <Col flex={1} className="my-1">
@@ -223,7 +242,12 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                 </Link>
                             </Col>
                             <Col flex={0.06}>
-                                <Dropdown menu={{ items: this.notificationItems() }} trigger={["click"]}>
+                                <Dropdown
+                                    menu={{
+                                        items: notifications.length ? this.notificationItems() : this.noNotifications(),
+                                    }}
+                                    trigger={["click"]}
+                                >
                                     {this.renderNotificationIcon(path === "/notifications/inbox")}
                                 </Dropdown>
                             </Col>
@@ -247,6 +271,8 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                             </Col>
                         </Row>
                     </Header>
+                ) : (
+                    <></>
                 )}
             </>
         );

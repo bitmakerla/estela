@@ -45,9 +45,6 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
     };
 
     changeNotificationStatus(nid: number | undefined): void {
-        // this.apiService.apiNotificationsUpdate(nid, { seen: true }).then((response) => {
-        //     console.log(response);
-        // });
         const notifications = this.state.notifications;
         const index = notifications.findIndex((notification) => notification.nid == nid);
         notifications[index].seen = true;
@@ -82,7 +79,11 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                                 : notification.user.username}
                                         </span>
                                         {AuthService.getUserEmail() == notification.user.email ? " have " : " has "}
-                                        {notification.message}
+                                        {notification.message}&nbsp;In&nbsp;
+                                        <span className="font-semibold text-estela-black-full">
+                                            {notification.project.name}&apos;
+                                        </span>
+                                        s project.
                                         <p className="text-xs text-estela-black-low">
                                             {notification.createdAt?.toDateString()}
                                         </p>

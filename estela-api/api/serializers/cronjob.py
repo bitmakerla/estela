@@ -146,15 +146,15 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer, NotificationsHa
         if "schedule" in validated_data:
             instance.schedule = schedule
             update_schedule(name, schedule)
-            message = f"changed the schedule of scheduled-job {instance.cjid}"
+            message = f"changed the schedule of scheduled-job {instance.cjid}."
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
                 enable_cronjob(name)
-                message = f"enabled scheduled-job {instance.cjid}"
+                message = f"enabled scheduled-job {instance.cjid}."
             elif status == SpiderCronJob.DISABLED_STATUS:
                 disable_cronjob(name)
-                message = f"disabled scheduled-job {instance.cjid}"
+                message = f"disabled scheduled-job {instance.cjid}."
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
@@ -168,7 +168,7 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer, NotificationsHa
                     )
                 else:
                     instance.data_expiry_days = data_expiry_days
-                    message = "changed data persistence of scheduled-job {} to {} days".format(
+                    message = "changed data persistence of scheduled-job {} to {} days.".format(
                         instance.cjid, data_expiry_days
                     )
             else:
