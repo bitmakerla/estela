@@ -36,7 +36,6 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
         };
         this.apiService.apiNotificationsList(requestParams).then((response) => {
             this.setState({ notifications: response.results, loaded: true, count: response.count, current: page });
-            // console.log(response);
         });
     };
 
