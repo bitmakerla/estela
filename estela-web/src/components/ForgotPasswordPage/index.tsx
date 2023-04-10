@@ -75,7 +75,7 @@ export class ForgotPasswordPage extends Component<unknown, ForgotPasswordPageSta
                             <Text className="text-3xl font-bold">Forgot password</Text>
                             <Text className="text-center text-xl my-7 text-estela-black-medium">
                                 We have sent a dynamic link to <span className="font-bold">{email}</span>. Please check
-                                your imbox.
+                                your inbox.
                             </Text>
                             <Button type="link" className="font-bold text-estela" onClick={this.handleChangeEmail}>
                                 Change email
