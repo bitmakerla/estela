@@ -46,9 +46,15 @@ router.register(
     prefix=r"auth/profile", viewset=auth_views.UserProfileViewSet, basename="profile"
 )
 router.register(
-    prefix=r"account/change_password",
+    prefix=r"account/resetPassword",
+    viewset=auth_views.ResetPasswordViewSet,
+    basename="reset-password",
+)
+
+router.register(
+    prefix=r"account/changePassword",
     viewset=auth_views.ChangePasswordViewSet,
-    basename="reset_password",
+    basename="change-password",
 )
 
 urlpatterns = router.urls

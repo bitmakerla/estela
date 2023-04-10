@@ -7,13 +7,7 @@ from core.models import (
     SpiderJobArg,
     SpiderJobEnvVar,
     UsageRecord,
-    UserProfile,
 )
-
-
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(Project)

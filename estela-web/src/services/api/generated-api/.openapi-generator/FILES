@@ -3,6 +3,7 @@ apis/ApiApi.ts
 apis/index.ts
 index.ts
 models/AuthToken.ts
+models/ChangePassword.ts
 models/DeleteJobData.ts
 models/Deploy.ts
 models/DeployCreate.ts
@@ -13,12 +14,16 @@ models/InlineResponse2002.ts
 models/InlineResponse2003.ts
 models/InlineResponse2004.ts
 models/InlineResponse2005.ts
+models/InlineResponse2006.ts
+models/InlineResponse401.ts
 models/Permission.ts
 models/Project.ts
 models/ProjectCronJob.ts
 models/ProjectJob.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts
+models/ResetPasswordConfirm.ts
+models/ResetPasswordRequest.ts
 models/Spider.ts
 models/SpiderCronJob.ts
 models/SpiderCronJobCreate.ts
