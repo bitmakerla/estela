@@ -4,14 +4,15 @@ import sys
 import threading
 import time
 
-from utils import connect_kafka_producer
+from estela_queue_adapter import get_producer_interface
 
 
 BATCH_SIZE_THRESHOLD = int(os.getenv("BATCH_SIZE_THRESHOLD", "4096"))
 INSERT_TIME_THRESHOLD = int(os.getenv("INSERT_TIME_THRESHOLD", "5"))
 ACTIVITY_TIME_THRESHOLD = int(os.getenv("ACTIVITY_TIME_THRESHOLD", "600"))
 
-kafka_producer = connect_kafka_producer()
+producer = get_producer_interface()
+producer.get_connection()
 
 
 class Inserter:
@@ -43,7 +44,7 @@ class Inserter:
                 del item["payload"]["_id"]
             if response.need_upsert:
                 item["need_upsert"] = "True"
-            kafka_producer.send(self.topic, value=item)
+            producer.send(self.topic, item)
 
     def __insert_items(self, reason):
         response = self.__client.insert_many_to_collection(

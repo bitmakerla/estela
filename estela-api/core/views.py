@@ -58,7 +58,7 @@ def send_verification_email(user, request):
     email.send()
 
 
-def send_change_password_email(user, request):
+def send_change_password_email(user):
     mail_subject = "Change your estela password."
     to_email = user.email
     estela_domain = settings.CORS_ORIGIN_WHITELIST[0]
@@ -77,7 +77,7 @@ def send_change_password_email(user, request):
     email.send()
 
 
-def send_alert_password_changed(user, request):
+def send_alert_password_changed(user):
     mail_subject = "Your estela password has been changed."
     to_email = user.email
     message = render_to_string(

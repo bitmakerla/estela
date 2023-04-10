@@ -58,11 +58,10 @@ Dictionary with all the job information in JSON format. The fields are:
 | args | dict | Job arguments | `{"arg1": "val1", "arg2": "val2"}` | No |
 | env_vars | dict | Job environment variables | `{"env1": "val1", "env2": "val2"}` | No |
 
-### `KAFKA_ADVERTISED_LISTENERS` (Required)
+### `QUEUE_PLATFORM` (Required)
 
-List of advertised hosts in a comma-separated style.
-This field is required since estela uses Kafka to handle the data pipeline.
+The queue platform used by estela, review the list of the current [supported platforms](./../estela/queueing.html#supported-platforms).
 
-### `KAFKA_ADVERTISED_PORT` (Required)
+### `QUEUE_PLATFORM_{PARAMETERS}` (Required): 
 
-The port of the Kafka advertised listeners. Default value: `9092`.
+Please, refer to the estela Queue Adapter [documentation](./../estela/queueing.html#estela-queue-adapter) to declare the needed variables.

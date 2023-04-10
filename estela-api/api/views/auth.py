@@ -1,37 +1,38 @@
 from datetime import datetime, timezone
-from drf_yasg.utils import swagger_auto_schema
+
+from django.conf import settings
+from django.contrib.auth.models import User, update_last_login
+from django.core.mail import EmailMessage
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from drf_yasg import openapi
-from rest_framework import status, viewsets, permissions
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions, status, viewsets
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
-from api.tokens import account_reset_token
-from django.contrib.auth.models import User
-from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
-from django.conf import settings
-from django.contrib.auth.models import update_last_login
-from django.shortcuts import redirect
+
 from api.exceptions import EmailServiceError, UserNotFoundError
-from api.serializers.auth import (
-    TokenSerializer,
-    UserSerializer,
-    UserProfileSerializer,
-    ChangePasswordSerializer,
-    ResetPasswordRequestSerializer,
-    ResetPasswordConfirmSerializer
-)
-from core.views import (
-    send_verification_email,
-    send_change_password_email,
-    send_alert_password_changed,
-)
 from api.permissions import IsProfileUser
+from api.serializers.auth import (
+    ChangePasswordSerializer,
+    ResetPasswordConfirmSerializer,
+    ResetPasswordRequestSerializer,
+    TokenSerializer,
+    UserProfileSerializer,
+    UserSerializer,
+)
+from api.tokens import account_reset_token
+from core.views import (
+    send_alert_password_changed,
+    send_change_password_email,
+    send_verification_email,
+)
 
 
 class AuthAPIViewSet(viewsets.GenericViewSet):
@@ -65,7 +66,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @swagger_auto_schema(
@@ -83,13 +84,13 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         update_last_login(None, user)
         try:
             send_verification_email(user, request)
-        except Exception as ex:
+        except Exception:
             raise EmailServiceError(
                 {
                     "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
                 }
             )
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @action(methods=["GET"], detail=False)
@@ -153,7 +154,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user: User = request.user
         requested_user: User = User.objects.filter(username=kwargs["username"]).first()
 
-        if requested_user == None:
+        if requested_user is None:
             return Response(
                 data={"error": "This user doesn't exist in estela."},
                 status=status.HTTP_404_NOT_FOUND,
@@ -170,11 +171,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=UserProfileSerializer,
         responses={status.HTTP_200_OK: UserProfileSerializer()},
     )
     def update(self, request, *args, **kwargs):
+        username = kwargs.get("username", "")
         user: User = request.user
+        if username != user.username:
+            return Response(
+                data={"error": "This user doesn't exist in estela."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         user_data: dict = {
             "username": request.user.username,
             "password": request.data.get("password", ""),
@@ -205,13 +211,11 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
     )
     def change(self, request, *args, **kwargs):
         user = request.user
-        serializer = ChangePasswordSerializer(
-            data=request.data, context={"user": user}
-        )
+        serializer = ChangePasswordSerializer(data=request.data, context={"user": user})
         serializer.is_valid(raise_exception=True)
         user.set_password(serializer.data["new_password"])
         user.save()
-        send_alert_password_changed(user, request)
+        send_alert_password_changed(user)
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -257,14 +261,14 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
             raise UserNotFoundError()
         user = user.get()
         try:
-            send_change_password_email(user, request)
+            send_change_password_email(user)
         except Exception:
             raise EmailServiceError(
                 {
                     "error": "There was an error sending the password reset email. Please try again later."
                 }
             )
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @swagger_auto_schema(
@@ -275,13 +279,13 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "message": openapi.Schema(type=openapi.TYPE_STRING),
-                }
+                },
             ),
             status.HTTP_400_BAD_REQUEST: openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "message": openapi.Schema(type=openapi.TYPE_STRING),
-                }
+                },
             ),
         },
     )
@@ -293,9 +297,14 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
             raise UserNotFoundError()
         user = user.get()
         if account_reset_token.check_token(user, token):
-            return Response(data={"message": "Token is valid."}, status=status.HTTP_200_OK)
+            return Response(
+                data={"message": "Token is valid."}, status=status.HTTP_200_OK
+            )
         else:
-            return Response(data={"message": "Token is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={"message": "Token is invalid."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @swagger_auto_schema(
         methods=["PATCH"],
@@ -311,9 +320,7 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
         },
     )
     @action(
-        methods=["PATCH"],
-        detail=False,
-        serializer_class=ResetPasswordConfirmSerializer
+        methods=["PATCH"], detail=False, serializer_class=ResetPasswordConfirmSerializer
     )
     def confirm(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
@@ -325,6 +332,6 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
         user.set_password(serializer.validated_data["new_password"])
         user.save()
-        send_alert_password_changed(user, request)
+        send_alert_password_changed(user)
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)

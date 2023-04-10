@@ -31,6 +31,12 @@ export interface UserProfile {
      * @memberof UserProfile
      */
     email: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserProfile
+     */
+    password: string;
 }
 
 export function UserProfileFromJSON(json: any): UserProfile {
@@ -45,6 +51,7 @@ export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean
         
         'username': json['username'],
         'email': json['email'],
+        'password': json['password'],
     };
 }
 
@@ -59,6 +66,7 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
         
         'username': value.username,
         'email': value.email,
+        'password': value.password,
     };
 }
 

@@ -2,15 +2,15 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: kafka-items-consumer
+  name: queue-items-consumer
 spec:
   selector:
     matchLabels:
-      app: kafka-consumer
+      app: queue-consumer
   template:
     metadata:
       labels:
-        app: kafka-consumer
+        app: queue-consumer
     spec:
       {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
@@ -25,23 +25,23 @@ spec:
         command: ['python', 'consumer.py', 'job_items']
         envFrom:
         - secretRef:
-            name: kafka-secrets
+            name: queue-secrets
         - configMapRef:
-            name: kafka-config
+            name: queue-config
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: kafka-requests-consumer
+  name: queue-requests-consumer
 spec:
   selector:
     matchLabels:
-      app: kafka-consumer
+      app: queue-consumer
   template:
     metadata:
       labels:
-        app: kafka-consumer
+        app: queue-consumer
     spec:
       {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
@@ -56,23 +56,23 @@ spec:
         command: ['python', 'consumer.py', 'job_requests']
         envFrom:
         - secretRef:
-            name: kafka-secrets
+            name: queue-secrets
         - configMapRef:
-            name: kafka-config
+            name: queue-config
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: kafka-stats-consumer
+  name: queue-stats-consumer
 spec:
   selector:
     matchLabels:
-      app: kafka-consumer
+      app: queue-consumer
   template:
     metadata:
       labels:
-        app: kafka-consumer
+        app: queue-consumer
     spec:
       {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
@@ -87,23 +87,23 @@ spec:
         command: ['python', 'consumer.py', 'job_stats']
         envFrom:
         - secretRef:
-            name: kafka-secrets
+            name: queue-secrets
         - configMapRef:
-            name: kafka-config
+            name: queue-config
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: kafka-logs-consumer
+  name: queue-logs-consumer
 spec:
   selector:
     matchLabels:
-      app: kafka-consumer
+      app: queue-consumer
   template:
     metadata:
       labels:
-        app: kafka-consumer
+        app: queue-consumer
     spec:
       {{- if .Values.imagePullSecrets }}
       {{- with .Values.imagePullSecrets }}
@@ -118,6 +118,6 @@ spec:
         command: ['python', 'consumer.py', 'job_logs']
         envFrom:
         - secretRef:
-            name: kafka-secrets
+            name: queue-secrets
         - configMapRef:
-            name: kafka-config
+            name: queue-config

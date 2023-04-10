@@ -1,12 +1,12 @@
+from api.serializers.project import UserDetailSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
-from rest_framework.authtoken.models import Token
-from api.serializers.project import UserDetailSerializer
 from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
+from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.validators import UniqueValidator
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -53,7 +53,6 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
-
     username = serializers.CharField(
         validators=[
             UniqueValidator(
@@ -70,10 +69,16 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
             )
         ]
     )
+    password = serializers.CharField(style={"input_type": "password"}, write_only=True)
 
     class Meta:
         model = User
-        fields = ["username", "email"]
+        fields = ["username", "email", "password"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields.pop("password")
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -87,18 +92,27 @@ class ChangePasswordSerializer(serializers.Serializer):
         required=True, style={"input_type": "password"}
     )
 
-    def validate(serlf, attrs):
+    def validate(self, attrs):
         if attrs["new_password"] != attrs["confirm_new_password"]:
             raise serializers.ValidationError(
-                {"new_password": "New passwords do not match."}
+                {"new_password": "The new passwords do not match."}
             )
+
+        try:
+            validate_password(attrs["new_password"])
+        except ValidationError as e:
+            raise serializers.ValidationError({"new_password": str(e)})
+
+        if self.context["user"].check_password(attrs["new_password"]):
+            raise serializers.ValidationError(
+                {
+                    "new_password": "The new password cannot be the same as the old password."
+                }
+            )
+
         return attrs
 
     def validate_old_password(self, value):
-        try:
-            validate_password(value, self.context["user"])
-        except ValidationError as e:
-            raise serializers.ValidationError({"old_password": str(e)})
         if not self.context["user"].check_password(value):
             msg = _("Incorrect authentication credentials.")
             raise AuthenticationFailed(msg, code="authentication_failed")

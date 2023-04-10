@@ -20,8 +20,8 @@ into docker images and added to a Docker Registry.
 The [estela API]({% link estela/api/api.md %}) endpoint creates a [Kubernetes](https://kubernetes.io/) job
 to complete every spider job (it could also be a spider cronjob). Currently, estela only works with Kubernetes.
 However, you can [add your engine](https://www.zyte.com/scrapy-cloud/) to make it work with Docker or other engines.
-Jobs send spider jobs data to [Kafka](https://kafka.apache.org/) brokers through extensions and middlewares
-implemented in the [entry point]({% link estela-entrypoint/index.md %}). Kafka consumers read the information and send
+Jobs send spider jobs data to a queue platform, currently [Kafka](https://kafka.apache.org/), through extensions and middlewares
+implemented in the [entry point]({% link estela-entrypoint/index.md %}). The queue consumers read the information and send
 data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
 
 ## Architecture
@@ -36,7 +36,7 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
     care of deploying your Scrapy projects, among other things.
   - [Queueing](https://github.com/bitmakerla/estela/tree/main/queueing): estela needs a high-throughput, low-latency
     platform that controls real-time data feeds in a producer-consumer architecture. In this module, you will find a
-    Kafka consumer used to collect and transport the information from the spiders into a database.
+    consumer used to collect and transport the information from the spiders into a database.
   - [Web](https://github.com/bitmakerla/estela/tree/main/estela-web): A front-end project implemented with React
     Framework (with Ant Design) and Typescript. This module implements a user-friendly environment that communicates
     with the API and lets you manage your spiders and scraping projects.

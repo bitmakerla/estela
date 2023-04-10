@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 class IsProjectUser(BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_superuser:
+        if request.user.is_superuser or request.user.is_staff:
             return True
         pid = view.kwargs.get("pid")
         return bool(
@@ -43,11 +43,14 @@ class IsAdminOrReadOnly(BasePermission):
             return True
         # Write permissions are only allowed to the admin of the snippet.
         project = Project.objects.filter(pid=pid).get()
-        user_permission = request.user.permission_set.get(project=project)
-        if user_permission.permission in [
-            Permission.DEVELOPER_PERMISSION,
-            Permission.ADMIN_PERMISSION,
-            Permission.OWNER_PERMISSION,
-        ]:
-            return True
+        try:
+            user_permission = request.user.permission_set.get(project=project)
+            if user_permission.permission in [
+                Permission.DEVELOPER_PERMISSION,
+                Permission.ADMIN_PERMISSION,
+                Permission.OWNER_PERMISSION,
+            ]:
+                return True
+        except Permission.DoesNotExist:
+            return False
         return False
