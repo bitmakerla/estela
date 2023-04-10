@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from core.models import UserProfile
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
@@ -55,7 +54,6 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
     last_password_change = serializers.ReadOnlyField(
         source="userprofile.last_password_change", read_only=True
     )
-
     username = serializers.CharField(
         validators=[
             UniqueValidator(
@@ -72,7 +70,17 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
             )
         ]
     )
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        write_only=True
+    )
 
     class Meta:
         model = User
-        fields = ["username", "email", "last_password_change"]
+        fields = ["username", "email", "password", "last_password_change"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields.pop('password')
+

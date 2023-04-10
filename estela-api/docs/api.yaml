@@ -1059,6 +1059,7 @@ definitions:
     required:
       - username
       - email
+      - password
     type: object
     properties:
       username:
@@ -1067,6 +1068,10 @@ definitions:
         minLength: 1
       email:
         title: Email
+        type: string
+        minLength: 1
+      password:
+        title: Password
         type: string
         minLength: 1
       last_password_change:

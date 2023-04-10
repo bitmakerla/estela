@@ -18,7 +18,11 @@ from django.contrib.auth.models import update_last_login
 from django.shortcuts import redirect
 from django.contrib.auth.password_validation import validate_password
 from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
-from api.serializers.auth import TokenSerializer, UserSerializer, UserProfileSerializer
+from api.serializers.auth import (
+    TokenSerializer,
+    UserSerializer,
+    UserProfileSerializer,
+)
 from core.views import (
     send_verification_email,
     send_change_password_email,
@@ -153,7 +157,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user: User = request.user
         requested_user: User = User.objects.filter(username=kwargs["username"]).first()
 
-        if requested_user == None:
+        if requested_user is None:
             return Response(
                 data={"error": "This user doesn't exist in estela."},
                 status=status.HTTP_404_NOT_FOUND,
@@ -170,11 +174,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=UserProfileSerializer,
         responses={status.HTTP_200_OK: UserProfileSerializer()},
     )
     def update(self, request, *args, **kwargs):
+        username = kwargs.get("username", "")
         user: User = request.user
+        if username != user.username:
+            return Response(
+                data={"error": "This user doesn't exist in estela."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         user_data: dict = {
             "username": request.user.username,
             "password": request.data.get("password", ""),

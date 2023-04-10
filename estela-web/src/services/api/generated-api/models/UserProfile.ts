@@ -36,6 +36,12 @@ export interface UserProfile {
      * @type {string}
      * @memberof UserProfile
      */
+    password: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserProfile
+     */
     readonly lastPasswordChange?: string;
 }
 
@@ -51,6 +57,7 @@ export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean
         
         'username': json['username'],
         'email': json['email'],
+        'password': json['password'],
         'lastPasswordChange': !exists(json, 'last_password_change') ? undefined : json['last_password_change'],
     };
 }
@@ -66,6 +73,7 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
         
         'username': value.username,
         'email': value.email,
+        'password': value.password,
     };
 }
 
