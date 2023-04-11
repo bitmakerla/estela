@@ -4,7 +4,6 @@ from rest_framework import serializers
 from api import errors
 from api.mixins import NotificationsHandlerMixin
 
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
 from api.mixins import ActivityHandler
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
@@ -185,13 +184,13 @@ class SpiderCronJobUpdateSerializer(
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
-            if data_status == SpiderCronJob.PERSISTENT_STATUS:
-                instance.data_status = SpiderCronJob.PERSISTENT_STATUS
+            if data_status == DataStatus.PERSISTENT_STATUS:
+                instance.data_status = DataStatus.PERSISTENT_STATUS
                 description = (
                     f"Set data status of schedule-job {instance.cjid} to persistent"
                 )
-            elif data_status == SpiderCronJob.PENDING_STATUS and data_expiry_days > 0:
-                instance.data_status = SpiderCronJob.PENDING_STATUS
+            elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
+                instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
                 description = (
                     f"Set data status of schedule-job {instance.cjid} to {data_expiry_days} days"
