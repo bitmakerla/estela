@@ -1640,7 +1640,7 @@ definitions:
         description: Project's category.
         type: string
         enum:
-          - NOT ESPECIFIED
+          - NOT SPECIFIED
           - E-COMMERCE
           - LOGISTICS
           - FINANCE
@@ -1722,6 +1722,7 @@ definitions:
       data_expiry_days:
         title: Data expiry days
         description: New data expiry days.
+        type: integer
   Activity:
     description: Project Activities.
     required:

@@ -22,7 +22,7 @@ class DataStatus:
 
 
 class Project(models.Model):
-    NOT_ESPECIFIED = "NOT ESPECIFIED"
+    NOT_SPECIFIED = "NOT SPECIFIED"
     E_COMMERCE = "E-COMMERCE"
     LOGISTICS = "LOGISTICS"
     FINANCE = "FINANCE"
@@ -30,7 +30,7 @@ class Project(models.Model):
     TECHNOLOGY = "TECHNOLOGY"
     OTHER_CATEGORY = "OTHER_CATEGORY"
     CATEGORY_OPTIONS = [
-        (NOT_ESPECIFIED, "Not specified"),
+        (NOT_SPECIFIED, "Not specified"),
         (E_COMMERCE, "E-commerce"),
         (LOGISTICS, "Logistics"),
         (FINANCE, "Finance"),

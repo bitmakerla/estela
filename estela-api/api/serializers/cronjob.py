@@ -192,9 +192,7 @@ class SpiderCronJobUpdateSerializer(
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
-                description = (
-                    f"Set data status of schedule-job {instance.cjid} to {data_expiry_days} days"
-                )
+                description = f"Set data status of schedule-job {instance.cjid} to {data_expiry_days} days"
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
         self.save_activity(
