@@ -63,7 +63,7 @@ export interface Project {
      */
     dataStatus?: ProjectDataStatusEnum;
     /**
-     * Days before data expires.
+     * Days before data is deleted.
      * @type {number}
      * @memberof Project
      */

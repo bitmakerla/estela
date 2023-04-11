@@ -42,7 +42,6 @@ class Project(models.Model):
     PENDING_STATUS = "PENDING"
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
-    users = models.ManyToManyField(User, through="Permission")
     pid = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,

@@ -142,7 +142,6 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "pid",
             "name",
             "users",
-            "user",
             "email",
             "action",
             "permission",

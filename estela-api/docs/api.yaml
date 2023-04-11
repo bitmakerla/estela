@@ -1335,7 +1335,7 @@ definitions:
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1508,11 +1508,10 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1622,7 +1621,7 @@ definitions:
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1794,7 +1793,7 @@ definitions:
         x-nullable: true
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1805,8 +1804,8 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
+          - DELETED
   ProjectJob:
     required:
       - results
@@ -1930,11 +1929,10 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -2039,11 +2037,11 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
+          - DELETED
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
