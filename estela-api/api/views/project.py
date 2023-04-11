@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet, NotificationsHandlerMixin
+from api.mixins import BaseViewSet, NotificationsHandlerMixin, ActivityHandler
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.project import (
@@ -18,6 +18,8 @@ from api.serializers.project import (
     ProjectUpdateSerializer,
     ProjectUsageSerializer,
     UsageRecordSerializer,
+    ProjectActivitySerializer,
+    ActivitySerializer,
 )
 from core.models import (
     DataStatus,
@@ -28,10 +30,16 @@ from core.models import (
     SpiderJob,
     UsageRecord,
     User,
+    Activity,
 )
 
 
-class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewSet):
+class ProjectViewSet(
+    BaseViewSet,
+    NotificationsHandlerMixin,
+    ActivityHandler,
+    viewsets.ModelViewSet
+):
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -75,6 +83,11 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
             user=self.request.user,
             message=f"created project {instance.name}.",
             project=instance,
+        )
+        self.save_activity(
+            user=self.request.user,
+            project=instance,
+            description="Project created",
         )
 
     @swagger_auto_schema(
@@ -312,5 +325,42 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
         )
         return Response(
             serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="A page number within the paginated result set.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="Number of results to return per page.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+        ],
+        responses={status.HTTP_200_OK: ProjectActivitySerializer()},
+    )
+    @action(methods=["GET"], detail=True)
+    def activities(self, request, *args, **kwargs):
+        page, page_size = self.get_parameters(request)
+        if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        if page < 1:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        project = Project.objects.get(pid=kwargs["pid"])
+        activities_set = Activity.objects.filter(project=project)
+        paginator_result = Paginator(activities_set, page_size)
+        page_result = paginator_result.page(page)
+        serializer = ActivitySerializer(page_result, many=True)
+        return Response(
+            {"results": serializer.data, "count": activities_set.count()},
             status=status.HTTP_200_OK,
         )

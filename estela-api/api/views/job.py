@@ -8,6 +8,7 @@ from rest_framework.exceptions import ParseError
 
 from api.filters import SpiderJobFilter
 from api.mixins import BaseViewSet, NotificationsHandlerMixin
+from api.mixins import BaseViewSet, ActivityHandler
 from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobCreateSerializer,
@@ -20,6 +21,7 @@ from core.models import DataStatus, Spider, SpiderJob, Project
 class SpiderJobViewSet(
     BaseViewSet,
     NotificationsHandlerMixin,
+    ActivityHandler,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -144,6 +146,11 @@ class SpiderJobViewSet(
             user=request.user,
             message=f"run a new job for spider {spider.name}.",
             project=project,
+        )
+        self.save_activity(
+            user=request.user,
+            project=spider.project,
+            description=f"Created job {serializer.data['jid']} for spider {spider.name}",
         )
 
         headers = self.get_success_headers(serializer.data)

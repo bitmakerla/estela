@@ -497,6 +497,35 @@ paths:
         required: true
         type: string
         format: uuid
+  /api/projects/{pid}/activities:
+    get:
+      operationId: api_projects_activities
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: number
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: number
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectActivity'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
   /api/projects/{pid}/cronjobs:
     get:
       operationId: api_projects_cronjobs
@@ -1693,6 +1722,41 @@ definitions:
       data_expiry_days:
         title: Data expiry days
         description: New data expiry days.
+  Activity:
+    description: Project Activities.
+    required:
+      - user
+      - description
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/UserDetail'
+      description:
+        title: Description
+        description: Activity description.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      created:
+        title: Created
+        description: Activity creation date.
+        type: string
+        format: date-time
+        readOnly: true
+  ProjectActivity:
+    required:
+      - results
+      - count
+    type: object
+    properties:
+      results:
+        description: Project Activities.
+        type: array
+        items:
+          $ref: '#/definitions/Activity'
+      count:
+        title: Count
+        description: Project cronjobs count.
         type: integer
   SpiderJobArg:
     description: Cron job arguments.

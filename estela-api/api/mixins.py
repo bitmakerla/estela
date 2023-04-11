@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from api.permissions import IsProjectUser, IsAdminOrReadOnly
 from core.models import Notification
+from core.models import Activity
 
 
 class APIPageNumberPagination(PageNumberPagination):
@@ -33,3 +34,7 @@ class NotificationsHandlerMixin:
         for _user in project.users.all():
             notification.users.add(_user, through_defaults={"seen": False})
         notification.save()
+class ActivityHandler(viewsets.GenericViewSet):
+    def save_activity(self, user, project, description):
+        activity = Activity(user=user, project=project, description=description)
+        activity.save()

@@ -456,5 +456,27 @@ class UserNotification(models.Model):
         help_text="Date when the notification was sent.",
     )
 
+
+class Activity(models.Model):
+    aid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this activity."
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        help_text="User who performed the activity.",
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        help_text="Project to which the activity corresponds.",
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Activity creation date."
+    )
+    description = models.CharField(max_length=1000, help_text="Activity description.")
+
     class Meta:
         ordering = ["-created"]

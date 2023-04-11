@@ -1,3 +1,4 @@
+export * from './Activity';
 export * from './AuthToken';
 export * from './ChangePassword';
 export * from './CoverageStats';
@@ -24,6 +25,7 @@ export * from './Notification';
 export * from './PagesStats';
 export * from './Permission';
 export * from './Project';
+export * from './ProjectActivity';
 export * from './ProjectCronJob';
 export * from './ProjectDetail';
 export * from './ProjectJob';

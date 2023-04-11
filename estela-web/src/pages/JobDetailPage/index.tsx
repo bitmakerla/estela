@@ -934,7 +934,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="text-estela-black-medium text-xs">this job</Text>
                             </Col>
                             <Col>
-                                <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-[#EEFFCD]">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
                                         style={{
@@ -1054,7 +1054,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             this.setState({ modalStop: true });
                                         }}
                                         size="large"
-                                        className="flex items-center stroke-estela-red-full border-estela-red-full hover:stroke-estela-red-full bg-estela-white text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
+                                        className="flex items-center stroke-white border-estela-red-full hover:stroke-estela-red-full bg-estela-red-full text-white hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-md"
                                     >
                                         Stop this job
                                     </Button>

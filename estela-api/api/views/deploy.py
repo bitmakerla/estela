@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ParseError, APIException, PermissionDenied
 
 from api.mixins import BaseViewSet, NotificationsHandlerMixin
+from api.mixins import BaseViewSet, ActivityHandler
 from api.serializers.deploy import (
     DeploySerializer,
     DeployCreateSerializer,
@@ -21,6 +22,7 @@ class DeployViewSet(
     BaseViewSet,
     NotificationsHandlerMixin,
     viewsets.ModelViewSet,
+    ActivityHandler,
 ):
     model_class = Deploy
     serializer_class = DeploySerializer
@@ -67,6 +69,12 @@ class DeployViewSet(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
 
+        self.save_activity(
+            user=user,
+            project=project,
+            description=f"Deploy {serializer.data['did']} created.",
+        )
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -98,6 +106,11 @@ class DeployViewSet(
             user=instance.user,
             message=f"made a new Deploy #{serializer.data['did']}.",
             project=project,
+        )
+        self.save_activity(
+            user=instance.user,
+            project=instance.project,
+            description=f"Deploy {instance.did} updated.",
         )
 
         headers = self.get_success_headers(serializer.data)

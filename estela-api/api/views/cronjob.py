@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
 from api.mixins import BaseViewSet, NotificationsHandlerMixin
+from api.mixins import BaseViewSet, ActivityHandler
 from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobSerializer,
@@ -21,6 +22,7 @@ from core.models import DataStatus, Spider, SpiderCronJob, Project
 class SpiderCronJobViewSet(
     BaseViewSet,
     NotificationsHandlerMixin,
+    ActivityHandler,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -98,6 +100,11 @@ class SpiderCronJobViewSet(
             project=project,
         )
 
+        self.save_activity(
+            user=request.user,
+            project=spider.project,
+            description=f"Created schedule-job {cronjob.cjid} for spider {spider.name}",
+        )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -128,6 +135,11 @@ class SpiderCronJobViewSet(
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
+        self.save_activity(
+            user=request.user,
+            project=instance.spider.project,
+            description=f"Deleted schedule-job {instance.cjid} for spider {instance.spider.name}",
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
@@ -141,7 +153,6 @@ class SpiderCronJobViewSet(
     )
     @action(methods=["GET"], detail=True)
     def run_once(self, request, *args, **kwargs):
-        partial = kwargs.pop("partial", False)
         instance = self.get_object()
 
         cronjob = SpiderCronJobSerializer(instance, partial=partial)
