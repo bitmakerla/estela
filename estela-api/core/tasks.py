@@ -60,28 +60,6 @@ def delete_data(pid, sid, jid, data_type):
     spiderdata_db_client.delete_collection_data(pid, job_collection_name)
 
 
-@celery_app.task()
-def delete_job_data(job_key):
-    jid, sid, pid = job_key.split(".")
-    delete_data(pid, sid, jid, "items")
-    delete_data(pid, sid, jid, "requests")
-    delete_data(pid, sid, jid, "logs")
-    SpiderJob.objects.filter(jid=jid).update(data_status=DataStatus.DELETED_STATUS)
-    record_project_usage_after_data_delete(pid, int(jid))
-
-
-@celery_app.task(name="core.tasks.delete_expired_jobs_data")
-def delete_expired_jobs_data():
-    pending_data_delete_jobs = SpiderJob.objects.filter(
-        data_status=DataStatus.PENDING_STATUS,
-        status__in=[SpiderJob.COMPLETED_STATUS, SpiderJob.STOPPED_STATUS],
-    )
-
-    for job in pending_data_delete_jobs:
-        if job.created < timezone.now() - timedelta(days=job.data_expiry_days):
-            delete_job_data.s(job.key).delay()
-
-
 @celery_app.task(name="core.tasks.launch_job")
 def launch_job(sid_, data_, data_expiry_days=None, token=None):
     spider = Spider.objects.get(sid=sid_)
@@ -175,6 +153,28 @@ def record_project_usage_after_data_delete(project_id, job_id):
             "action": "delete",
         }
     )
+
+
+@celery_app.task()
+def delete_job_data(job_key):
+    jid, sid, pid = job_key.split(".")
+    delete_data(pid, sid, jid, "items")
+    delete_data(pid, sid, jid, "requests")
+    delete_data(pid, sid, jid, "logs")
+    SpiderJob.objects.filter(jid=jid).update(data_status=DataStatus.DELETED_STATUS)
+    record_project_usage_after_data_delete(pid, int(jid))
+
+
+@celery_app.task(name="core.tasks.delete_expired_jobs_data")
+def delete_expired_jobs_data():
+    pending_data_delete_jobs = SpiderJob.objects.filter(
+        data_status=DataStatus.PENDING_STATUS,
+        status__in=[SpiderJob.COMPLETED_STATUS, SpiderJob.STOPPED_STATUS],
+    )
+
+    for job in pending_data_delete_jobs:
+        if job.created < timezone.now() - timedelta(days=job.data_expiry_days):
+            delete_job_data.s(job.key).delay()
 
 
 @celery_app.task(
