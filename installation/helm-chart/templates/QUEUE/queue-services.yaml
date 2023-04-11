@@ -2,13 +2,13 @@ kind: Service
 apiVersion: v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: kafka
+  name: {{ .Values.QUEUE_PARAMETERS.QUEUE_PLATFORM }}
 spec:
   ports:
   - name: broker
     protocol: TCP
-    port: 9092
-    targetPort: 9092
+    port: {{ .Values.QUEUE_PARAMETERS.QUEUE_PLATFORM_PORT }}
+    targetPort: {{ .Values.QUEUE_PARAMETERS.QUEUE_PLATFORM_PORT }}
     nodePort: 0
 ---
 {{- if .Values.local }}
@@ -16,11 +16,11 @@ kind: Endpoints
 apiVersion: v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: kafka
+  name: {{ .Values.QUEUE_PARAMETERS.QUEUE_PLATFORM }}
 subsets:
 - addresses:
   - ip: {{ .Values.hostIp }}
   ports:
   - name: broker
-    port: 9092
+    port: {{ .Values.QUEUE_PARAMETERS.QUEUE_PLATFORM_PORT }}
 {{- end  }}

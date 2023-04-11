@@ -43,7 +43,7 @@ The project consists of three main modules:
 - [**REST API**](https://github.com/bitmakerla/estela/tree/main/estela-api) : built with the Django REST framework toolkit, it exposes several endpoints to manage projects, spiders, and
     jobs. It uses Celery for task processing and takes care of deploying your Scrapy projects, among other things.
 - [**Queueing**](https://github.com/bitmakerla/estela/tree/main/queueing) : estela needs a high-throughput, low-latency platform that controls real-time data feeds in a
-    producer-consumer architecture. In this module, you will find a Kafka consumer used to collect and transport the
+    producer-consumer architecture. In this module, you will find a consumer used to collect and transport the
     information from the spider jobs into a database.
 - [**Web**](https://github.com/bitmakerla/estela/tree/main/estela-web) : A web interface implemented with React and Typescript that lets you manage projects and spiders.
 

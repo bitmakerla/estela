@@ -1,9 +1,17 @@
 from datetime import datetime, timedelta
 
+from django.core.paginator import Paginator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
+from rest_framework.response import Response
+
 from api import errors
 from api.mixins import BaseViewSet
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,
@@ -14,18 +22,11 @@ from core.models import (
     Permission,
     Project,
     Spider,
-    SpiderJob,
     SpiderCronJob,
+    SpiderJob,
     UsageRecord,
     User,
 )
-from django.core.paginator import Paginator
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, ParseError
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -46,7 +47,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         return page, page_size
 
     def get_queryset(self):
-        return self.request.user.project_set.filter(deleted=False)
+        return (
+            Project.objects.filter(deleted=False)
+            if self.request.user.is_superuser or self.request.user.is_staff
+            else self.request.user.project_set.filter(deleted=False)
+        )
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -79,7 +84,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         name = serializer.validated_data.get("name", "")
         user_email = serializer.validated_data.pop("email", "")
-        user_permision = serializer.validated_data.pop("user", "")
         action = serializer.validated_data.pop("action", "")
         permission = serializer.validated_data.pop("permission", "")
         data_status = serializer.validated_data.pop("data_status", "")
@@ -87,42 +91,46 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         if name:
             instance.name = name
-        if user_email and user_email != user_permision:
+
+        if user_email and user_email != request.user.email:
+            if not (
+                request.user.permission_set.get(project=instance).permission
+                in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
+            ):
+                raise PermissionDenied(
+                    {"permission": "You do not have permission to do this."}
+                )
+
             user = User.objects.filter(email=user_email)
-            user_instance = User.objects.filter(email=user_permision)
-            if user:
-                user = user.get()
-                user_instance = user_instance.get()
-                if (
-                    user_instance.permission_set.get(project=instance).permission
-                    in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
-                ) and permission != Permission.OWNER_PERMISSION:
-                    if action == "add":
-                        instance.users.add(
-                            user, through_defaults={"permission": permission}
-                        )
-                    elif action == "remove" and (
-                        user.permission_set.get(project=instance).permission
-                        != Permission.OWNER_PERMISSION
-                    ):
-                        instance.users.remove(user)
-                    elif action == "update":
-                        instance.users.remove(user)
-                        instance.users.add(
-                            user, through_defaults={"permission": permission}
-                        )
-                    else:
-                        raise ParseError({"error": "Action not supported."})
-                else:
-                    raise ParseError({"error": "Action not supported."})
-            else:
+            if not user:
                 raise NotFound({"email": "User does not exist."})
+
+            user = user.get()
+            existing_permission = user.permission_set.filter(project=instance).first()
+            if (
+                existing_permission
+                and existing_permission.permission == Permission.OWNER_PERMISSION
+            ):
+                raise ParseError(
+                    {"error": "You cannot modify the permissions of an owner user."}
+                )
+
+            if action == "add":
+                instance.users.add(user, through_defaults={"permission": permission})
+            elif action == "remove":
+                instance.users.remove(user)
+            elif action == "update":
+                instance.users.remove(user)
+                instance.users.add(user, through_defaults={"permission": permission})
+            else:
+                raise ParseError({"error": "Action not supported."})
+
         if data_status:
             instance.data_status = data_status
             if data_status == Project.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_expiry_days = data_expiry_days
-        serializer.save()
 
+        serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 

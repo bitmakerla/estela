@@ -7,8 +7,18 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+
+
+class DataStatus:
+    PERSISTENT_STATUS = "PERSISTENT"
+    DELETED_STATUS = "DELETED"
+    PENDING_STATUS = "PENDING"
+
+    HIGH_LEVEL_OPTIONS = [
+        (PERSISTENT_STATUS, "Persistent"),
+        (PENDING_STATUS, "Pending"),
+    ]
+    LOW_LEVEL_OPTIONS = HIGH_LEVEL_OPTIONS + [(DELETED_STATUS, "Deleted")]
 
 
 class Project(models.Model):
@@ -30,10 +40,6 @@ class Project(models.Model):
     ]
     PERSISTENT_STATUS = "PERSISTENT"
     PENDING_STATUS = "PENDING"
-    DATA_STATUS_OPTIONS = [
-        (PERSISTENT_STATUS, "Persistent"),
-        (PENDING_STATUS, "Pending"),
-    ]
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
     users = models.ManyToManyField(User, through="Permission")
@@ -55,12 +61,12 @@ class Project(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DATA_STATUS_OPTIONS,
-        default=PERSISTENT_STATUS,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )
     data_expiry_days = models.PositiveSmallIntegerField(
-        default=1, help_text="Days before data expires."
+        default=1, help_text="Days before data is deleted."
     )
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
@@ -101,12 +107,6 @@ class Permission(models.Model):
 
 
 class Spider(models.Model):
-    PERSISTENT_STATUS = "PERSISTENT"
-    PENDING_STATUS = "PENDING"
-    DATA_STATUS_OPTIONS = [
-        (PERSISTENT_STATUS, "Persistent"),
-        (PENDING_STATUS, "Pending"),
-    ]
     sid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this spider."
     )
@@ -119,12 +119,12 @@ class Spider(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DATA_STATUS_OPTIONS,
-        default=PERSISTENT_STATUS,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )
     data_expiry_days = models.PositiveSmallIntegerField(
-        default=1, help_text="Days before data expires."
+        default=1, help_text="Days before data is deleted."
     )
     deleted = models.BooleanField(
         default=False, help_text="True if the spider has been deleted."
@@ -174,16 +174,6 @@ class SpiderCronJob(models.Model):
         (DISABLED_STATUS, "Disabled"),
     ]
 
-    PERSISTENT_STATUS = "PERSISTENT"
-    DELETED_STATUS = "DELETED"
-    PENDING_STATUS = "PENDING"
-
-    DATA_STATUS_OPTIONS = [
-        (PERSISTENT_STATUS, "Persistent"),
-        (DELETED_STATUS, "Deleted"),
-        (PENDING_STATUS, "Pending"),
-    ]
-
     cjid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this cron job."
     )
@@ -211,12 +201,12 @@ class SpiderCronJob(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DATA_STATUS_OPTIONS,
-        default=PERSISTENT_STATUS,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )
     data_expiry_days = models.PositiveSmallIntegerField(
-        null=True, help_text="Days before data expires."
+        null=True, help_text="Days before data is deleted."
     )
     deleted = models.BooleanField(
         default=False, help_text="Whether the Cronjob has been deleted."
@@ -256,16 +246,6 @@ class SpiderJob(models.Model):
         (ERROR_STATUS, "Error"),
     ]
 
-    PERSISTENT_STATUS = "PERSISTENT"
-    DELETED_STATUS = "DELETED"
-    PENDING_STATUS = "PENDING"
-
-    DATA_STATUS_OPTIONS = [
-        (PERSISTENT_STATUS, "Persistent"),
-        (DELETED_STATUS, "Deleted"),
-        (PENDING_STATUS, "Pending"),
-    ]
-
     jid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this job."
     )
@@ -287,12 +267,12 @@ class SpiderJob(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DATA_STATUS_OPTIONS,
-        default=PERSISTENT_STATUS,
+        choices=DataStatus.LOW_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )
     data_expiry_days = models.PositiveSmallIntegerField(
-        null=True, help_text="Days before data expires."
+        null=True, help_text="Days before data is deleted."
     )
     created = models.DateTimeField(
         auto_now_add=True, editable=False, help_text="Job creation date."
@@ -432,23 +412,3 @@ class UsageRecord(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, help_text="User.")
-    last_password_change = models.DateTimeField(
-        auto_now_add=True, help_text="Date and time of last password change."
-    )
-
-    def save(self, *args, **kwargs):
-        self.last_password_change = self.user.date_joined
-        super().save(*args, **kwargs)
-
-    @receiver(post_save, sender=User)
-    def create_user_profile(sender, instance, created, **kwargs):
-        if created:
-            UserProfile.objects.create(user=instance)
-
-    @receiver(post_save, sender=User)
-    def save_user_profile(sender, instance, **kwargs):
-        instance.userprofile.save()

@@ -108,10 +108,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."
     )
-    users = UserDetailSerializer(many=True, required=False, help_text="Afected users.")
-    user = serializers.EmailField(
-        write_only=True, required=False, help_text="User email address."
-    )
+    users = UserDetailSerializer(many=True, required=False, help_text="Affected users.")
     email = serializers.EmailField(
         write_only=True, required=False, help_text="Email address."
     )
