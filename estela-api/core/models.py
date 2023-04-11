@@ -18,7 +18,7 @@ class DataStatus:
         (PERSISTENT_STATUS, "Persistent"),
         (PENDING_STATUS, "Pending"),
     ]
-    LOW_LEVEL_OPTIONS = HIGH_LEVEL_OPTIONS + [(DELETED_STATUS, "Deleted")]
+    JOB_LEVEL_OPTIONS = HIGH_LEVEL_OPTIONS + [(DELETED_STATUS, "Deleted")]
 
 
 class Project(models.Model):
@@ -266,7 +266,7 @@ class SpiderJob(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DataStatus.LOW_LEVEL_OPTIONS,
+        choices=DataStatus.JOB_LEVEL_OPTIONS,
         default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )

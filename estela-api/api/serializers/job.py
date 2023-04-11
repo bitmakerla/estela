@@ -7,7 +7,13 @@ from api.serializers.job_specific import (
     SpiderJobTagSerializer,
 )
 from config.job_manager import job_manager
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
+from core.models import (
+    DataStatus,
+    SpiderJob,
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    SpiderJobTag,
+)
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -149,12 +155,12 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
 
         if (
             "data_status" in validated_data
-            and instance.data_status != SpiderJob.DELETED_STATUS
+            and instance.data_status != DataStatus.DELETED_STATUS
         ):
-            if data_status == SpiderJob.PERSISTENT_STATUS:
-                instance.data_status = SpiderJob.PERSISTENT_STATUS
-            elif data_status == SpiderJob.PENDING_STATUS:
-                instance.data_status = SpiderJob.PENDING_STATUS
+            if data_status == DataStatus.PERSISTENT_STATUS:
+                instance.data_status = DataStatus.PERSISTENT_STATUS
+            elif data_status == DataStatus.PENDING_STATUS:
+                instance.data_status = DataStatus.PENDING_STATUS
                 if data_expiry_days < 1:
                     raise serializers.ValidationError(
                         {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}

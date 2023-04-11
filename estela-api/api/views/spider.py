@@ -1,10 +1,10 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
+from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
 from api.serializers.spider import SpiderSerializer, SpiderUpdateSerializer
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.response import Response
-from core.models import Spider
+from core.models import DataStatus, Spider
 
 
 class SpiderViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -33,6 +33,5 @@ class SpiderViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
-        print(serializer.data)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

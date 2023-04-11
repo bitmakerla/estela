@@ -1,15 +1,20 @@
 from croniter import croniter
 from rest_framework import serializers
+
 from api import errors
-
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
-
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from core.cronjob import enable_cronjob, disable_cronjob, update_schedule
+from core.cronjob import disable_cronjob, enable_cronjob, update_schedule
+from core.models import (
+    DataStatus,
+    SpiderCronJob,
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    SpiderJobTag,
+)
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):
@@ -144,10 +149,10 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
-            if data_status == SpiderCronJob.PERSISTENT_STATUS:
-                instance.data_status = SpiderCronJob.PERSISTENT_STATUS
-            elif data_status == SpiderCronJob.PENDING_STATUS:
-                instance.data_status = SpiderCronJob.PENDING_STATUS
+            if data_status == DataStatus.PERSISTENT_STATUS:
+                instance.data_status = DataStatus.PERSISTENT_STATUS
+            elif data_status == DataStatus.PENDING_STATUS:
+                instance.data_status = DataStatus.PENDING_STATUS
                 if data_expiry_days < 1:
                     raise serializers.ValidationError(
                         {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}

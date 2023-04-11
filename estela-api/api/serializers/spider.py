@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Spider
+from core.models import DataStatus, Spider
 
 
 class SpiderSerializer(serializers.ModelSerializer):
@@ -10,15 +10,11 @@ class SpiderSerializer(serializers.ModelSerializer):
 
 
 class SpiderUpdateSerializer(serializers.ModelSerializer):
-    DATA_STATUS_OPTIONS = [
-        ("PERSISTENT", "Persistent"),
-        ("PENDING", "Pending"),
-    ]
     sid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this spider."
     )
     data_status = serializers.ChoiceField(
-        choices=DATA_STATUS_OPTIONS,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
         required=False,
         help_text="New data status.",
     )
@@ -37,6 +33,4 @@ class SpiderUpdateSerializer(serializers.ModelSerializer):
             "data_expiry_days", instance.data_expiry_days
         )
         instance.save()
-        print(instance.data_status)
-        print(instance.data_expiry_days)
         return instance

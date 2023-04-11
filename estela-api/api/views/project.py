@@ -19,6 +19,7 @@ from api.serializers.project import (
     UsageRecordSerializer,
 )
 from core.models import (
+    DataStatus,
     Permission,
     Project,
     Spider,
@@ -127,7 +128,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         if data_status:
             instance.data_status = data_status
-            if data_status == Project.PENDING_STATUS and data_expiry_days > 0:
+            if data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_expiry_days = data_expiry_days
 
         serializer.save()

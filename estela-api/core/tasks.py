@@ -10,7 +10,7 @@ from rest_framework.authtoken.models import Token
 from api.serializers.job import SpiderJobCreateSerializer
 from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
-from core.models import Project, Spider, SpiderJob, UsageRecord
+from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
 
 
 def get_default_token(job):
@@ -66,13 +66,14 @@ def delete_job_data(job_key):
     delete_data(pid, sid, jid, "items")
     delete_data(pid, sid, jid, "requests")
     delete_data(pid, sid, jid, "logs")
-    SpiderJob.objects.filter(jid=jid).update(data_status=SpiderJob.DELETED_STATUS)
+    SpiderJob.objects.filter(jid=jid).update(data_status=DataStatus.DELETED_STATUS)
+    record_project_usage_after_data_delete(pid, int(jid))
 
 
 @celery_app.task(name="core.tasks.delete_expired_jobs_data")
 def delete_expired_jobs_data():
     pending_data_delete_jobs = SpiderJob.objects.filter(
-        data_status=SpiderJob.PENDING_STATUS,
+        data_status=DataStatus.PENDING_STATUS,
         status__in=[SpiderJob.COMPLETED_STATUS, SpiderJob.STOPPED_STATUS],
     )
 
@@ -86,9 +87,9 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
     spider = Spider.objects.get(sid=sid_)
 
     if data_expiry_days is None:
-        data_["data_status"] = SpiderJob.PERSISTENT_STATUS
+        data_["data_status"] = DataStatus.PERSISTENT_STATUS
     else:
-        data_["data_status"] = SpiderJob.PENDING_STATUS
+        data_["data_status"] = DataStatus.PENDING_STATUS
 
     serializer = SpiderJobCreateSerializer(data=data_)
     serializer.is_valid(raise_exception=True)

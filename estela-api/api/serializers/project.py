@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from core.models import Permission, Project, UsageRecord
+
+from core.models import DataStatus, Permission, Project, UsageRecord
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -101,10 +102,6 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         ("DEVELOPER", "Developer"),
         ("VIEWER", "Viewer"),
     ]
-    DATA_STATUS_OPTIONS = [
-        ("PERSISTENT", "Persistent"),
-        ("PENDING", "Pending"),
-    ]
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."
     )
@@ -126,7 +123,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     )
     data_status = serializers.ChoiceField(
         write_only=True,
-        choices=DATA_STATUS_OPTIONS,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
         required=False,
         help_text="New data status.",
     )
