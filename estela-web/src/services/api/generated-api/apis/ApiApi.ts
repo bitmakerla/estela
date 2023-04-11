@@ -236,11 +236,6 @@ export interface ApiProjectsReadRequest {
     pid: string;
 }
 
-export interface ApiProjectsSpidersCreateRequest {
-    pid: string;
-    data: Spider;
-}
-
 export interface ApiProjectsSpidersCronjobsCreateRequest {
     pid: string;
     sid: string;
@@ -285,11 +280,6 @@ export interface ApiProjectsSpidersCronjobsUpdateRequest {
     pid: string;
     sid: string;
     data: SpiderCronJobUpdate;
-}
-
-export interface ApiProjectsSpidersDeleteRequest {
-    pid: string;
-    sid: number;
 }
 
 export interface ApiProjectsSpidersJobsCreateRequest {
@@ -1347,44 +1337,6 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersCreateRaw(requestParameters: ApiProjectsSpidersCreateRequest): Promise<runtime.ApiResponse<Spider>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCreate.');
-        }
-
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersCreate.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/projects/{pid}/spiders`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: SpiderToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiProjectsSpidersCreate(requestParameters: ApiProjectsSpidersCreateRequest): Promise<Spider> {
-        const response = await this.apiProjectsSpidersCreateRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
     async apiProjectsSpidersCronjobsCreateRaw(requestParameters: ApiProjectsSpidersCronjobsCreateRequest): Promise<runtime.ApiResponse<SpiderCronJobCreate>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
@@ -1678,40 +1630,6 @@ export class ApiApi extends runtime.BaseAPI {
     async apiProjectsSpidersCronjobsUpdate(requestParameters: ApiProjectsSpidersCronjobsUpdateRequest): Promise<SpiderCronJobUpdate> {
         const response = await this.apiProjectsSpidersCronjobsUpdateRaw(requestParameters);
         return await response.value();
-    }
-
-    /**
-     */
-    async apiProjectsSpidersDeleteRaw(requestParameters: ApiProjectsSpidersDeleteRequest): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersDelete.');
-        }
-
-        if (requestParameters.sid === null || requestParameters.sid === undefined) {
-            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersDelete.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/projects/{pid}/spiders/{sid}`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     */
-    async apiProjectsSpidersDelete(requestParameters: ApiProjectsSpidersDeleteRequest): Promise<void> {
-        await this.apiProjectsSpidersDeleteRaw(requestParameters);
     }
 
     /**

@@ -1,13 +1,18 @@
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
+from rest_framework import mixins, status
 from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
 from api.serializers.spider import SpiderSerializer, SpiderUpdateSerializer
-from core.models import DataStatus, Spider
+from core.models import Spider
 
 
-class SpiderViewSet(BaseViewSet, viewsets.ModelViewSet):
+class SpiderViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    BaseViewSet,
+):
     model_class = Spider
     serializer_class = SpiderSerializer
     lookup_field = "sid"

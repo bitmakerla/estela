@@ -622,22 +622,6 @@ paths:
                   $ref: '#/definitions/Spider'
       tags:
         - api
-    post:
-      operationId: api_projects_spiders_create
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Spider'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/Spider'
-      tags:
-        - api
     parameters:
       - name: pid
         in: path
@@ -685,15 +669,6 @@ paths:
           description: ''
           schema:
             $ref: '#/definitions/Spider'
-      tags:
-        - api
-    delete:
-      operationId: api_projects_spiders_delete
-      description: ''
-      parameters: []
-      responses:
-        '204':
-          description: ''
       tags:
         - api
     parameters:
