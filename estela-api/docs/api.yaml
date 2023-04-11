@@ -1287,16 +1287,10 @@ definitions:
         maxLength: 1000
         minLength: 1
       users:
-        description: Afected users.
+        description: Affected users.
         type: array
         items:
           $ref: '#/definitions/UserDetail'
-      user:
-        title: User
-        description: User email address.
-        type: string
-        format: email
-        minLength: 1
       email:
         title: Email
         description: Email address.
