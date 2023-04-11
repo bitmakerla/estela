@@ -1,9 +1,17 @@
 from datetime import datetime, timedelta
 
+from django.core.paginator import Paginator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
+from rest_framework.response import Response
+
 from api import errors
 from api.mixins import BaseViewSet
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,
@@ -14,18 +22,11 @@ from core.models import (
     Permission,
     Project,
     Spider,
-    SpiderJob,
     SpiderCronJob,
+    SpiderJob,
     UsageRecord,
     User,
 )
-from django.core.paginator import Paginator
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 
 
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
@@ -88,31 +89,35 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         if name:
             instance.name = name
         if user_email and user_email != request.user.email:
-            user = User.objects.filter(email=user_email)
-            if not user:
-                raise NotFound({"email": "User does not exist."})
-            user = user.get()
             if not (
                 request.user.permission_set.get(project=instance).permission
                 in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
-            ) and permission != Permission.OWNER_PERMISSION:
+            ):
                 raise PermissionDenied(
                     {"permission": "You do not have permission to do this."}
                 )
-            if action == "add":
-                instance.users.add(
-                    user, through_defaults={"permission": permission}
-                )
-            elif action == "remove" and (
-                user.permission_set.get(project=instance).permission
-                != Permission.OWNER_PERMISSION
+
+            user = User.objects.filter(email=user_email)
+            if not user:
+                raise NotFound({"email": "User does not exist."})
+
+            user = user.get()
+            existing_permission = user.permission_set.filter(project=instance).first()
+            if (
+                existing_permission
+                and existing_permission.permission == Permission.OWNER_PERMISSION
             ):
+                raise ParseError(
+                    {"error": "You cannot modify the permissions of an owner user."}
+                )
+
+            if action == "add":
+                instance.users.add(user, through_defaults={"permission": permission})
+            elif action == "remove":
                 instance.users.remove(user)
             elif action == "update":
                 instance.users.remove(user)
-                instance.users.add(
-                    user, through_defaults={"permission": permission}
-                )
+                instance.users.add(user, through_defaults={"permission": permission})
             else:
                 raise ParseError({"error": "Action not supported."})
         serializer.save()
@@ -215,7 +220,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     @action(methods=["GET"], detail=True)
     def current_usage(self, request, *args, **kwargs):
-        instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
         serializer = ProjectUsageSerializer(
             UsageRecord.objects.filter(project=project).first()
@@ -247,7 +251,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     @action(methods=["GET"], detail=True)
     def usage(self, request, *args, **kwargs):
-        instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
         start_date = request.query_params.get(
             "start_date", datetime.today().replace(day=1)
