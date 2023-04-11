@@ -639,6 +639,38 @@ paths:
             $ref: '#/definitions/Spider'
       tags:
         - api
+    put:
+      operationId: api_projects_spiders_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SpiderUpdate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderUpdate'
+      tags:
+        - api
+    patch:
+      operationId: api_projects_spiders_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Spider'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Spider'
+      tags:
+        - api
     parameters:
       - name: pid
         in: path
@@ -1269,6 +1301,19 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Permission'
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data is deleted.
+        type: integer
+        maximum: 65535
+        minimum: 0
   ProjectUpdate:
     required:
       - name
@@ -1313,6 +1358,17 @@ definitions:
           - ADMIN
           - DEVELOPER
           - VIEWER
+      data_status:
+        title: Data status
+        description: New data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: New data expiry days.
+        type: integer
   SpiderJobArg:
     description: Cron job arguments.
     required:
@@ -1427,11 +1483,10 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1532,6 +1587,19 @@ definitions:
         description: Project UUID.
         type: string
         format: uuid
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data is deleted.
+        type: integer
+        maximum: 65535
+        minimum: 0
   Deploy:
     required:
       - project
@@ -1700,7 +1768,7 @@ definitions:
         x-nullable: true
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1711,8 +1779,8 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
+          - DELETED
   ProjectJob:
     required:
       - results
@@ -1727,6 +1795,34 @@ definitions:
       count:
         title: Count
         description: Project jobs count.
+        type: integer
+  SpiderUpdate:
+    required:
+      - name
+    type: object
+    properties:
+      sid:
+        title: Sid
+        description: A UUID identifying this spider.
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Spider's name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      data_status:
+        title: Data status
+        description: New data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: New data expiry days.
         type: integer
   SpiderCronJobCreate:
     required:
@@ -1808,11 +1904,10 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1917,11 +2012,11 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
+          - DELETED
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0

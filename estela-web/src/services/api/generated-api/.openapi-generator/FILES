@@ -34,6 +34,7 @@ models/SpiderJobCreate.ts
 models/SpiderJobEnvVar.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
+models/SpiderUpdate.ts
 models/Token.ts
 models/UsageRecord.ts
 models/User.ts

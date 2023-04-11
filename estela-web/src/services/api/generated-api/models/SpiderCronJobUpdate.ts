@@ -50,7 +50,7 @@ export interface SpiderCronJobUpdate {
      */
     dataStatus?: SpiderCronJobUpdateDataStatusEnum;
     /**
-     * Days before data expires.
+     * Days before data is deleted.
      * @type {number}
      * @memberof SpiderCronJobUpdate
      */
@@ -70,7 +70,6 @@ export enum SpiderCronJobUpdateStatusEnum {
 */
 export enum SpiderCronJobUpdateDataStatusEnum {
     Persistent = 'PERSISTENT',
-    Deleted = 'DELETED',
     Pending = 'PENDING'
 }
 

@@ -19,6 +19,7 @@ from api.serializers.project import (
     UsageRecordSerializer,
 )
 from core.models import (
+    DataStatus,
     Permission,
     Project,
     Spider,
@@ -86,8 +87,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         user_email = serializer.validated_data.pop("email", "")
         action = serializer.validated_data.pop("action", "")
         permission = serializer.validated_data.pop("permission", "")
+        data_status = serializer.validated_data.pop("data_status", "")
+        data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
+
         if name:
             instance.name = name
+
         if user_email and user_email != request.user.email:
             if not (
                 request.user.permission_set.get(project=instance).permission
@@ -120,8 +125,13 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
                 instance.users.add(user, through_defaults={"permission": permission})
             else:
                 raise ParseError({"error": "Action not supported."})
-        serializer.save()
 
+        if data_status:
+            instance.data_status = data_status
+            if data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
+                instance.data_expiry_days = data_expiry_days
+
+        serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
