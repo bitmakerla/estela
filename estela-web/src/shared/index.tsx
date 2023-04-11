@@ -5,15 +5,6 @@ export { NotificationsSidenav } from "./notificationsSidenav";
 export { NotificationsList } from "./notificationsList";
 export { CustomSpin as Spin } from "./spin";
 export { PaginationItem } from "./paginationItem";
-export {
-    authNotification,
-    resourceNotAllowedNotification,
-    incorrectDataNotification,
-    insecurePasswordNotification,
-    invalidDataNotification,
-    nonExistentUserNotification,
-    emailConfirmationNotification,
-    dataDeletedNotification,
-} from "./notifications";
+export * from "./notifications";
 export { PrivateRoute } from "./privateRoute";
 export * from "./layouts";

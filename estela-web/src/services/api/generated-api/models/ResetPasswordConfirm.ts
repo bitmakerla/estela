@@ -16,46 +16,39 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface UserProfile
+ * @interface ResetPasswordConfirm
  */
-export interface UserProfile {
+export interface ResetPasswordConfirm {
     /**
      * 
      * @type {string}
-     * @memberof UserProfile
+     * @memberof ResetPasswordConfirm
      */
-    username: string;
+    newPassword: string;
     /**
      * 
      * @type {string}
-     * @memberof UserProfile
+     * @memberof ResetPasswordConfirm
      */
-    email: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UserProfile
-     */
-    password: string;
+    confirmNewPassword: string;
 }
 
-export function UserProfileFromJSON(json: any): UserProfile {
-    return UserProfileFromJSONTyped(json, false);
+export function ResetPasswordConfirmFromJSON(json: any): ResetPasswordConfirm {
+    return ResetPasswordConfirmFromJSONTyped(json, false);
 }
 
-export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserProfile {
+export function ResetPasswordConfirmFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResetPasswordConfirm {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'username': json['username'],
-        'email': json['email'],
-        'password': json['password'],
+        'newPassword': json['new_password'],
+        'confirmNewPassword': json['confirm_new_password'],
     };
 }
 
-export function UserProfileToJSON(value?: UserProfile | null): any {
+export function ResetPasswordConfirmToJSON(value?: ResetPasswordConfirm | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -64,9 +57,8 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
     }
     return {
         
-        'username': value.username,
-        'email': value.email,
-        'password': value.password,
+        'new_password': value.newPassword,
+        'confirm_new_password': value.confirmNewPassword,
     };
 }
 

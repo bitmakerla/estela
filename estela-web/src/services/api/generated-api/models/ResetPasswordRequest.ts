@@ -16,32 +16,32 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface InlineResponse200
+ * @interface ResetPasswordRequest
  */
-export interface InlineResponse200 {
+export interface ResetPasswordRequest {
     /**
      * 
      * @type {string}
-     * @memberof InlineResponse200
+     * @memberof ResetPasswordRequest
      */
-    message?: string;
+    email: string;
 }
 
-export function InlineResponse200FromJSON(json: any): InlineResponse200 {
-    return InlineResponse200FromJSONTyped(json, false);
+export function ResetPasswordRequestFromJSON(json: any): ResetPasswordRequest {
+    return ResetPasswordRequestFromJSONTyped(json, false);
 }
 
-export function InlineResponse200FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse200 {
+export function ResetPasswordRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): ResetPasswordRequest {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'message': !exists(json, 'message') ? undefined : json['message'],
+        'email': json['email'],
     };
 }
 
-export function InlineResponse200ToJSON(value?: InlineResponse200 | null): any {
+export function ResetPasswordRequestToJSON(value?: ResetPasswordRequest | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -50,7 +50,7 @@ export function InlineResponse200ToJSON(value?: InlineResponse200 | null): any {
     }
     return {
         
-        'message': value.message,
+        'email': value.email,
     };
 }
 

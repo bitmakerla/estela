@@ -17,11 +17,16 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
-  /api/account/change_password/confirm:
+  /api/account/changePassword/change:
     patch:
-      operationId: api_account_change_password_confirm
+      operationId: api_account_changePassword_change
       description: ''
-      parameters: []
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ChangePassword'
       responses:
         '200':
           description: ''
@@ -30,25 +35,89 @@ paths:
       tags:
         - api
     parameters: []
-  /api/account/change_password/request:
-    post:
-      operationId: api_account_change_password_request
+  /api/account/resetPassword/confirm:
+    patch:
+      operationId: api_account_resetPassword_confirm
       description: ''
-      parameters: []
-      responses:
-        '201':
-          description: ''
-      tags:
-        - api
-    parameters: []
-  /api/account/change_password/validate:
-    get:
-      operationId: api_account_change_password_validate
-      description: ''
-      parameters: []
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ResetPasswordConfirm'
+        - name: token
+          in: query
+          description: Token
+          required: true
+          type: string
+        - name: pair
+          in: query
+          description: Pair
+          required: true
+          type: string
       responses:
         '200':
           description: ''
+          schema:
+            $ref: '#/definitions/Token'
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+      tags:
+        - api
+    parameters: []
+  /api/account/resetPassword/request:
+    post:
+      operationId: api_account_resetPassword_request
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ResetPasswordRequest'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/ResetPasswordRequest'
+      tags:
+        - api
+    parameters: []
+  /api/account/resetPassword/validate:
+    get:
+      operationId: api_account_resetPassword_validate
+      description: ''
+      parameters:
+        - name: token
+          in: query
+          description: Token
+          required: true
+          type: string
+        - name: pair
+          in: query
+          description: Pair
+          required: true
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
       tags:
         - api
     parameters: []
@@ -1009,6 +1078,25 @@ paths:
         type: string
         format: uuid
 definitions:
+  ChangePassword:
+    required:
+      - new_password
+      - confirm_new_password
+      - old_password
+    type: object
+    properties:
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+      confirm_new_password:
+        title: Confirm new password
+        type: string
+        minLength: 1
+      old_password:
+        title: Old password
+        type: string
+        minLength: 1
   UserDetail:
     description: User details.
     required:
@@ -1041,6 +1129,30 @@ definitions:
         type: string
         maxLength: 40
         minLength: 1
+  ResetPasswordConfirm:
+    required:
+      - new_password
+      - confirm_new_password
+    type: object
+    properties:
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+      confirm_new_password:
+        title: Confirm new password
+        type: string
+        minLength: 1
+  ResetPasswordRequest:
+    required:
+      - email
+    type: object
+    properties:
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
   AuthToken:
     required:
       - username
@@ -1059,6 +1171,7 @@ definitions:
     required:
       - username
       - email
+      - password
     type: object
     properties:
       username:
@@ -1069,10 +1182,10 @@ definitions:
         title: Email
         type: string
         minLength: 1
-      last_password_change:
-        title: Last password change
+      password:
+        title: Password
         type: string
-        readOnly: true
+        minLength: 1
   User:
     required:
       - username

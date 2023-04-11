@@ -16,32 +16,32 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface InlineResponse200
+ * @interface InlineResponse401
  */
-export interface InlineResponse200 {
+export interface InlineResponse401 {
     /**
      * 
      * @type {string}
-     * @memberof InlineResponse200
+     * @memberof InlineResponse401
      */
-    message?: string;
+    error?: string;
 }
 
-export function InlineResponse200FromJSON(json: any): InlineResponse200 {
-    return InlineResponse200FromJSONTyped(json, false);
+export function InlineResponse401FromJSON(json: any): InlineResponse401 {
+    return InlineResponse401FromJSONTyped(json, false);
 }
 
-export function InlineResponse200FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse200 {
+export function InlineResponse401FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse401 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'message': !exists(json, 'message') ? undefined : json['message'],
+        'error': !exists(json, 'error') ? undefined : json['error'],
     };
 }
 
-export function InlineResponse200ToJSON(value?: InlineResponse200 | null): any {
+export function InlineResponse401ToJSON(value?: InlineResponse401 | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -50,7 +50,7 @@ export function InlineResponse200ToJSON(value?: InlineResponse200 | null): any {
     }
     return {
         
-        'message': value.message,
+        'error': value.error,
     };
 }
 

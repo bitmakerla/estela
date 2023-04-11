@@ -87,7 +87,8 @@ class MongoAdapter(DatabaseInterface):
 
     def delete_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
-        return collection.delete_many({}).deleted_count
+        count = collection.delete_many({}).deleted_count
+        return count if collection.drop() else 0
 
     def get_all_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]

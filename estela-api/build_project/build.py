@@ -8,8 +8,8 @@ import logging
 
 from zipfile import ZipFile
 
+from django.conf import settings
 
-import sys, os
 
 sys.path.append("/home/estela/estela-api")
 os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.base"
@@ -89,7 +89,10 @@ def put(endpoint, data=None, params=None):
 def get_spiders():
     docker_client = docker.from_env()
     output = docker_client.containers.run(
-        ESTELA_IMAGE, "estela-describe-project", auto_remove=True
+        ESTELA_IMAGE,
+        "estela-describe-project",
+        auto_remove=True,
+        environment=settings.QUEUE_PARAMS,
     )
     spiders = json.loads(output)["spiders"]
     return spiders
