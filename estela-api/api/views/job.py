@@ -150,7 +150,7 @@ class SpiderJobViewSet(
         self.save_activity(
             user=request.user,
             project=spider.project,
-            description=f"Created job {serializer.data['jid']} for spider {spider.name}",
+            description=f"Job Job-{serializer.data['jid']} started for spider {spider.name}",
         )
 
         headers = self.get_success_headers(serializer.data)

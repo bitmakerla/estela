@@ -157,7 +157,7 @@ class SpiderCronJobUpdateSerializer(
         if "schedule" in validated_data:
             instance.schedule = schedule
             update_schedule(name, schedule)
-            description = (f"Updated schedule of schedule-job {instance.cjid}",)
+            description = (f"Updated schedule of Schedule-Job-{instance.cjid}",)
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
@@ -181,18 +181,25 @@ class SpiderCronJobUpdateSerializer(
                 disable_cronjob(name)
                 description = f"Disabled schedule-job {instance.cjid}"
 
+                description = f"Enabled Schedule-Job-{instance.cjid}"
+            elif status == SpiderCronJob.DISABLED_STATUS:
+                disable_cronjob(name)
+                description = f"Disabled Schedule-Job-{instance.cjid}"
+
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
                 description = (
-                    f"Set data status of schedule-job {instance.cjid} to persistent"
+                    f"Set data status of Schedule-Job-{instance.cjid} to persistent"
                 )
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
-                description = f"Set data status of schedule-job {instance.cjid} to {data_expiry_days} days"
+                description = (
+                    f"Set data status of Schedule-Job-{instance.cjid} to {data_expiry_days} days"
+                )
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
         self.save_activity(

@@ -72,7 +72,7 @@ class DeployViewSet(
         self.save_activity(
             user=user,
             project=project,
-            description=f"Deploy {serializer.data['did']} created.",
+            description=f"New deploy Dep-{serializer.data['did']} have been created",
         )
 
         headers = self.get_success_headers(serializer.data)
@@ -110,7 +110,7 @@ class DeployViewSet(
         self.save_activity(
             user=instance.user,
             project=instance.project,
-            description=f"Deploy {instance.did} updated.",
+            description=f"Deploy Dep-{instance.did} have been updated.",
         )
 
         headers = self.get_success_headers(serializer.data)

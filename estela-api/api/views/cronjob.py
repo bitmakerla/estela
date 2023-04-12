@@ -103,7 +103,7 @@ class SpiderCronJobViewSet(
         self.save_activity(
             user=request.user,
             project=spider.project,
-            description=f"Created schedule-job {cronjob.cjid} for spider {spider.name}",
+            description=f"Schedule-Job-{cronjob.cjid} for spider {spider.name} created",
         )
         headers = self.get_success_headers(serializer.data)
         return Response(
@@ -138,7 +138,7 @@ class SpiderCronJobViewSet(
         self.save_activity(
             user=request.user,
             project=instance.spider.project,
-            description=f"Deleted schedule-job {instance.cjid} for spider {instance.spider.name}",
+            description=f"Schedule-Job-{instance.cjid} deleted",
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -153,6 +153,7 @@ class SpiderCronJobViewSet(
     )
     @action(methods=["GET"], detail=True)
     def run_once(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
         instance = self.get_object()
 
         cronjob = SpiderCronJobSerializer(instance, partial=partial)
