@@ -1,37 +1,13 @@
 import React, { Component, ReactElement } from "react";
-import {
-    Layout,
-    Pagination,
-    Typography,
-    Checkbox,
-    Tag,
-    Button,
-    Row,
-    Col,
-    Space,
-    Table,
-    message,
-    Tooltip,
-} from "antd";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
+import { Layout, Pagination, Typography, Checkbox, Tag, Button, Row, Col, Space, Table } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService } from "../../services";
 import Filter from "../../assets/icons/filter.svg";
 import Setting from "../../assets/icons/setting.svg";
 import JobCreateModal from "../JobCreateModal";
-import {
-    ApiProjectsReadRequest,
-    ApiProjectsJobsRequest,
-    ProjectJob,
-    SpiderJob,
-    Project,
-} from "../../services/api";
-import {
-    resourceNotAllowedNotification,
-    Spin,
-    PaginationItem,
-} from "../../shared";
+import { ApiProjectsReadRequest, ApiProjectsJobsRequest, ProjectJob, SpiderJob, Project } from "../../services/api";
+import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -247,16 +223,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     };
 
     render(): JSX.Element {
-        const {
-            loaded,
-            tableStatus,
-            errorJobs,
-            completedJobs,
-            runningJobs,
-            queueJobs,
-            count,
-            current,
-        } = this.state;
+        const { loaded, tableStatus, errorJobs, completedJobs, runningJobs, queueJobs, count, current } = this.state;
         return (
             <Content>
                 {loaded ? (
