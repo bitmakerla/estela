@@ -30,7 +30,6 @@ interface ArgsData {
     key: number;
 }
 
-
 interface TagsData {
     name: string;
 }
