@@ -136,7 +136,7 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
                                         columns={this.columns}
                                         dataSource={activities}
                                         pagination={false}
-                                        size="middle"
+                                        size="small"
                                         locale={{ emptyText: "No activity" }}
                                     />
                                     <Pagination
