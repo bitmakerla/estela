@@ -267,7 +267,6 @@ export default function JobCreateModal({ projectId }: JobCreateModalProps) {
 
     return (
         <>
-            {externalComponent}
             <Button
                 icon={<Run className="mr-2" width={19} />}
                 size="large"
@@ -282,6 +281,7 @@ export default function JobCreateModal({ projectId }: JobCreateModalProps) {
             >
                 Run new job
             </Button>
+            {externalComponent}
             <Modal
                 style={{
                     overflow: "hidden",
