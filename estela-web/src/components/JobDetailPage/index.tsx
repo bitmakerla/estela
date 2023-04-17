@@ -43,6 +43,7 @@ import {
     DeleteJobData,
     SpiderJob,
     SpiderJobCreate,
+    SpiderJobEnvVar,
     SpiderJobUpdate,
     SpiderJobUpdateDataStatusEnum,
     Spider,
@@ -86,6 +87,7 @@ interface Args {
 interface EnvVarsData {
     name: string;
     value: string;
+    show: boolean;
 }
 
 interface EnvVars {
@@ -332,6 +334,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             async (response: SpiderJob) => {
                 const args = response.args || [];
                 const envVars = response.envVars || [];
+                const newEnvVars: EnvVarsData[] = [...envVars].map((envVar: SpiderJobEnvVar) => ({
+                    name: envVar.name,
+                    value: envVar.value,
+                    show: false,
+                }));
                 const tags = response.tags || [];
                 const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
                 const lifespan: number =
@@ -341,7 +348,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     lifespan: lifespan,
                     totalResponseBytes: response.totalResponseBytes,
                     args: [...args],
-                    envVars: [...envVars],
+                    envVars: [...newEnvVars],
                     tags: [...tags],
                     date: convertDateToString(response.created),
                     created: `${response.created}`,
@@ -362,6 +369,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         await this.getItems(1);
         this.setState({ loadedItemsFirstTime: true });
     }
+
+    changeVisibleEnvVar = (index: number): void => {
+        const { envVars } = this.state;
+        envVars[index].show = !envVars[index].show;
+        this.setState({ envVars: envVars });
+    };
 
     getProjectSpiders = async (): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId };
@@ -950,13 +963,15 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                             <Col className="px-2">
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: EnvVarsData, id) => (
-                                        <Tag
-                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                    {envVars?.map((envVar: EnvVarsData, id) => (
+                                        <button
+                                            onMouseDown={() => this.changeVisibleEnvVar(id)}
+                                            onMouseUp={() => this.changeVisibleEnvVar(id)}
+                                            className="environment-variables"
                                             key={id}
                                         >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
+                                            {envVar.show ? envVar.value : envVar.name}
+                                        </button>
                                     ))}
                                 </Space>
                             </Col>

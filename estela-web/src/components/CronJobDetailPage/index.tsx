@@ -41,6 +41,7 @@ import {
     ApiProjectsSpidersJobsListRequest,
     ApiProjectsSpidersCronjobsRunOnceRequest,
     SpiderCronJob,
+    SpiderJobEnvVar,
     SpiderJob,
     SpiderCronJobUpdateStatusEnum,
     SpiderCronJobDataStatusEnum,
@@ -62,6 +63,7 @@ interface ArgsData {
 interface EnvVarsData {
     name: string;
     value: string;
+    show: boolean;
 }
 
 interface TagsData {
@@ -291,6 +293,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 if (envVars === undefined) {
                     envVars = [];
                 }
+                const newEnvVars: EnvVarsData[] = [...envVars].map((envVar: SpiderJobEnvVar) => ({
+                    name: envVar.name,
+                    value: envVar.value,
+                    show: false,
+                }));
                 let tags = response.ctags;
                 if (tags === undefined) {
                     tags = [];
@@ -313,7 +320,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 this.setState({
                     name: response.name,
                     args: [...args],
-                    envVars: [...envVars],
+                    envVars: [...newEnvVars],
                     tags: [...tags],
                     status: response.status,
                     schedule: response.schedule,
@@ -340,6 +347,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             },
         );
     }
+
+    changeVisibleEnvVar = (index: number): void => {
+        const envVars: EnvVarsData[] = this.state.envVars;
+        envVars[index].show = !envVars[index].show;
+        this.setState({ envVars: envVars });
+    };
 
     handleInputChange = (event: string): void => {
         this.setState({ new_schedule: event });
@@ -895,12 +908,14 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             <Col>
                                 <Space direction="vertical">
                                     {envVars.map((envVar: EnvVarsData, id) => (
-                                        <Tag
-                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
+                                        <button
+                                            onMouseDown={() => this.changeVisibleEnvVar(id)}
+                                            onMouseUp={() => this.changeVisibleEnvVar(id)}
+                                            className="environment-variables"
                                             key={id}
                                         >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
+                                            {envVar.show ? envVar.value : envVar.name}
+                                        </button>
                                     ))}
                                 </Space>
                             </Col>
