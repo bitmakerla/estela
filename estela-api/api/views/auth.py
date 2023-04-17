@@ -47,7 +47,9 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             send_verification_email(user, request)
 
     @swagger_auto_schema(
-        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+        methods=["POST"],
+        responses={status.HTTP_200_OK: TokenSerializer()},
+        tags=["auth"],
     )
     @action(methods=["POST"], detail=False)
     def login(self, request, *args, **kwargs):
@@ -70,7 +72,9 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         return Response(TokenSerializer(token).data)
 
     @swagger_auto_schema(
-        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+        methods=["POST"],
+        responses={status.HTTP_200_OK: TokenSerializer()},
+        tags=["auth"],
     )
     @action(methods=["POST"], detail=False, serializer_class=UserSerializer)
     def register(self, request, *args, **kwargs):
@@ -93,6 +97,9 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
+    @swagger_auto_schema(
+        tags=["auth"],
+    )
     @action(methods=["GET"], detail=False)
     def activate(self, request, *args, **kwargs):
         token = request.query_params.get("token", "")
@@ -149,6 +156,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         responses={status.HTTP_200_OK: UserProfileSerializer()},
+        tags=["auth"],
     )
     def retrieve(self, request, *args, **kwargs):
         user: User = request.user
@@ -172,6 +180,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         responses={status.HTTP_200_OK: UserProfileSerializer()},
+        tags=["auth"],
     )
     def update(self, request, *args, **kwargs):
         username = kwargs.get("username", "")
@@ -196,11 +205,41 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        tags=["auth"],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_201_CREATED: UserProfileSerializer()},
+        tags=["auth"],
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: UserProfileSerializer()},
+        tags=["auth"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_204_NO_CONTENT: openapi.Response("No Content"),
+        },
+        tags=["auth"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
 
 class ChangePasswordViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(
         request_body=ChangePasswordSerializer,
         responses={status.HTTP_200_OK: TokenSerializer()},
+        tags=["auth"],
     )
     @action(
         methods=["PATCH"],
@@ -245,14 +284,18 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
         return token, user_id
 
     @swagger_auto_schema(
-        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+        operation_id="api_account_resetPassword_request",
+        methods=["POST"],
+        responses={status.HTTP_200_OK: TokenSerializer()},
+        tags=["auth"],
     )
     @action(
         methods=["POST"],
         detail=False,
         serializer_class=ResetPasswordRequestSerializer,
+        url_path="request",
     )
-    def request(self, request, *args, **kwargs):
+    def request_reset(self, request, *args, **kwargs):
         serializer = ResetPasswordRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
@@ -288,6 +331,7 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
                 },
             ),
         },
+        tags=["auth"],
     )
     @action(methods=["GET"], detail=False)
     def validate(self, request, *args, **kwargs):
@@ -318,6 +362,7 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
                 },
             ),
         },
+        tags=["auth"],
     )
     @action(
         methods=["PATCH"], detail=False, serializer_class=ResetPasswordConfirmSerializer

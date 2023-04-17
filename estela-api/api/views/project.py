@@ -74,6 +74,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     @swagger_auto_schema(
         request_body=ProjectUpdateSerializer,
         responses={status.HTTP_200_OK: ProjectUpdateSerializer()},
+        tags=["projects"],
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -137,6 +138,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         responses={status.HTTP_204_NO_CONTENT: "Project deleted"},
+        tags=["projects"],
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -166,6 +168,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             ),
         ],
         responses={status.HTTP_200_OK: ProjectJobSerializer()},
+        tags=["projects"],
     )
     @action(methods=["GET"], detail=True)
     def jobs(self, request, *args, **kwargs):
@@ -205,6 +208,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             ),
         ],
         responses={status.HTTP_200_OK: ProjectCronJobSerializer()},
+        tags=["projects"],
     )
     @action(methods=["GET"], detail=True)
     def cronjobs(self, request, *args, **kwargs):
@@ -227,6 +231,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     @swagger_auto_schema(
         methods=["GET"],
         responses={status.HTTP_200_OK: ProjectUsageSerializer()},
+        tags=["projects"],
     )
     @action(methods=["GET"], detail=True)
     def current_usage(self, request, *args, **kwargs):
@@ -258,6 +263,7 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             ),
         ],
         responses={status.HTTP_200_OK: UsageRecordSerializer(many=True)},
+        tags=["projects"],
     )
     @action(methods=["GET"], detail=True)
     def usage(self, request, *args, **kwargs):
@@ -276,3 +282,30 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_200_OK,
         )
+
+    @swagger_auto_schema(
+        tags=["projects"],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: ProjectSerializer()},
+        tags=["projects"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_201_CREATED: ProjectSerializer()},
+        tags=["projects"],
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: ProjectSerializer()},
+        tags=["projects"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)

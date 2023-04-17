@@ -84,6 +84,7 @@ class JobDataViewSet(
                 required=False,
             ),
         ],
+        tags=["spider-jobs"],
     )
     def list(self, request, *args, **kwargs):
         page, data_type, page_size = self.get_parameters(request)
@@ -161,6 +162,7 @@ class JobDataViewSet(
                 required=True,
             ),
         ],
+        tags=["spider-jobs"],
     )
     @action(methods=["POST"], detail=False)
     def delete(self, request, *args, **kwargs):

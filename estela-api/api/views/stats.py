@@ -211,6 +211,7 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
                 schema=ListSerializer(child=GlobalStatsSerializer()),
             ),
         },
+        tags=["stats"],
     )
     def list(self, request, *args, **kwargs):
         start_date, end_date = self.get_parameters(request)
@@ -277,6 +278,7 @@ class SpidersJobsStatsViewSet(
                 schema=ListSerializer(child=SpidersJobsStatsSerializer()),
             ),
         },
+        tags=["stats"],
     )
     def list(self, request, *args, **kwargs):
         start_date, end_date = self.get_parameters(request)
