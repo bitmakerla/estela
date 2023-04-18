@@ -15,7 +15,7 @@ from api.serializers.job import (
     SpiderJobUpdateSerializer,
 )
 from config.job_manager import job_manager
-from core.models import Spider, SpiderJob
+from core.models import DataStatus, Spider, SpiderJob
 
 
 class SpiderJobViewSet(
@@ -101,8 +101,8 @@ class SpiderJobViewSet(
         async_param = request.query_params.get("async", False)
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data_status = request.data.pop("data_status", SpiderJob.PERSISTENT_STATUS)
-        if data_status == SpiderJob.PENDING_STATUS:
+        data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
+        if data_status == DataStatus.PENDING_STATUS:
             data_expiry_days = request.data.pop("data_expiry_days", 1)
             if data_expiry_days < 1:
                 raise ParseError({"error": "Invalid data expiry days value."})

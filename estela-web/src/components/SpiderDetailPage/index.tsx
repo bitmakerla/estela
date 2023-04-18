@@ -1,5 +1,20 @@
 import React, { Component, ReactElement } from "react";
-import { Button, Layout, Pagination, Typography, Row, Table, Col, Tabs, Radio, Checkbox, Space, Tag } from "antd";
+import {
+    Button,
+    Layout,
+    Pagination,
+    Typography,
+    message,
+    Row,
+    Table,
+    Col,
+    Tabs,
+    Radio,
+    Checkbox,
+    Space,
+    Tag,
+} from "antd";
+import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
@@ -13,15 +28,19 @@ import Filter from "../../assets/icons/filter.svg";
 import {
     ApiProjectsSpidersReadRequest,
     ApiProjectsSpidersJobsListRequest,
+    ApiProjectsSpidersUpdateRequest,
     ApiProjectsDeploysListRequest,
     Deploy,
     Spider,
+    SpiderDataStatusEnum,
+    SpiderUpdateDataStatusEnum,
+    SpiderUpdate,
     SpiderJob,
     SpiderJobArg,
     SpiderJobTag,
 } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
-import { convertDateToString } from "../../utils";
+import { convertDateToString, handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -55,11 +74,21 @@ interface SpiderDetailPageState {
     errorJobs: SpiderJobData[];
     scheduledJobsCount: number;
     spiderCreationDate: string;
+    persistenceChanged: boolean;
+    newDataStatus: SpiderUpdateDataStatusEnum | undefined;
+    dataStatus: SpiderDataStatusEnum | SpiderUpdateDataStatusEnum | undefined;
+    dataExpiryDays: number | null | undefined;
 }
 
 interface RouteParams {
     projectId: string;
     spiderId: string;
+}
+
+interface OptionDataPersistance {
+    label: string;
+    key: number;
+    value: number;
 }
 
 export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>, SpiderDetailPageState> {
@@ -78,6 +107,10 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         errorJobs: [],
         spiderCreationDate: "",
         scheduledJobsCount: 0,
+        dataStatus: undefined,
+        dataExpiryDays: 1,
+        persistenceChanged: false,
+        newDataStatus: undefined,
         tableStatus: new Array<boolean>(4).fill(true),
     };
     apiService = ApiService();
@@ -188,6 +221,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({
                     name: response.name,
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays,
                     jobs: [...jobs],
                     count: data.count,
                     current: data.current,
@@ -249,6 +284,32 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         return { data, count: response.count, current: page };
     };
 
+    changePersistence = (): void => {
+        const requestData: SpiderUpdate = {
+            name: this.state.name,
+            dataStatus: this.state.newDataStatus,
+            dataExpiryDays: Number(this.state.dataExpiryDays),
+        };
+        const request: ApiProjectsSpidersUpdateRequest = {
+            pid: this.projectId,
+            sid: Number(this.spiderId),
+            data: requestData,
+        };
+        this.apiService.apiProjectsSpidersUpdate(request).then(
+            (response) => {
+                message.success("Data persistence changed");
+                this.setState({
+                    dataStatus: response.dataStatus,
+                    dataExpiryDays: response.dataExpiryDays,
+                    persistenceChanged: false,
+                });
+            },
+            (error: unknown) => {
+                handleInvalidDataError(error);
+            },
+        );
+    };
+
     onDetailMenuTabChange = (option: string) => {
         this.setState({
             optionTab: option,
@@ -280,6 +341,15 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             completedJobs: [...completedJobs],
             errorJobs: [...errorJobs],
         });
+    };
+
+    onPersistenceChange = (e: RadioChangeEvent): void => {
+        this.setState({ persistenceChanged: true });
+        if (e.target.value === 720) {
+            this.setState({ newDataStatus: SpiderUpdateDataStatusEnum.Persistent });
+        } else {
+            this.setState({ newDataStatus: SpiderUpdateDataStatusEnum.Pending, dataExpiryDays: e.target.value });
+        }
     };
 
     onChangeStatus = (index: number, count: number) => {
@@ -628,13 +698,24 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         );
     };
 
+    dataPersistenceOptions = [
+        { label: "1 day", key: 1, value: 1 },
+        { label: "1 week", key: 2, value: 7 },
+        { label: "1 month", key: 3, value: 30 },
+        { label: "3 months", key: 4, value: 90 },
+        { label: "6 months", key: 5, value: 180 },
+        { label: "1 year", key: 6, value: 365 },
+        { label: "Forever", key: 7, value: 720 },
+    ];
+
     settings = (): React.ReactNode => {
+        const { dataStatus, dataExpiryDays, persistenceChanged } = this.state;
         return (
             <Row justify="center" className="bg-white rounded-lg">
                 <Content className="content-padding">
-                    <Row className="bg-white rounded-lg my-4">
+                    <Row className="bg-white rounded-lg">
                         <Col span={24}>
-                            <div className="lg:m-8 md:mx-6 m-4">
+                            <div className="lg:m-4 md:mx-4 m-2">
                                 <p className="text-2xl text-black">Data persistence</p>
                                 <p className="text-sm my-2 text-estela-black-medium">
                                     Data persistence will be applied to all jobs and scheduled jobs by default.
@@ -644,14 +725,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                         <p className="text-sm my-2 text-estela-black-full">General Data Persistent</p>
                                     </Col>
                                     <Col xs={24} sm={24} md={24} lg={19}>
-                                        <Radio.Group className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4">
-                                            <Radio.Button value="1 day">1 day</Radio.Button>
-                                            <Radio.Button value="1 week">1 week</Radio.Button>
-                                            <Radio.Button value="1 month">1&nbsp;month</Radio.Button>
-                                            <Radio.Button value="3 months">3&nbsp;months</Radio.Button>
-                                            <Radio.Button value="6 months">6&nbsp;months</Radio.Button>
-                                            <Radio.Button value="1 year">1 year</Radio.Button>
-                                            <Radio.Button value="forever">Forever</Radio.Button>
+                                        <Radio.Group
+                                            defaultValue={
+                                                dataStatus === SpiderDataStatusEnum.Persistent ? 720 : dataExpiryDays
+                                            }
+                                            onChange={this.onPersistenceChange}
+                                            className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-2 lg:my-6 my-4"
+                                        >
+                                            {this.dataPersistenceOptions.map((option: OptionDataPersistance) => (
+                                                <Radio.Button className="text-sm" key={option.key} value={option.value}>
+                                                    {option.label}
+                                                </Radio.Button>
+                                            ))}
                                         </Radio.Group>
                                     </Col>
                                 </Row>
@@ -659,7 +744,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     <Button
                                         block
                                         htmlType="submit"
-                                        disabled
+                                        disabled={!persistenceChanged}
+                                        onClick={this.changePersistence}
                                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base min-h-full"
                                     >
                                         Save Changes

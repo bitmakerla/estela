@@ -1,7 +1,8 @@
-import { AuthService } from "../../services";
-import React from "react";
+import React, { useEffect, useContext } from "react";
+import { UserContext } from "../../context";
+import { ApiService, AuthService, UserProfile } from "../../services";
 import { Redirect, Route } from "react-router-dom";
-import { authNotification } from "../notifications";
+import { authNotification, invalidDataNotification } from "../notifications";
 
 type RouteProps = {
     render?: () => JSX.Element;
@@ -13,7 +14,32 @@ type RouteProps = {
 };
 
 export const PrivateRoute: React.FC<RouteProps> = (route) => {
+    const { username, email, updateUsername, updateEmail, updateAccessToken } = useContext(UserContext);
     const authToken = AuthService.getAuthToken();
+    const apiService = ApiService();
+    useEffect(() => {
+        let localUsername = username;
+        if (localUsername === "") {
+            localUsername = AuthService.getUserUsername() ?? "";
+        }
+        apiService.apiAuthProfileRead({ username: localUsername ?? "" }).then(
+            (user: UserProfile) => {
+                updateUsername(user.username ?? "");
+                updateEmail(user.email ?? "");
+            },
+            async (error) => {
+                try {
+                    console.log("here");
+                    const data = await error.json();
+                    invalidDataNotification(data.error);
+                } catch (err) {
+                    console.error(err);
+                }
+            },
+        );
+
+        updateAccessToken(AuthService.getAuthToken() ?? "");
+    }, [username, email]);
 
     return (
         <Route

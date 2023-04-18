@@ -8,7 +8,6 @@ REGISTRY_HOST = localhost:5001
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 
-
 .PHONY: start
 start:
 	-cd $(INSTALLATION_DIR) && make start
@@ -78,10 +77,10 @@ refresh-redis: update-redis-image
 
 .PHONY: refresh-consumers
 refresh-consumers: update-consumer-image
-	-kubectl rollout restart deployment kafka-items-consumer
-	-kubectl rollout restart deployment kafka-logs-consumer
-	-kubectl rollout restart deployment kafka-requests-consumer
-	-kubectl rollout restart deployment kafka-stats-consumer
+	-kubectl rollout restart deployment queue-items-consumer
+	-kubectl rollout restart deployment queue-logs-consumer
+	-kubectl rollout restart deployment queue-requests-consumer
+	-kubectl rollout restart deployment queue-stats-consumer
 
 
 .PHONY: refresh-all
@@ -114,6 +113,8 @@ docs:
 	-cd $(ROOT_DIR) && \
 	 export CREDENTIALS=local && export ENGINE=kubernetes && export SPIDERDATA_DB_ENGINE=mongodb && \
 	 python3 estela-api/manage.py generate_swagger -f yaml estela-api/$(API_DOC)
+	-cp $(API_DIR)/$(API_DOC) $(WEB_DIR)/api.yaml
+	-cd $(WEB_DIR) && yarn generate-api
 
 
 .PHONY: lint

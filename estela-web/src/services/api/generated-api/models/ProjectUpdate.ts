@@ -39,17 +39,11 @@ export interface ProjectUpdate {
      */
     name: string;
     /**
-     * Afected users.
+     * Affected users.
      * @type {Array<UserDetail>}
      * @memberof ProjectUpdate
      */
     users?: Array<UserDetail>;
-    /**
-     * User email address.
-     * @type {string}
-     * @memberof ProjectUpdate
-     */
-    user?: string;
     /**
      * Email address.
      * @type {string}
@@ -68,6 +62,18 @@ export interface ProjectUpdate {
      * @memberof ProjectUpdate
      */
     permission?: ProjectUpdatePermissionEnum;
+    /**
+     * New data status.
+     * @type {string}
+     * @memberof ProjectUpdate
+     */
+    dataStatus?: ProjectUpdateDataStatusEnum;
+    /**
+     * New data expiry days.
+     * @type {number}
+     * @memberof ProjectUpdate
+     */
+    dataExpiryDays?: number;
 }
 
 /**
@@ -86,6 +92,13 @@ export enum ProjectUpdatePermissionEnum {
     Admin = 'ADMIN',
     Developer = 'DEVELOPER',
     Viewer = 'VIEWER'
+}/**
+* @export
+* @enum {string}
+*/
+export enum ProjectUpdateDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Pending = 'PENDING'
 }
 
 export function ProjectUpdateFromJSON(json: any): ProjectUpdate {
@@ -101,10 +114,11 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
         'pid': !exists(json, 'pid') ? undefined : json['pid'],
         'name': json['name'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(UserDetailFromJSON)),
-        'user': !exists(json, 'user') ? undefined : json['user'],
         'email': !exists(json, 'email') ? undefined : json['email'],
         'action': !exists(json, 'action') ? undefined : json['action'],
         'permission': !exists(json, 'permission') ? undefined : json['permission'],
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
@@ -119,10 +133,11 @@ export function ProjectUpdateToJSON(value?: ProjectUpdate | null): any {
         
         'name': value.name,
         'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(UserDetailToJSON)),
-        'user': value.user,
         'email': value.email,
         'action': value.action,
         'permission': value.permission,
+        'data_status': value.dataStatus,
+        'data_expiry_days': value.dataExpiryDays,
     };
 }
 

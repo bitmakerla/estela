@@ -28,9 +28,12 @@ SPIDERDATA_DB_ENGINE: mongodb
 SPIDERDATA_DB_CONNECTION: "" # [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) can be used to set a database
 SPIDERDATA_DB_CERTIFICATE_PATH: config/ca-certificate.crt
 
-# Kafka
-KAFKA_HOSTS: "" # kafka
-KAFKA_PORT: "" # 9092
+# Queue Platform
+QUEUE_PARAMETERS:
+  QUEUE_PLATFORM: kafka
+  QUEUE_PLATFORM_LISTENERS: "" # kafka
+  QUEUE_PLATFORM_PORT: "" # 9092
+  # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/docs/estela/queueing.html#estela-queue-adapter
 
 ############ API ############
 
@@ -74,7 +77,7 @@ REGISTER: "" # "True"
 
 ############ QUEUEING ############
 
-KAFKA_CONSUMER_PRODUCTION: "" # "False"
+CONSUMER_PRODUCTION: "" # "False"
 
 WORKER_POOL: ""
 HEARTBEAT_TICK: ""

@@ -15,7 +15,7 @@ from api.serializers.cronjob import (
     SpiderCronJobUpdateSerializer,
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
-from core.models import Spider, SpiderCronJob
+from core.models import DataStatus, Spider, SpiderCronJob
 
 
 class SpiderCronJobViewSet(
@@ -68,9 +68,9 @@ class SpiderCronJobViewSet(
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
         serializer = SpiderCronJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data_status = request.data.pop("data_status", SpiderCronJob.PERSISTENT_STATUS)
+        data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
 
-        if data_status == SpiderCronJob.PENDING_STATUS:
+        if data_status == DataStatus.PENDING_STATUS:
             date_str = request.data.pop("data_expiry_days", "0/1")
             data_expiry_days = self.get_days(date_str)
             if data_expiry_days < 1:
@@ -138,7 +138,7 @@ class SpiderCronJobViewSet(
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
 
-        cronjob = SpiderCronJobSerializer(instance)
+        cronjob = SpiderCronJobSerializer(instance, partial=partial)
 
         run_cronjob_once(cronjob.data)
         return Response(cronjob.data, status=status.HTTP_200_OK)

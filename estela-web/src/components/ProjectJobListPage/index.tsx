@@ -13,6 +13,7 @@ import {
     Col,
     Space,
     Table,
+    message,
 } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
@@ -28,6 +29,7 @@ import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
     SpiderJobCreate,
+    SpiderDataStatusEnum,
     ProjectJob,
     SpiderJob,
     Project,
@@ -102,8 +104,8 @@ interface ProjectJobListPageState {
     tags: TagsData[];
     newTags: Tags[];
     spiders: Spider[];
-    dataExpireDays: number;
-    dataStatus: string;
+    dataExpiryDays: number | null | undefined;
+    dataStatus: SpiderDataStatusEnum | undefined;
     loadedSpiders: boolean;
     spiderId: string;
     tableStatus: boolean[];
@@ -121,6 +123,7 @@ interface ProjectJobListPageState {
     count: number;
     current: number;
     externalComponent: JSX.Element;
+    loading: boolean;
 }
 
 interface RouteParams {
@@ -147,13 +150,14 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         envVars: [],
         tags: [],
         newTags: [],
-        dataExpireDays: 1,
-        dataStatus: "PENDING",
+        dataExpiryDays: 1,
+        dataStatus: undefined,
         newArgName: "",
         newArgValue: "",
         newEnvVarName: "",
         newEnvVarValue: "",
         newTagName: "",
+        loading: false,
         modal: this.LocationState ? this.LocationState.open : false,
         externalComponent: <></>,
         loadedSpiders: false,
@@ -270,6 +274,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 } else {
                     this.setState({
                         spiders: [...results.results],
+                        dataStatus: results.results[0].dataStatus,
+                        dataExpiryDays: results.results[0].dataExpiryDays,
                         spiderId: String(results.results[0].sid),
                         loadedSpiders: true,
                     });
@@ -334,9 +340,9 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
 
     handlePersistenceChange = (value: number): void => {
         if (value == 720) {
-            this.setState({ dataStatus: "PERSISTENT" });
+            this.setState({ dataStatus: SpiderDataStatusEnum.Persistent });
         } else {
-            this.setState({ dataExpireDays: value });
+            this.setState({ dataExpiryDays: value });
         }
     };
 
@@ -420,12 +426,13 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     };
 
     handleSubmit = (): void => {
+        this.setState({ loading: true });
         const requestData = {
             args: [...this.state.args],
             envVars: [...this.state.envVars],
             tags: [...this.state.tags],
-            dataStatus: this.state.dataStatus,
-            dataExpiryDays: this.state.dataExpireDays,
+            dataStatus: String(this.state.dataStatus),
+            dataExpiryDays: Number(this.state.dataExpiryDays),
         };
         const request: ApiProjectsSpidersJobsCreateRequest = {
             data: requestData,
@@ -434,12 +441,13 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         };
         this.apiService.apiProjectsSpidersJobsCreate(request).then(
             (response: SpiderJobCreate) => {
+                this.setState({ loading: false });
                 history.push(`/projects/${this.projectId}/spiders/${this.state.spiderId}/jobs/${response.jid}`);
             },
             async (error) => {
+                this.setState({ loading: false });
                 const data = await error.json();
                 const [errorComponent, err] = checkExternalError(data);
-
                 if (err) {
                     invalidDataNotification(data.detail);
                     this.setState({ externalComponent: <></> });
@@ -473,6 +481,9 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             newEnvVarName,
             newEnvVarValue,
             newTagName,
+            loading,
+            dataStatus,
+            dataExpiryDays,
             tags,
         } = this.state;
         return (
@@ -491,7 +502,13 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                         icon={<Run className="mr-2" width={19} />}
                                         size="large"
                                         className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                        onClick={() => this.setState({ modal: true })}
+                                        onClick={() => {
+                                            if (spiders.length == 0) {
+                                                message.error("Not implemented yet.");
+                                            } else {
+                                                this.setState({ modal: true });
+                                            }
+                                        }}
                                     >
                                         Run new job
                                     </Button>
@@ -530,7 +547,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 onChange={this.handlePersistenceChange}
                                                 className="w-full"
                                                 size="large"
-                                                defaultValue={this.dataPersistenceOptions[0].value}
+                                                defaultValue={dataStatus === "PERSISTENT" ? 720 : dataExpiryDays}
                                             >
                                                 {this.dataPersistenceOptions.map((option: OptionDataPersistance) => (
                                                     <Option className="text-sm" key={option.key} value={option.value}>
@@ -655,17 +672,18 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 ></Button>
                                             </Space>
                                         </Space>
-                                        <Row justify="center" className="mt-4">
+                                        <Row className="flow-root mt-4">
                                             <Button
+                                                loading={loading}
                                                 onClick={this.handleSubmit}
                                                 size="large"
-                                                className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                                className="float-left w-48 h-12 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
                                             >
                                                 Create
                                             </Button>
                                             <Button
                                                 size="large"
-                                                className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                                className="float-right w-48 h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
                                                 onClick={() => this.setState({ modal: false })}
                                             >
                                                 Cancel

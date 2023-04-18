@@ -1,14 +1,15 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kafka-config
+  name: queue-config
   namespace: {{ .Release.Namespace }}
 data:
-  KAFKA_ADVERTISED_LISTENERS: {{ .Values.KAFKA_HOSTS }}
-  KAFKA_ADVERTISED_PORT: {{ .Values.KAFKA_PORT | quote }}
+  {{- range $key, $val := .Values.QUEUE_PARAMETERS }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
   DB_ENGINE: {{ .Values.SPIDERDATA_DB_ENGINE }}
   DB_CERTIFICATE_PATH: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
-  PRODUCTION: {{ .Values.KAFKA_CONSUMER_PRODUCTION | quote }}
+  PRODUCTION: {{ .Values.CONSUMER_PRODUCTION | quote }}
   {{- if .Values.WORKER_POOL }}
   WORKER_POOL: {{ .Values.WORKER_POOL | quote }}
   {{- end }}

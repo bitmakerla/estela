@@ -1,34 +1,38 @@
 from datetime import datetime, timezone
+
+from django.conf import settings
+from django.contrib.auth.models import User, update_last_login
+from django.core.mail import EmailMessage
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets, permissions, serializers
+from rest_framework import permissions, status, viewsets
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
+from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
-from api.tokens import account_reset_token
-from django.contrib.auth.models import User
-from rest_framework.exceptions import PermissionDenied, MethodNotAllowed
-from django.conf import settings
-from django.contrib.auth.models import update_last_login
-from django.shortcuts import redirect
-from django.contrib.auth.password_validation import validate_password
-from api.exceptions import EmailServiceError, UserNotFoundError, ChangePasswordError
-from api.serializers.auth import TokenSerializer, UserSerializer, UserProfileSerializer
-from core.views import (
-    send_verification_email,
-    send_change_password_email,
-    send_alert_password_changed,
-)
-from django.core import exceptions
-from core.models import UserProfile
-from django.contrib.auth import authenticate
-from django.utils.translation import gettext_lazy as _
+
+from api.exceptions import EmailServiceError, UserNotFoundError
 from api.permissions import IsProfileUser
+from api.serializers.auth import (
+    ChangePasswordSerializer,
+    ResetPasswordConfirmSerializer,
+    ResetPasswordRequestSerializer,
+    TokenSerializer,
+    UserProfileSerializer,
+    UserSerializer,
+)
+from api.tokens import account_reset_token
+from core.views import (
+    send_alert_password_changed,
+    send_change_password_email,
+    send_verification_email,
+)
 
 
 class AuthAPIViewSet(viewsets.GenericViewSet):
@@ -62,10 +66,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data["user"]
-        user_profile = UserProfile.objects.filter(user=user)
-        if not user_profile:
-            UserProfile.objects.create(user=user)
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @swagger_auto_schema(
@@ -83,13 +84,13 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         update_last_login(None, user)
         try:
             send_verification_email(user, request)
-        except Exception as ex:
+        except Exception:
             raise EmailServiceError(
                 {
                     "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
                 }
             )
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @action(methods=["GET"], detail=False)
@@ -153,7 +154,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user: User = request.user
         requested_user: User = User.objects.filter(username=kwargs["username"]).first()
 
-        if requested_user == None:
+        if requested_user is None:
             return Response(
                 data={"error": "This user doesn't exist in estela."},
                 status=status.HTTP_404_NOT_FOUND,
@@ -170,11 +171,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=UserProfileSerializer,
         responses={status.HTTP_200_OK: UserProfileSerializer()},
     )
     def update(self, request, *args, **kwargs):
+        username = kwargs.get("username", "")
         user: User = request.user
+        if username != user.username:
+            return Response(
+                data={"error": "This user doesn't exist in estela."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         user_data: dict = {
             "username": request.user.username,
             "password": request.data.get("password", ""),
@@ -192,6 +198,46 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 
 class ChangePasswordViewSet(viewsets.GenericViewSet):
+    @swagger_auto_schema(
+        request_body=ChangePasswordSerializer,
+        responses={status.HTTP_200_OK: TokenSerializer()},
+    )
+    @action(
+        methods=["PATCH"],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        authentication_classes=[TokenAuthentication],
+        serializer_class=ChangePasswordSerializer,
+    )
+    def change(self, request, *args, **kwargs):
+        user = request.user
+        serializer = ChangePasswordSerializer(data=request.data, context={"user": user})
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.data["new_password"])
+        user.save()
+        send_alert_password_changed(user)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+
+
+class ResetPasswordViewSet(viewsets.GenericViewSet):
+    manual_parameters = [
+        openapi.Parameter(
+            "token",
+            openapi.IN_QUERY,
+            description="Token",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+        openapi.Parameter(
+            "pair",
+            openapi.IN_QUERY,
+            description="Pair",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+    ]
+
     def get_parameters(self, request):
         token = request.query_params.get("token", "")
         user_id_base64 = request.query_params.get("pair", "")
@@ -204,114 +250,88 @@ class ChangePasswordViewSet(viewsets.GenericViewSet):
     @action(
         methods=["POST"],
         detail=False,
-        permission_classes=[permissions.IsAuthenticated],
-        authentication_classes=[TokenAuthentication],
+        serializer_class=ResetPasswordRequestSerializer,
     )
     def request(self, request, *args, **kwargs):
-        email = request.data["email"]
+        serializer = ResetPasswordRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
         user = User.objects.filter(email=email)
         if not user:
-            raise UserNotFoundError({"error": "User does not exist."})
+            raise UserNotFoundError()
         user = user.get()
-        if (
-            int(
-                (
-                    datetime.now(timezone.utc) - user.userprofile.last_password_change
-                ).total_seconds()
-            )
-            < settings.PASSWORD_CHANGE_TIME
-        ):
-            raise ChangePasswordError(
-                {
-                    "error": "You can only change your password every 6 months. Try again later."
-                }
-            )
         try:
-            send_change_password_email(user, request)
+            send_change_password_email(user)
         except Exception:
             raise EmailServiceError(
                 {
-                    "error": "There was an error sending the verification email. Please try again later."
+                    "error": "There was an error sending the password reset email. Please try again later."
                 }
             )
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=manual_parameters,
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+        },
+    )
     @action(methods=["GET"], detail=False)
     def validate(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
         user = User.objects.filter(pk=user_id)
         if not user:
-            return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0], {"error": "User does not exist."}
-            )
+            raise UserNotFoundError()
         user = user.get()
         if account_reset_token.check_token(user, token):
-            return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0] + "/change_password",
-                {"message": "You can now change your password."},
+            return Response(
+                data={"message": "Token is valid."}, status=status.HTTP_200_OK
             )
         else:
-            try:
-                send_change_password_email(user, request)
-            except Exception:
-                raise EmailServiceError(
-                    {
-                        "error": "There was an error sending the verification email. Please try again later."
-                    }
-                )
-            return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0],
-                {"message": "Activation link is invalid. Check your email again."},
+            return Response(
+                data={"message": "Token is invalid."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
     @swagger_auto_schema(
-        methods=["PATCH"], responses={status.HTTP_200_OK: TokenSerializer()}
+        methods=["PATCH"],
+        manual_parameters=manual_parameters,
+        responses={
+            status.HTTP_200_OK: TokenSerializer(),
+            status.HTTP_401_UNAUTHORIZED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+        },
     )
-    @action(methods=["PATCH"], detail=False)
+    @action(
+        methods=["PATCH"], detail=False, serializer_class=ResetPasswordConfirmSerializer
+    )
     def confirm(self, request, *args, **kwargs):
         token, user_id = self.get_parameters(request)
-        old_password = request.data["old_password"]
-        new_password = request.data["new_password"]
-        new_password_repeat = request.data["new_password_repeat"]
         user = User.objects.filter(pk=user_id)
         if not user:
-            raise UserNotFoundError({"error": "User does not exist."})
+            raise UserNotFoundError()
         user = user.get()
-        if account_reset_token.check_token(user, token):
-            try:
-                validate_password(new_password, user)
-            except exceptions.ValidationError as exception:
-                raise exception
-            user = authenticate(username=user.username, password=old_password)
-            if not user:
-                msg = _("Unable to log in with provided credentials.")
-                raise serializers.ValidationError(msg, code="authorization")
-            if new_password != new_password_repeat:
-                msg = _("Passwords do not match.")
-                raise serializers.ValidationError(msg, code="not_match_passwords")
-            user.set_password(new_password)
-            user.userprofile.last_password_change = datetime.now(timezone.utc)
-            user.save()
-            try:
-                send_alert_password_changed(user, request)
-            except Exception:
-                raise EmailServiceError(
-                    {
-                        "error": "There was an error sending the verification email. Please try again later."
-                    }
-                )
-        else:
-            try:
-                send_change_password_email(user, request)
-            except Exception as ex:
-                raise EmailServiceError(
-                    {
-                        "error": "There was an error sending the verification email. Please try again later."
-                    }
-                )
-            raise ChangePasswordError(
-                {"error": "Activation link is invalid. Check your email again."}
-            )
-        token, created = Token.objects.get_or_create(user=user)
+        serializer = ResetPasswordConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+        send_alert_password_changed(user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)

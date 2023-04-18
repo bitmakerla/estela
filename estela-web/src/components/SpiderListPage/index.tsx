@@ -48,15 +48,15 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     async getProjectSpiders(page: number): Promise<void> {
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
-            (results) => {
-                const spiders: SpiderList[] = results.results.map((spider: Spider, index: number) => {
+            (response) => {
+                const spiders: SpiderList[] = response.results.map((spider: Spider, index: number) => {
                     return {
                         key: index,
                         name: spider.name,
                         sid: spider.sid,
                     };
                 });
-                this.setState({ spiders: [...spiders], count: results.count, current: page, loaded: true });
+                this.setState({ spiders: [...spiders], count: response.count, current: page, loaded: true });
             },
             (error: unknown) => {
                 error;

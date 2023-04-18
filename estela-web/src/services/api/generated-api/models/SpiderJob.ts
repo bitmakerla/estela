@@ -113,7 +113,7 @@ export interface SpiderJob {
      */
     cronjob?: number | null;
     /**
-     * Days before data expires.
+     * Days before data is deleted.
      * @type {number}
      * @memberof SpiderJob
      */
@@ -132,8 +132,8 @@ export interface SpiderJob {
 */
 export enum SpiderJobDataStatusEnum {
     Persistent = 'PERSISTENT',
-    Deleted = 'DELETED',
-    Pending = 'PENDING'
+    Pending = 'PENDING',
+    Deleted = 'DELETED'
 }
 
 export function SpiderJobFromJSON(json: any): SpiderJob {

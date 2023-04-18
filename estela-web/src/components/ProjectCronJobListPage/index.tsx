@@ -22,7 +22,7 @@ import {
     DatePicker,
     ConfigProvider,
 } from "antd";
-import type { DatePickerProps, RadioChangeEvent } from "antd";
+import { DatePickerProps, RadioChangeEvent, notification, Typography } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
@@ -56,6 +56,7 @@ import { checkExternalError } from "ExternalComponents/CardNotification";
 
 const { Option } = Select;
 const { Content } = Layout;
+const { Text } = Typography;
 
 interface Ids {
     sid: number;
@@ -144,6 +145,8 @@ interface ProjectCronJobListPageState {
     newEnvVarValue: string;
     newTagName: string;
     externalComponent: JSX.Element;
+    loading: boolean;
+    expressionError: boolean;
 }
 
 interface RouteParams {
@@ -184,6 +187,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         count: 0,
         current: 0,
         externalComponent: <></>,
+        loading: false,
+        expressionError: false,
     };
 
     apiService = ApiService();
@@ -408,8 +413,17 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     handleSubmit = (): void => {
+        this.setState({ loading: true });
         let expression = "";
         if (this.state.schedulesFlag[0]) {
+            if (this.state.expression == "") {
+                this.setState({ loading: false, expressionError: true });
+                notification.error({
+                    message: "Invalid Cron Expression",
+                    description: "Please enter a valid expression",
+                });
+                return;
+            }
             expression = this.state.expression;
         } else {
             expression = this.getExpression();
@@ -431,9 +445,11 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         };
         this.apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {
+                this.setState({ loading: false });
                 history.push(`/projects/${this.projectId}/spiders/${this.state.spiderId}/cronjobs/${response.cjid}`);
             },
             async (error) => {
+                this.setState({ loading: false });
                 const data = await error.json();
                 const [errorComponent, err] = checkExternalError(data);
                 if (err) {
@@ -598,7 +614,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     onChangeExpression = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        this.setState({ expression: e.target.value });
+        this.setState({ expression: e.target.value, expressionError: false });
     };
 
     onChangeDate: DatePickerProps["onChange"] = (date) => {
@@ -690,6 +706,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             newEnvVarName,
             newEnvVarValue,
             newTagName,
+            expressionError,
+            loading,
         } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
@@ -920,11 +938,17 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                             <Form.Item>
                                                                 <p className="text-sm my-2">Expression</p>
                                                                 <Input
+                                                                    status={expressionError ? "error" : undefined}
                                                                     placeholder="5 4 * * *"
                                                                     onChange={this.onChangeExpression}
                                                                     size="large"
                                                                     className="border-estela-blue-full placeholder:text-sm rounded-lg"
                                                                 />
+                                                                {expressionError && (
+                                                                    <Text className="text-estela-red-full font-semibold mt-4">
+                                                                        Enter a valid expression
+                                                                    </Text>
+                                                                )}
                                                                 <p className="text-sm mt-2">
                                                                     More information about cron schedule
                                                                     expressions&nbsp;
@@ -1071,6 +1095,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                             </Row>
                                             <Row justify="center" className="mt-4">
                                                 <Button
+                                                    loading={loading}
                                                     onClick={this.handleSubmit}
                                                     size="large"
                                                     className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
