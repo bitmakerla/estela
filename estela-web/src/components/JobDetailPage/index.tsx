@@ -18,6 +18,7 @@ import {
     Pagination,
     Dropdown,
     Input,
+    Tooltip as AntdTooltip,
 } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
@@ -328,12 +329,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             async (response: SpiderJob) => {
                 const args = response.args || [];
                 const envVars = response.envVars || [];
-                // const envVars = response.envVars || [];
-                // const newEnvVars: EnvVarsData[] = [...envVars].map((envVar: SpiderJobEnvVar) => ({
-                //     name: envVar.name,
-                //     value: envVar.value,
-                //     show: false,
-                // }));
                 const tags = response.tags || [];
                 const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
                 const lifespan: number =
@@ -955,11 +950,19 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                             <Col className="px-2">
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: SpiderJobEnvVar, id) => (
-                                        <Tag className="environment-variables" key={id}>
-                                            {envVar.masked ? envVar.name : `${envVar.name}: ${envVar.value}`}
-                                        </Tag>
-                                    ))}
+                                    {envVars.map((envVar: SpiderJobEnvVar, id) =>
+                                        envVar.masked ? (
+                                            <AntdTooltip title="Masked variable" showArrow={false} className="tooltip">
+                                                <Tag className="environment-variables" key={id}>
+                                                    {envVar.name}
+                                                </Tag>
+                                            </AntdTooltip>
+                                        ) : (
+                                            <Tag className="environment-variables" key={id}>
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
                                     {envVars.length == 0 && (
                                         <Text className="text-estela-black-medium text-xs">No Arguments</Text>
                                     )}

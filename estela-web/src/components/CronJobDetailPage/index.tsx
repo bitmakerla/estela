@@ -22,6 +22,7 @@ import {
     Checkbox,
     Input,
     message,
+    Tooltip,
 } from "antd";
 import type { DatePickerProps, RadioChangeEvent } from "antd";
 import cronstrue from "cronstrue";
@@ -884,11 +885,19 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             <Col>Environment variables</Col>
                             <Col>
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: SpiderJobEnvVar, id) => (
-                                        <Tag className="environment-variables" key={id}>
-                                            {envVar.masked ? envVar.name : `${envVar.name}: ${envVar.value}`}
-                                        </Tag>
-                                    ))}
+                                    {envVars.map((envVar: SpiderJobEnvVar, id) =>
+                                        envVar.masked ? (
+                                            <Tooltip title="Masked variable" showArrow={false} className="tooltip">
+                                                <Tag className="environment-variables" key={id}>
+                                                    {envVar.name}
+                                                </Tag>
+                                            </Tooltip>
+                                        ) : (
+                                            <Tag className="environment-variables" key={id}>
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
                                     {envVars.length == 0 && (
                                         <Text className="text-estela-black-medium text-xs">No Arguments</Text>
                                     )}
