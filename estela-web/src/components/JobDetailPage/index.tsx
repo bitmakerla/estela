@@ -84,12 +84,6 @@ interface Args {
     key: number;
 }
 
-interface EnvVarsData {
-    name: string;
-    value: string;
-    show: boolean;
-}
-
 interface EnvVars {
     name: string;
     value: string;
@@ -116,7 +110,7 @@ interface JobDetailPageState {
     totalResponseBytes: number | undefined;
     requestCount: number | undefined;
     args: ArgsData[];
-    envVars: EnvVarsData[];
+    envVars: SpiderJobEnvVar[];
     tags: TagsData[];
     date: string;
     activeKey: string;
@@ -334,11 +328,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             async (response: SpiderJob) => {
                 const args = response.args || [];
                 const envVars = response.envVars || [];
-                const newEnvVars: EnvVarsData[] = [...envVars].map((envVar: SpiderJobEnvVar) => ({
-                    name: envVar.name,
-                    value: envVar.value,
-                    show: false,
-                }));
+                // const envVars = response.envVars || [];
+                // const newEnvVars: EnvVarsData[] = [...envVars].map((envVar: SpiderJobEnvVar) => ({
+                //     name: envVar.name,
+                //     value: envVar.value,
+                //     show: false,
+                // }));
                 const tags = response.tags || [];
                 const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
                 const lifespan: number =
@@ -348,7 +343,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     lifespan: lifespan,
                     totalResponseBytes: response.totalResponseBytes,
                     args: [...args],
-                    envVars: [...newEnvVars],
+                    envVars: [...envVars],
                     tags: [...tags],
                     date: convertDateToString(response.created),
                     created: `${response.created}`,
@@ -369,12 +364,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         await this.getItems(1);
         this.setState({ loadedItemsFirstTime: true });
     }
-
-    changeVisibleEnvVar = (index: number): void => {
-        const { envVars } = this.state;
-        envVars[index].show = !envVars[index].show;
-        this.setState({ envVars: envVars });
-    };
 
     getProjectSpiders = async (): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId };
@@ -963,15 +952,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                             <Col className="px-2">
                                 <Space direction="vertical">
-                                    {envVars?.map((envVar: EnvVarsData, id) => (
-                                        <button
-                                            onMouseDown={() => this.changeVisibleEnvVar(id)}
-                                            onMouseUp={() => this.changeVisibleEnvVar(id)}
-                                            className="environment-variables"
-                                            key={id}
-                                        >
-                                            {envVar.show ? envVar.value : envVar.name}
-                                        </button>
+                                    {envVars.map((envVar: SpiderJobEnvVar, id) => (
+                                        <Tag className="environment-variables" key={id}>
+                                            {envVar.masked ? envVar.name : `${envVar.value}: ${envVar.name}`}
+                                        </Tag>
                                     ))}
                                 </Space>
                             </Col>
@@ -1727,9 +1711,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 }),
                                             );
                                             const newEnvVars: EnvVars[] = [...this.state.envVars].map(
-                                                (tag: EnvVarsData, id: number) => ({
-                                                    name: tag.name,
-                                                    value: tag.value,
+                                                (envVar: SpiderJobEnvVar, id: number) => ({
+                                                    name: envVar.name,
+                                                    value: envVar.value,
                                                     key: id,
                                                 }),
                                             );

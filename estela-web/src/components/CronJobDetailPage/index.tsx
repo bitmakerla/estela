@@ -60,12 +60,6 @@ interface ArgsData {
     value: string;
 }
 
-interface EnvVarsData {
-    name: string;
-    value: string;
-    show: boolean;
-}
-
 interface TagsData {
     name: string;
 }
@@ -97,7 +91,7 @@ interface CronJobDetailPageState {
     loaded: boolean;
     name: string | undefined;
     args: ArgsData[];
-    envVars: EnvVarsData[];
+    envVars: SpiderJobEnvVar[];
     tags: TagsData[];
     status: string | undefined;
     jobs: SpiderJobData[];
@@ -285,23 +279,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRead(requestParams).then(
             async (response: SpiderCronJob) => {
-                let args = response.cargs;
-                if (args === undefined) {
-                    args = [];
-                }
-                let envVars = response.cenvVars;
-                if (envVars === undefined) {
-                    envVars = [];
-                }
-                const newEnvVars: EnvVarsData[] = [...envVars].map((envVar: SpiderJobEnvVar) => ({
-                    name: envVar.name,
-                    value: envVar.value,
-                    show: false,
-                }));
-                let tags = response.ctags;
-                if (tags === undefined) {
-                    tags = [];
-                }
+                const args = response.cargs || [];
+                const envVars = response.cenvVars || [];
+                const tags = response.ctags || [];
                 this.initial_schedule = response.schedule || "";
                 const data = await this.getJobs(1);
                 const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
@@ -320,7 +300,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 this.setState({
                     name: response.name,
                     args: [...args],
-                    envVars: [...newEnvVars],
+                    envVars: [...envVars],
                     tags: [...tags],
                     status: response.status,
                     schedule: response.schedule,
@@ -347,12 +327,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             },
         );
     }
-
-    changeVisibleEnvVar = (index: number): void => {
-        const envVars: EnvVarsData[] = this.state.envVars;
-        envVars[index].show = !envVars[index].show;
-        this.setState({ envVars: envVars });
-    };
 
     handleInputChange = (event: string): void => {
         this.setState({ new_schedule: event });
@@ -907,15 +881,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             <Col>Environment variables</Col>
                             <Col>
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: EnvVarsData, id) => (
-                                        <button
-                                            onMouseDown={() => this.changeVisibleEnvVar(id)}
-                                            onMouseUp={() => this.changeVisibleEnvVar(id)}
-                                            className="environment-variables"
-                                            key={id}
-                                        >
-                                            {envVar.show ? envVar.value : envVar.name}
-                                        </button>
+                                    {envVars.map((envVar: SpiderJobEnvVar, id) => (
+                                        <Tag className="environment-variables" key={id}>
+                                            {envVar.masked ? envVar.name : `${envVar.value}: ${envVar.name}`}
+                                        </Tag>
                                     ))}
                                 </Space>
                             </Col>

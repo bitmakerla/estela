@@ -12,7 +12,7 @@ class SpiderJobArgSerializer(serializers.ModelSerializer):
 class SpiderJobEnvVarSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpiderJobEnvVar
-        fields = ("name", "value")
+        fields = ("name", "value", "masked")
 
 
 class SpiderJobTagSerializer(serializers.ModelSerializer):
