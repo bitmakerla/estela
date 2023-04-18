@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space } from "antd";
+import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space, Tag } from "antd";
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
@@ -16,17 +16,26 @@ import {
     ProjectCategoryEnum,
     ApiProjectsUpdateRequest,
     ApiProjectsDeleteRequest,
+    SpiderJobEnvVar,
 } from "../../services/api";
 import { resourceNotAllowedNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
+import Add from "../../assets/icons/add.svg";
 
 const { Content } = Layout;
+
+interface EnvVar {
+    name: string;
+    value: string;
+    show: boolean;
+}
 
 interface ProjectSettingsPageState {
     name: string;
     user: string;
     users: Permission[];
+    envVars: EnvVar[];
     loaded: boolean;
     newUser: string;
     permission: ProjectUpdatePermissionEnum;
@@ -37,6 +46,8 @@ interface ProjectSettingsPageState {
     persistenceChanged: boolean;
     persistenceValue: string;
     projectName: string;
+    newEnvVarName: string;
+    newEnvVarValue: string;
     dataStatus: ProjectDataStatusEnum | undefined;
     newDataStatus: ProjectUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
@@ -57,6 +68,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         name: "",
         user: "",
         users: [],
+        envVars: [],
         loaded: false,
         newUser: "",
         permission: ProjectUpdatePermissionEnum.Viewer,
@@ -69,6 +81,8 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         newDataStatus: undefined,
         dataExpiryDays: 1,
         projectName: "",
+        newEnvVarName: "",
+    newEnvVarValue: "",
         category: undefined,
     };
     apiService = ApiService();
@@ -90,6 +104,15 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 if (users === undefined) {
                     users = [];
                 }
+                const envVars = response.envVars === undefined ?
+                    [] : response.envVars.map((envVar: SpiderJobEnvVar) => {
+                        return {
+                            name: envVar.name,
+                            value: envVar.value,
+                            show: false,
+                        };
+                    });
+
                 this.setState({
                     name: response.name,
                     projectName: response.name,
@@ -97,6 +120,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays,
                     loaded: true,
+                    envVars: envVars,
                     category: response.category,
                 });
             },
@@ -105,6 +129,23 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 resourceNotAllowedNotification();
             },
         );
+    };
+
+    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+        const {
+            target: { value, name },
+        } = event;
+        if (name === "newEnvVarName") {
+            this.setState({ newEnvVarName: value });
+        } else if (name === "newEnvVarValue") {
+            this.setState({ newEnvVarValue: value });
+        }
+    };
+
+    handleRemoveEnvVar = (id: number): void => {
+        const envVars = [...this.state.envVars];
+        envVars.splice(id, 1);
+        this.setState({ envVars: [...envVars] });
     };
 
     async componentDidMount(): Promise<void> {
@@ -219,8 +260,18 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     ];
 
     render(): JSX.Element {
-        const { loaded, showModal, category, dataStatus, dataExpiryDays, detailsChanged, persistenceChanged } =
-            this.state;
+        const {
+            loaded,
+            showModal,
+            category,
+            dataStatus,
+            dataExpiryDays,
+            detailsChanged,
+            persistenceChanged,
+            envVars,
+            newEnvVarName,
+            newEnvVarValue,
+        } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
                 {loaded ? (
@@ -313,6 +364,59 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                     </Button>
                                 </div>
                             </Content>
+                        </Row>
+                        <Row className="bg-white rounded-lg">
+                            <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
+                                <Typography className="text-2xl text-black">Add environment variable</Typography>
+                                <Space direction="horizontal">
+                                    {envVars.map((envVar: EnvVar, id: number) => (
+                                        <Tag
+                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                            closable
+                                            key={id}
+                                            onClose={() => this.handleRemoveEnvVar(id)}
+                                        >
+                                            {envVar.name}: {envVar.value}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                                <Space direction="horizontal">
+                                    <Input
+                                        size="large"
+                                        className="border-estela-blue-full rounded-l-lg"
+                                        name="newEnvVarName"
+                                        placeholder="name"
+                                        value={newEnvVarName}
+                                        onChange={this.handleInputChange}
+                                    />
+                                    <Input
+                                        size="large"
+                                        className="border-estela-blue-full rounded-r-lg"
+                                        name="newEnvVarValue"
+                                        placeholder="value"
+                                        value={newEnvVarValue}
+                                        onChange={this.handleInputChange}
+                                    />
+                                    <Button
+                                        shape="circle"
+                                        size="small"
+                                        icon={<Add />}
+                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                        // onClick={this.addEnvVar}
+                                    ></Button>
+                                </Space>
+                                <div className="h-12 w-72">
+                                    <Button
+                                        block
+                                        // disabled={false}
+                                        // htmlType="submit"
+                                        // onClick={() => this.openModal()}
+                                        className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                    >
+                                        Add
+                                    </Button>
+                                </div>
+                            </Space>
                         </Row>
                         <Row className="bg-white rounded-lg">
                             <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">

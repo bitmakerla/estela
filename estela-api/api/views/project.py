@@ -24,6 +24,7 @@ from core.models import (
     Project,
     Spider,
     SpiderCronJob,
+    SpiderJobEnvVar,
     SpiderJob,
     UsageRecord,
     User,
@@ -89,9 +90,15 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         permission = serializer.validated_data.pop("permission", "")
         data_status = serializer.validated_data.pop("data_status", "")
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
+        env_vars_data = serializer.validated_data.pop("env_vars", [])
 
         if name:
             instance.name = name
+
+        if env_vars_data:
+            instance.env_vars.all().delete()
+            for env_var in env_vars_data:
+                SpiderJobEnvVar.objects.create(project=instance, **env_var)
 
         if user_email and user_email != request.user.email:
             if not (

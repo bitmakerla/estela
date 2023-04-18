@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from core.models import DataStatus, Permission, Project, UsageRecord
+from api.serializers.job_specific import SpiderJobEnvVarSerializer
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -30,6 +31,9 @@ class ProjectSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Users with permissions on this project.",
     )
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Job env variables."
+    )
     container_image = serializers.CharField(
         read_only=True, help_text="Path of the project's container image."
     )
@@ -42,6 +46,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "category",
             "container_image",
             "users",
+            "env_vars",
             "data_status",
             "data_expiry_days",
         )
@@ -115,6 +120,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Performed action.",
     )
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Job env variables."
+    )
     permission = serializers.ChoiceField(
         write_only=True,
         choices=PERMISSION_CHOICES,
@@ -141,6 +149,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "users",
             "email",
             "action",
+            "env_vars",
             "permission",
             "data_status",
             "data_expiry_days",

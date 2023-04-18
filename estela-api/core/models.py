@@ -361,6 +361,20 @@ class SpiderJobEnvVar(models.Model):
         null=True,
         help_text="Cron job cjid.",
     )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="env_vars",
+        null=True,
+        help_text="Project pid.",
+    )
+    spider = models.ForeignKey(
+        Spider,
+        on_delete=models.CASCADE,
+        related_name="env_vars",
+        null=True,
+        help_text="Spider sid.",
+    )
     name = models.CharField(max_length=1000, help_text="Env variable name.")
     value = models.CharField(max_length=1000, help_text="Env variable value.")
     masked = models.BooleanField(
