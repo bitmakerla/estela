@@ -943,6 +943,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             {tag.name}
                                         </Tag>
                                     ))}
+                                    {tags.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No Arguments</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -954,9 +957,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Space direction="vertical">
                                     {envVars.map((envVar: SpiderJobEnvVar, id) => (
                                         <Tag className="environment-variables" key={id}>
-                                            {envVar.masked ? envVar.name : `${envVar.value}: ${envVar.name}`}
+                                            {envVar.masked ? envVar.name : `${envVar.name}: ${envVar.value}`}
                                         </Tag>
                                     ))}
+                                    {envVars.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No Arguments</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -974,6 +980,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             {arg.name}: {arg.value}
                                         </Tag>
                                     ))}
+                                    {args.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No Arguments</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>

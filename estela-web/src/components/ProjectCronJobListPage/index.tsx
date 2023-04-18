@@ -23,6 +23,7 @@ import {
     ConfigProvider,
 } from "antd";
 import { DatePickerProps, RadioChangeEvent, notification, Typography } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
@@ -110,6 +111,7 @@ interface ArgsData {
 interface EnvVarsData {
     name: string;
     value: string;
+    masked: boolean;
     key: number;
 }
 
@@ -143,6 +145,7 @@ interface ProjectCronJobListPageState {
     newArgValue: string;
     newEnvVarName: string;
     newEnvVarValue: string;
+    newEnvVarMasked: boolean;
     newTagName: string;
     externalComponent: JSX.Element;
     loading: boolean;
@@ -178,6 +181,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         newArgValue: "",
         newEnvVarName: "",
         newEnvVarValue: "",
+        newEnvVarMasked: false,
         newTagName: "",
         cronjobs: [],
         selectedRows: [],
@@ -506,6 +510,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         }
     };
 
+    onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
+        this.setState({ newEnvVarMasked: e.target.checked });
+    };
+
     addArgument = (): void => {
         const args = [...this.state.args];
         const newArgName = this.state.newArgName.trim();
@@ -535,9 +543,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         const envVars = [...this.state.envVars];
         const newEnvVarName = this.state.newEnvVarName.trim();
         const newEnvVarValue = this.state.newEnvVarValue.trim();
+        const newEnvVarMasked = this.state.newEnvVarMasked;
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
-            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
+            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newEnvVarMasked, key: this.countKey++ });
+            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -858,11 +867,16 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                         key={envVar.key}
                                                                         onClose={() => this.handleRemoveEnvVar(id)}
                                                                     >
-                                                                        {envVar.name}: {envVar.value}
+                                                                        {envVar.masked
+                                                                            ? envVar.name
+                                                                            : `${envVar.name}: ${envVar.value}`}
                                                                     </Tag>
                                                                 ))}
                                                             </Space>
                                                             <Space direction="horizontal">
+                                                                <Checkbox onChange={this.onChangeEnvVarMasked}>
+                                                                    Masked
+                                                                </Checkbox>
                                                                 <Input
                                                                     size="large"
                                                                     className="border-estela-blue-full rounded-l-lg"
