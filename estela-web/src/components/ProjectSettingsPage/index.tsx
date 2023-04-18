@@ -82,7 +82,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         dataExpiryDays: 1,
         projectName: "",
         newEnvVarName: "",
-    newEnvVarValue: "",
+        newEnvVarValue: "",
         category: undefined,
     };
     apiService = ApiService();
@@ -104,14 +104,18 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 if (users === undefined) {
                     users = [];
                 }
-                const envVars = response.envVars === undefined ?
-                    [] : response.envVars.map((envVar: SpiderJobEnvVar) => {
+                let envVars: EnvVar[] = [];
+                if (response.envVars === undefined) {
+                    envVars = [];
+                } else {
+                    envVars = response.envVars.map((envVar: SpiderJobEnvVar) => {
                         return {
                             name: envVar.name,
                             value: envVar.value,
                             show: false,
                         };
                     });
+                }
 
                 this.setState({
                     name: response.name,
