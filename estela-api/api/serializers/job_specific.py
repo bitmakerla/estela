@@ -14,6 +14,11 @@ class SpiderJobEnvVarSerializer(serializers.ModelSerializer):
         model = SpiderJobEnvVar
         fields = ("name", "value", "masked")
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret["value"] = "" if instance.masked else instance.value
+        return ret
+
 
 class SpiderJobTagSerializer(serializers.ModelSerializer):
     class Meta:
