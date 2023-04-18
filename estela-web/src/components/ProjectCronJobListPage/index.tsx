@@ -714,6 +714,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             newArgValue,
             newEnvVarName,
             newEnvVarValue,
+            newEnvVarMasked,
             newTagName,
             expressionError,
             loading,
@@ -874,7 +875,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                 ))}
                                                             </Space>
                                                             <Space direction="horizontal">
-                                                                <Checkbox onChange={this.onChangeEnvVarMasked}>
+                                                                <Checkbox
+                                                                    checked={newEnvVarMasked}
+                                                                    onChange={this.onChangeEnvVarMasked}
+                                                                >
                                                                     Masked
                                                                 </Checkbox>
                                                                 <Input

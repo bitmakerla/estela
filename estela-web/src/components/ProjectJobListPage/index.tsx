@@ -380,7 +380,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         const newEnvVarMasked = this.state.newEnvVarMasked;
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
             envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newEnvVarMasked, key: this.countKey++ });
-            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
+            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -494,6 +494,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             dataStatus,
             dataExpiryDays,
             tags,
+            newEnvVarMasked,
         } = this.state;
         return (
             <Content>
@@ -625,7 +626,12 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                     ))}
                                                 </Space>
                                                 <Space direction="horizontal">
-                                                    <Checkbox onChange={this.onChangeEnvVarMasked}>Masked</Checkbox>
+                                                    <Checkbox
+                                                        checked={newEnvVarMasked}
+                                                        onChange={this.onChangeEnvVarMasked}
+                                                    >
+                                                        Masked
+                                                    </Checkbox>
                                                     <Input
                                                         size="large"
                                                         className="border-estela-blue-full rounded-l-lg"

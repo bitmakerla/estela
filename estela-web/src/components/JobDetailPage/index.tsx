@@ -952,7 +952,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Space direction="vertical">
                                     {envVars.map((envVar: SpiderJobEnvVar, id) =>
                                         envVar.masked ? (
-                                            <AntdTooltip title="Masked variable" showArrow={false} className="tooltip">
+                                            <AntdTooltip
+                                                title="Masked variable"
+                                                showArrow={false}
+                                                overlayClassName="tooltip"
+                                                key={id}
+                                            >
                                                 <Tag className="environment-variables" key={id}>
                                                     {envVar.name}
                                                 </Tag>

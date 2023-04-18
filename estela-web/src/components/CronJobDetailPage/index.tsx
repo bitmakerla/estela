@@ -887,7 +887,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 <Space direction="vertical">
                                     {envVars.map((envVar: SpiderJobEnvVar, id) =>
                                         envVar.masked ? (
-                                            <Tooltip title="Masked variable" showArrow={false} className="tooltip">
+                                            <Tooltip
+                                                title="Masked variable"
+                                                showArrow={false}
+                                                overlayClassName="tooltip"
+                                                key={id}
+                                            >
                                                 <Tag className="environment-variables" key={id}>
                                                     {envVar.name}
                                                 </Tag>
