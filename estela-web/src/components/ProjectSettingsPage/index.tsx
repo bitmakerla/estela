@@ -18,7 +18,7 @@ import {
     ApiProjectsDeleteRequest,
     SpiderJobEnvVar,
 } from "../../services/api";
-import { resourceNotAllowedNotification } from "../../shared";
+import { resourceNotAllowedNotification, invalidDataNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 import Add from "../../assets/icons/add.svg";
@@ -29,6 +29,7 @@ interface EnvVar {
     name: string;
     value: string;
     show: boolean;
+    key: number;
 }
 
 interface ProjectSettingsPageState {
@@ -87,6 +88,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
+    countKey = 0;
 
     closeModal = (): void => {
         this.setState({ showModal: false });
@@ -108,8 +110,9 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 if (response.envVars === undefined) {
                     envVars = [];
                 } else {
-                    envVars = response.envVars.map((envVar: SpiderJobEnvVar) => {
+                    envVars = response.envVars.map((envVar: SpiderJobEnvVar, id: number) => {
                         return {
+                            key: id,
                             name: envVar.name,
                             value: envVar.value,
                             show: false,
@@ -150,6 +153,18 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         const envVars = [...this.state.envVars];
         envVars.splice(id, 1);
         this.setState({ envVars: [...envVars] });
+    };
+
+    addEnvVar = (): void => {
+        const envVars = [...this.state.envVars];
+        const newEnvVarName = this.state.newEnvVarName.trim();
+        const newEnvVarValue = this.state.newEnvVarValue.trim();
+        if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
+            envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++, show: false });
+            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
+        } else {
+            invalidDataNotification("Invalid environment variable name/value pair.");
+        }
     };
 
     async componentDidMount(): Promise<void> {
@@ -364,18 +379,18 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                         htmlType="submit"
                                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
                                     >
-                                        Save Changes
+                                        Save changes
                                     </Button>
                                 </div>
                             </Content>
                         </Row>
-                        <Row className="bg-white rounded-lg">
+                        <Row className="bg-white rounded-lg my-4">
                             <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
                                 <Typography className="text-2xl text-black">Add environment variable</Typography>
-                                <Space direction="horizontal">
+                                <Space direction="horizontal" className="mt-1">
                                     {envVars.map((envVar: EnvVar, id: number) => (
                                         <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                            className="text-estela-blue-full border-0 bg-estela-blue-low text-base h-6 rounded-md"
                                             closable
                                             key={id}
                                             onClose={() => this.handleRemoveEnvVar(id)}
@@ -384,7 +399,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                         </Tag>
                                     ))}
                                 </Space>
-                                <Space direction="horizontal">
+                                <Space direction="horizontal" className="my-4">
                                     <Input
                                         size="large"
                                         className="border-estela-blue-full rounded-l-lg"
@@ -406,18 +421,18 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                         size="small"
                                         icon={<Add />}
                                         className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                        // onClick={this.addEnvVar}
+                                        onClick={this.addEnvVar}
                                     ></Button>
                                 </Space>
                                 <div className="h-12 w-72">
                                     <Button
                                         block
-                                        // disabled={false}
-                                        // htmlType="submit"
-                                        // onClick={() => this.openModal()}
-                                        className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
+                                        onClick={() =>
+                                            console.log(this.state.envVars)
+                                        }
+                                        className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base h-full"
                                     >
-                                        Add
+                                        Save variables
                                     </Button>
                                 </div>
                             </Space>
