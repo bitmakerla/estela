@@ -33,6 +33,9 @@ class Inserter:
 
         logging.info("New Inserter created for {}.".format(self.identifier))
 
+    def is_job_stats(self, collection_name):
+        return "job_stats" == collection_name.split("-")[2]
+
     def __handle_insertion_error(self, response, items):
         logging.warning(
             "The exception [{}] occurred during the insertion of {} items in {}.".format(
@@ -47,11 +50,20 @@ class Inserter:
             producer.send(self.topic, item)
 
     def __insert_items(self, reason):
-        response = self.__client.insert_many_to_collection(
-            self.database_name,
-            self.collection_name,
-            [item["payload"] for item in self.__items],
-        )
+        if self.is_job_stats(self.collection_name):
+            self.__items[0]["payload"]["_id"] = self.collection_name
+            response = self.__client.insert_one_to_collection(
+                self.database_name,
+                "job_stats",
+                self.__items[0]["payload"],
+            )
+        else:
+            response = self.__client.insert_many_to_collection(
+                self.database_name,
+                self.collection_name,
+                [item["payload"] for item in self.__items],
+            )
+
         if response.ok:
             logging.info(
                 "{} documents inserted [{}] in {}.".format(
@@ -60,6 +72,7 @@ class Inserter:
             )
         else:
             self.__handle_insertion_error(response, self.__items)
+
         del self.__items[:]
 
     def is_inactive(self):
