@@ -21,6 +21,7 @@ import {
     TimePicker,
     DatePicker,
     ConfigProvider,
+    Tooltip,
 } from "antd";
 import { DatePickerProps, RadioChangeEvent, notification, Typography } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
@@ -861,18 +862,27 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                         <p className="text-base my-2">Environment Variables</p>
                                                         <Space direction="vertical">
                                                             <Space direction="horizontal">
-                                                                {envVars.map((envVar: EnvVarsData, id: number) => (
-                                                                    <Tag
-                                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                        closable
-                                                                        key={envVar.key}
-                                                                        onClose={() => this.handleRemoveEnvVar(id)}
-                                                                    >
-                                                                        {envVar.masked
-                                                                            ? envVar.name
-                                                                            : `${envVar.name}: ${envVar.value}`}
-                                                                    </Tag>
-                                                                ))}
+                                                                {envVars.map((envVar: EnvVarsData, id: number) =>
+                                                                    envVar.masked ? (
+                                                                        <Tooltip
+                                                                            title="Masked variable"
+                                                                            showArrow={false}
+                                                                            overlayClassName="tooltip"
+                                                                            key={id}
+                                                                        >
+                                                                            <Tag
+                                                                                className="environment-variables"
+                                                                                key={id}
+                                                                            >
+                                                                                {envVar.name}
+                                                                            </Tag>
+                                                                        </Tooltip>
+                                                                    ) : (
+                                                                        <Tag className="environment-variables" key={id}>
+                                                                            {envVar.name}: {envVar.value}
+                                                                        </Tag>
+                                                                    ),
+                                                                )}
                                                             </Space>
                                                             <Space direction="horizontal">
                                                                 <Checkbox

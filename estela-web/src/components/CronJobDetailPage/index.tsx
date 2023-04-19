@@ -1230,7 +1230,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         <Space direction="vertical" className="w-full">
                             <Text className="text-2xl text-black">Data persistence</Text>
                             <p className="text-sm text-estela-black-medium">
-                                Data persistence will be applied to all jobs creadted from this schedue job by default.
+                                Data persistence will be applied to all jobs created from this schedule job by default.
                             </p>
                             <Space direction="horizontal">
                                 <Text className="text-estela-black-full text-sm mr-2">
