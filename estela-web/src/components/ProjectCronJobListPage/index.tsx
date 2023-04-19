@@ -871,6 +871,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                             key={id}
                                                                         >
                                                                             <Tag
+                                                                                closable
+                                                                                onClose={() =>
+                                                                                    this.handleRemoveEnvVar(id)
+                                                                                }
                                                                                 className="environment-variables"
                                                                                 key={id}
                                                                             >
@@ -878,7 +882,12 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                                                             </Tag>
                                                                         </Tooltip>
                                                                     ) : (
-                                                                        <Tag className="environment-variables" key={id}>
+                                                                        <Tag
+                                                                            closable
+                                                                            onClose={() => this.handleRemoveEnvVar(id)}
+                                                                            className="environment-variables"
+                                                                            key={id}
+                                                                        >
                                                                             {envVar.name}: {envVar.value}
                                                                         </Tag>
                                                                     ),

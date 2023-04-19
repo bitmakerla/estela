@@ -621,12 +621,22 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                                 overlayClassName="tooltip"
                                                                 key={id}
                                                             >
-                                                                <Tag className="environment-variables" key={id}>
+                                                                <Tag
+                                                                    closable
+                                                                    onClose={() => this.handleRemoveEnvVar(id)}
+                                                                    className="environment-variables"
+                                                                    key={id}
+                                                                >
                                                                     {envVar.name}
                                                                 </Tag>
                                                             </Tooltip>
                                                         ) : (
-                                                            <Tag className="environment-variables" key={id}>
+                                                            <Tag
+                                                                closable
+                                                                onClose={() => this.handleRemoveEnvVar(id)}
+                                                                className="environment-variables"
+                                                                key={id}
+                                                            >
                                                                 {envVar.name}: {envVar.value}
                                                             </Tag>
                                                         ),
