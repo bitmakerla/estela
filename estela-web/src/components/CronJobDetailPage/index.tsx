@@ -876,7 +876,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                         </Tag>
                                     ))}
                                     {tags.length == 0 && (
-                                        <Text className="text-estela-black-medium text-xs">No Arguments</Text>
+                                        <Text className="text-estela-black-medium text-xs">No tags</Text>
                                     )}
                                 </Space>
                             </Col>
@@ -904,7 +904,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                         ),
                                     )}
                                     {envVars.length == 0 && (
-                                        <Text className="text-estela-black-medium text-xs">No Arguments</Text>
+                                        <Text className="text-estela-black-medium text-xs">
+                                            No environment variables
+                                        </Text>
                                     )}
                                 </Space>
                             </Col>
@@ -922,7 +924,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                         </Tag>
                                     ))}
                                     {args.length == 0 && (
-                                        <Text className="text-estela-black-medium text-xs">No Arguments</Text>
+                                        <Text className="text-estela-black-medium text-xs">No arguments</Text>
                                     )}
                                 </Space>
                             </Col>
