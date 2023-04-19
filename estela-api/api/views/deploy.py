@@ -67,13 +67,6 @@ class DeployViewSet(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
 
-        # Send notification action
-        self.save_notification(
-            user=user,
-            message=f"deployed a new spider in Deploy {serializer.data['did']}.",
-            project=project,
-        )
-
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -103,7 +96,7 @@ class DeployViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=instance.user,
-            message=f"updated a spider in Deploy {instance.did}.",
+            message=f"deployed a new spider in Deploy {serializer.data['did']}.",
             project=project,
         )
 

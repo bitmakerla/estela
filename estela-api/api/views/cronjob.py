@@ -99,7 +99,7 @@ class SpiderCronJobViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=request.user,
-            message=f"scheduled a new scheduled-job in {spider.name} spider.",
+            message=f"scheduled a new Scheduled-job-{cronjob.cjid} for {spider.name} spider.",
             project=project,
         )
 

@@ -80,9 +80,9 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                         {AuthService.getUserEmail() == notification.user.email ? " have " : " has "}
                                         {notification.message}&nbsp;In&nbsp;
                                         <span className="font-semibold text-estela-black-full">
-                                            {notification.project.name}&apos;
+                                            {notification.project.name}&nbsp;
                                         </span>
-                                        s project.
+                                        project.
                                         <p className="text-xs text-estela-black-low">
                                             {notification.createdAt?.toDateString()}
                                         </p>

@@ -145,31 +145,29 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer, NotificationsHa
         if "schedule" in validated_data:
             instance.schedule = schedule
             update_schedule(name, schedule)
-            message = f"changed the schedule of scheduled-job {instance.cjid}."
+            message = f"changed the schedule of Scheduled-job-{instance.cjid}."
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
                 enable_cronjob(name)
-                message = f"enabled scheduled-job {instance.cjid}."
+                message = f"enabled Scheduled-job-{instance.cjid}."
             elif status == SpiderCronJob.DISABLED_STATUS:
                 disable_cronjob(name)
-                message = f"disabled scheduled-job {instance.cjid}."
+                message = f"disabled Scheduled-job-{instance.cjid}."
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
-            elif data_status == DataStatus.PENDING_STATUS:
+                message = "changed data persistence of Scheduled-job-{} to persistent.".format(
+                    instance.cjid
+                )
+            elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
-                if data_expiry_days < 1:
-                    raise serializers.ValidationError(
-                        {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}
-                    )
-                else:
-                    instance.data_expiry_days = data_expiry_days
-                    message = "changed data persistence of scheduled-job {} to {} days.".format(
-                        instance.cjid, data_expiry_days
-                    )
+                instance.data_expiry_days = data_expiry_days
+                message = "changed data persistence of Scheduled-job-{} to {} days.".format(
+                    instance.cjid, data_expiry_days
+                )
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 

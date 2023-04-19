@@ -127,10 +127,10 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
 
             if action == "add":
                 instance.users.add(user, through_defaults={"permission": permission})
-                message = f"added {user_email} to the project."
+                message = f"added {user_email}."
             elif action == "remove":
                 instance.users.remove(user)
-                message = f"removed {user_email} from the project."
+                message = f"removed {user_email}."
             elif action == "update":
                 instance.users.remove(user)
                 instance.users.add(user, through_defaults={"permission": permission})
@@ -138,27 +138,22 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
             else:
                 raise ParseError({"error": "Action not supported."})
 
-        if message:
-            self.save_notification(
-                user=self.request.user,
-                message=message,
-                project=instance,
-            )
-
         if data_status:
-            message = ""
-            instance.data_status = data_status
-            if data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
+            if data_status == DataStatus.PERSISTENT_STATUS:
+                instance.data_status = DataStatus.PERSISTENT_STATUS
+                message = "changed data persistence to persistent."
+            elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
+                instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
-                message = f"updated data expiry to {data_expiry_days} days."
+                message = f"changed data persistence to {data_expiry_days} days."
             else:
-                message = f"updated data expiry to {data_status}."
+                raise ParseError({"error": errors.INVALID_DATA_STATUS})
 
-            self.save_notification(
-                user=self.request.user,
-                message=f"updated data status to {data_status}.",
-                project=instance,
-            )
+        self.save_notification(
+            user=self.request.user,
+            message=message,
+            project=instance,
+        )
 
         serializer.save()
         headers = self.get_success_headers(serializer.data)
