@@ -1295,7 +1295,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 <Text className="text-estela-black-medium px-4">{itemProp}</Text>
                                             );
 
-                                            if (itemProp.length > 300) {
+                                            if (itemProp === null) {
+                                                itemContent = (
+                                                    <Text className="text-estela-black-medium px-4">null</Text>
+                                                );
+                                            } else if (itemProp.length > 300) {
                                                 itemContent = (
                                                     <Paragraph
                                                         className="text-estela-black-medium px-4"
