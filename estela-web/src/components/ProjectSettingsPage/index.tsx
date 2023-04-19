@@ -427,9 +427,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 <div className="h-12 w-72">
                                     <Button
                                         block
-                                        onClick={() =>
-                                            console.log(this.state.envVars)
-                                        }
+                                        onClick={() => console.log(this.state.envVars)}
                                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base h-full"
                                     >
                                         Save variables
