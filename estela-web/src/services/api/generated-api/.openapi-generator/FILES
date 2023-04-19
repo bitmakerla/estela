@@ -15,6 +15,7 @@ models/InlineResponse2003.ts
 models/InlineResponse2004.ts
 models/InlineResponse2005.ts
 models/InlineResponse2006.ts
+models/InlineResponse2007.ts
 models/InlineResponse401.ts
 models/Notification.ts
 models/Permission.ts

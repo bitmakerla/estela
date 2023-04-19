@@ -3,7 +3,6 @@ from rest_framework import serializers
 
 from api import errors
 
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderCronJob, SpiderJobTag
 from api.mixins import NotificationsHandler
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,

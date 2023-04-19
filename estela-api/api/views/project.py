@@ -13,7 +13,6 @@ from api import errors
 from api.mixins import BaseViewSet, NotificationsHandler
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,

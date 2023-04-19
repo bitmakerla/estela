@@ -123,6 +123,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         write_only=True, required=False, help_text="Email address."
     )
+    name = serializers.CharField(
+        write_only=True, required=False, help_text="Project name."
+    )
     action = serializers.ChoiceField(
         write_only=True,
         choices=ACTION_CHOICES,

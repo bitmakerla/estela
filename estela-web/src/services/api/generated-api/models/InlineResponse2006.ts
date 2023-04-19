@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    SpiderJob,
+    SpiderJobFromJSON,
+    SpiderJobFromJSONTyped,
+    SpiderJobToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -20,29 +27,29 @@ import { exists, mapValues } from '../runtime';
  */
 export interface InlineResponse2006 {
     /**
-     * Data items count.
+     * 
      * @type {number}
      * @memberof InlineResponse2006
      */
     count: number;
     /**
-     * URI to the previous data chunk.
-     * @type {string}
-     * @memberof InlineResponse2006
-     */
-    previous?: string | null;
-    /**
-     * URI to the next data chunk.
+     * 
      * @type {string}
      * @memberof InlineResponse2006
      */
     next?: string | null;
     /**
-     * Data items.
-     * @type {Array<object>}
+     * 
+     * @type {string}
      * @memberof InlineResponse2006
      */
-    results?: Array<object>;
+    previous?: string | null;
+    /**
+     * 
+     * @type {Array<SpiderJob>}
+     * @memberof InlineResponse2006
+     */
+    results: Array<SpiderJob>;
 }
 
 export function InlineResponse2006FromJSON(json: any): InlineResponse2006 {
@@ -56,9 +63,9 @@ export function InlineResponse2006FromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'count': json['count'],
-        'previous': !exists(json, 'previous') ? undefined : json['previous'],
         'next': !exists(json, 'next') ? undefined : json['next'],
-        'results': !exists(json, 'results') ? undefined : json['results'],
+        'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'results': ((json['results'] as Array<any>).map(SpiderJobFromJSON)),
     };
 }
 
@@ -72,9 +79,9 @@ export function InlineResponse2006ToJSON(value?: InlineResponse2006 | null): any
     return {
         
         'count': value.count,
-        'previous': value.previous,
         'next': value.next,
-        'results': value.results,
+        'previous': value.previous,
+        'results': ((value.results as Array<any>).map(SpiderJobToJSON)),
     };
 }
 

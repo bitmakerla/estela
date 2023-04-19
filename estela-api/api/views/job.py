@@ -1,4 +1,3 @@
-from datetime import date, timedelta
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -15,7 +14,7 @@ from api.serializers.job import (
     SpiderJobUpdateSerializer,
 )
 from config.job_manager import job_manager
-from core.models import DataStatus, Spider, SpiderJob
+from core.models import DataStatus, Spider, SpiderJob, Project
 
 
 class SpiderJobViewSet(

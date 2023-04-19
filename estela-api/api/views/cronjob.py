@@ -15,7 +15,7 @@ from api.serializers.cronjob import (
     SpiderCronJobUpdateSerializer,
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
-from core.models import DataStatus, Spider, SpiderCronJob
+from core.models import DataStatus, Spider, SpiderCronJob, Project
 
 
 class SpiderCronJobViewSet(
@@ -95,7 +95,7 @@ class SpiderCronJobViewSet(
             data_expiry_days=data_expiry_days,
         )
 
-        # Send action notification
+        # Send notification action
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=request.user,

@@ -67,7 +67,7 @@ class DeployViewSet(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
 
-        # Send action notification
+        # Send notification action
         self.save_notification(
             user=user,
             message=f"deployed a new spider in Deploy {serializer.data['did']}.",

@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    Notification,
-    NotificationFromJSON,
-    NotificationFromJSONTyped,
-    NotificationToJSON,
-} from './';
-
 /**
  * 
  * @export
@@ -31,19 +24,7 @@ export interface InlineResponse200 {
      * @type {string}
      * @memberof InlineResponse200
      */
-    next?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof InlineResponse200
-     */
-    previous?: string | null;
-    /**
-     * 
-     * @type {Array<Notification>}
-     * @memberof InlineResponse200
-     */
-    results: Array<Notification>;
+    message?: string;
 }
 
 export function InlineResponse200FromJSON(json: any): InlineResponse200 {
@@ -56,10 +37,7 @@ export function InlineResponse200FromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'count': json['count'],
-        'next': !exists(json, 'next') ? undefined : json['next'],
-        'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(NotificationFromJSON)),
+        'message': !exists(json, 'message') ? undefined : json['message'],
     };
 }
 
@@ -72,10 +50,7 @@ export function InlineResponse200ToJSON(value?: InlineResponse200 | null): any {
     }
     return {
         
-        'count': value.count,
-        'next': value.next,
-        'previous': value.previous,
-        'results': ((value.results as Array<any>).map(NotificationToJSON)),
+        'message': value.message,
     };
 }
 

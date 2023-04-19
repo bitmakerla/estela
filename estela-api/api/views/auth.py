@@ -17,6 +17,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 
+from api import errors
 from api.exceptions import EmailServiceError, UserNotFoundError
 from api.permissions import IsProfileUser
 from api.serializers.auth import (
@@ -256,7 +257,7 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
             send_change_password_email(user)
         except Exception:
             raise EmailServiceError({"error": errors.SEND_EMAIL_LATER})
-        token, created = Token.objects.get_or_create(user=user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
     @swagger_auto_schema(
