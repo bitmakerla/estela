@@ -166,7 +166,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
                                             label="New password"
                                             name="newPassword"
                                             required
-                                            rules={[{ required: true, message: "Plase, confirm your new password." }]}
+                                            rules={[{ required: true, message: "Please, confirm your new password." }]}
                                         >
                                             <Input.Password className="border-estela rounded-md py-2" />
                                         </Form.Item>
@@ -175,7 +175,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
                                             name="confirmNewPassword"
                                             required
                                             rules={[
-                                                { required: true, message: "Plase, enter your new password." },
+                                                { required: true, message: "Please, enter your new password." },
                                                 {
                                                     message: "Passwords must match.",
                                                     validator: (_, value) => {
