@@ -95,10 +95,12 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         permission = serializer.validated_data.pop("permission", "")
         data_status = serializer.validated_data.pop("data_status", "")
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
+        message = ""
 
         if name:
             old_name = instance.name
             instance.name = name
+            message = f"renamed the project from {old_name} to {name}."
 
         if user_email and user_email != request.user.email:
             if not (
@@ -125,18 +127,38 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
 
             if action == "add":
                 instance.users.add(user, through_defaults={"permission": permission})
+                message = f"added {user_email} to the project."
             elif action == "remove":
                 instance.users.remove(user)
+                message = f"removed {user_email} from the project."
             elif action == "update":
                 instance.users.remove(user)
                 instance.users.add(user, through_defaults={"permission": permission})
+                message = f"updated {user_email} permissions to {permission}."
             else:
                 raise ParseError({"error": "Action not supported."})
 
+        if message:
+            self.save_notification(
+                user=self.request.user,
+                message=message,
+                project=instance,
+            )
+
         if data_status:
+            message = ""
             instance.data_status = data_status
             if data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_expiry_days = data_expiry_days
+                message = f"updated data expiry to {data_expiry_days} days."
+            else:
+                message = f"updated data expiry to {data_status}."
+
+            self.save_notification(
+                user=self.request.user,
+                message=f"updated data status to {data_status}.",
+                project=instance,
+            )
 
         serializer.save()
         headers = self.get_success_headers(serializer.data)
