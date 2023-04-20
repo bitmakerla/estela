@@ -22,6 +22,7 @@ import {
     Checkbox,
     Input,
     message,
+    Tooltip,
 } from "antd";
 import type { DatePickerProps, RadioChangeEvent } from "antd";
 import cronstrue from "cronstrue";
@@ -41,6 +42,7 @@ import {
     ApiProjectsSpidersJobsListRequest,
     ApiProjectsSpidersCronjobsRunOnceRequest,
     SpiderCronJob,
+    SpiderJobEnvVar,
     SpiderJob,
     SpiderCronJobUpdateStatusEnum,
     SpiderCronJobDataStatusEnum,
@@ -55,11 +57,6 @@ const { Content } = Layout;
 const { Text } = Typography;
 
 interface ArgsData {
-    name: string;
-    value: string;
-}
-
-interface EnvVarsData {
     name: string;
     value: string;
 }
@@ -95,7 +92,7 @@ interface CronJobDetailPageState {
     loaded: boolean;
     name: string | undefined;
     args: ArgsData[];
-    envVars: EnvVarsData[];
+    envVars: SpiderJobEnvVar[];
     tags: TagsData[];
     status: string | undefined;
     jobs: SpiderJobData[];
@@ -283,18 +280,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRead(requestParams).then(
             async (response: SpiderCronJob) => {
-                let args = response.cargs;
-                if (args === undefined) {
-                    args = [];
-                }
-                let envVars = response.cenvVars;
-                if (envVars === undefined) {
-                    envVars = [];
-                }
-                let tags = response.ctags;
-                if (tags === undefined) {
-                    tags = [];
-                }
+                const args = response.cargs || [];
+                const envVars = response.cenvVars || [];
+                const tags = response.ctags || [];
                 this.initial_schedule = response.schedule || "";
                 const data = await this.getJobs(1);
                 const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
@@ -867,7 +855,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Tag>
                                 ) : (
                                     <Tag
-                                        className="border-estela-black-medium bg-estela-white-low text-estela-black-medium rounded-md"
+                                        className="border-estela-black-medium text-estela-black-medium rounded-md"
                                         key={"false"}
                                     >
                                         No
@@ -887,6 +875,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                             {tag.name}
                                         </Tag>
                                     ))}
+                                    {tags.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No tags</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -894,14 +885,29 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             <Col>Environment variables</Col>
                             <Col>
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: EnvVarsData, id) => (
-                                        <Tag
-                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
-                                            key={id}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ))}
+                                    {envVars.map((envVar: SpiderJobEnvVar, id) =>
+                                        envVar.masked ? (
+                                            <Tooltip
+                                                title="Masked variable"
+                                                showArrow={false}
+                                                overlayClassName="tooltip"
+                                                key={id}
+                                            >
+                                                <Tag className="environment-variables" key={id}>
+                                                    {envVar.name}
+                                                </Tag>
+                                            </Tooltip>
+                                        ) : (
+                                            <Tag className="environment-variables" key={id}>
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
+                                    {envVars.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">
+                                            No environment variables
+                                        </Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -917,6 +923,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                             {arg.name}: {arg.value}
                                         </Tag>
                                     ))}
+                                    {args.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No arguments</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -1223,7 +1232,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         <Space direction="vertical" className="w-full">
                             <Text className="text-2xl text-black">Data persistence</Text>
                             <p className="text-sm text-estela-black-medium">
-                                Data persistence will be applied to all jobs creadted from this schedue job by default.
+                                Data persistence will be applied to all jobs created from this schedule job by default.
                             </p>
                             <Space direction="horizontal">
                                 <Text className="text-estela-black-full text-sm mr-2">

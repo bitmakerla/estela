@@ -363,6 +363,9 @@ class SpiderJobEnvVar(models.Model):
     )
     name = models.CharField(max_length=1000, help_text="Env variable name.")
     value = models.CharField(max_length=1000, help_text="Env variable value.")
+    masked = models.BooleanField(
+        default=False, help_text="Whether the env variable value is masked."
+    )
 
 
 class SpiderJobTag(models.Model):

@@ -31,6 +31,12 @@ export interface SpiderJobEnvVar {
      * @memberof SpiderJobEnvVar
      */
     value: string;
+    /**
+     * Whether the env variable value is masked.
+     * @type {boolean}
+     * @memberof SpiderJobEnvVar
+     */
+    masked?: boolean;
 }
 
 export function SpiderJobEnvVarFromJSON(json: any): SpiderJobEnvVar {
@@ -45,6 +51,7 @@ export function SpiderJobEnvVarFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'name': json['name'],
         'value': json['value'],
+        'masked': !exists(json, 'masked') ? undefined : json['masked'],
     };
 }
 
@@ -59,6 +66,7 @@ export function SpiderJobEnvVarToJSON(value?: SpiderJobEnvVar | null): any {
         
         'name': value.name,
         'value': value.value,
+        'masked': value.masked,
     };
 }
 
