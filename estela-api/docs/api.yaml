@@ -1501,6 +1501,29 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+  SpiderJobEnvVar:
+    description: Cron job env variables.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        description: Env variable name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        description: Env variable value.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      masked:
+        title: Masked
+        description: Whether the env variable value is masked.
+        type: boolean
   SpiderJobTag:
     description: Cron job tags.
     required:
