@@ -802,7 +802,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 type: "Bytes",
             };
         } else {
-            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
             return {
                 quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
