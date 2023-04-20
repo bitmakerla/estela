@@ -1175,6 +1175,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     <Row className="grid grid-cols-5 bg-white">
                         <Col className="col-start-2 col-span-3">
                             {Object.entries(stats).map(([statKey, stat], index: number) => {
+                                if (stat === null) {
+                                    stat = "null";
+                                }
+
                                 if (index % 2) {
                                     return (
                                         <Row
@@ -1334,7 +1338,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 <Text className="text-estela-black-medium px-4">{itemProp}</Text>
                                             );
 
-                                            if (itemProp.length > 300) {
+                                            if (itemProp === null) {
+                                                itemContent = (
+                                                    <Text className="text-estela-black-medium px-4">null</Text>
+                                                );
+                                            } else if (itemProp.length > 300) {
                                                 itemContent = (
                                                     <Paragraph
                                                         className="text-estela-black-medium px-4"
@@ -1505,7 +1513,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             let requestContent = (
                                                 <Text className="text-estela-black-medium px-4">{requestProp}</Text>
                                             );
-                                            if (requestProp.length > 300) {
+
+                                            if (itemProp === null) {
+                                                itemContent = (
+                                                    <Text className="text-estela-black-medium px-4">null</Text>
+                                                );
+                                            } else if (requestProp.length > 300) {
                                                 requestContent = (
                                                     <Paragraph
                                                         className="text-estela-black-medium px-4"
@@ -1515,6 +1528,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     </Paragraph>
                                                 );
                                             }
+
                                             return (
                                                 <Row
                                                     key={index}
