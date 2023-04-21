@@ -44,12 +44,12 @@ router.register(
 )
 router.register(
     prefix=r"projects/(?P<pid>[0-9a-z-]+)/stats",
-    viewset=stats_views.OverallStatsViewSet,
+    viewset=stats_views.GlobalStatsViewSet,
     basename="stats",
 )
 router.register(
     prefix=r"projects/(?P<pid>[0-9a-z-]+)/stats/spiders/(?P<sid>\d+)",
-    viewset=stats_views.SpidersJobsStatsViewSet,  #
+    viewset=stats_views.SpidersJobsStatsViewSet,
     basename="stats-spider",
 )
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")

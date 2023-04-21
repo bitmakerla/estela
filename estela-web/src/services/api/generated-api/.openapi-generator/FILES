@@ -17,7 +17,8 @@ models/InlineResponse2004.ts
 models/InlineResponse2005.ts
 models/InlineResponse2006.ts
 models/InlineResponse401.ts
-models/JobStats.ts
+models/JobsStats.ts
+models/LogsStats.ts
 models/PagesStats.ts
 models/Permission.ts
 models/Project.ts
@@ -38,6 +39,7 @@ models/SpiderJobEnvVar.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
 models/SpiderUpdate.ts
+models/SpidersJobsStats.ts
 models/Stats.ts
 models/StatusCodesStats.ts
 models/Token.ts

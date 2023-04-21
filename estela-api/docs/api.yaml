@@ -1106,7 +1106,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Global Stats operation success
+          description: Global stats array with stats summary for each date
           schema:
             type: array
             items:
@@ -1146,7 +1146,11 @@ paths:
           type: string
       responses:
         '200':
-          description: ''
+          description: Spiders/Jobs stats array with stats summary for each date
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SpidersJobsStats'
       tags:
         - api
     parameters:
@@ -2114,7 +2118,7 @@ definitions:
         title: Count
         description: Deleted items count.
         type: integer
-  JobStats:
+  JobsStats:
     type: object
     properties:
       total_jobs:
@@ -2127,6 +2131,10 @@ definitions:
         default: 0
       error_jobs:
         title: Error jobs
+        type: integer
+        default: 0
+      unknown_jobs:
+        title: Unknown jobs
         type: integer
         default: 0
       finished_jobs:
@@ -2183,15 +2191,43 @@ definitions:
         title: Status 500
         type: integer
         default: 0
+  LogsStats:
+    type: object
+    properties:
+      total_logs:
+        title: Total logs
+        type: integer
+        default: 0
+      debug_logs:
+        title: Debug logs
+        type: integer
+        default: 0
+      info_logs:
+        title: Info logs
+        type: integer
+        default: 0
+      warning_logs:
+        title: Warning logs
+        type: integer
+        default: 0
+      error_logs:
+        title: Error logs
+        type: integer
+        default: 0
+      critical_logs:
+        title: Critical logs
+        type: integer
+        default: 0
   Stats:
     required:
       - jobs
       - pages
       - status_codes
+      - logs
     type: object
     properties:
       jobs:
-        $ref: '#/definitions/JobStats'
+        $ref: '#/definitions/JobsStats'
       pages:
         $ref: '#/definitions/PagesStats'
       items_count:
@@ -2208,7 +2244,21 @@ definitions:
         title: Success rate
         type: number
         default: 0.0
+      logs:
+        $ref: '#/definitions/LogsStats'
   GlobalStats:
+    required:
+      - date
+      - stats
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
+  SpidersJobsStats:
     required:
       - date
       - stats

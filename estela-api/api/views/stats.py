@@ -1,19 +1,14 @@
-from datetime import datetime
-from typing import List
-
-from django.core.paginator import Paginator
+from collections import defaultdict
+from datetime import datetime, timedelta
+from django.utils import timezone
+from typing import List, Tuple
+from django.db.models import QuerySet
 from re import findall
-from django.http.response import JsonResponse, HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, viewsets, mixins
-from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
+from rest_framework import status, mixins
 from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
-from rest_framework.utils.urls import replace_query_param
-from json import dumps
-
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
@@ -33,75 +28,73 @@ from core.models import (
 
 
 class StatsForDashboardMixin:
-    def get_parameters(self, request):
-        start_date = request.query_params.get("start_date", datetime.today())
-        end_date = request.query_params.get("end_date", datetime.today())
+    def get_parameters(self, request) -> Tuple[datetime, datetime]:
+        yesterday = datetime.now() - timedelta(days=1)
+        yesterday = datetime(yesterday.year, yesterday.month, yesterday.day)
+        start_date = request.query_params.get(
+            "start_date", timezone.make_aware(yesterday)
+        )
+        end_date = request.query_params.get("end_date", timezone.now())
         return start_date, end_date
 
     def summarize_stats_results(
-        self, stats_set: List[dict], jobs_set: SpiderJob
+        self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob]
     ) -> dict:
-        global_stats_results = {}
-        jobs_ids = {}
+        global_stats_results = defaultdict(lambda: defaultdict(int))
+        global_stats_results.default_factory = lambda: {
+            "jobs": {
+                "total_jobs": 0,
+                "error_jobs": 0,
+                "unknown_jobs": 0,
+                "running_jobs": 0,
+                "finished_jobs": 0,
+            },
+            "pages": {
+                "total_pages": 0,
+                "scraped_pages": 0,
+                "missed_pages": 0,
+            },
+            "items_count": 0,
+            "runtime": 0.0,
+            "status_codes": {
+                "status_200": 0,
+                "status_301": 0,
+                "status_302": 0,
+                "status_401": 0,
+                "status_403": 0,
+                "status_404": 0,
+                "status_429": 0,
+                "status_500": 0,
+            },
+            "success_rate": 0.0,
+            "logs": {
+                "total_logs": 0,
+                "debug_logs": 0,
+                "info_logs": 0,
+                "warning_logs": 0,
+                "error_logs": 0,
+                "critical_logs": 0,
+            },
+        }
+
+        jobs_ids = {job.jid: job.created.strftime("%Y-%m-%d") for job in jobs_set}
         for job in jobs_set:
-            date_str = job.created.strftime("%Y-%m-%d")
-            jobs_ids[job.jid] = date_str
-            if date_str not in global_stats_results:
-                global_stats_results[date_str] = {
-                    "jobs": {
-                        "total_jobs": 1,
-                        "error_jobs": int(job.status == SpiderJob.ERROR_STATUS),
-                        "unknown_jobs": int(
-                            job.status != SpiderJob.ERROR_STATUS
-                            and job.status != SpiderJob.RUNNING_STATUS
-                            and job.status != SpiderJob.COMPLETED_STATUS
-                        ),
-                        "running_jobs": int(job.status == SpiderJob.RUNNING_STATUS),
-                        "finished_jobs": int(job.status == SpiderJob.COMPLETED_STATUS),
-                    },
-                    "pages": {
-                        "total_pages": 0,
-                        "scraped_pages": 0,
-                        "missed_pages": 0,
-                    },
-                    "items_count": 0,
-                    "runtime": 0.0,
-                    "status_codes": {
-                        "status_200": 0,
-                        "status_301": 0,
-                        "status_302": 0,
-                        "status_401": 0,
-                        "status_403": 0,
-                        "status_404": 0,
-                        "status_429": 0,
-                        "status_500": 0,
-                    },
-                    "success_rate": 0.0,
-                    "logs": {
-                        "total_logs": 0,
-                        "debug_logs": 0,
-                        "info_logs": 0,
-                        "warning_logs": 0,
-                        "error_logs": 0,
-                        "critical_logs": 0,
-                    },
-                }
-            else:
-                global_stats_results[date_str]["jobs"]["total_jobs"] += 1
-                global_stats_results[date_str]["jobs"]["running_jobs"] += int(
-                    job.status == SpiderJob.RUNNING_STATUS
-                )
-                global_stats_results[date_str]["jobs"]["unknown_jobs"] += int(
-                    job.status != SpiderJob.ERROR_STATUS
-                    and job.status != SpiderJob.RUNNING_STATUS
-                    and job.status != SpiderJob.COMPLETED_STATUS
-                )
-                global_stats_results[date_str]["jobs"]["error_jobs"] += int(
-                    job.status == SpiderJob.ERROR_STATUS
-                )
-                global_stats_results[date_str]["jobs"]["finished_jobs"] += int(
-                    job.status == SpiderJob.COMPLETED_STATUS
-                )
+            date_str = jobs_ids[job.jid]
+            global_stats_results[date_str]["jobs"]["total_jobs"] += 1
+            global_stats_results[date_str]["jobs"]["running_jobs"] += int(
+                job.status == SpiderJob.RUNNING_STATUS
+            )
+            global_stats_results[date_str]["jobs"]["unknown_jobs"] += int(
+                job.status != SpiderJob.ERROR_STATUS
+                and job.status != SpiderJob.RUNNING_STATUS
+                and job.status != SpiderJob.COMPLETED_STATUS
+            )
+            global_stats_results[date_str]["jobs"]["error_jobs"] += int(
+                job.status == SpiderJob.ERROR_STATUS
+            )
+            global_stats_results[date_str]["jobs"]["finished_jobs"] += int(
+                job.status == SpiderJob.COMPLETED_STATUS
+            )
 
         for stats in stats_set:
             job_id = int(findall(r"\d+", stats["_id"])[1])
@@ -181,18 +174,13 @@ class StatsForDashboardMixin:
                 + global_stats_results[date_str]["logs"]["error_logs"]
                 + global_stats_results[date_str]["logs"]["critical_logs"]
             )
-            # Here we need to add the coverage also
 
         return global_stats_results
 
 
-class OverallStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
+class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
     model_class = Project
     lookup_field = "pid"
-
-    MAX_PAGINATION_SIZE = 100
-    MIN_PAGINATION_SIZE = 1
-    DEFAULT_PAGINATION_SIZE = 50
 
     @swagger_auto_schema(
         operation_description="Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.",
@@ -214,7 +202,7 @@ class OverallStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelM
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="Global Stats operation success",
+                description="Global stats array with stats summary for each date",
                 schema=ListSerializer(child=GlobalStatsSerializer()),
             ),
         },
@@ -224,8 +212,9 @@ class OverallStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelM
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
-        spiders_set = Spider.objects.filter(project=kwargs["pid"])
-        sid_set = spiders_set.values_list("pk", flat=True)
+        sid_set = Spider.objects.filter(project=kwargs["pid"]).values_list(
+            "pk", flat=True
+        )
         jobs_set = SpiderJob.objects.filter(
             spider__in=sid_set, created__range=[start_date, end_date]
         )
@@ -242,7 +231,6 @@ class OverallStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelM
 
         response_schema = []
         for date, stat_result in global_stats_results.items():
-            # Averaging some stat variables and adding values to the response schema
             stat_result["success_rate"] /= stat_result["jobs"]["finished_jobs"]
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
@@ -259,10 +247,6 @@ class SpidersJobsStatsViewSet(
 ):
     model_class = Spider
     lookup_field = "sid"
-
-    MAX_PAGINATION_SIZE = 100
-    MIN_PAGINATION_SIZE = 1
-    DEFAULT_PAGINATION_SIZE = 50
 
     @swagger_auto_schema(
         operation_description="Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.",
@@ -284,7 +268,7 @@ class SpidersJobsStatsViewSet(
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="Spiders/Jobs Stats operation success",
+                description="Spiders/Jobs stats array with stats summary for each date",
                 schema=ListSerializer(child=SpidersJobsStatsSerializer()),
             ),
         },
@@ -293,11 +277,10 @@ class SpidersJobsStatsViewSet(
         start_date, end_date = self.get_parameters(request)
 
         if not spiderdata_db_client.get_connection():
-            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
+            raise ConnectionError({"error": errors.UNABLE_CONNECT_DB})
 
-        jobs_set = SpiderJob.objects.filter(
-            spider__in=kwargs["sid"], created__range=[start_date, end_date]
-        )
+        spider = Spider.objects.get(sid=kwargs["sid"])
+        jobs_set = spider.jobs.filter(created__range=[start_date, end_date])
 
         job_collections_names: List[str] = [
             "{}-{}-job_stats".format(job.spider.sid, job.jid) for job in jobs_set
@@ -311,7 +294,6 @@ class SpidersJobsStatsViewSet(
 
         response_schema = []
         for date, stat_result in global_stats_results.items():
-            # Averaging some stat variables and adding values to the response schema
             stat_result["success_rate"] /= stat_result["jobs"]["finished_jobs"]
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():

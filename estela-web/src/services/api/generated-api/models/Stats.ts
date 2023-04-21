@@ -14,10 +14,14 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    JobStats,
-    JobStatsFromJSON,
-    JobStatsFromJSONTyped,
-    JobStatsToJSON,
+    JobsStats,
+    JobsStatsFromJSON,
+    JobsStatsFromJSONTyped,
+    JobsStatsToJSON,
+    LogsStats,
+    LogsStatsFromJSON,
+    LogsStatsFromJSONTyped,
+    LogsStatsToJSON,
     PagesStats,
     PagesStatsFromJSON,
     PagesStatsFromJSONTyped,
@@ -36,10 +40,10 @@ import {
 export interface Stats {
     /**
      * 
-     * @type {JobStats}
+     * @type {JobsStats}
      * @memberof Stats
      */
-    jobs: JobStats;
+    jobs: JobsStats;
     /**
      * 
      * @type {PagesStats}
@@ -70,6 +74,12 @@ export interface Stats {
      * @memberof Stats
      */
     successRate?: number;
+    /**
+     * 
+     * @type {LogsStats}
+     * @memberof Stats
+     */
+    logs: LogsStats;
 }
 
 export function StatsFromJSON(json: any): Stats {
@@ -82,12 +92,13 @@ export function StatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
     }
     return {
         
-        'jobs': JobStatsFromJSON(json['jobs']),
+        'jobs': JobsStatsFromJSON(json['jobs']),
         'pages': PagesStatsFromJSON(json['pages']),
         'itemsCount': !exists(json, 'items_count') ? undefined : json['items_count'],
         'runtime': !exists(json, 'runtime') ? undefined : json['runtime'],
         'statusCodes': StatusCodesStatsFromJSON(json['status_codes']),
         'successRate': !exists(json, 'success_rate') ? undefined : json['success_rate'],
+        'logs': LogsStatsFromJSON(json['logs']),
     };
 }
 
@@ -100,12 +111,13 @@ export function StatsToJSON(value?: Stats | null): any {
     }
     return {
         
-        'jobs': JobStatsToJSON(value.jobs),
+        'jobs': JobsStatsToJSON(value.jobs),
         'pages': PagesStatsToJSON(value.pages),
         'items_count': value.itemsCount,
         'runtime': value.runtime,
         'status_codes': StatusCodesStatsToJSON(value.statusCodes),
         'success_rate': value.successRate,
+        'logs': LogsStatsToJSON(value.logs),
     };
 }
 

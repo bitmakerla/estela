@@ -16,40 +16,46 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface JobStats
+ * @interface JobsStats
  */
-export interface JobStats {
+export interface JobsStats {
     /**
      * 
      * @type {number}
-     * @memberof JobStats
+     * @memberof JobsStats
      */
     totalJobs?: number;
     /**
      * 
      * @type {number}
-     * @memberof JobStats
+     * @memberof JobsStats
      */
     runningJobs?: number;
     /**
      * 
      * @type {number}
-     * @memberof JobStats
+     * @memberof JobsStats
      */
     errorJobs?: number;
     /**
      * 
      * @type {number}
-     * @memberof JobStats
+     * @memberof JobsStats
+     */
+    unknownJobs?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof JobsStats
      */
     finishedJobs?: number;
 }
 
-export function JobStatsFromJSON(json: any): JobStats {
-    return JobStatsFromJSONTyped(json, false);
+export function JobsStatsFromJSON(json: any): JobsStats {
+    return JobsStatsFromJSONTyped(json, false);
 }
 
-export function JobStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): JobStats {
+export function JobsStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): JobsStats {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -58,11 +64,12 @@ export function JobStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'totalJobs': !exists(json, 'total_jobs') ? undefined : json['total_jobs'],
         'runningJobs': !exists(json, 'running_jobs') ? undefined : json['running_jobs'],
         'errorJobs': !exists(json, 'error_jobs') ? undefined : json['error_jobs'],
+        'unknownJobs': !exists(json, 'unknown_jobs') ? undefined : json['unknown_jobs'],
         'finishedJobs': !exists(json, 'finished_jobs') ? undefined : json['finished_jobs'],
     };
 }
 
-export function JobStatsToJSON(value?: JobStats | null): any {
+export function JobsStatsToJSON(value?: JobsStats | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -74,6 +81,7 @@ export function JobStatsToJSON(value?: JobStats | null): any {
         'total_jobs': value.totalJobs,
         'running_jobs': value.runningJobs,
         'error_jobs': value.errorJobs,
+        'unknown_jobs': value.unknownJobs,
         'finished_jobs': value.finishedJobs,
     };
 }

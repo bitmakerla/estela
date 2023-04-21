@@ -105,6 +105,9 @@ import {
     SpiderUpdate,
     SpiderUpdateFromJSON,
     SpiderUpdateToJSON,
+    SpidersJobsStats,
+    SpidersJobsStatsFromJSON,
+    SpidersJobsStatsToJSON,
     Token,
     TokenFromJSON,
     TokenToJSON,
@@ -2200,7 +2203,7 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiProjectsStatsSpidersListRaw(requestParameters: ApiProjectsStatsSpidersListRequest): Promise<runtime.ApiResponse<void>> {
+    async apiProjectsStatsSpidersListRaw(requestParameters: ApiProjectsStatsSpidersListRequest): Promise<runtime.ApiResponse<Array<SpidersJobsStats>>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsStatsSpidersList.');
         }
@@ -2247,14 +2250,15 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.VoidApiResponse(response);
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SpidersJobsStatsFromJSON));
     }
 
     /**
      * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiProjectsStatsSpidersList(requestParameters: ApiProjectsStatsSpidersListRequest): Promise<void> {
-        await this.apiProjectsStatsSpidersListRaw(requestParameters);
+    async apiProjectsStatsSpidersList(requestParameters: ApiProjectsStatsSpidersListRequest): Promise<Array<SpidersJobsStats>> {
+        const response = await this.apiProjectsStatsSpidersListRaw(requestParameters);
+        return await response.value();
     }
 
     /**
