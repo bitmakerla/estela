@@ -1511,6 +1511,10 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+      masked:
+        title: Masked
+        description: Whether the env variable value is masked.
+        type: boolean
   SpiderJobTag:
     description: Cron job tags.
     required:

@@ -29,7 +29,6 @@ export const PrivateRoute: React.FC<RouteProps> = (route) => {
             },
             async (error) => {
                 try {
-                    console.log("here");
                     const data = await error.json();
                     invalidDataNotification(data.error);
                 } catch (err) {

@@ -14,7 +14,9 @@ import {
     Space,
     Table,
     message,
+    Tooltip,
 } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
@@ -69,6 +71,7 @@ interface ArgsData {
 interface EnvVarsData {
     name: string;
     value: string;
+    masked: boolean;
     key: number;
 }
 
@@ -117,6 +120,7 @@ interface ProjectJobListPageState {
     newArgValue: string;
     newEnvVarName: string;
     newEnvVarValue: string;
+    newEnvVarMasked: boolean;
     newTagName: string;
     modal: boolean;
     loaded: boolean;
@@ -156,6 +160,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         newArgValue: "",
         newEnvVarName: "",
         newEnvVarValue: "",
+        newEnvVarMasked: false,
         newTagName: "",
         loading: false,
         modal: this.LocationState ? this.LocationState.open : false,
@@ -353,6 +358,10 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         this.setState({ spiderId: String(spiderId?.sid) });
     };
 
+    onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
+        this.setState({ newEnvVarMasked: e.target.checked });
+    };
+
     addArgument = (): void => {
         const args = [...this.state.args];
         const newArgName = this.state.newArgName.trim();
@@ -369,9 +378,10 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         const envVars = [...this.state.envVars];
         const newEnvVarName = this.state.newEnvVarName.trim();
         const newEnvVarValue = this.state.newEnvVarValue.trim();
+        const newEnvVarMasked = this.state.newEnvVarMasked;
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
-            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
+            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newEnvVarMasked, key: this.countKey++ });
+            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -485,6 +495,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             dataStatus,
             dataExpiryDays,
             tags,
+            newEnvVarMasked,
         } = this.state;
         return (
             <Content>
@@ -602,18 +613,42 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             <p className="text-base my-2">Environment Variables</p>
                                             <Space direction="vertical">
                                                 <Space direction="horizontal">
-                                                    {envVars.map((envVar: EnvVarsData, id: number) => (
-                                                        <Tag
-                                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                            closable
-                                                            key={envVar.key}
-                                                            onClose={() => this.handleRemoveEnvVar(id)}
-                                                        >
-                                                            {envVar.name}: {envVar.value}
-                                                        </Tag>
-                                                    ))}
+                                                    {envVars.map((envVar: EnvVarsData, id: number) =>
+                                                        envVar.masked ? (
+                                                            <Tooltip
+                                                                title="Masked variable"
+                                                                showArrow={false}
+                                                                overlayClassName="tooltip"
+                                                                key={id}
+                                                            >
+                                                                <Tag
+                                                                    closable
+                                                                    onClose={() => this.handleRemoveEnvVar(id)}
+                                                                    className="environment-variables"
+                                                                    key={id}
+                                                                >
+                                                                    {envVar.name}
+                                                                </Tag>
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <Tag
+                                                                closable
+                                                                onClose={() => this.handleRemoveEnvVar(id)}
+                                                                className="environment-variables"
+                                                                key={id}
+                                                            >
+                                                                {envVar.name}: {envVar.value}
+                                                            </Tag>
+                                                        ),
+                                                    )}
                                                 </Space>
                                                 <Space direction="horizontal">
+                                                    <Checkbox
+                                                        checked={newEnvVarMasked}
+                                                        onChange={this.onChangeEnvVarMasked}
+                                                    >
+                                                        Masked
+                                                    </Checkbox>
                                                     <Input
                                                         size="large"
                                                         className="border-estela-blue-full rounded-l-lg"

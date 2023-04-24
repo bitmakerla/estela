@@ -18,8 +18,11 @@ import {
     Pagination,
     Dropdown,
     Input,
+    Tooltip as AntdTooltip,
+    Checkbox,
 } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
@@ -43,6 +46,7 @@ import {
     DeleteJobData,
     SpiderJob,
     SpiderJobCreate,
+    SpiderJobEnvVar,
     SpiderJobUpdate,
     SpiderJobUpdateDataStatusEnum,
     Spider,
@@ -83,14 +87,10 @@ interface Args {
     key: number;
 }
 
-interface EnvVarsData {
-    name: string;
-    value: string;
-}
-
 interface EnvVars {
     name: string;
     value: string;
+    masked: boolean | undefined;
     key: number;
 }
 
@@ -114,7 +114,7 @@ interface JobDetailPageState {
     totalResponseBytes: number | undefined;
     requestCount: number | undefined;
     args: ArgsData[];
-    envVars: EnvVarsData[];
+    envVars: SpiderJobEnvVar[];
     tags: TagsData[];
     date: string;
     activeKey: string;
@@ -156,6 +156,7 @@ interface JobDetailPageState {
     newEnvVars: EnvVars[];
     newEnvVarName: string;
     newEnvVarValue: string;
+    newEnvVarMasked: boolean;
 }
 
 interface RouteParams {
@@ -304,6 +305,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         newEnvVars: [],
         newEnvVarName: "",
         newEnvVarValue: "",
+        newEnvVarMasked: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -443,6 +445,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ newEnvVars: [...newEnvVars] });
     };
 
+    onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
+        this.setState({ newEnvVarMasked: e.target.checked });
+    };
+
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
         const {
             target: { value, name },
@@ -463,6 +469,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     handleSubmit = (): void => {
         const futureDate: Date = new Date();
         futureDate.setDate(futureDate.getDate() + this.state.newDataExpireDays);
+        console.log(this.state.newEnvVars);
         const requestData = {
             args: [...this.state.newArgs],
             envVars: [...this.state.newEnvVars],
@@ -521,9 +528,20 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         const newEnvVars = [...this.state.newEnvVars];
         const newEnvVarName = this.state.newEnvVarName.trim();
         const newEnvVarValue = this.state.newEnvVarValue.trim();
+        const newEnvVarMasked = this.state.newEnvVarMasked;
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            newEnvVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++ });
-            this.setState({ newEnvVars: [...newEnvVars], newEnvVarName: "", newEnvVarValue: "" });
+            newEnvVars.push({
+                name: newEnvVarName,
+                value: newEnvVarValue,
+                masked: newEnvVarMasked,
+                key: this.countKey++,
+            });
+            this.setState({
+                newEnvVars: [...newEnvVars],
+                newEnvVarName: "",
+                newEnvVarValue: "",
+                newEnvVarMasked: false,
+            });
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -784,7 +802,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 type: "Bytes",
             };
         } else {
-            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
             return {
                 quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
@@ -941,6 +959,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             {tag.name}
                                         </Tag>
                                     ))}
+                                    {tags.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No tags</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -950,14 +971,29 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                             <Col className="px-2">
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: EnvVarsData, id) => (
-                                        <Tag
-                                            className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
-                                            key={id}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ))}
+                                    {envVars.map((envVar: SpiderJobEnvVar, id) =>
+                                        envVar.masked ? (
+                                            <AntdTooltip
+                                                title="Masked variable"
+                                                showArrow={false}
+                                                overlayClassName="tooltip"
+                                                key={id}
+                                            >
+                                                <Tag className="environment-variables" key={id}>
+                                                    {envVar.name}
+                                                </Tag>
+                                            </AntdTooltip>
+                                        ) : (
+                                            <Tag className="environment-variables" key={id}>
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
+                                    {envVars.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">
+                                            No environment variables
+                                        </Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -975,6 +1011,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             {arg.name}: {arg.value}
                                         </Tag>
                                     ))}
+                                    {args.length == 0 && (
+                                        <Text className="text-estela-black-medium text-xs">No arguments</Text>
+                                    )}
                                 </Space>
                             </Col>
                         </Row>
@@ -1136,6 +1175,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     <Row className="grid grid-cols-5 bg-white">
                         <Col className="col-start-2 col-span-3">
                             {Object.entries(stats).map(([statKey, stat], index: number) => {
+                                if (stat === null) {
+                                    stat = "null";
+                                }
+
                                 if (index % 2) {
                                     return (
                                         <Row
@@ -1295,7 +1338,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 <Text className="text-estela-black-medium px-4">{itemProp}</Text>
                                             );
 
-                                            if (itemProp.length > 300) {
+                                            if (itemProp === null) {
+                                                itemContent = (
+                                                    <Text className="text-estela-black-medium px-4">null</Text>
+                                                );
+                                            } else if (itemProp.length > 300) {
                                                 itemContent = (
                                                     <Paragraph
                                                         className="text-estela-black-medium px-4"
@@ -1466,7 +1513,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             let requestContent = (
                                                 <Text className="text-estela-black-medium px-4">{requestProp}</Text>
                                             );
-                                            if (requestProp.length > 300) {
+
+                                            if (itemProp === null) {
+                                                itemContent = (
+                                                    <Text className="text-estela-black-medium px-4">null</Text>
+                                                );
+                                            } else if (requestProp.length > 300) {
                                                 requestContent = (
                                                     <Paragraph
                                                         className="text-estela-black-medium px-4"
@@ -1476,6 +1528,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     </Paragraph>
                                                 );
                                             }
+
                                             return (
                                                 <Row
                                                     key={index}
@@ -1675,6 +1728,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             newEnvVars,
             newEnvVarName,
             newEnvVarValue,
+            newEnvVarMasked,
             itemsCurrent,
             loadedStats,
             loadedItems,
@@ -1712,9 +1766,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 }),
                                             );
                                             const newEnvVars: EnvVars[] = [...this.state.envVars].map(
-                                                (tag: EnvVarsData, id: number) => ({
-                                                    name: tag.name,
-                                                    value: tag.value,
+                                                (envVar: SpiderJobEnvVar, id: number) => ({
+                                                    name: envVar.name,
+                                                    value: envVar.masked ? "_" : envVar.value,
+                                                    masked: envVar.masked,
                                                     key: id,
                                                 }),
                                             );
@@ -1912,18 +1967,42 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     <Content>
                                                         <p className="text-base my-2">Environment Variables</p>
                                                         <Space className="mb-2" direction="horizontal">
-                                                            {newEnvVars.map((envVar: EnvVars, id: number) => (
-                                                                <Tag
-                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                    closable
-                                                                    key={envVar.key}
-                                                                    onClose={() => this.handleRemoveEnvVar(id)}
-                                                                >
-                                                                    {envVar.name}: {envVar.value}
-                                                                </Tag>
-                                                            ))}
+                                                            {newEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                                                envVar.masked ? (
+                                                                    <AntdTooltip
+                                                                        title="Masked variable"
+                                                                        showArrow={false}
+                                                                        overlayClassName="tooltip"
+                                                                        key={id}
+                                                                    >
+                                                                        <Tag
+                                                                            closable
+                                                                            onClose={() => this.handleRemoveEnvVar(id)}
+                                                                            className="environment-variables"
+                                                                            key={id}
+                                                                        >
+                                                                            {envVar.name}
+                                                                        </Tag>
+                                                                    </AntdTooltip>
+                                                                ) : (
+                                                                    <Tag
+                                                                        closable
+                                                                        onClose={() => this.handleRemoveEnvVar(id)}
+                                                                        className="environment-variables"
+                                                                        key={id}
+                                                                    >
+                                                                        {envVar.name}: {envVar.value}
+                                                                    </Tag>
+                                                                ),
+                                                            )}
                                                         </Space>
                                                         <Space direction="horizontal">
+                                                            <Checkbox
+                                                                checked={newEnvVarMasked}
+                                                                onChange={this.onChangeEnvVarMasked}
+                                                            >
+                                                                Masked
+                                                            </Checkbox>
                                                             <Input
                                                                 size="large"
                                                                 className="border-estela-blue-full rounded-l-lg"
