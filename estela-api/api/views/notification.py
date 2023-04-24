@@ -1,11 +1,8 @@
 from rest_framework import viewsets
 
 from api.mixins import BaseViewSet
+from api.serializers.notification import NotificationSerializer
 from core.models import Notification, Project
-
-from api.serializers.notification import (
-    NotificationSerializer,
-)
 
 
 class NotificationViewSet(BaseViewSet, viewsets.ReadOnlyModelViewSet):
@@ -20,6 +17,4 @@ class NotificationViewSet(BaseViewSet, viewsets.ReadOnlyModelViewSet):
         projects = Project.objects.filter(
             users__in=[self.request.user.id], deleted=False
         )
-        return (
-            super(NotificationViewSet, self).get_queryset().filter(project__in=projects)
-        )
+        return super().get_queryset().filter(project__in=projects)

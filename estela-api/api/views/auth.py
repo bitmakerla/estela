@@ -86,7 +86,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         try:
             send_verification_email(user, request)
         except Exception:
-            raise EmailServiceError({"error": errors.ERROR_SEND_VERIFICATION_EMAIL})
+            raise EmailServiceError({"error": errors.ERROR_SENDING_VERIFICATION_EMAIL})
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -120,7 +120,9 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             email.send()
             return redirect(
                 settings.CORS_ORIGIN_WHITELIST[0],
-                {"message": errors.CONFIRMATION_EMAIL_SENT},
+                {
+                    "message": "Thank you for your email confirmation. You can now log in to your account."
+                },
             )
         else:
             self.retry_send_verification_email(user, request)

@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from api import errors
 
-from api.mixins import NotificationsHandler
+from api.mixins import NotificationsHandlerMixin
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
@@ -112,7 +112,9 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
         return cronjob
 
 
-class SpiderCronJobUpdateSerializer(serializers.ModelSerializer, NotificationsHandler):
+class SpiderCronJobUpdateSerializer(
+    serializers.ModelSerializer, NotificationsHandlerMixin
+):
     def validate(self, attrs):
         attrs = super(SpiderCronJobUpdateSerializer, self).validate(attrs)
         if "schedule" in attrs and not croniter.is_valid(attrs.get("schedule")):
@@ -159,15 +161,11 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer, NotificationsHa
         if "data_status" in validated_data:
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
-                message = "changed data persistence of Scheduled-job-{} to persistent.".format(
-                    instance.cjid
-                )
+                message = f"changed data persistence of Scheduled-job-{instance.cjid} to persistent."
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
-                message = "changed data persistence of Scheduled-job-{} to {} days.".format(
-                    instance.cjid, data_expiry_days
-                )
+                message = f"changed data persistence of Scheduled-job-{instance.cjid} to {data_expiry_days} days."
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 

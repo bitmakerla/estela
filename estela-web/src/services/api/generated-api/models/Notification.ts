@@ -43,7 +43,7 @@ export interface Notification {
      */
     user: UserDetail;
     /**
-     * Notifications message.
+     * Notification message.
      * @type {string}
      * @memberof Notification
      */

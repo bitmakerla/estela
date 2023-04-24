@@ -16,16 +16,11 @@ PAGE_NOT_FOUND = "Page not found."
 INSUFFICIENT_PERMISSIONS = "You do not have the {} permissions to perform this action."
 USER_NOT_FOUND = "User not found."
 UNABLE_CHANGE_PASSWORD = "Unable to change password."
-ERROR_SEND_VERIFICATION_EMAIL = (
+ERROR_SENDING_VERIFICATION_EMAIL = (
     "Your user was created but there was an error sending"
     " the verification email. Please try to log in later."
 )
-CONFIRMATION_EMAIL_SENT = (
-    "Thank you for your email confirmation. You can now log in to your account."
-)
-UNAUTHORIZED_PROFILE = (
-    "Unauthorized to see this profile, you are allowed to see only your profile."
-)
+UNAUTHORIZED_PROFILE = "You are unauthorized to see this user profile."
 SEND_EMAIL_LATER = (
     "There was an error sending the verification email. Please try again later."
 )

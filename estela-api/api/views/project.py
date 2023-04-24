@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet, NotificationsHandler
+from api.mixins import BaseViewSet, NotificationsHandlerMixin
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.project import (
@@ -31,7 +31,7 @@ from core.models import (
 )
 
 
-class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
+class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewSet):
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -73,7 +73,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         )
         self.save_notification(
             user=self.request.user,
-            message=f"created {instance.name} project.",
+            message=f"created project {instance.name}.",
             project=instance,
         )
 
@@ -100,7 +100,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         if name:
             old_name = instance.name
             instance.name = name
-            message = f"renamed the project from {old_name} to {name}."
+            message = f"renamed project {old_name} ({instance.pid}) to {name}."
 
         if user_email and user_email != request.user.email:
             if not (
@@ -134,7 +134,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
             elif action == "update":
                 instance.users.remove(user)
                 instance.users.add(user, through_defaults={"permission": permission})
-                message = f"updated {user_email} permissions to {permission}."
+                message = f"updated {user_email}'s permissions to {permission}."
             else:
                 raise ParseError({"error": "Action not supported."})
 
@@ -167,7 +167,7 @@ class ProjectViewSet(BaseViewSet, NotificationsHandler, viewsets.ModelViewSet):
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=self.request.user,
-            message=f"deleted {instance.name} project.",
+            message=f"deleted project {instance.name} ({instance.pid}).",
             project=project,
         )
         self.perform_destroy(instance)

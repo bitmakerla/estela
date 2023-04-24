@@ -8,7 +8,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
-from api.mixins import BaseViewSet, NotificationsHandler
+from api.mixins import BaseViewSet, NotificationsHandlerMixin
 from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobSerializer,
@@ -20,7 +20,7 @@ from core.models import DataStatus, Spider, SpiderCronJob, Project
 
 class SpiderCronJobViewSet(
     BaseViewSet,
-    NotificationsHandler,
+    NotificationsHandlerMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -99,7 +99,7 @@ class SpiderCronJobViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_notification(
             user=request.user,
-            message=f"scheduled a new Scheduled-job-{cronjob.cjid} for {spider.name} spider.",
+            message=f"scheduled a new Scheduled-job-{cronjob.cjid} for spider {spider.name}.",
             project=project,
         )
 

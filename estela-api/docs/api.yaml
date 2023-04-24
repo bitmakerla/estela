@@ -1337,7 +1337,7 @@ definitions:
         $ref: '#/definitions/UserDetail'
       message:
         title: Message
-        description: Notifications message.
+        description: Notification message.
         type: string
         maxLength: 1000
         minLength: 1

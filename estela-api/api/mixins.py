@@ -22,7 +22,7 @@ class BaseViewSet(viewsets.GenericViewSet):
     pagination_class = APIPageNumberPagination
 
 
-class NotificationsHandler(viewsets.GenericViewSet):
+class NotificationsHandlerMixin:
     def save_notification(self, user, message, project):
         notification = Notification(
             message=message,
