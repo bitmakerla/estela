@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from django.utils import timezone
 from typing import List, Tuple
 from django.db.models import QuerySet
@@ -29,19 +29,29 @@ from core.models import (
 
 class StatsForDashboardMixin:
     def get_parameters(self, request) -> Tuple[datetime, datetime]:
-        yesterday = datetime.now() - timedelta(days=1)
-        yesterday = datetime(yesterday.year, yesterday.month, yesterday.day)
-        start_date = request.query_params.get(
-            "start_date", timezone.make_aware(yesterday)
-        )
-        end_date = request.query_params.get("end_date", timezone.now())
+        start_date = request.query_params.get("start_date", timezone.now())
+        end_date: datetime = request.query_params.get("end_date", timezone.now())
+
+        if type(start_date) == str:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        start_date = datetime.combine(start_date, time.min)
+        if type(end_date) == str:
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        end_date = datetime.combine(end_date, time.max)
         return start_date, end_date
 
     def summarize_stats_results(
         self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob]
     ) -> dict:
-        global_stats_results = defaultdict(lambda: defaultdict(int))
-        global_stats_results.default_factory = lambda: {
+        stats_mapping: dict = {
+            "items_count": "item_scraped_count",
+            "runtime": "elapsed_time_seconds",
+            "request_count": "downloader/request_count",
+            "received_count": "response_received_count",
+            "scraped_pages": "downloader/response_status_count/200",
+        }
+        stats_results = defaultdict(lambda: defaultdict(int))
+        stats_results.default_factory = lambda: {
             "jobs": {
                 "total_jobs": 0,
                 "error_jobs": 0,
@@ -80,102 +90,97 @@ class StatsForDashboardMixin:
         jobs_ids = {job.jid: job.created.strftime("%Y-%m-%d") for job in jobs_set}
         for job in jobs_set:
             date_str = jobs_ids[job.jid]
-            global_stats_results[date_str]["jobs"]["total_jobs"] += 1
-            global_stats_results[date_str]["jobs"]["running_jobs"] += int(
+            stats_results[date_str]["jobs"]["total_jobs"] += 1
+            stats_results[date_str]["jobs"]["running_jobs"] += int(
                 job.status == SpiderJob.RUNNING_STATUS
             )
-            global_stats_results[date_str]["jobs"]["unknown_jobs"] += int(
+            stats_results[date_str]["jobs"]["unknown_jobs"] += int(
                 job.status != SpiderJob.ERROR_STATUS
                 and job.status != SpiderJob.RUNNING_STATUS
                 and job.status != SpiderJob.COMPLETED_STATUS
             )
-            global_stats_results[date_str]["jobs"]["error_jobs"] += int(
+            stats_results[date_str]["jobs"]["error_jobs"] += int(
                 job.status == SpiderJob.ERROR_STATUS
             )
-            global_stats_results[date_str]["jobs"]["finished_jobs"] += int(
+            stats_results[date_str]["jobs"]["finished_jobs"] += int(
                 job.status == SpiderJob.COMPLETED_STATUS
             )
 
         for stats in stats_set:
             job_id = int(findall(r"\d+", stats["_id"])[1])
             date_str = jobs_ids[job_id]
-            global_stats_results[date_str]["items_count"] += stats.get(
-                "item_scraped_count", 0
+            stats_results[date_str]["items_count"] += stats.get(
+                stats_mapping["items_count"], 0
             )
-            global_stats_results[date_str]["runtime"] += stats.get(
-                "elapsed_time_seconds", 0.0
+            stats_results[date_str]["runtime"] += stats.get(
+                stats_mapping["runtime"], 0.0
             )
-            downloader_request_count = stats.get("downloader/request_count", 0.0)
-            global_stats_results[date_str]["success_rate"] += (
-                100
-                * stats.get("response_received_count", 0.0)
-                / downloader_request_count
-                if downloader_request_count != 0.0
+            request_count = stats.get(stats_mapping["request_count"], 0.0)
+            stats_results[date_str]["success_rate"] += (
+                100 * stats.get(stats_mapping["received_count"], 0.0) / request_count
+                if request_count != 0.0
                 else 0.0
             )
-            global_stats_results[date_str]["runtime"] += stats.get(
-                "elapsed_time_seconds", 0.0
+
+            stats_results[date_str]["pages"]["scraped_pages"] += stats.get(
+                stats_mapping["scraped_pages"], 0
+            )
+            stats_results[date_str]["pages"]["missed_pages"] += stats.get(
+                stats_mapping["received_count"], 0
+            ) - stats.get(stats_mapping["scraped_pages"], 0)
+            stats_results[date_str]["pages"]["total_pages"] += stats.get(
+                stats_mapping["received_count"], 0
             )
 
-            global_stats_results[date_str]["pages"]["scraped_pages"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_200"] += stats.get(
                 "downloader/response_status_count/200", 0
             )
-            global_stats_results[date_str]["pages"]["missed_pages"] += stats.get(
-                "response_received_count", 0
-            ) - stats.get("downloader/response_status_count/200", 0)
-            global_stats_results[date_str]["pages"]["total_pages"] += stats.get(
-                "response_received_count", 0
-            )
-
-            global_stats_results[date_str]["status_codes"]["status_200"] += stats.get(
-                "downloader/response_status_count/200", 0
-            )
-            global_stats_results[date_str]["status_codes"]["status_301"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_301"] += stats.get(
                 "downloader/response_status_count/301", 0
             )
-            global_stats_results[date_str]["status_codes"]["status_302"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_302"] += stats.get(
                 "downloader/response_status_count/302", 0
             )
-            global_stats_results[date_str]["status_codes"]["status_401"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_401"] += stats.get(
                 "downloader/response_status_count/401", 0
             )
-            global_stats_results[date_str]["status_codes"]["status_403"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_403"] += stats.get(
                 "downloader/response_status_count/403", 0
             )
-            global_stats_results[date_str]["status_codes"]["status_404"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_404"] += stats.get(
                 "downloader/response_status_count/404", 0
             )
-            global_stats_results[date_str]["status_codes"]["status_429"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_429"] += stats.get(
                 "downloader/response_status_count/429", 0
             )
-            global_stats_results[date_str]["status_codes"]["status_500"] += stats.get(
+            stats_results[date_str]["status_codes"]["status_500"] += stats.get(
                 "downloader/response_status_count/500", 0
             )
 
-            global_stats_results[date_str]["logs"]["debug_logs"] += stats.get(
+            stats_results[date_str]["logs"]["debug_logs"] += stats.get(
                 "log_count/DEBUG", 0
             )
-            global_stats_results[date_str]["logs"]["info_logs"] += stats.get(
+            stats_results[date_str]["logs"]["info_logs"] += stats.get(
                 "log_count/INFO", 0
             )
-            global_stats_results[date_str]["logs"]["warning_logs"] += stats.get(
+            stats_results[date_str]["logs"]["warning_logs"] += stats.get(
                 "log_count/WARNING", 0
             )
-            global_stats_results[date_str]["logs"]["error_logs"] += stats.get(
+            stats_results[date_str]["logs"]["error_logs"] += stats.get(
                 "log_count/ERROR", 0
             )
-            global_stats_results[date_str]["logs"]["critical_logs"] += stats.get(
+            stats_results[date_str]["logs"]["critical_logs"] += stats.get(
                 "log_count/CRITICAL", 0
             )
-            global_stats_results[date_str]["logs"]["total_logs"] += (
-                global_stats_results[date_str]["logs"]["debug_logs"]
-                + global_stats_results[date_str]["logs"]["info_logs"]
-                + global_stats_results[date_str]["logs"]["warning_logs"]
-                + global_stats_results[date_str]["logs"]["error_logs"]
-                + global_stats_results[date_str]["logs"]["critical_logs"]
+            stats_results[date_str]["logs"]["total_logs"] += (
+                stats_results[date_str]["logs"]["debug_logs"]
+                + stats_results[date_str]["logs"]["info_logs"]
+                + stats_results[date_str]["logs"]["warning_logs"]
+                + stats_results[date_str]["logs"]["error_logs"]
+                + stats_results[date_str]["logs"]["critical_logs"]
             )
 
-        return global_stats_results
+        return stats_results
 
 
 class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
@@ -290,10 +295,10 @@ class SpidersJobsStatsViewSet(
             kwargs["pid"], job_collections_names
         )
 
-        global_stats_results = self.summarize_stats_results(stats_set, jobs_set)
+        spider_jobs_stats_results = self.summarize_stats_results(stats_set, jobs_set)
 
         response_schema = []
-        for date, stat_result in global_stats_results.items():
+        for date, stat_result in spider_jobs_stats_results.items():
             stat_result["success_rate"] /= stat_result["jobs"]["finished_jobs"]
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
