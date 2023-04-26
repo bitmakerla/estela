@@ -174,7 +174,7 @@ interface MetadataField {
     type: string;
 }
 
-interface StorageMetric {
+interface BytesMetric {
     quantity: number;
     type: string;
 }
@@ -795,7 +795,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         await this.getLogs(page);
     };
 
-    formatBytes = (bytes: number): StorageMetric => {
+    formatBytes = (bytes: number): BytesMetric => {
         if (!+bytes) {
             return {
                 quantity: 0,
@@ -811,17 +811,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         }
     };
 
-    chartConfigs = (storage: StorageMetric): [number[], string[]] => {
+    chartConfigs = (bytes: BytesMetric): [number[], string[]] => {
         const dataChartProportions = [1, 0];
         const colorChartArray = ["#7DC932", "#F1F1F1"];
-        if (storage.type === "Bytes") {
-            dataChartProportions[0] = 0.05 * (storage.quantity / 1024);
+        if (bytes.type === "Bytes") {
+            dataChartProportions[0] = 0.05 * (bytes.quantity / 1024);
             dataChartProportions[1] = 1 - dataChartProportions[0];
-        } else if (storage.type === "KB") {
-            dataChartProportions[0] = 0.1 * (storage.quantity / 1024);
+        } else if (bytes.type === "KB") {
+            dataChartProportions[0] = 0.1 * (bytes.quantity / 1024);
             dataChartProportions[1] = 1 - dataChartProportions[0];
-        } else if (storage.type === "MB") {
-            dataChartProportions[0] = storage.quantity / 1024;
+        } else if (bytes.type === "MB") {
+            dataChartProportions[0] = bytes.quantity / 1024;
             dataChartProportions[1] = 1 - dataChartProportions[0];
             if (dataChartProportions[0] > 0.75) {
                 colorChartArray[0] = "#FFC002";
@@ -830,7 +830,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 colorChartArray[0] = "#E34A46";
             }
         } else {
-            dataChartProportions[0] = storage.quantity;
+            dataChartProportions[0] = bytes.quantity;
             colorChartArray[0] = "#E34A46";
         }
         return [dataChartProportions, colorChartArray];
@@ -852,8 +852,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             items,
             status,
         } = this.state;
-        const storage: StorageMetric = this.formatBytes(Number(totalResponseBytes));
-        const [dataChartProportions, colorChartArray] = this.chartConfigs(storage);
+        const bandwidth: BytesMetric = this.formatBytes(Number(totalResponseBytes));
+        const [dataChartProportions, colorChartArray] = this.chartConfigs(bandwidth);
         const lifespanPercentage: number = Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
         const dataChart = {
             datasets: [
@@ -877,7 +877,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         style={{ borderRadius: "8px" }}
                         bordered={false}
                     >
-                        <Text className="py-2 text-estela-black-medium font-medium text-base">Storage</Text>
+                        <Text className="py-2 text-estela-black-medium font-medium text-base">Bandwidth</Text>
                         <Content className="grid w-full h-1/2 place-content-center">
                             <Content className="flex items-center justify-center">
                                 <Doughnut
@@ -892,7 +892,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 ctx.textAlign = "center";
                                                 ctx.textBaseline = "middle";
                                                 ctx.font = "1.875rem/2.25rem sans-serif";
-                                                ctx.fillText(`${storage.quantity} ${storage.type}`, x, y - 20);
+                                                ctx.fillText(`${bandwidth.quantity} ${bandwidth.type}`, x, y - 20);
                                                 ctx.font = "1.25rem/1.75rem sans-serif";
                                                 ctx.fillText("of 1GB", x, y + 20);
                                             },
@@ -1092,7 +1092,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         style={{ borderRadius: "8px" }}
                         bordered={false}
                     >
-                        <Text className="py-0 text-estela-black-medium font-medium text-base">Bandwidth</Text>
+                        <Text className="py-0 text-estela-black-medium font-medium text-base">Storage</Text>
                         <Row className="grid grid-cols-1 py-1 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">-/-</Text>
@@ -1514,8 +1514,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 <Text className="text-estela-black-medium px-4">{requestProp}</Text>
                                             );
 
-                                            if (itemProp === null) {
-                                                itemContent = (
+                                            if (requestProp === null) {
+                                                requestContent = (
                                                     <Text className="text-estela-black-medium px-4">null</Text>
                                                 );
                                             } else if (requestProp.length > 300) {
