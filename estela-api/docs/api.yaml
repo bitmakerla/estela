@@ -1078,6 +1078,90 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/stats:
+    get:
+      operationId: api_projects_stats_list
+      description: Retrieve stats of all jobs in a range of time, dates must have
+        the format YYYY-mm-dd.
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date range (e.g. 2023-04-01).
+          required: true
+          type: string
+        - name: end_date
+          in: query
+          description: End of date range (e.g. 2023-04-30).
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Global stats array with stats summary for each date
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GlobalStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/stats/spiders/{sid}:
+    get:
+      operationId: api_projects_stats_spiders_list
+      description: Retrieve stats of all jobs of a spider in a range of time, dates
+        must have the format YYYY-mm-dd.
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date range (e.g. 2023-04-01).
+          required: true
+          type: string
+        - name: end_date
+          in: query
+          description: End of date range (e.g. 2023-04-30).
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Spiders/Jobs stats array with stats summary for each date
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SpidersJobsStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/usage:
     get:
       operationId: api_projects_usage
@@ -2034,6 +2118,158 @@ definitions:
         title: Count
         description: Deleted items count.
         type: integer
+  JobsStats:
+    type: object
+    properties:
+      total_jobs:
+        title: Total jobs
+        type: integer
+        default: 0
+      running_jobs:
+        title: Running jobs
+        type: integer
+        default: 0
+      error_jobs:
+        title: Error jobs
+        type: integer
+        default: 0
+      unknown_jobs:
+        title: Unknown jobs
+        type: integer
+        default: 0
+      finished_jobs:
+        title: Finished jobs
+        type: integer
+        default: 0
+  PagesStats:
+    type: object
+    properties:
+      total_pages:
+        title: Total pages
+        type: integer
+        default: 0
+      scraped_pages:
+        title: Scraped pages
+        type: integer
+        default: 0
+      missed_pages:
+        title: Missed pages
+        type: integer
+        default: 0
+  StatusCodesStats:
+    type: object
+    properties:
+      status_200:
+        title: Status 200
+        type: integer
+        default: 0
+      status_301:
+        title: Status 301
+        type: integer
+        default: 0
+      status_302:
+        title: Status 302
+        type: integer
+        default: 0
+      status_401:
+        title: Status 401
+        type: integer
+        default: 0
+      status_403:
+        title: Status 403
+        type: integer
+        default: 0
+      status_404:
+        title: Status 404
+        type: integer
+        default: 0
+      status_429:
+        title: Status 429
+        type: integer
+        default: 0
+      status_500:
+        title: Status 500
+        type: integer
+        default: 0
+  LogsStats:
+    type: object
+    properties:
+      total_logs:
+        title: Total logs
+        type: integer
+        default: 0
+      debug_logs:
+        title: Debug logs
+        type: integer
+        default: 0
+      info_logs:
+        title: Info logs
+        type: integer
+        default: 0
+      warning_logs:
+        title: Warning logs
+        type: integer
+        default: 0
+      error_logs:
+        title: Error logs
+        type: integer
+        default: 0
+      critical_logs:
+        title: Critical logs
+        type: integer
+        default: 0
+  Stats:
+    required:
+      - jobs
+      - pages
+      - status_codes
+      - logs
+    type: object
+    properties:
+      jobs:
+        $ref: '#/definitions/JobsStats'
+      pages:
+        $ref: '#/definitions/PagesStats'
+      items_count:
+        title: Items count
+        type: integer
+        default: 0
+      runtime:
+        title: Runtime
+        type: number
+        default: 0.0
+      status_codes:
+        $ref: '#/definitions/StatusCodesStats'
+      success_rate:
+        title: Success rate
+        type: number
+        default: 0.0
+      logs:
+        $ref: '#/definitions/LogsStats'
+  GlobalStats:
+    required:
+      - date
+      - stats
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
+  SpidersJobsStats:
+    required:
+      - date
+      - stats
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
   UsageRecord:
     required:
       - processing_time

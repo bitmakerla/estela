@@ -8,6 +8,7 @@ from api.views import (
     auth as auth_views,
     cronjob as cronjob_views,
     job_data as job_data_views,
+    stats as stats_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -40,6 +41,16 @@ router.register(
     prefix=r"projects/(?P<pid>[0-9a-z-]+)/spiders/(?P<sid>\d+)/cronjobs",
     viewset=cronjob_views.SpiderCronJobViewSet,
     basename="cronjob",
+)
+router.register(
+    prefix=r"projects/(?P<pid>[0-9a-z-]+)/stats",
+    viewset=stats_views.GlobalStatsViewSet,
+    basename="stats",
+)
+router.register(
+    prefix=r"projects/(?P<pid>[0-9a-z-]+)/stats/spiders/(?P<sid>\d+)",
+    viewset=stats_views.SpidersJobsStatsViewSet,
+    basename="stats-spider",
 )
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 router.register(

@@ -120,6 +120,12 @@ class MongoAdapter(DatabaseInterface):
         )
         return list(result)
 
+    def get_jobs_set_stats(self, database_name, jobs_ids):
+        result = self.client[database_name]["job_stats"].find(
+            {"_id": {"$in": jobs_ids}}
+        )
+        return list(result)
+
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
     ):
