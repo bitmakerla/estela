@@ -161,7 +161,6 @@ class JobDataViewSet(
                 if next_chunk:
                     response["next_chunk"] = next_chunk
                 return Response(response)
-
             if data_type == "stats":
                 result = spiderdata_db_client.get_job_stats(
                     kwargs["pid"], job_collection_name

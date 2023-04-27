@@ -33,6 +33,9 @@ import {
     DeployUpdate,
     DeployUpdateFromJSON,
     DeployUpdateToJSON,
+    GlobalStats,
+    GlobalStatsFromJSON,
+    GlobalStatsToJSON,
     InlineResponse200,
     InlineResponse200FromJSON,
     InlineResponse200ToJSON,
@@ -108,6 +111,9 @@ import {
     SpiderUpdate,
     SpiderUpdateFromJSON,
     SpiderUpdateToJSON,
+    SpidersJobsStats,
+    SpidersJobsStatsFromJSON,
+    SpidersJobsStatsToJSON,
     Token,
     TokenFromJSON,
     TokenToJSON,
@@ -371,6 +377,23 @@ export interface ApiProjectsSpidersUpdateRequest {
     pid: string;
     sid: number;
     data: SpiderUpdate;
+}
+
+export interface ApiProjectsStatsListRequest {
+    pid: string;
+    startDate: string;
+    endDate: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProjectsStatsSpidersListRequest {
+    pid: string;
+    sid: string;
+    startDate: string;
+    endDate: string;
+    page?: number;
+    pageSize?: number;
 }
 
 export interface ApiProjectsUpdateRequest {
@@ -2198,6 +2221,124 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersUpdate(requestParameters: ApiProjectsSpidersUpdateRequest): Promise<SpiderUpdate> {
         const response = await this.apiProjectsSpidersUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.
+     */
+    async apiProjectsStatsListRaw(requestParameters: ApiProjectsStatsListRequest): Promise<runtime.ApiResponse<Array<GlobalStats>>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsStatsList.');
+        }
+
+        if (requestParameters.startDate === null || requestParameters.startDate === undefined) {
+            throw new runtime.RequiredError('startDate','Required parameter requestParameters.startDate was null or undefined when calling apiProjectsStatsList.');
+        }
+
+        if (requestParameters.endDate === null || requestParameters.endDate === undefined) {
+            throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiProjectsStatsList.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.startDate !== undefined) {
+            queryParameters['start_date'] = requestParameters.startDate;
+        }
+
+        if (requestParameters.endDate !== undefined) {
+            queryParameters['end_date'] = requestParameters.endDate;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/stats`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GlobalStatsFromJSON));
+    }
+
+    /**
+     * Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.
+     */
+    async apiProjectsStatsList(requestParameters: ApiProjectsStatsListRequest): Promise<Array<GlobalStats>> {
+        const response = await this.apiProjectsStatsListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
+     */
+    async apiProjectsStatsSpidersListRaw(requestParameters: ApiProjectsStatsSpidersListRequest): Promise<runtime.ApiResponse<Array<SpidersJobsStats>>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsStatsSpidersList.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsStatsSpidersList.');
+        }
+
+        if (requestParameters.startDate === null || requestParameters.startDate === undefined) {
+            throw new runtime.RequiredError('startDate','Required parameter requestParameters.startDate was null or undefined when calling apiProjectsStatsSpidersList.');
+        }
+
+        if (requestParameters.endDate === null || requestParameters.endDate === undefined) {
+            throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiProjectsStatsSpidersList.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.startDate !== undefined) {
+            queryParameters['start_date'] = requestParameters.startDate;
+        }
+
+        if (requestParameters.endDate !== undefined) {
+            queryParameters['end_date'] = requestParameters.endDate;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/stats/spiders/{sid}`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SpidersJobsStatsFromJSON));
+    }
+
+    /**
+     * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
+     */
+    async apiProjectsStatsSpidersList(requestParameters: ApiProjectsStatsSpidersListRequest): Promise<Array<SpidersJobsStats>> {
+        const response = await this.apiProjectsStatsSpidersListRaw(requestParameters);
         return await response.value();
     }
 

@@ -63,7 +63,6 @@ class Inserter:
                 self.collection_name,
                 [item["payload"] for item in self.__items],
             )
-
         if response.ok:
             logging.info(
                 "{} documents inserted [{}] in {}.".format(
