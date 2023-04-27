@@ -1,9 +1,22 @@
 import React, { Component, Fragment, ReactElement } from "react";
-import { Layout, Pagination, Spin as Spiner, Button, Row, Col, Table, Card, Space, Typography } from "antd";
+import {
+    Layout,
+    Pagination,
+    Spin as Spinner,
+    Button,
+    Row,
+    Col,
+    Table,
+    Card,
+    Space,
+    Typography,
+    DatePicker,
+} from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
+import Run from "../../assets/icons/run.svg";
 import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
@@ -15,8 +28,12 @@ import {
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
+import moment from "moment";
+import type { RangePickerProps } from "antd/es/date-picker";
 
 const { Text } = Typography;
+const { Content } = Layout;
+const { RangePicker } = DatePicker;
 
 interface Ids {
     sid: number | undefined;
@@ -168,6 +185,54 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         await this.getJobs(page);
     };
 
+    onChange: RangePickerProps["onChange"] = (dates, dateStrings) => {
+        if (dates) {
+            console.log("From: ", dates[0], ", to: ", dates[1]);
+            console.log("From: ", dateStrings[0], ", to: ", dateStrings[1]);
+        } else {
+            console.log("Clear");
+        }
+    };
+
+    dashboardsSection: () => JSX.Element = () => {
+        return (
+            <Content className="bg-white rounded-2xl p-5">
+                <Row className="flow-root items-center space-x-4">
+                    <Button
+                        className="flex float-left items-center  rounded-3xl font-medium stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela"
+                        onClick={() => console.log("Project Dashboard")}
+                    >
+                        Project
+                    </Button>
+                    <Button
+                        className="flex float-left items-center rounded-3xl font-medium stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela"
+                        onClick={() => console.log("Spiders/Jobs Dashboard")}
+                    >
+                        Spiders / Jobs
+                    </Button>
+                    <RangePicker
+                        ranges={{
+                            Today: [moment(), moment()],
+                            "Last 72h": [moment().subtract(3, "days").startOf("day"), moment()],
+                            "Last 7 Days": [moment().subtract(7, "days").startOf("day"), moment()],
+                            "Last 14 Days": [moment().subtract(14, "days").startOf("day"), moment()],
+                            "Last 30 Days": [moment().subtract(30, "days").startOf("day"), moment()],
+                        }}
+                        format="YYYY-MM-DD"
+                        className="flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela hover:stroke-estela bg-white text-sm"
+                    />
+                    <Button
+                        icon={<Run className="mr-2" width={19} />}
+                        className="flex float-right items-center rounded-3xl font-medium stroke-estela border-estela hover:stroke-estela bg-estela-blue-low text-estela hover:text-estela text-sm hover:border-estela"
+                        onClick={() => console.log("Refresh")}
+                    >
+                        Refresh
+                    </Button>
+                </Row>
+            </Content>
+        );
+    };
+
     render(): JSX.Element {
         const { name, loaded, projectUseLoaded, jobs, count, current, network, processingTime, storage } = this.state;
         return (
@@ -191,57 +256,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 ></Button>
                             </Col>
                         </Row>
-                        <Row className="lg:mx-6 mx-2 grid grid-cols-5 gap-2 lg:gap-4">
-                            <Col className="bg-metal grid justify-start col-span-1 gap-2">
-                                <Space direction="vertical">
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical">
-                                            <Text className="text-base text-estela-black-medium break-words">
-                                                NETWORK USED
-                                            </Text>
-                                            {projectUseLoaded ? (
-                                                <>
-                                                    <Text className="text-xl my-2 font-bold leading-8">
-                                                        {this.formatBytes(network)}
-                                                    </Text>
-                                                </>
-                                            ) : (
-                                                <Spiner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical">
-                                            <Text className="text-base text-estela-black-medium break-words">
-                                                PROCESSING TIME USED
-                                            </Text>
-                                            {projectUseLoaded ? (
-                                                <Text className="text-xl my-2 font-bold leading-8">
-                                                    {processingTime} seg
-                                                </Text>
-                                            ) : (
-                                                <Spiner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical">
-                                            <Text className="text-base text-estela-black-medium">STORAGE USED</Text>
-                                            {projectUseLoaded ? (
-                                                <Text className="text-xl my-2 font-bold leading-8">
-                                                    {this.formatBytes(storage)}
-                                                </Text>
-                                            ) : (
-                                                <Spiner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                </Space>
-                            </Col>
-                            <Col className="bg-metal col-span-4">
+                        <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4 justify-between">
+                            <Col className="bg-metal col-span-5">
+                                {this.dashboardsSection()}
                                 <Card bordered={false} className="bg-white rounded-2xl">
                                     <Row className="flow-root">
                                         <Text className="float-left text-base font-medium text-estela-black-medium m-4 sm:m-2">
@@ -271,6 +288,55 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         itemRender={PaginationItem}
                                     />
                                 </Card>
+                            </Col>
+                            <Col className="bg-metal grid justify-start col-span-2 gap-2">
+                                <Space direction="vertical">
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
+                                        <Space direction="vertical">
+                                            <Text className="text-base text-estela-black-medium break-words">
+                                                NETWORK USED
+                                            </Text>
+                                            {projectUseLoaded ? (
+                                                <>
+                                                    <Text className="text-xl my-2 font-bold leading-8">
+                                                        {this.formatBytes(network)}
+                                                    </Text>
+                                                </>
+                                            ) : (
+                                                <Spinner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
+                                        </Space>
+                                    </Card>
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
+                                        <Space direction="vertical">
+                                            <Text className="text-base text-estela-black-medium break-words">
+                                                PROCESSING TIME USED
+                                            </Text>
+                                            {projectUseLoaded ? (
+                                                <Text className="text-xl my-2 font-bold leading-8">
+                                                    {processingTime} seg
+                                                </Text>
+                                            ) : (
+                                                <Spinner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
+                                        </Space>
+                                    </Card>
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
+                                        <Space direction="vertical">
+                                            <Text className="text-base text-estela-black-medium">STORAGE USED</Text>
+                                            {projectUseLoaded ? (
+                                                <Text className="text-xl my-2 font-bold leading-8">
+                                                    {this.formatBytes(storage)}
+                                                </Text>
+                                            ) : (
+                                                <Spinner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
+                                        </Space>
+                                    </Card>
+                                </Space>
                             </Col>
                         </Row>
                     </Fragment>
