@@ -17,6 +17,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 
+from api import errors
 from api.exceptions import EmailServiceError, UserNotFoundError
 from api.permissions import IsProfileUser
 from api.serializers.auth import (
@@ -85,11 +86,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         try:
             send_verification_email(user, request)
         except Exception:
-            raise EmailServiceError(
-                {
-                    "error": "Your user was created but there was an error sending the verification email. Please try to log in later."
-                }
-            )
+            raise EmailServiceError({"error": errors.ERROR_SENDING_VERIFICATION_EMAIL})
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -161,9 +158,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             )
         if user != requested_user:
             return Response(
-                data={
-                    "error": "Unauthorized to see this profile, you are allowed to see only your profile."
-                },
+                data={"error": errors.UNAUTHORIZED_PROFILE},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -263,11 +258,7 @@ class ResetPasswordViewSet(viewsets.GenericViewSet):
         try:
             send_change_password_email(user)
         except Exception:
-            raise EmailServiceError(
-                {
-                    "error": "There was an error sending the password reset email. Please try again later."
-                }
-            )
+            raise EmailServiceError({"error": errors.SEND_EMAIL_LATER})
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 

@@ -4,7 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError, APIException, PermissionDenied
 
-from api.mixins import BaseViewSet
+from api.mixins import BaseViewSet, NotificationsHandlerMixin
 from api.serializers.deploy import (
     DeploySerializer,
     DeployCreateSerializer,
@@ -19,6 +19,7 @@ from config.job_manager import credentials
 
 class DeployViewSet(
     BaseViewSet,
+    NotificationsHandlerMixin,
     viewsets.ModelViewSet,
 ):
     model_class = Deploy
@@ -90,6 +91,14 @@ class DeployViewSet(
 
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
+
+        # Send action notification
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        self.save_notification(
+            user=instance.user,
+            message=f"made a new Deploy #{serializer.data['did']}.",
+            project=project,
+        )
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)

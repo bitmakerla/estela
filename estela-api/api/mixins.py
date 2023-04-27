@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from api.permissions import IsProjectUser, IsAdminOrReadOnly
+from core.models import Notification
 
 
 class APIPageNumberPagination(PageNumberPagination):
@@ -19,3 +20,13 @@ class BaseViewSet(viewsets.GenericViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsProjectUser, IsAdminOrReadOnly]
     pagination_class = APIPageNumberPagination
+
+
+class NotificationsHandlerMixin:
+    def save_notification(self, user, message, project):
+        notification = Notification(
+            message=message,
+            user=user,
+            project=project,
+        )
+        notification.save()

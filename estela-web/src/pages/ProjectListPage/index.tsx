@@ -10,7 +10,7 @@ import FolderDotted from "../../assets/icons/folderDotted.svg";
 import WelcomeProjects from "../../assets/images/welcomeProjects.svg";
 import history from "../../history";
 import { ApiProjectsListRequest, ApiProjectsCreateRequest, Project, ProjectCategoryEnum } from "../../services/api";
-import { incorrectDataNotification, Spin } from "../../shared";
+import { incorrectDataNotification, Spin, PaginationItem } from "../../shared";
 import { UserContext, UserContextProps } from "../../context/UserContext";
 
 const { Content } = Layout;
@@ -431,6 +431,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             pageSize={this.PAGE_SIZE}
                                             onChange={this.onPageChange}
                                             showSizeChanger={false}
+                                            itemRender={PaginationItem}
                                         />
                                     </Row>
                                     {this.totalProjects === 0 && (
