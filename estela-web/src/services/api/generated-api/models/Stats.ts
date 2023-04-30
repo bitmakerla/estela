@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    CoverageStats,
+    CoverageStatsFromJSON,
+    CoverageStatsFromJSONTyped,
+    CoverageStatsToJSON,
     JobsStats,
     JobsStatsFromJSON,
     JobsStatsFromJSONTyped,
@@ -80,6 +84,12 @@ export interface Stats {
      * @memberof Stats
      */
     logs: LogsStats;
+    /**
+     * 
+     * @type {CoverageStats}
+     * @memberof Stats
+     */
+    coverage: CoverageStats;
 }
 
 export function StatsFromJSON(json: any): Stats {
@@ -99,6 +109,7 @@ export function StatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
         'statusCodes': StatusCodesStatsFromJSON(json['status_codes']),
         'successRate': !exists(json, 'success_rate') ? undefined : json['success_rate'],
         'logs': LogsStatsFromJSON(json['logs']),
+        'coverage': CoverageStatsFromJSON(json['coverage']),
     };
 }
 
@@ -118,6 +129,7 @@ export function StatsToJSON(value?: Stats | null): any {
         'status_codes': StatusCodesStatsToJSON(value.statusCodes),
         'success_rate': value.successRate,
         'logs': LogsStatsToJSON(value.logs),
+        'coverage': CoverageStatsToJSON(value.coverage),
     };
 }
 

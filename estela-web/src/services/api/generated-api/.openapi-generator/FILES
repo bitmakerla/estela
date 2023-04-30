@@ -4,10 +4,12 @@ apis/index.ts
 index.ts
 models/AuthToken.ts
 models/ChangePassword.ts
+models/CoverageStats.ts
 models/DeleteJobData.ts
 models/Deploy.ts
 models/DeployCreate.ts
 models/DeployUpdate.ts
+models/FieldCoverageStats.ts
 models/GlobalStats.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts

@@ -2218,12 +2218,44 @@ definitions:
         title: Critical logs
         type: integer
         default: 0
+  FieldCoverageStats:
+    type: object
+    properties:
+      field_name:
+        title: Field name
+        type: string
+        default: ''
+        minLength: 1
+      field_count:
+        title: Field count
+        type: integer
+        default: 0
+      field_coverage:
+        title: Field coverage
+        type: number
+        default: 0.0
+  CoverageStats:
+    type: object
+    properties:
+      total_items:
+        title: Total items
+        type: integer
+        default: 0
+      total_items_coverage:
+        title: Total items coverage
+        type: number
+        default: 0.0
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/FieldCoverageStats'
   Stats:
     required:
       - jobs
       - pages
       - status_codes
       - logs
+      - coverage
     type: object
     properties:
       jobs:
@@ -2246,6 +2278,8 @@ definitions:
         default: 0.0
       logs:
         $ref: '#/definitions/LogsStats'
+      coverage:
+        $ref: '#/definitions/CoverageStats'
   GlobalStats:
     required:
       - date
