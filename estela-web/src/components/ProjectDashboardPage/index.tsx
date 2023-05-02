@@ -211,6 +211,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         Spiders / Jobs
                     </Button>
                     <RangePicker
+                        defaultValue={[moment(), moment()]}
                         ranges={{
                             Today: [moment(), moment()],
                             "Last 72h": [moment().subtract(3, "days").startOf("day"), moment()],
@@ -219,7 +220,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             "Last 30 Days": [moment().subtract(30, "days").startOf("day"), moment()],
                         }}
                         format="YYYY-MM-DD"
-                        className="flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela hover:stroke-estela bg-white text-sm"
+                        className="flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela-blue-full hover:stroke-estela bg-white custom"
                     />
                     <Button
                         icon={<Run className="mr-2" width={19} />}

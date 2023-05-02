@@ -1,3 +1,56 @@
+$estela-blue-full: #4D47C3;
+
 .ant-card-body {
   padding: 18px;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner {
+  background-color: #27c456 !important;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+  background-color: #27c456 !important;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: #1f9643e5 !important;
+  border-bottom-color: $estela-blue-full;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-range-start:not(.ant-picker-cell-range-start-single)::before,
+.ant-picker-cell-in-view.ant-picker-cell-in-range::before,
+.ant-picker-cell-in-view.ant-picker-cell-range-end:not(.ant-picker-cell-range-end-single)::before,
+.ant-picker-time-panel-column>li.ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
+  background: #e6ffe8 !important;
+}
+
+.custom .ant-picker-input>input {
+  color: $estela-blue-full
+}
+
+.custom html {
+  --antd-wave-shadow-color: $estela-blue-full
+}
+
+.custom .ant-picker-focused,
+.ant-picker:hover {
+  border-color: $estela-blue-full;
+  box-shadow: none;
+}
+
+.ant-btn-primary {
+  background-color: #1f9643e5 !important;
+  border-color: #1f9643e5 !important;
+}
+
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: $estela-blue-full !important;
+}
+
+.ant-tabs-tab-btn:hover, .ant-tabs-tab:hover {
+  color: $estela-blue-full !important;
+}
+
+.ant-tabs-ink-bar, .ant-tabs-ink-bar-animated {
+  background-color: $estela-blue-full !important;
 }
