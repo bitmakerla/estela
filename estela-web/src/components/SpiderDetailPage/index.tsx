@@ -62,6 +62,7 @@ interface SpiderJobData {
 
 interface SpiderDetailPageState {
     name: string;
+    spider: Spider;
     loaded: boolean;
     count: number;
     current: number;
@@ -97,6 +98,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     state: SpiderDetailPageState = {
         name: "",
         jobs: [],
+        spider: { sid: 0, name: "", project: "", dataExpiryDays: 0, dataStatus: undefined },
         loaded: false,
         count: 0,
         current: 0,
@@ -220,6 +222,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 ];
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({
+                    spider: response,
                     name: response.name,
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays,
@@ -788,6 +791,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             onClick={() => {
                                                 history.push(`/projects/${this.projectId}/jobs`, {
                                                     open: true,
+                                                    spider: this.state.spider,
                                                 });
                                             }}
                                             icon={<Play className="mr-2" width={19} />}
