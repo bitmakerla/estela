@@ -275,25 +275,22 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const newSpiders: Spider[] = results.results;
+                const spiders = results.results || [];
+                let newSpiders: Spider[] = this.state.spiders;
                 if (this.LocationState) {
                     results.results.find((spider: Spider) =>
                         spider.sid == this.LocationState.spider.sid
-                            ? null
-                            : this.setState({ spiders: newSpiders.concat(this.LocationState.spider) }),
+                            ? newSpiders = spiders
+                            : newSpiders.concat(spiders),
                     );
                 }
-                if (results.results.length == 0 || results.results == undefined) {
-                    this.setState({ spiders: [], loadedSpiders: true });
-                } else {
-                    this.setState({
-                        spiders: newSpiders,
-                        dataStatus: results.results[0].dataStatus,
-                        dataExpiryDays: results.results[0].dataExpiryDays,
-                        spiderId: String(results.results[0].sid),
-                        loadedSpiders: true,
-                    });
-                }
+                this.setState({
+                    spiders: newSpiders,
+                    dataStatus: results.results[0].dataStatus,
+                    dataExpiryDays: results.results[0].dataExpiryDays,
+                    spiderId: String(results.results[0].sid),
+                    loadedSpiders: true,
+                });
             },
             (error: unknown) => {
                 error;
