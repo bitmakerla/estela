@@ -278,27 +278,20 @@ def record_job_coverage_event(job_id):
     if total_items > 0:
         coverage = {}
         field_counts = defaultdict(int)
-        
+
         for item in items:
             for k, v in item.items():
                 field_counts[k] += 1 if v is not None or v else 0
 
         for field, count in field_counts.items():
-            coverage[f"{field}_field"] = count
+            coverage[f"{field}_field_count"] = count
             coverage[f"{field}_coverage"] = count / total_items
 
-        # 5 items
-        # url: 1
-        # name: 5
-        # a: 5
-        # b: 5
-        # total_coverage: (16 / 25)
-
-        field_less_presence = min(
-            filter(lambda k: k.endswith("_field"), coverage.keys()), key=coverage.get
-        )
+        scraped_fields_count = sum(field_counts.values())
         coverage["total_items"] = total_items
-        coverage["total_items_coverage"] = coverage[field_less_presence] / total_items
+        coverage["total_items_coverage"] = scraped_fields_count / (
+            total_items * len(field_counts)
+        )
 
         job_stats_id = f"{sid}-{job.jid}-job_stats"
         if not spiderdata_db_client.update_document_data(

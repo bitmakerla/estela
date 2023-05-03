@@ -206,8 +206,8 @@ class StatsForDashboardMixin:
             )
 
         for stat in stats_results.values():
-            stat["success_rate"] /= stat["jobs"]["total_jobs"]
-            stat["coverage"]["total_items_coverage"] /= stat["jobs"]["total_jobs"]
+            stat["success_rate"] /= stat["jobs"]["finished_jobs"]
+            stat["coverage"]["total_items_coverage"] /= stat["jobs"]["finished_jobs"]
 
         return stats_results
 
