@@ -32,11 +32,10 @@ class JobDataViewSet(
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
         data_type = request.query_params.get("type", "items")
-        mode = request.query_params.get("mode", "paged")
         page_size = int(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
-        return page, data_type, mode, page_size
+        return page, data_type, page_size
 
     def get_paginated_link(self, page_number):
         if page_number < 1:
@@ -87,7 +86,7 @@ class JobDataViewSet(
         ],
     )
     def list(self, request, *args, **kwargs):
-        page, data_type, mode, page_size = self.get_parameters(request)
+        page, data_type, page_size = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page_size < 1:
@@ -111,74 +110,44 @@ class JobDataViewSet(
                 kwargs["sid"], kwargs["jid"], data_type
             )
 
-        if mode != "paged":
-            collection_size = spiderdata_db_client.get_collection_size(
+        count = spiderdata_db_client.get_estimated_document_count(
+            kwargs["pid"], job_collection_name
+        )
+        if data_type == "stats":
+            result = spiderdata_db_client.get_job_stats(
                 kwargs["pid"], job_collection_name
             )
-            if collection_size > settings.MAX_DOWNLOADED_SIZE:
-                return Response(
-                    {"detail": errors.MAX_RESPONSE_SIZE_EXCEEDED},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            result = spiderdata_db_client.get_all_collection_data(
-                kwargs["pid"], job_collection_name
-            )
-
-            if mode == "json":
-                response = JsonResponse(result, safe=False)
-                return response
-
-            if mode == "csv":
-                response = HttpResponse(content_type="text/csv; charset=utf-8")
-                response["Content-Disposition"] = "attachment; {}.csv".format(
-                    job_collection_name
-                )
-                # Force response to be UTF-8 - This is where the magic happens
-                response.write(codecs.BOM_UTF8)
-                csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
-                csv_writer.writeheader()
-                for item in result:
-                    csv_writer.writerow(item)
-                return response
-        else:
-            count = spiderdata_db_client.get_estimated_document_count(
-                kwargs["pid"], job_collection_name
-            )
-            if request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
-                chunk_size = max(
-                    1,
-                    settings.MAX_CHUNK_SIZE
-                    // spiderdata_db_client.get_estimated_document_size(
-                        kwargs["pid"], job_collection_name
-                    ),
-                )
-                current_chunk = request.query_params.get("current_chunk", None)
-                result, next_chunk = spiderdata_db_client.get_chunked_collection_data(
-                    kwargs["pid"], job_collection_name, chunk_size, current_chunk
-                )
-                response = {"count": count, "results": result}
-                if next_chunk:
-                    response["next_chunk"] = next_chunk
-                return Response(response)
-            if data_type == "stats":
-                result = spiderdata_db_client.get_job_stats(
+        elif request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
+            chunk_size = max(
+                1,
+                settings.MAX_CHUNK_SIZE
+                // spiderdata_db_client.get_estimated_document_size(
                     kwargs["pid"], job_collection_name
-                )
-            else:
-                result = spiderdata_db_client.get_paginated_collection_data(
-                    kwargs["pid"], job_collection_name, page, page_size
-                )
-            return Response(
-                {
-                    "count": count,
-                    "previous": self.get_paginated_link(page - 1),
-                    "next": self.get_paginated_link(page + 1)
-                    if page * page_size < count
-                    else None,
-                    "results": result,
-                }
+                ),
             )
+            current_chunk = request.query_params.get("current_chunk", None)
+            result, next_chunk = spiderdata_db_client.get_chunked_collection_data(
+                kwargs["pid"], job_collection_name, chunk_size, current_chunk
+            )
+            response = {"count": count, "results": result}
+            if next_chunk:
+                response["next_chunk"] = next_chunk
+            return Response(response)
+        else:
+            result = spiderdata_db_client.get_paginated_collection_data(
+                kwargs["pid"], job_collection_name, page, page_size
+            )
+
+        return Response(
+            {
+                "count": count,
+                "previous": self.get_paginated_link(page - 1),
+                "next": self.get_paginated_link(page + 1)
+                if page * page_size < count
+                else None,
+                "results": result,
+            }
+        )
 
     @swagger_auto_schema(
         methods=["POST"],
