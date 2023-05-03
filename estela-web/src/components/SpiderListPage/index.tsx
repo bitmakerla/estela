@@ -1,13 +1,13 @@
 import React, { Component, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Col, Layout, Row, Button, Space, Typography, Table } from "antd";
+import { Col, Layout, Row, Button, Space, Typography, Table, Pagination } from "antd";
 import Add from "../../assets/icons/add.svg";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
-import { resourceNotAllowedNotification, Spin } from "../../shared";
+import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { ColumnsType } from "antd/lib/table";
 
 const { Content } = Layout;
@@ -100,7 +100,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     };
 
     render(): JSX.Element {
-        const { loaded, spiders } = this.state;
+        const { loaded, spiders, count, current } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
                 {loaded ? (
@@ -134,6 +134,18 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                     />
                                 </Space>
                             </div>
+                        </Row>
+                        <Row>
+                            <Pagination
+                                className="pagination"
+                                defaultCurrent={1}
+                                total={count}
+                                current={current}
+                                pageSize={this.PAGE_SIZE}
+                                onChange={this.onPageChange}
+                                showSizeChanger={false}
+                                itemRender={PaginationItem}
+                            />
                         </Row>
                     </div>
                 ) : (
