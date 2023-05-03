@@ -280,7 +280,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 if (this.LocationState) {
                     results.results.find((spider: Spider) =>
                         spider.sid == this.LocationState.spider.sid
-                            ? newSpiders = spiders
+                            ? (newSpiders = spiders)
                             : newSpiders.concat(spiders),
                     );
                 }
