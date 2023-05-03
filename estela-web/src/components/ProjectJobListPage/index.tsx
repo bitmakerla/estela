@@ -146,7 +146,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         name: "",
         spiderId: "",
         jobs: [],
-        spiders: this.LocationState ? Array<Spider>(1).fill(this.LocationState.spider) : [],
+        spiders: [],
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
@@ -276,16 +276,15 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
                 const spiders = results.results || [];
-                let newSpiders: Spider[] = this.state.spiders;
                 if (this.LocationState) {
                     results.results.find((spider: Spider) =>
                         spider.sid == this.LocationState.spider.sid
-                            ? (newSpiders = spiders)
-                            : newSpiders.concat(spiders),
+                            ? null
+                            : spiders.splice(0, 0, this.LocationState.spider),
                     );
                 }
                 this.setState({
-                    spiders: newSpiders,
+                    spiders: spiders,
                     dataStatus: results.results[0].dataStatus,
                     dataExpiryDays: results.results[0].dataExpiryDays,
                     spiderId: String(results.results[0].sid),
