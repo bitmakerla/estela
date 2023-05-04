@@ -3,7 +3,7 @@ from datetime import datetime, time
 from typing import Any, List, Tuple
 from re import findall
 from django.utils import timezone
-from django.db.models.query import QuerySet, ValuesQuerySet
+from django.db.models.query import QuerySet
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
@@ -245,9 +245,10 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
-        sid_set: ValuesQuerySet[Spider, Any] = Spider.objects.filter(
-            project=kwargs["pid"]
-        ).values_list("pk", flat=True)
+        sid_set = Spider.objects.filter(project=kwargs["pid"]).values_list(
+            "pk", flat=True
+        )
+
         jobs_set = SpiderJob.objects.filter(
             spider__in=sid_set, created__range=[start_date, end_date]
         )
