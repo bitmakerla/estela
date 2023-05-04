@@ -1,13 +1,14 @@
 from collections import defaultdict
-from datetime import datetime, timedelta, time
-from django.utils import timezone
-from typing import List, Tuple
-from django.db.models import QuerySet
+from datetime import datetime, time
+from typing import Any, List, Tuple
 from re import findall
+from django.utils import timezone
+from django.db.models.query import QuerySet, ValuesQuerySet
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, mixins
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.serializers import ListSerializer
 from api import errors
 from api.exceptions import DataBaseError
@@ -17,9 +18,7 @@ from api.serializers.stats import (
     GlobalStatsSerializer,
     SpidersJobsStatsSerializer,
 )
-
 from config.job_manager import spiderdata_db_client
-
 from core.models import (
     Project,
     Spider,
@@ -28,7 +27,7 @@ from core.models import (
 
 
 class StatsForDashboardMixin:
-    def get_parameters(self, request) -> Tuple[datetime, datetime]:
+    def get_parameters(self, request: Request) -> Tuple[datetime, datetime]:
         start_date = request.query_params.get("start_date", timezone.now())
         end_date: datetime = request.query_params.get("end_date", timezone.now())
 
@@ -241,14 +240,14 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
             ),
         },
     )
-    def list(self, request, *args, **kwargs):
+    def list(self, request: Request, *args, **kwargs):
         start_date, end_date = self.get_parameters(request)
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
-        sid_set = Spider.objects.filter(project=kwargs["pid"]).values_list(
-            "pk", flat=True
-        )
+        sid_set: ValuesQuerySet[Spider, Any] = Spider.objects.filter(
+            project=kwargs["pid"]
+        ).values_list("pk", flat=True)
         jobs_set = SpiderJob.objects.filter(
             spider__in=sid_set, created__range=[start_date, end_date]
         )
@@ -262,7 +261,6 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         )
 
         global_stats_results = self.summarize_stats_results(stats_set, jobs_set)
-        print(global_stats_results)
         response_schema = []
         for date, stat_result in global_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
@@ -312,8 +310,10 @@ class SpidersJobsStatsViewSet(
         if not spiderdata_db_client.get_connection():
             raise ConnectionError({"error": errors.UNABLE_CONNECT_DB})
 
-        spider = Spider.objects.get(sid=kwargs["sid"])
-        jobs_set = spider.jobs.filter(created__range=[start_date, end_date])
+        spider: Spider = Spider.objects.get(sid=kwargs["sid"])
+        jobs_set: QuerySet[SpiderJob] = spider.jobs.filter(
+            created__range=[start_date, end_date]
+        )
 
         job_stats_ids: List[str] = [
             "{}-{}-job_stats".format(job.spider.sid, job.jid) for job in jobs_set
@@ -323,7 +323,9 @@ class SpidersJobsStatsViewSet(
             kwargs["pid"], job_stats_ids
         )
 
-        spider_jobs_stats_results = self.summarize_stats_results(stats_set, jobs_set)
+        spider_jobs_stats_results: dict = self.summarize_stats_results(
+            stats_set, jobs_set
+        )
 
         response_schema = []
         for date, stat_result in spider_jobs_stats_results.items():
