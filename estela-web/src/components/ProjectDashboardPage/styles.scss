@@ -1,20 +1,21 @@
 $estela-blue-full: #4D47C3;
+$estela-blue-low: #F6FAFD;
 
 .ant-card-body {
   padding: 18px;
 }
 
 .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner {
-  background-color: #27c456 !important;
+  background-color: $estela-blue-full !important;
 }
 
 .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
-  background-color: #27c456 !important;
+  background-color: $estela-blue-full !important;
 }
 
 .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
-  border-color: #1f9643e5 !important;
-  border-bottom-color: $estela-blue-full;
+  border-color: $estela-blue-full !important;
+  border-bottom-color: $estela-blue-full !important;
 }
 
 .ant-picker-cell-in-view.ant-picker-cell-range-start:not(.ant-picker-cell-range-start-single)::before,
@@ -26,6 +27,13 @@ $estela-blue-full: #4D47C3;
 
 .custom .ant-picker-input>input {
   color: $estela-blue-full
+}
+
+.ant-picker-ranges .ant-picker-preset > .ant-tag-blue {
+  color: $estela-blue-full;
+  background: $estela-blue-low;
+  border-color: $estela-blue-full;
+  cursor: pointer;
 }
 
 .custom html {
