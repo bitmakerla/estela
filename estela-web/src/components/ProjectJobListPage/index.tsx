@@ -111,6 +111,7 @@ interface ProjectJobListPageState {
     dataStatus: SpiderDataStatusEnum | undefined;
     loadedSpiders: boolean;
     spiderId: string;
+    spiderName: string;
     tableStatus: boolean[];
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
@@ -145,6 +146,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     state: ProjectJobListPageState = {
         name: "",
         spiderId: "",
+        spiderName: "",
         jobs: [],
         spiders: [],
         queueJobs: [],
@@ -276,18 +278,20 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
                 const spiders = results.results || [];
+                let index = 0;
                 if (this.LocationState) {
-                    results.results.find((spider: Spider) =>
-                        spider.sid == this.LocationState.spider.sid
-                            ? null
-                            : spiders.splice(0, 0, this.LocationState.spider),
-                    );
+                    index = results.results.findIndex((spider: Spider) => {
+                        return spider.sid == this.LocationState.spider.sid;
+                    });
+                    index >= 0 ? null : spiders.unshift(this.LocationState.spider);
+                    index = index >= 0 ? index : 0;
                 }
                 this.setState({
                     spiders: spiders,
-                    dataStatus: results.results[0].dataStatus,
-                    dataExpiryDays: results.results[0].dataExpiryDays,
-                    spiderId: String(results.results[0].sid),
+                    spiderName: results.results[index].name,
+                    dataStatus: results.results[index].dataStatus,
+                    dataExpiryDays: results.results[index].dataExpiryDays,
+                    spiderId: String(results.results[index].sid),
                     loadedSpiders: true,
                 });
             },
@@ -497,6 +501,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             newEnvVarValue,
             newTagName,
             loading,
+            spiderName,
             dataStatus,
             dataExpiryDays,
             tags,
@@ -547,7 +552,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                 style={{ borderRadius: 16 }}
                                                 size="large"
                                                 className="w-full"
-                                                defaultValue={spiders[0] ? spiders[0].name : ""}
+                                                defaultValue={spiderName}
                                                 onChange={this.handleSpiderChange}
                                             >
                                                 {spiders.map((spider: Spider) => (
