@@ -11,7 +11,21 @@ import {
     Space,
     Typography,
     DatePicker,
+    Divider,
+    Tabs,
 } from "antd";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ChartDataset,
+    ChartData,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -24,6 +38,8 @@ import {
     ProjectJob,
     SpiderJob,
     ProjectUsage,
+    GlobalStats,
+    ApiProjectsStatsListRequest,
 } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
@@ -31,9 +47,173 @@ import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
 
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+const getJobsDataset = (statsData: GlobalStats[]) => {
+    return [
+        {
+            label: "Finished",
+            data: statsData.map((statData) => statData.stats.jobs.finishedJobs ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+        {
+            label: "Running",
+            data: statsData.map((statData) => statData.stats.jobs.runningJobs ?? 0),
+            backgroundColor: "#D1A34F",
+        },
+        {
+            label: "Error",
+            data: statsData.map((statData) => statData.stats.jobs.errorJobs ?? 0),
+            backgroundColor: "#A13764",
+        },
+        {
+            label: "Unknown",
+            data: statsData.map((statData) => statData.stats.jobs.unknownJobs ?? 0),
+            backgroundColor: "#6C757D",
+        },
+    ];
+};
+
+const getPagesDataset = (statsData: GlobalStats[]) => {
+    return [
+        {
+            label: "Scraped",
+            data: statsData.map((statData) => statData.stats.pages.scrapedPages ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+        {
+            label: "Missed",
+            data: statsData.map((statData) => statData.stats.pages.missedPages ?? 0),
+            backgroundColor: "#A13764",
+        },
+    ];
+};
+
+const getItemsDataset = (statsData: GlobalStats[]) => {
+    const datasets: ChartDataset<"bar", number[]>[] = [
+        {
+            label: "Scraped",
+            data: statsData.map((statData) => statData.stats.itemsCount ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+    ];
+    return datasets;
+};
+
+const getRuntimeDataset = (statsData: GlobalStats[]) => {
+    return [
+        {
+            label: "Runtime (seconds)",
+            data: statsData.map((statData) => statData.stats.runtime ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+    ];
+};
+
+const getCoverageDataset = (statsData?: GlobalStats[]) => {
+    console.debug(statsData);
+    return [];
+};
+
+const getSuccessRateDataset = (statsData: GlobalStats[]) => {
+    return [
+        {
+            label: "Success rate (percentage)",
+            data: statsData.map((statData) => statData.stats.successRate ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+    ];
+};
+
+const getStatusCodeDataset = (statsData: GlobalStats[]) => {
+    return [
+        {
+            label: "200",
+            data: statsData.map((statData) => statData.stats.statusCodes.status200 ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+        {
+            label: "301",
+            data: statsData.map((statData) => statData.stats.statusCodes.status301 ?? 0),
+            backgroundColor: "#D1A34F",
+        },
+        {
+            label: "302",
+            data: statsData.map((statData) => statData.stats.statusCodes.status302 ?? 0),
+            backgroundColor: "#A13764",
+        },
+        {
+            label: "401",
+            data: statsData.map((statData) => statData.stats.statusCodes.status401 ?? 0),
+            backgroundColor: "#3C7BC6",
+        },
+        {
+            label: "403",
+            data: statsData.map((statData) => statData.stats.statusCodes.status403 ?? 0),
+            backgroundColor: "#7DC932",
+        },
+        {
+            label: "404",
+            data: statsData.map((statData) => statData.stats.statusCodes.status404 ?? 0),
+            backgroundColor: "#FE9F99",
+        },
+        {
+            label: "429",
+            data: statsData.map((statData) => statData.stats.statusCodes.status429 ?? 0),
+            backgroundColor: "#E7E255",
+        },
+        {
+            label: "500",
+            data: statsData.map((statData) => statData.stats.statusCodes.status500 ?? 0),
+            backgroundColor: "#6C757D",
+        },
+    ];
+};
+
+const getLogsDataset = (statData: GlobalStats[]) => {
+    return [
+        {
+            label: "INFO",
+            data: statData.map((statData) => statData.stats.logs.infoLogs ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+        {
+            label: "DEBUG",
+            data: statData.map((statData) => statData.stats.logs.debugLogs ?? 0),
+            backgroundColor: "#D1A34F",
+        },
+        {
+            label: "ERROR",
+            data: statData.map((statData) => statData.stats.logs.errorLogs ?? 0),
+            backgroundColor: "#A13764",
+        },
+        {
+            label: "WARNING",
+            data: statData.map((statData) => statData.stats.logs.warningLogs ?? 0),
+            backgroundColor: "#E7E255",
+        },
+        {
+            label: "CRITICAL",
+            data: statData.map((statData) => statData.stats.logs.criticalLogs ?? 0),
+            backgroundColor: "#6C757D",
+        },
+    ];
+};
+
 const { Text } = Typography;
 const { Content } = Layout;
 const { RangePicker } = DatePicker;
+
+enum StatType {
+    JOBS = "JOBS",
+    PAGES = "PAGES",
+    ITEMS = "ITEMS",
+    RUNTIME = "RUNTIME",
+    COVERAGE = "COVERAGE",
+    SUCCESS_RATE = "SUCCESS_RATE",
+    STATUS_CODE = "STATUS_CODE",
+    LOGS = "LOGS",
+}
 
 interface Ids {
     sid: number | undefined;
@@ -58,6 +238,11 @@ interface ProjectDashboardPageState {
     loaded: boolean;
     count: number;
     current: number;
+    loadedStats: boolean;
+    globalStats: GlobalStats[];
+    statOptionTab: StatType;
+    statsStartDate: moment.Moment;
+    statsEndDate: moment.Moment;
 }
 
 interface RouteParams {
@@ -76,6 +261,11 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         projectUseLoaded: false,
         count: 0,
         current: 0,
+        loadedStats: false,
+        globalStats: [],
+        statOptionTab: StatType.JOBS,
+        statsStartDate: moment(),
+        statsEndDate: moment(),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -138,6 +328,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         );
         this.getJobs(1);
         this.getUsageRecords();
+        this.getProjectStatsAndUpdateDates();
     }
 
     getJobs = async (page: number): Promise<void> => {
@@ -171,6 +362,29 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         });
     };
 
+    getProjectStatsAndUpdateDates = async (
+        startDate?: string | undefined | null,
+        endDate?: string | undefined | null,
+    ): Promise<void> => {
+        const { statsStartDate, statsEndDate } = this.state;
+        const params: ApiProjectsStatsListRequest = {
+            pid: this.projectId,
+            startDate: !startDate ? statsStartDate.format("YYYY-MM-DD") : startDate,
+            endDate: !endDate ? statsEndDate.format("YYYY-MM-DD") : endDate,
+        };
+
+        if (startDate && endDate) {
+            this.setState({
+                statsStartDate: moment(startDate, "YYYY-MM-DD"),
+                statsEndDate: moment(endDate, "YYYY-MM-DD"),
+            });
+        }
+
+        await this.apiService.apiProjectsStatsList(params).then((response: GlobalStats[]) => {
+            this.setState({ globalStats: response, loadedStats: true });
+        });
+    };
+
     formatBytes = (bytes: number): string => {
         if (!+bytes) {
             return "0 Bytes";
@@ -185,16 +399,93 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         await this.getJobs(page);
     };
 
-    onChange: RangePickerProps["onChange"] = (dates, dateStrings) => {
-        if (dates) {
-            console.log("From: ", dates[0], ", to: ", dates[1]);
-            console.log("From: ", dateStrings[0], ", to: ", dateStrings[1]);
-        } else {
-            console.log("Clear");
+    chart: () => JSX.Element = () => {
+        const { globalStats, statOptionTab, loadedStats } = this.state;
+        const datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } =
+            {
+                [StatType.JOBS]: getJobsDataset,
+                [StatType.PAGES]: getPagesDataset,
+                [StatType.ITEMS]: getItemsDataset,
+                [StatType.RUNTIME]: getRuntimeDataset,
+                [StatType.COVERAGE]: getCoverageDataset,
+                [StatType.SUCCESS_RATE]: getSuccessRateDataset,
+                [StatType.STATUS_CODE]: getStatusCodeDataset,
+                [StatType.LOGS]: getLogsDataset,
+            };
+        const labels: string[] = globalStats.map((stat) => stat.date.toISOString().slice(0, 10));
+        const datasets: ChartDataset<"bar", number[]>[] = datasetsGenerators[statOptionTab](globalStats);
+        const data: ChartData<"bar", number[], string> = {
+            labels,
+            datasets: datasets,
+        };
+
+        if (!loadedStats) {
+            return <Spin />;
+        }
+
+        return (
+            <Bar
+                options={{
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: "bottom" as const,
+                        },
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: {
+                                display: false,
+                            },
+                        },
+                        y: {
+                            stacked: true,
+                        },
+                    },
+                }}
+                data={data}
+            />
+        );
+    };
+
+    onStatsTabChange: (activeStat: string) => void = (activeStat: string) => {
+        switch (activeStat) {
+            case "JOBS":
+                this.setState({ statOptionTab: StatType.JOBS });
+                break;
+            case "PAGES":
+                this.setState({ statOptionTab: StatType.PAGES });
+                break;
+            case "ITEMS":
+                this.setState({ statOptionTab: StatType.ITEMS });
+                break;
+            case "RUNTIME":
+                this.setState({ statOptionTab: StatType.RUNTIME });
+                break;
+            case "COVERAGE":
+                this.setState({ statOptionTab: StatType.COVERAGE });
+                break;
+            case "SUCCESS_RATE":
+                this.setState({ statOptionTab: StatType.SUCCESS_RATE });
+                break;
+            case "STATUS_CODE":
+                this.setState({ statOptionTab: StatType.STATUS_CODE });
+                break;
+            default:
+                this.setState({ statOptionTab: StatType.LOGS });
+                break;
         }
     };
 
     dashboardsSection: () => JSX.Element = () => {
+        const { statsStartDate, statsEndDate } = this.state;
+
+        const onChangeDateRange: RangePickerProps["onChange"] = (_, dateStrings) => {
+            this.setState({ loadedStats: false });
+            this.getProjectStatsAndUpdateDates(dateStrings[0], dateStrings[1]);
+        };
+
         return (
             <Content className="bg-white rounded-2xl p-5">
                 <Row className="flow-root items-center space-x-4">
@@ -211,7 +502,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         Spiders / Jobs
                     </Button>
                     <RangePicker
-                        defaultValue={[moment(), moment()]}
+                        onChange={onChangeDateRange}
+                        defaultValue={[statsStartDate, statsEndDate]}
                         ranges={{
                             Today: [moment(), moment()],
                             "Last 72h": [moment().subtract(3, "days").startOf("day"), moment()],
@@ -220,16 +512,69 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             "Last 30 Days": [moment().subtract(30, "days").startOf("day"), moment()],
                         }}
                         format="YYYY-MM-DD"
-                        className="flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela-blue-full hover:stroke-estela bg-white custom"
+                        className="statDateRangePicker flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela-blue-full hover:stroke-estela bg-estela-blue-low"
                     />
                     <Button
                         icon={<Run className="mr-2" width={19} />}
                         className="flex float-right items-center rounded-3xl font-medium stroke-estela border-estela hover:stroke-estela bg-estela-blue-low text-estela hover:text-estela text-sm hover:border-estela"
-                        onClick={() => console.log("Refresh")}
+                        onClick={() => {
+                            this.setState({ loadedStats: false });
+                            this.getProjectStatsAndUpdateDates();
+                        }}
                     >
                         Refresh
                     </Button>
                 </Row>
+                <Divider className="bg-estela-black-low mb-5" />
+                <Content className="flow-root">
+                    <Tabs
+                        className="float-right text-estela-black-medium text-xs md:text-sm"
+                        defaultActiveKey={"optionTab"}
+                        onChange={this.onStatsTabChange}
+                        items={[
+                            {
+                                label: "Jobs",
+                                key: StatType.JOBS,
+                                children: this.chart(),
+                            },
+                            {
+                                label: "Pages",
+                                key: StatType.PAGES,
+                                children: this.chart(),
+                            },
+                            {
+                                label: "Items",
+                                key: StatType.ITEMS,
+                                children: this.chart(),
+                            },
+                            {
+                                label: "Runtime",
+                                key: StatType.RUNTIME,
+                                children: this.chart(),
+                            },
+                            {
+                                label: "Coverage",
+                                key: StatType.COVERAGE,
+                                disabled: true,
+                            },
+                            {
+                                label: "Success rate",
+                                key: StatType.SUCCESS_RATE,
+                                children: this.chart(),
+                            },
+                            {
+                                label: "Status code",
+                                key: StatType.STATUS_CODE,
+                                children: this.chart(),
+                            },
+                            {
+                                label: "Logs",
+                                key: StatType.LOGS,
+                                children: this.chart(),
+                            },
+                        ]}
+                    />
+                </Content>
             </Content>
         );
     };
