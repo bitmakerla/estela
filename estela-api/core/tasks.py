@@ -271,7 +271,7 @@ def record_job_coverage_event(job_id):
     pid = job.spider.project.pid
     sid = job.spider.sid
     items_collection_name = f"{sid}-{job.jid}-job_items"
-    items: List[dict] = spiderdata_db_client.get_collection_all_data(
+    items: List[dict] = spiderdata_db_client.get_all_collection_data(
         str(pid), items_collection_name
     )
     total_items = len(items)
@@ -294,7 +294,7 @@ def record_job_coverage_event(job_id):
         )
 
         job_stats_id = f"{sid}-{job.jid}-job_stats"
-        if not spiderdata_db_client.update_document_data(
+        if not spiderdata_db_client.update_document(
             str(pid), "job_stats", job_stats_id, {"coverage": coverage}
         ):
             raise TaskError("Could not add the coverage stat to the job.")

@@ -47,19 +47,23 @@ class StatsForDashboardMixin:
             "runtime": "elapsed_time_seconds",
             "scraped_pages": "downloader/response_status_count/200",
             "total_pages": "response_received_count",
-            "status_200": "downloader/response_status_count/200",
-            "status_301": "downloader/response_status_count/301",
-            "status_302": "downloader/response_status_count/302",
-            "status_401": "downloader/response_status_count/401",
-            "status_403": "downloader/response_status_count/403",
-            "status_404": "downloader/response_status_count/404",
-            "status_429": "downloader/response_status_count/429",
-            "status_500": "downloader/response_status_count/500",
-            "debug_logs": "log_count/DEBUG",
-            "info_logs": "log_count/INFO",
-            "warning_logs": "log_count/WARNING",
-            "error_logs": "log_count/ERROR",
-            "critical_logs": "log_count/CRITICAL",
+            "status_codes": {
+                "status_200": "downloader/response_status_count/200",
+                "status_301": "downloader/response_status_count/301",
+                "status_302": "downloader/response_status_count/302",
+                "status_401": "downloader/response_status_count/401",
+                "status_403": "downloader/response_status_count/403",
+                "status_404": "downloader/response_status_count/404",
+                "status_429": "downloader/response_status_count/429",
+                "status_500": "downloader/response_status_count/500",
+            },
+            "logs": {
+                "debug_logs": "log_count/DEBUG",
+                "info_logs": "log_count/INFO",
+                "warning_logs": "log_count/WARNING",
+                "error_logs": "log_count/ERROR",
+                "critical_logs": "log_count/CRITICAL",
+            },
             "coverage": "coverage",
         }
         stats_results = defaultdict(lambda: defaultdict(int))
@@ -148,53 +152,15 @@ class StatsForDashboardMixin:
                 stats_mapping["total_pages"], 0
             )
 
-            stats_results[date_str]["status_codes"]["status_200"] += stats.get(
-                stats_mapping["status_200"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_301"] += stats.get(
-                stats_mapping["status_301"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_302"] += stats.get(
-                stats_mapping["status_302"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_401"] += stats.get(
-                stats_mapping["status_401"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_403"] += stats.get(
-                stats_mapping["status_403"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_404"] += stats.get(
-                stats_mapping["status_404"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_429"] += stats.get(
-                stats_mapping["status_429"], 0
-            )
-            stats_results[date_str]["status_codes"]["status_500"] += stats.get(
-                stats_mapping["status_500"], 0
-            )
+            for status_code in stats_mapping["status_codes"]:
+                stats_results[date_str]["status_codes"][status_code] += stats.get(
+                    stats_mapping["status_codes"][status_code], 0
+                )
 
-            stats_results[date_str]["logs"]["debug_logs"] += stats.get(
-                stats_mapping["debug_logs"], 0
-            )
-            stats_results[date_str]["logs"]["info_logs"] += stats.get(
-                stats_mapping["info_logs"], 0
-            )
-            stats_results[date_str]["logs"]["warning_logs"] += stats.get(
-                stats_mapping["warning_logs"], 0
-            )
-            stats_results[date_str]["logs"]["error_logs"] += stats.get(
-                stats_mapping["error_logs"], 0
-            )
-            stats_results[date_str]["logs"]["critical_logs"] += stats.get(
-                stats_mapping["critical_logs"], 0
-            )
-            stats_results[date_str]["logs"]["total_logs"] += (
-                stats_results[date_str]["logs"]["debug_logs"]
-                + stats_results[date_str]["logs"]["info_logs"]
-                + stats_results[date_str]["logs"]["warning_logs"]
-                + stats_results[date_str]["logs"]["error_logs"]
-                + stats_results[date_str]["logs"]["critical_logs"]
-            )
+            for log in stats_mapping["logs"]:
+                log_count = stats.get(stats_mapping["logs"][log], 0)
+                stats_results[date_str]["logs"][log] += log_count
+                stats_results[date_str]["logs"]["total_logs"] += log_count
 
             coverage = stats.get(stats_mapping["coverage"], None)
             stats_results[date_str]["coverage"]["total_items"] += (
@@ -205,8 +171,11 @@ class StatsForDashboardMixin:
             )
 
         for stat in stats_results.values():
-            stat["success_rate"] /= stat["jobs"]["finished_jobs"]
-            stat["coverage"]["total_items_coverage"] /= stat["jobs"]["finished_jobs"]
+            if stat["jobs"]["finished_jobs"] != 0:
+                stat["success_rate"] /= stat["jobs"]["finished_jobs"]
+                stat["coverage"]["total_items_coverage"] /= stat["jobs"][
+                    "finished_jobs"
+                ]
 
         return stats_results
 

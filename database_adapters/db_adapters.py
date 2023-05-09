@@ -137,14 +137,7 @@ class MongoAdapter(DatabaseInterface):
         )
         return list(result)
 
-    def get_collection_all_data(self, database_name, collection_name):
-        collection = self.client[database_name][collection_name]
-        result = collection.find({}, {"_id": False})
-        return list(result)
-
-    def update_document_data(
-        self, database_name, collection_name, document_id, new_field
-    ):
+    def update_document(self, database_name, collection_name, document_id, new_field):
         collection = self.client[database_name][collection_name]
         result = collection.update_one({"_id": document_id}, {"$set": new_field})
         return result.acknowledged
