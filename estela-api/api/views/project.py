@@ -31,6 +31,22 @@ from core.models import (
 )
 
 
+def update_env_vars(instance, env_vars):
+    env_vars_project = instance.env_vars.all()
+    for env_var in env_vars:
+        if env_vars_project.filter(**env_var).exists():
+            continue
+        elif env_var["masked"] is True and env_var["value"] == "__MASKED__":
+            continue
+        elif env_var["name"] in [value.name for value in env_vars_project]:
+            env_vars_project.filter(name=env_var["name"]).update(value=env_var["value"])
+        else:
+            SpiderJobEnvVar.objects.create(project=instance, **env_var)
+    for env_var in env_vars_project:
+        if env_var.name not in [value["name"] for value in env_vars]:
+            env_var.delete()
+
+
 class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     model_class = Project
     queryset = Project.objects.all()
@@ -90,15 +106,13 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         permission = serializer.validated_data.pop("permission", "")
         data_status = serializer.validated_data.pop("data_status", "")
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
-        env_vars_data = serializer.validated_data.pop("env_vars", [])
+        env_vars = serializer.validated_data.pop("env_vars", None)
 
         if name:
             instance.name = name
 
-        if env_vars_data:
-            instance.env_vars.all().delete()
-            for env_var in env_vars_data:
-                SpiderJobEnvVar.objects.create(project=instance, **env_var)
+        if env_vars is not None:
+            update_env_vars(instance, env_vars)
 
         if user_email and user_email != request.user.email:
             if not (

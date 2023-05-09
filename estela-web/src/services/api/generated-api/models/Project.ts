@@ -61,7 +61,7 @@ export interface Project {
      */
     users?: Array<Permission>;
     /**
-     * Job env variables.
+     * Project env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof Project
      */

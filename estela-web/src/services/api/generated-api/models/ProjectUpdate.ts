@@ -37,11 +37,11 @@ export interface ProjectUpdate {
      */
     readonly pid?: string;
     /**
-     * Project's name.
+     * Project name.
      * @type {string}
      * @memberof ProjectUpdate
      */
-    name: string;
+    name?: string;
     /**
      * Affected users.
      * @type {Array<UserDetail>}
@@ -61,7 +61,7 @@ export interface ProjectUpdate {
      */
     action?: ProjectUpdateActionEnum;
     /**
-     * Job env variables.
+     * Project env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof ProjectUpdate
      */
@@ -122,7 +122,7 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'pid': !exists(json, 'pid') ? undefined : json['pid'],
-        'name': json['name'],
+        'name': !exists(json, 'name') ? undefined : json['name'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(UserDetailFromJSON)),
         'email': !exists(json, 'email') ? undefined : json['email'],
         'action': !exists(json, 'action') ? undefined : json['action'],

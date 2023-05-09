@@ -1,7 +1,9 @@
 import React, { Component } from "react";
-import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space, Tag } from "antd";
+import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space } from "antd";
 import type { RadioChangeEvent } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { RouteComponentProps, Link } from "react-router-dom";
+import { ProjectEnvVars } from "../ProjectSettingsEnvVarsPage";
 
 import "./styles.scss";
 import history from "../../history";
@@ -21,22 +23,14 @@ import {
 import { resourceNotAllowedNotification, invalidDataNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
-import Add from "../../assets/icons/add.svg";
 
 const { Content } = Layout;
-
-interface EnvVar {
-    name: string;
-    value: string;
-    show: boolean;
-    key: number;
-}
 
 interface ProjectSettingsPageState {
     name: string;
     user: string;
     users: Permission[];
-    envVars: EnvVar[];
+    envVars: SpiderJobEnvVar[];
     loaded: boolean;
     newUser: string;
     permission: ProjectUpdatePermissionEnum;
@@ -49,6 +43,7 @@ interface ProjectSettingsPageState {
     projectName: string;
     newEnvVarName: string;
     newEnvVarValue: string;
+    newEnvVarMasked: boolean;
     dataStatus: ProjectDataStatusEnum | undefined;
     newDataStatus: ProjectUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
@@ -84,11 +79,11 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         projectName: "",
         newEnvVarName: "",
         newEnvVarValue: "",
+        newEnvVarMasked: false,
         category: undefined,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
-    countKey = 0;
 
     closeModal = (): void => {
         this.setState({ showModal: false });
@@ -102,32 +97,25 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {
-                let users = response.users;
-                if (users === undefined) {
-                    users = [];
-                }
-                let envVars: EnvVar[] = [];
-                if (response.envVars === undefined) {
-                    envVars = [];
-                } else {
-                    envVars = response.envVars.map((envVar: SpiderJobEnvVar, id: number) => {
-                        return {
-                            key: id,
-                            name: envVar.name,
-                            value: envVar.value,
-                            show: false,
-                        };
-                    });
-                }
+                let envVars = response.envVars || [];
+                const users = response.users || [];
+
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
 
                 this.setState({
                     name: response.name,
                     projectName: response.name,
-                    users: users,
+                    users: [...users],
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays,
                     loaded: true,
-                    envVars: envVars,
+                    envVars: [...envVars],
                     category: response.category,
                 });
             },
@@ -159,9 +147,10 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         const envVars = [...this.state.envVars];
         const newEnvVarName = this.state.newEnvVarName.trim();
         const newEnvVarValue = this.state.newEnvVarValue.trim();
+        const newEnvVarMasked = this.state.newEnvVarMasked;
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: this.countKey++, show: false });
-            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "" });
+            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newEnvVarMasked });
+            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -173,7 +162,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
 
     changeName = (): void => {
         const requestData: ProjectUpdate = {
-            permission: this.state.permission,
             name: this.state.name,
         };
         const request: ApiProjectsUpdateRequest = {
@@ -192,7 +180,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
 
     changePersistence = (): void => {
         const requestData: ProjectUpdate = {
-            name: this.state.projectName,
             dataStatus: this.state.newDataStatus,
             dataExpiryDays: Number(this.state.dataExpiryDays),
         };
@@ -226,6 +213,32 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         );
     };
 
+    updateEnvVars = (): void => {
+        const requestData: ProjectUpdate = {
+            envVars: this.state.envVars,
+        };
+        const request: ApiProjectsUpdateRequest = {
+            data: requestData,
+            pid: this.projectId,
+        };
+        this.apiService.apiProjectsUpdate(request).then(
+            (response: ProjectUpdate) => {
+                let envVars = response.envVars || [];
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
+                this.setState({ envVars: [...envVars] });
+            },
+            (error: unknown) => {
+                handleInvalidDataError(error);
+            },
+        );
+    };
+
     onPersistenceChange = (e: RadioChangeEvent): void => {
         this.setState({ persistenceChanged: true });
         if (e.target.value === 720) {
@@ -233,6 +246,10 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         } else {
             this.setState({ newDataStatus: ProjectUpdateDataStatusEnum.Pending, dataExpiryDays: e.target.value });
         }
+    };
+
+    onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
+        this.setState({ newEnvVarMasked: e.target.checked });
     };
 
     handleNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -281,6 +298,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     render(): JSX.Element {
         const {
             loaded,
+            name,
             showModal,
             category,
             dataStatus,
@@ -288,8 +306,9 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
             detailsChanged,
             persistenceChanged,
             envVars,
-            newEnvVarName,
-            newEnvVarValue,
+            // newEnvVarMasked,
+            // newEnvVarName,
+            // newEnvVarValue,
         } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
@@ -316,7 +335,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                     <Input
                                                         style={{ fontSize: 14, borderRadius: 8 }}
                                                         size="large"
-                                                        placeholder={this.state.name}
+                                                        placeholder={name}
                                                         onChange={this.handleNameChange}
                                                         className="border-estela placeholder:text-estela-black-full"
                                                     />
@@ -354,7 +373,8 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 <p className="text-2xl text-black">Data persistence</p>
                                 <p className="text-sm my-2 text-estela-black-medium">
                                     New projects you create will have this data persistence by default to retain data in
-                                    Bitmaker Cloud
+                                    &nbsp;
+                                    <span className="font-bold text-estela-black-full text-base -ml-1">estela</span>
                                 </p>
                                 <Content>
                                     <Radio.Group
@@ -384,57 +404,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 </div>
                             </Content>
                         </Row>
-                        <Row className="bg-white rounded-lg my-4">
-                            <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
-                                <Typography className="text-2xl text-black">Add environment variable</Typography>
-                                <Space direction="horizontal" className="mt-1">
-                                    {envVars.map((envVar: EnvVar, id: number) => (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low text-base h-6 rounded-md"
-                                            closable
-                                            key={id}
-                                            onClose={() => this.handleRemoveEnvVar(id)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ))}
-                                </Space>
-                                <Space direction="horizontal" className="my-4">
-                                    <Input
-                                        size="large"
-                                        className="border-estela-blue-full rounded-l-lg"
-                                        name="newEnvVarName"
-                                        placeholder="name"
-                                        value={newEnvVarName}
-                                        onChange={this.handleInputChange}
-                                    />
-                                    <Input
-                                        size="large"
-                                        className="border-estela-blue-full rounded-r-lg"
-                                        name="newEnvVarValue"
-                                        placeholder="value"
-                                        value={newEnvVarValue}
-                                        onChange={this.handleInputChange}
-                                    />
-                                    <Button
-                                        shape="circle"
-                                        size="small"
-                                        icon={<Add />}
-                                        className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                        onClick={this.addEnvVar}
-                                    ></Button>
-                                </Space>
-                                <div className="h-12 w-72">
-                                    <Button
-                                        block
-                                        onClick={() => console.log(this.state.envVars)}
-                                        className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base h-full"
-                                    >
-                                        Save variables
-                                    </Button>
-                                </div>
-                            </Space>
-                        </Row>
+                        <ProjectEnvVars projectId={this.projectId} envVarsData={envVars} />
                         <Row className="bg-white rounded-lg">
                             <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
                                 <Typography className="text-2xl text-black">Delete</Typography>

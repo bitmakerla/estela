@@ -151,14 +151,9 @@ class SpiderCronJobUpdateSerializer(serializers.ModelSerializer):
         if "data_status" in validated_data:
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
-            elif data_status == DataStatus.PENDING_STATUS:
+            elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
-                if data_expiry_days < 1:
-                    raise serializers.ValidationError(
-                        {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}
-                    )
-                else:
-                    instance.data_expiry_days = data_expiry_days
+                instance.data_expiry_days = data_expiry_days
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 

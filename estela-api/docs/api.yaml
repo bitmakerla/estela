@@ -1346,7 +1346,7 @@ definitions:
           - DEVELOPER
           - VIEWER
   SpiderJobEnvVar:
-    description: Job env variables.
+    description: Project env variables.
     required:
       - name
       - value
@@ -1364,6 +1364,10 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+      masked:
+        title: Masked
+        description: Whether the env variable value is masked.
+        type: boolean
   Project:
     required:
       - name
@@ -1405,7 +1409,7 @@ definitions:
         items:
           $ref: '#/definitions/Permission'
       env_vars:
-        description: Job env variables.
+        description: Project env variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
@@ -1423,8 +1427,6 @@ definitions:
         maximum: 65535
         minimum: 0
   ProjectUpdate:
-    required:
-      - name
     type: object
     properties:
       pid:
@@ -1435,9 +1437,8 @@ definitions:
         readOnly: true
       name:
         title: Name
-        description: Project's name.
+        description: Project name.
         type: string
-        maxLength: 1000
         minLength: 1
       users:
         description: Affected users.
@@ -1459,7 +1460,7 @@ definitions:
           - add
           - update
       env_vars:
-        description: Job env variables.
+        description: Project env variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
@@ -1501,29 +1502,6 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
-  SpiderJobEnvVar:
-    description: Cron job env variables.
-    required:
-      - name
-      - value
-    type: object
-    properties:
-      name:
-        title: Name
-        description: Env variable name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      value:
-        title: Value
-        description: Env variable value.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      masked:
-        title: Masked
-        description: Whether the env variable value is masked.
-        type: boolean
   SpiderJobTag:
     description: Cron job tags.
     required:
@@ -1930,6 +1908,11 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+      env_vars:
+        description: Project env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: New data status.

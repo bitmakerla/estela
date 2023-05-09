@@ -32,7 +32,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         help_text="Users with permissions on this project.",
     )
     env_vars = SpiderJobEnvVarSerializer(
-        many=True, required=False, help_text="Job env variables."
+        many=True, required=False, help_text="Project env variables."
     )
     container_image = serializers.CharField(
         read_only=True, help_text="Path of the project's container image."
@@ -110,6 +110,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."
     )
+    name = serializers.CharField(
+        write_only=True, required=False, help_text="Project name."
+    )
     users = UserDetailSerializer(many=True, required=False, help_text="Affected users.")
     email = serializers.EmailField(
         write_only=True, required=False, help_text="Email address."
@@ -121,7 +124,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         help_text="Performed action.",
     )
     env_vars = SpiderJobEnvVarSerializer(
-        many=True, required=False, help_text="Job env variables."
+        many=True, required=False, help_text="Project env variables."
     )
     permission = serializers.ChoiceField(
         write_only=True,
