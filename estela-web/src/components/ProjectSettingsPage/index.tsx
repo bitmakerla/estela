@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space } from "antd";
 import type { RadioChangeEvent } from "antd";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { RouteComponentProps, Link } from "react-router-dom";
 import { EnvVarsSetting } from "../EnvVarsSettingsPage";
 
@@ -20,7 +19,7 @@ import {
     ApiProjectsDeleteRequest,
     SpiderJobEnvVar,
 } from "../../services/api";
-import { resourceNotAllowedNotification, invalidDataNotification } from "../../shared";
+import { resourceNotAllowedNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
@@ -41,9 +40,6 @@ interface ProjectSettingsPageState {
     persistenceChanged: boolean;
     persistenceValue: string;
     projectName: string;
-    newEnvVarName: string;
-    newEnvVarValue: string;
-    newEnvVarMasked: boolean;
     dataStatus: ProjectDataStatusEnum | undefined;
     newDataStatus: ProjectUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
@@ -77,9 +73,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         newDataStatus: undefined,
         dataExpiryDays: 1,
         projectName: "",
-        newEnvVarName: "",
-        newEnvVarValue: "",
-        newEnvVarMasked: false,
         category: undefined,
     };
     apiService = ApiService();
@@ -124,36 +117,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 resourceNotAllowedNotification();
             },
         );
-    };
-
-    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        const {
-            target: { value, name },
-        } = event;
-        if (name === "newEnvVarName") {
-            this.setState({ newEnvVarName: value });
-        } else if (name === "newEnvVarValue") {
-            this.setState({ newEnvVarValue: value });
-        }
-    };
-
-    handleRemoveEnvVar = (id: number): void => {
-        const envVars = [...this.state.envVars];
-        envVars.splice(id, 1);
-        this.setState({ envVars: [...envVars] });
-    };
-
-    addEnvVar = (): void => {
-        const envVars = [...this.state.envVars];
-        const newEnvVarName = this.state.newEnvVarName.trim();
-        const newEnvVarValue = this.state.newEnvVarValue.trim();
-        const newEnvVarMasked = this.state.newEnvVarMasked;
-        if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newEnvVarMasked });
-            this.setState({ envVars: [...envVars], newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
-        } else {
-            invalidDataNotification("Invalid environment variable name/value pair.");
-        }
     };
 
     async componentDidMount(): Promise<void> {
@@ -213,32 +176,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         );
     };
 
-    updateEnvVars = (): void => {
-        const requestData: ProjectUpdate = {
-            envVars: this.state.envVars,
-        };
-        const request: ApiProjectsUpdateRequest = {
-            data: requestData,
-            pid: this.projectId,
-        };
-        this.apiService.apiProjectsUpdate(request).then(
-            (response: ProjectUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                this.setState({ envVars: [...envVars] });
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
-    };
-
     onPersistenceChange = (e: RadioChangeEvent): void => {
         this.setState({ persistenceChanged: true });
         if (e.target.value === 720) {
@@ -246,10 +183,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         } else {
             this.setState({ newDataStatus: ProjectUpdateDataStatusEnum.Pending, dataExpiryDays: e.target.value });
         }
-    };
-
-    onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
-        this.setState({ newEnvVarMasked: e.target.checked });
     };
 
     handleNameChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -306,9 +239,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
             detailsChanged,
             persistenceChanged,
             envVars,
-            // newEnvVarMasked,
-            // newEnvVarName,
-            // newEnvVarValue,
         } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
