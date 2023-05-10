@@ -13,6 +13,7 @@ import {
     DatePicker,
     Divider,
     Tabs,
+    Collapse,
 } from "antd";
 import {
     Chart as ChartJS,
@@ -130,7 +131,7 @@ const getStatusCodeDataset = (statsData: GlobalStats[]) => {
         {
             label: "200",
             data: statsData.map((statData) => statData.stats.statusCodes.status200 ?? 0),
-            backgroundColor: "#32C3A4",
+            backgroundColor: ["#32C3A4"],
         },
         {
             label: "301",
@@ -203,6 +204,7 @@ const getLogsDataset = (statData: GlobalStats[]) => {
 const { Text } = Typography;
 const { Content } = Layout;
 const { RangePicker } = DatePicker;
+const { Panel } = Collapse;
 
 enum StatType {
     JOBS = "JOBS",
@@ -240,6 +242,7 @@ interface ProjectDashboardPageState {
     current: number;
     loadedStats: boolean;
     globalStats: GlobalStats[];
+    focusedStat: number;
     statOptionTab: StatType;
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
@@ -263,8 +266,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         current: 0,
         loadedStats: false,
         globalStats: [],
+        focusedStat: 0,
         statOptionTab: StatType.JOBS,
-        statsStartDate: moment(),
+        statsStartDate: moment("2023-04-15", "YYYY-MM-DD"),
         statsEndDate: moment(),
     };
     apiService = ApiService();
@@ -399,7 +403,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         await this.getJobs(page);
     };
 
-    chart: () => JSX.Element = () => {
+    chartsSection: () => JSX.Element = () => {
         const { globalStats, statOptionTab, loadedStats } = this.state;
         const datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } =
             {
@@ -412,7 +416,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 [StatType.STATUS_CODE]: getStatusCodeDataset,
                 [StatType.LOGS]: getLogsDataset,
             };
-        const labels: string[] = globalStats.map((stat) => stat.date.toISOString().slice(0, 10));
+        const labels: string[] = globalStats.map((stat) => stat.date.toISOString().slice(0, 10)).reverse();
         const datasets: ChartDataset<"bar", number[]>[] = datasetsGenerators[statOptionTab](globalStats);
         const data: ChartData<"bar", number[], string> = {
             labels,
@@ -478,7 +482,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         }
     };
 
-    dashboardsSection: () => JSX.Element = () => {
+    headSection: () => JSX.Element = () => {
         const { statsStartDate, statsEndDate } = this.state;
 
         const onChangeDateRange: RangePickerProps["onChange"] = (_, dateStrings) => {
@@ -487,7 +491,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         };
 
         return (
-            <Content className="bg-white rounded-2xl p-5">
+            <>
                 <Row className="flow-root items-center space-x-4">
                     <Button
                         className="flex float-left items-center  rounded-3xl font-medium stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela"
@@ -535,22 +539,22 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             {
                                 label: "Jobs",
                                 key: StatType.JOBS,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Pages",
                                 key: StatType.PAGES,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Items",
                                 key: StatType.ITEMS,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Runtime",
                                 key: StatType.RUNTIME,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Coverage",
@@ -560,22 +564,131 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             {
                                 label: "Success rate",
                                 key: StatType.SUCCESS_RATE,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Status code",
                                 key: StatType.STATUS_CODE,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Logs",
                                 key: StatType.LOGS,
-                                children: this.chart(),
+                                children: this.chartsSection(),
                             },
                         ]}
                     />
                 </Content>
-            </Content>
+            </>
+        );
+    };
+
+    dataSection: () => JSX.Element = () => {
+        const { loadedStats, globalStats } = this.state;
+
+        if (!loadedStats) {
+            return (
+                <>
+                    <Row className="animate-pulse h-12 w-full grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md" />
+                </>
+            );
+        }
+
+        if (loadedStats && globalStats.length === 0) {
+            return <></>;
+        }
+
+        return (
+            <>
+                <Row className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md">
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Jobs</p>
+                    </Col>
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Pages</p>
+                    </Col>
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Items</p>
+                    </Col>
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Runtime</p>
+                    </Col>
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Success rate</p>
+                    </Col>
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Coverage</p>
+                    </Col>
+                    <Col className="grid grid-cols-1 my-2">
+                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-estela-black-medium">Logs</p>
+                    </Col>
+                </Row>
+
+                <Row className="mt-5 grid grid-cols-4 md:grid-cols-6 justify-items-stretch bg-estela-background rounded-md">
+                    <Col className="my-2">
+                        <p className="text-sm text-center text-estela-black-full">DAY</p>
+                    </Col>
+                    <Col className="my-2">
+                        <p className="text-sm text-center text-estela-black-full">JOBS</p>
+                    </Col>
+                    <Col className="my-2">
+                        <p className="text-sm text-center text-estela-black-full">PAGES</p>
+                    </Col>
+                    <Col className="my-2">
+                        <p className="text-sm text-center text-estela-black-full">ITEMS</p>
+                    </Col>
+                    <Col className="my-2">
+                        <p className="text-sm text-center text-estela-black-full">RUNTIME</p>
+                    </Col>
+                    <Col className="my-2">
+                        <p className="text-sm text-center text-estela-black-full">S. RATE</p>
+                    </Col>
+                </Row>
+                <Collapse bordered={false} className="bg-white" ghost accordion>
+                    {globalStats.map((stat, index) => {
+                        const dateString = stat.date.toISOString();
+                        return (
+                            <Panel
+                                header={
+                                    <Row className="grid grid-cols-4 md:grid-cols-6 justify-items-stretch">
+                                        <Col className="grid grid-cols-1">
+                                            <p className="text-black font-medium">
+                                                {moment.utc(dateString).format("dddd")}
+                                            </p>
+                                            <p className="text-estela-black-medium">
+                                                {moment.utc(dateString).format("DD MMMM, YYYY")}
+                                            </p>
+                                        </Col>
+                                        <Col className="grid grid-cols-1">
+                                            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                                <div
+                                                    className="bg-blue-600 h-2.5 rounded-full"
+                                                    style={{ width: "45%" }}
+                                                ></div>
+                                                <div
+                                                    className="bg-green-600 h-2.5 rounded-full"
+                                                    style={{ width: "30%" }}
+                                                ></div>
+                                            </div>
+                                            <p></p>
+                                        </Col>
+                                    </Row>
+                                }
+                                key={`${index}`}
+                            >
+                                <p>Hello</p>
+                            </Panel>
+                        );
+                    })}
+                </Collapse>
+            </>
         );
     };
 
@@ -604,7 +717,11 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         </Row>
                         <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4 justify-between">
                             <Col className="bg-metal col-span-5">
-                                {this.dashboardsSection()}
+                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5">
+                                    {this.headSection()}
+                                    {this.dataSection()}
+                                </Content>
+
                                 <Card bordered={false} className="bg-white rounded-2xl">
                                     <Row className="flow-root">
                                         <Text className="float-left text-base font-medium text-estela-black-medium m-4 sm:m-2">
