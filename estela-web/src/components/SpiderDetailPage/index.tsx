@@ -763,7 +763,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                             </div>
                         </Col>
                     </Row>
-                    <EnvVarsSetting projectId={this.projectId} spiderId={this.spiderId} envVarsData={envVars} level="spider" />
+                    <EnvVarsSetting
+                        projectId={this.projectId}
+                        spiderId={this.spiderId}
+                        envVarsData={envVars}
+                        level="spider"
+                    />
                 </Content>
             </Row>
         );
