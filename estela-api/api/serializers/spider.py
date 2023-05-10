@@ -7,9 +7,12 @@ from api import errors
 
 
 class SpiderSerializer(serializers.ModelSerializer):
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Spider env variables."
+    )
     class Meta:
         model = Spider
-        fields = ("sid", "name", "project", "data_status", "data_expiry_days")
+        fields = ("sid", "name", "project", "env_vars", "data_status", "data_expiry_days")
 
 
 class SpiderUpdateSerializer(serializers.ModelSerializer):
@@ -31,7 +34,7 @@ class SpiderUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Spider
-        fields = ("sid", "name", "env_vars", "data_status", "data_expiry_days")
+        fields = ("sid", "env_vars", "data_status", "data_expiry_days")
 
     def update(self, instance, validated_data):
         data_status = validated_data.get("data_status", "")
@@ -44,7 +47,7 @@ class SpiderUpdateSerializer(serializers.ModelSerializer):
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
         if "env_vars" in validated_data:
-            update_env_vars(instance, env_vars)
+            update_env_vars(instance, env_vars, level="spider")
 
         instance.save()
         return instance

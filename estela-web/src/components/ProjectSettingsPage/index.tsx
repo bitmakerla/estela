@@ -3,7 +3,7 @@ import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, S
 import type { RadioChangeEvent } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { RouteComponentProps, Link } from "react-router-dom";
-import { ProjectEnvVars } from "../ProjectSettingsEnvVarsPage";
+import { EnvVarsSetting } from "../EnvVarsSettingsPage";
 
 import "./styles.scss";
 import history from "../../history";
@@ -404,7 +404,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 </div>
                             </Content>
                         </Row>
-                        <ProjectEnvVars projectId={this.projectId} envVarsData={envVars} />
+                        <EnvVarsSetting projectId={this.projectId} spiderId="" envVarsData={envVars} level="project" />
                         <Row className="bg-white rounded-lg">
                             <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
                                 <Typography className="text-2xl text-black">Delete</Typography>

@@ -6,13 +6,21 @@ import "./styles.scss";
 import Add from "../../assets/icons/add.svg";
 import Menu from "../../assets/icons/menu.svg";
 import { ApiService } from "../../services";
-import { ApiProjectsUpdateRequest, SpiderJobEnvVar, ProjectUpdate } from "../../services/api";
+import {
+    ApiProjectsUpdateRequest,
+    SpiderJobEnvVar,
+    ProjectUpdate,
+    SpiderUpdate,
+    ApiProjectsSpidersUpdateRequest,
+} from "../../services/api";
 import { invalidDataNotification } from "../../shared";
 import { handleInvalidDataError } from "../../utils";
 
 interface ProjectEnvVar {
     projectId: string;
+    spiderId: string;
     envVarsData: SpiderJobEnvVar[];
+    level: string;
 }
 
 interface CustomTagProps {
@@ -21,7 +29,7 @@ interface CustomTagProps {
     envVar: SpiderJobEnvVar;
 }
 
-export const ProjectEnvVars: React.FC<ProjectEnvVar> = ({ projectId, envVarsData }) => {
+export const EnvVarsSetting: React.FC<ProjectEnvVar> = ({ projectId, spiderId, envVarsData, level }) => {
     const [newEnvVarMasked, setNewEnvVarMasked] = useState(false);
     const [newEnvVarName, setNewEnvVarName] = useState("");
     const [newEnvVarValue, setNewEnvVarValue] = useState("");
@@ -234,6 +242,42 @@ export const ProjectEnvVars: React.FC<ProjectEnvVar> = ({ projectId, envVarsData
     };
 
     const updateEnvVars = (): void => {
+        if (level === "project") {
+            updateProjectEnvVars();
+        } else if (level === "spider") {
+            updateSpiderEnvVars();
+        }
+    };
+
+    const updateSpiderEnvVars = (): void => {
+        const requestData: SpiderUpdate = {
+            envVars: envVars,
+        };
+        const request: ApiProjectsSpidersUpdateRequest = {
+            data: requestData,
+            pid: projectId,
+            sid: Number(spiderId),
+        };
+        apiService.apiProjectsSpidersUpdate(request).then(
+            (response: SpiderUpdate) => {
+                let envVars = response.envVars || [];
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
+                setEnvVars(envVars);
+                setActiveUpdateButton(false);
+            },
+            (error: unknown) => {
+                handleInvalidDataError(error);
+            },
+        );
+    };
+
+    const updateProjectEnvVars = (): void => {
         const requestData: ProjectUpdate = {
             envVars: envVars,
         };
@@ -241,10 +285,8 @@ export const ProjectEnvVars: React.FC<ProjectEnvVar> = ({ projectId, envVarsData
             data: requestData,
             pid: projectId,
         };
-        console.log(requestData);
         apiService.apiProjectsUpdate(request).then(
             (response: ProjectUpdate) => {
-                console.log(response);
                 let envVars = response.envVars || [];
                 envVars = envVars.map((envVar: SpiderJobEnvVar) => {
                     return {

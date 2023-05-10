@@ -1682,6 +1682,11 @@ definitions:
         description: Project UUID.
         type: string
         format: uuid
+      env_vars:
+        description: Spider env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: Data status.
@@ -1892,8 +1897,6 @@ definitions:
         description: Project jobs count.
         type: integer
   SpiderUpdate:
-    required:
-      - name
     type: object
     properties:
       sid:
@@ -1902,12 +1905,6 @@ definitions:
         type: string
         format: uuid
         readOnly: true
-      name:
-        title: Name
-        description: Spider's name.
-        type: string
-        maxLength: 1000
-        minLength: 1
       env_vars:
         description: Project env variables.
         type: array

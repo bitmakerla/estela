@@ -33,12 +33,6 @@ export interface SpiderUpdate {
      */
     readonly sid?: string;
     /**
-     * Spider's name.
-     * @type {string}
-     * @memberof SpiderUpdate
-     */
-    name: string;
-    /**
      * Project env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof SpiderUpdate
@@ -78,7 +72,6 @@ export function SpiderUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolea
     return {
         
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
-        'name': json['name'],
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
@@ -94,7 +87,6 @@ export function SpiderUpdateToJSON(value?: SpiderUpdate | null): any {
     }
     return {
         
-        'name': value.name,
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
