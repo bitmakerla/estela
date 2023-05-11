@@ -35,6 +35,18 @@ class StatusCodesStatsSerializer(serializers.Serializer):
     status_500 = serializers.IntegerField(default=0)
 
 
+class FieldCoverageStatsSerializer(serializers.Serializer):
+    field_name = serializers.CharField(default="")
+    field_count = serializers.IntegerField(default=0)
+    field_coverage = serializers.FloatField(default=0.0)
+
+
+class CoverageStatsSerializer(serializers.Serializer):
+    total_items = serializers.IntegerField(default=0)
+    total_items_coverage = serializers.FloatField(default=0.0)
+    fields = FieldCoverageStatsSerializer(many=True, required=False)
+
+
 class StatsSerializer(serializers.Serializer):
     jobs = JobsStatsSerializer()
     pages = PagesStatsSerializer()
@@ -43,6 +55,7 @@ class StatsSerializer(serializers.Serializer):
     status_codes = StatusCodesStatsSerializer()
     success_rate = serializers.FloatField(default=0.0)
     logs = LogsStatsSerializer()
+    coverage = CoverageStatsSerializer()
 
 
 class GlobalStatsSerializer(serializers.Serializer):

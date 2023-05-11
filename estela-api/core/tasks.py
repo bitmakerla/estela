@@ -1,5 +1,7 @@
 import json
 from datetime import timedelta
+from typing import List
+from collections import defaultdict
 
 from celery import chain
 from celery.exceptions import TaskError
@@ -247,6 +249,7 @@ def record_project_usage_after_job_event(job_id):
 
     return json.dumps(
         {
+            "spider_id": job.spider.sid,
             "job_id": job_id,
             "job_item_data_size": job_item_data_size,
             "job_request_data_size": requests_data_size,
@@ -254,6 +257,47 @@ def record_project_usage_after_job_event(job_id):
             "action": "add",
         }
     )
+
+
+@celery_app.task(
+    max_retries=None,
+    autoretry_for=(TaskError,),
+    retry_kwargs={"max_retries": None, "countdown": 60},
+)
+def record_job_coverage_event(job_id):
+    if not spiderdata_db_client.get_connection():
+        raise TaskError("Could not get a connection to the database.")
+    job = SpiderJob.objects.get(jid=job_id)
+    pid = job.spider.project.pid
+    sid = job.spider.sid
+    items_collection_name = f"{sid}-{job.jid}-job_items"
+    items: List[dict] = spiderdata_db_client.get_all_collection_data(
+        str(pid), items_collection_name
+    )
+    total_items = len(items)
+    if total_items > 0:
+        coverage = {}
+        field_counts = defaultdict(int)
+
+        for item in items:
+            for k, v in item.items():
+                field_counts[k] += 1 if v is not None or v else 0
+
+        for field, count in field_counts.items():
+            coverage[f"{field}_field_count"] = count
+            coverage[f"{field}_coverage"] = count / total_items
+
+        scraped_fields_count = sum(field_counts.values())
+        coverage["total_items"] = total_items
+        coverage["total_items_coverage"] = scraped_fields_count / (
+            total_items * len(field_counts)
+        )
+
+        job_stats_id = f"{sid}-{job.jid}-job_stats"
+        if not spiderdata_db_client.update_document(
+            str(pid), "job_stats", job_stats_id, {"coverage": coverage}
+        ):
+            raise TaskError("Could not add the coverage stat to the job.")
 
 
 def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=None):
@@ -271,7 +315,8 @@ def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=
         )
     else:
         process_chain = chain(
-            record_project_usage_after_job_event.s(job_id), *list_of_process_functions
+            record_project_usage_after_job_event.s(job_id),
+            *list_of_process_functions,
         )
 
     return process_chain

@@ -137,6 +137,11 @@ class MongoAdapter(DatabaseInterface):
         )
         return list(result)
 
+    def update_document(self, database_name, collection_name, document_id, new_field):
+        collection = self.client[database_name][collection_name]
+        result = collection.update_one({"_id": document_id}, {"$set": new_field})
+        return result.acknowledged
+
     def get_estimated_document_count(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
         return collection.estimated_document_count()
