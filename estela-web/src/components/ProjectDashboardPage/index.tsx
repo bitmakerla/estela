@@ -32,6 +32,7 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Run from "../../assets/icons/run.svg";
+import Help from "../../assets/icons/help.svg";
 import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
@@ -416,8 +417,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 [StatType.STATUS_CODE]: getStatusCodeDataset,
                 [StatType.LOGS]: getLogsDataset,
             };
-        const labels: string[] = globalStats.map((stat) => stat.date.toISOString().slice(0, 10)).reverse();
-        const datasets: ChartDataset<"bar", number[]>[] = datasetsGenerators[statOptionTab](globalStats);
+        const reversedGlobalStats = globalStats.slice().reverse();
+        const labels: string[] = reversedGlobalStats.map((stat) => stat.date.toISOString().slice(0, 10));
+        const datasets: ChartDataset<"bar", number[]>[] = datasetsGenerators[statOptionTab](reversedGlobalStats);
         const data: ChartData<"bar", number[], string> = {
             labels,
             datasets: datasets,
@@ -631,7 +633,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                     </Col>
                 </Row>
 
-                <Row className="mt-5 grid grid-cols-4 md:grid-cols-6 justify-items-stretch bg-estela-background rounded-md">
+                <Row className="mt-5 px-4 grid grid-cols-4 md:grid-cols-6 bg-estela-background rounded-md">
                     <Col className="my-2">
                         <p className="text-sm text-center text-estela-black-full">DAY</p>
                     </Col>
@@ -654,6 +656,21 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 <Collapse bordered={false} className="bg-white" ghost accordion>
                     {globalStats.map((stat, index) => {
                         const dateString = stat.date.toISOString();
+                        const totalJobs = stat.stats.jobs.totalJobs ?? 0;
+                        const totalPages = stat.stats.pages.totalPages ?? 0;
+                        const jobsSize = {
+                            finishedJobs: totalJobs !== 0 ? (100 * (stat.stats.jobs.finishedJobs ?? 0)) / totalJobs : 0,
+                            runningJobs: totalJobs !== 0 ? (100 * (stat.stats.jobs.runningJobs ?? 0)) / totalJobs : 0,
+                            errorJobs: totalJobs !== 0 ? (100 * (stat.stats.jobs.errorJobs ?? 0)) / totalJobs : 0,
+                            unknownJobs: totalJobs !== 0 ? (100 * (stat.stats.jobs.unknownJobs ?? 0)) / totalJobs : 0,
+                        };
+                        const pagesSize = {
+                            scrapedPages:
+                                totalPages !== 0 ? (100 * (stat.stats.pages.scrapedPages ?? 0)) / totalPages : 0,
+                            missedPages:
+                                totalPages !== 0 ? (100 * (stat.stats.pages.missedPages ?? 0)) / totalPages : 0,
+                        };
+                        const successRate = (stat.stats.successRate ?? 0).toFixed(2);
                         return (
                             <Panel
                                 header={
@@ -666,24 +683,102 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                                 {moment.utc(dateString).format("DD MMMM, YYYY")}
                                             </p>
                                         </Col>
-                                        <Col className="grid grid-cols-1">
-                                            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                        <Col className="grid grid-cols-1 px-2">
+                                            <div className="flex items-center h-2.5 justify-start">
                                                 <div
-                                                    className="bg-blue-600 h-2.5 rounded-full"
-                                                    style={{ width: "45%" }}
-                                                ></div>
+                                                    className="h-full rounded bg-estela-complementary-green"
+                                                    style={{ width: `${jobsSize.finishedJobs}%` }}
+                                                />
                                                 <div
-                                                    className="bg-green-600 h-2.5 rounded-full"
-                                                    style={{ width: "30%" }}
-                                                ></div>
+                                                    className="h-full rounded bg-estela-complementary-yellow"
+                                                    style={{ width: `${jobsSize.runningJobs}%` }}
+                                                />
+                                                <div
+                                                    className="h-full rounded bg-estela-complementary-purple"
+                                                    style={{ width: `${jobsSize.errorJobs}%` }}
+                                                />
+                                                <div
+                                                    className="h-full rounded bg-estela-black-medium"
+                                                    style={{ width: `${jobsSize.unknownJobs}%` }}
+                                                />
                                             </div>
-                                            <p></p>
+                                            <p className="text-estela-black-full text-xs">{totalJobs} jobs</p>
+                                        </Col>
+                                        <Col className="grid grid-cols-1 px-2">
+                                            <div className="flex items-center h-2.5 justify-start">
+                                                <div
+                                                    className="h-full rounded bg-estela-complementary-green"
+                                                    style={{ width: `${pagesSize.scrapedPages}%` }}
+                                                />
+                                                <div
+                                                    className="h-full rounded bg-estela-complementary-purple"
+                                                    style={{ width: `${pagesSize.missedPages}%` }}
+                                                />
+                                            </div>
+                                            <p className="text-estela-black-full text-xs">{totalPages} pages</p>
+                                        </Col>
+                                        <Col className="m-auto">
+                                            <p className="text-estela-black-full text-justify">
+                                                {stat.stats.itemsCount ?? 0}
+                                            </p>
+                                        </Col>
+                                        <Col className="m-auto">
+                                            <p className="text-estela-black-full">
+                                                {moment()
+                                                    .startOf("day")
+                                                    .seconds(stat.stats.runtime ?? 0)
+                                                    .format("HH:mm:ss")}
+                                            </p>
+                                        </Col>
+                                        <Col className="m-auto">
+                                            <p className="text-estela-black-full text-center">{successRate}%</p>
                                         </Col>
                                     </Row>
                                 }
                                 key={`${index}`}
                             >
-                                <p>Hello</p>
+                                <Row className="grid grid-cols-6">
+                                    <Col className="col-start-2 grid grid-cols-1 content-start">
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-estela-complementary-green" />
+                                            <span className="text-estela-black-full text-xs">
+                                                {stat.stats.jobs.totalJobs ?? 0} finished
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-estela-complementary-yellow" />
+                                            <span className="text-estela-black-full text-xs">
+                                                {stat.stats.jobs.runningJobs ?? 0} running
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-estela-complementary-purple" />
+                                            <span className="text-estela-black-full text-xs">
+                                                {stat.stats.jobs.errorJobs ?? 0} error
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-estela-black-medium" />
+                                            <span className="text-estela-black-full text-xs">
+                                                {stat.stats.jobs.unknownJobs ?? 0} unknown
+                                            </span>
+                                        </div>
+                                    </Col>
+                                    <Col className="grid grid-cols-1 content-start">
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-estela-complementary-green" />
+                                            <span className="text-estela-black-full text-xs">
+                                                {stat.stats.pages.scrapedPages ?? 0} scraped
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-3 h-3 bg-estela-complementary-purple" />
+                                            <span className="text-estela-black-full text-xs">
+                                                {stat.stats.pages.missedPages ?? 0} missed
+                                            </span>
+                                        </div>
+                                    </Col>
+                                </Row>
                             </Panel>
                         );
                     })}
@@ -754,6 +849,26 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             </Col>
                             <Col className="bg-metal grid justify-start col-span-2 gap-2">
                                 <Space direction="vertical">
+                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
+                                        <Space direction="vertical" className="w-full">
+                                            <div className="flex items-center justify-between">
+                                                <Text className="text-base text-estela-black-medium break-words">
+                                                    &lt;&gt; HEALTH
+                                                </Text>
+                                                <Help className="w-4 h-4 stroke-estela-black-medium" />
+                                            </div>
+                                            {projectUseLoaded ? (
+                                                <>
+                                                    <Text className="text-xl my-2 font-bold leading-8">
+                                                        {this.formatBytes(network)}
+                                                    </Text>
+                                                </>
+                                            ) : (
+                                                <Spinner className="my-4" />
+                                            )}
+                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
+                                        </Space>
+                                    </Card>
                                     <Card bordered={false} className="bg-white h-48 rounded-lg">
                                         <Space direction="vertical">
                                             <Text className="text-base text-estela-black-medium break-words">
