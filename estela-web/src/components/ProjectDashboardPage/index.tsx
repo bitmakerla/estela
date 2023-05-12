@@ -1,12 +1,10 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import {
     Layout,
-    Pagination,
     Spin as Spinner,
     Button,
     Row,
     Col,
-    Table,
     Card,
     Space,
     Typography,
@@ -25,8 +23,9 @@ import {
     Legend,
     ChartDataset,
     ChartData,
+    ArcElement,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Doughnut } from "react-chartjs-2";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -35,21 +34,17 @@ import Run from "../../assets/icons/run.svg";
 import Help from "../../assets/icons/help.svg";
 import {
     ApiProjectsReadRequest,
-    ApiProjectsJobsRequest,
     Project,
-    ProjectJob,
-    SpiderJob,
     ProjectUsage,
     GlobalStats,
     ApiProjectsStatsListRequest,
 } from "../../services/api";
-import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
-import { convertDateToString } from "../../utils";
+import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, ArcElement, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const getJobsDataset = (statsData: GlobalStats[]) => {
     return [
@@ -224,16 +219,8 @@ interface Ids {
     cid?: number | null | undefined;
 }
 
-interface SpiderJobData {
-    id: Ids;
-    key: number | undefined;
-    date: string;
-    status: string | undefined;
-}
-
 interface ProjectDashboardPageState {
     name: string;
-    jobs: SpiderJobData[];
     network: number;
     processingTime: string;
     storage: number;
@@ -257,7 +244,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     PAGE_SIZE = 10;
     state: ProjectDashboardPageState = {
         name: "",
-        jobs: [],
         network: 0,
         processingTime: "0",
         storage: 0,
@@ -331,29 +317,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 resourceNotAllowedNotification();
             },
         );
-        this.getJobs(1);
         this.getUsageRecords();
         this.getProjectStatsAndUpdateDates();
     }
-
-    getJobs = async (page: number): Promise<void> => {
-        const requestParams: ApiProjectsJobsRequest = {
-            pid: this.projectId,
-            page,
-            pageSize: this.PAGE_SIZE,
-        };
-        await this.apiService.apiProjectsJobs(requestParams).then((response: ProjectJob) => {
-            const data = response.results.map((job: SpiderJob, iterator: number) => ({
-                key: iterator,
-                id: { jid: job.jid, sid: job.spider, cid: job.cronjob },
-                args: job.args,
-                date: convertDateToString(job.created),
-                status: job.jobStatus,
-            }));
-            const jobs: SpiderJobData[] = data;
-            this.setState({ jobs: [...jobs], loaded: true, count: response.count, current: page });
-        });
-    };
 
     getUsageRecords = async (): Promise<void> => {
         await this.apiService.apiProjectsCurrentUsage({ pid: this.projectId }).then((response: ProjectUsage) => {
@@ -363,6 +329,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 network: response.networkUsage,
                 processingTime: String(Math.round(time * 100) / 100),
                 storage: response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
+                loaded: true,
             });
         });
     };
@@ -400,8 +367,12 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         }
     };
 
-    onPageChange = async (page: number): Promise<void> => {
-        await this.getJobs(page);
+    calcAverageSuccessRate = (): number => {
+        const { globalStats } = this.state;
+        if (globalStats.length === 0) return 0;
+        const successRates = globalStats.map((stat) => (stat.stats.successRate ?? 0) / 100);
+        const sumSuccessRates = successRates.reduce((acc, cur) => acc + cur, 0);
+        return sumSuccessRates / successRates.length;
     };
 
     chartsSection: () => JSX.Element = () => {
@@ -787,8 +758,119 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         );
     };
 
+    projectUsageSection: () => JSX.Element = () => {
+        const { projectUseLoaded, network, processingTime, storage, loadedStats, globalStats } = this.state;
+
+        const averageSuccessRates = this.calcAverageSuccessRate();
+        const itemsScraped = globalStats.map((stat) => stat.stats.itemsCount ?? 0).reduce((acc, cur) => acc + cur, 0);
+        const dataChart = {
+            datasets: [
+                {
+                    label: "GB",
+                    data: [averageSuccessRates, 1 - averageSuccessRates],
+                    backgroundColor: ["#D1A34F", "#F1F1F1"],
+                    borderWidth: 1,
+                    cutout: "90%",
+                    circumference: 180,
+                    rotation: 270,
+                    borderRadius: 4,
+                },
+            ],
+        };
+
+        return (
+            <Space direction="vertical">
+                <Card bordered={false} className="bg-white rounded-lg">
+                    <Space direction="vertical" className="w-full">
+                        <div className="flex items-center justify-between">
+                            <Text className="text-base text-estela-black-medium break-words">&lt;&gt; HEALTH</Text>
+                            <Help className="w-4 h-4 stroke-estela-black-medium" />
+                        </div>
+                        {loadedStats ? (
+                            <>
+                                <div className="mx-auto w-40 static">
+                                    <Doughnut
+                                        plugins={[
+                                            {
+                                                id: "successRateNeedle",
+                                                afterDatasetDraw(chart: ChartJS) {
+                                                    const { ctx } = chart;
+                                                    ctx.save();
+                                                    const x = chart.getDatasetMeta(0).data[0].x;
+                                                    const y = chart.getDatasetMeta(0).data[0].y;
+                                                    ctx.textAlign = "center";
+                                                    ctx.textBaseline = "middle";
+                                                    ctx.font = "bold 1rem/1.5rem sans-serif";
+                                                    ctx.fillStyle = "#D1A34F";
+                                                    ctx.fillText(`${itemsScraped}`, x, y - 20);
+                                                    ctx.font = "0.75rem/1rem sans-serif";
+                                                    ctx.fillStyle = "#6C757D";
+                                                    ctx.fillText("items scraped", x, y);
+                                                },
+                                            },
+                                        ]}
+                                        options={{
+                                            responsive: true,
+                                            events: [],
+                                        }}
+                                        data={dataChart}
+                                    />
+                                </div>
+                                <div className="flex items-center mx-auto gap-2">
+                                    <Text className="flex-auto text-4xl text-estela-black-full w-28">
+                                        {Math.round(averageSuccessRates * 100)}%
+                                    </Text>
+                                    <Text className="flex-auto text-sm text-estela-black-medium">
+                                        Your spider scraped a lot of data!
+                                    </Text>
+                                </div>
+                            </>
+                        ) : (
+                            <Spin />
+                        )}
+                    </Space>
+                </Card>
+                <Card bordered={false} className="bg-white rounded-lg">
+                    <Space direction="vertical" className={`${loadedStats && "w-full"}`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <Text className="text-base text-estela-black-medium break-words">USAGE STATS</Text>
+                            <Help className="w-4 h-4 stroke-estela-black-medium" />
+                        </div>
+                        {projectUseLoaded ? (
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Text className="text-sm text-estela-black-medium break-words">
+                                        Processing time
+                                    </Text>
+                                    <Text className="text-base text-estela-black-full break-words">
+                                        {processingTime} seg
+                                    </Text>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <Text className="text-sm text-estela-black-medium break-words">Bandwidth</Text>
+                                    <Text className="text-base text-estela-black-full break-words">
+                                        {this.formatBytes(network)}
+                                    </Text>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <Text className="text-sm text-estela-black-medium break-words">Storage</Text>
+                                    <Text className="text-base text-estela-black-full break-words">
+                                        {this.formatBytes(storage)}
+                                    </Text>
+                                </div>
+                            </div>
+                        ) : (
+                            <Spinner className="my-4" />
+                        )}
+                    </Space>
+                </Card>
+            </Space>
+        );
+    };
+
     render(): JSX.Element {
-        const { name, loaded, projectUseLoaded, jobs, count, current, network, processingTime, storage } = this.state;
+        const { name, loaded } = this.state;
+
         return (
             <Layout className="bg-metal rounded-t-2xl h-screen">
                 {loaded ? (
@@ -816,105 +898,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     {this.headSection()}
                                     {this.dataSection()}
                                 </Content>
-
-                                <Card bordered={false} className="bg-white rounded-2xl">
-                                    <Row className="flow-root">
-                                        <Text className="float-left text-base font-medium text-estela-black-medium m-4 sm:m-2">
-                                            RECENT JOBS
-                                        </Text>
-                                        <Link
-                                            className="float-right m-4 sm:m-2 text-estela-blue-full hover:text-estela-blue-medium font-medium text-base"
-                                            to={`/projects/${this.projectId}/jobs`}
-                                        >
-                                            See all
-                                        </Link>
-                                    </Row>
-                                    <Table
-                                        columns={this.columns}
-                                        dataSource={jobs}
-                                        pagination={false}
-                                        className="mx-4 sm:m-2"
-                                    />
-                                    <Pagination
-                                        className="text-center"
-                                        defaultCurrent={1}
-                                        total={count}
-                                        current={current}
-                                        pageSize={this.PAGE_SIZE}
-                                        onChange={this.onPageChange}
-                                        showSizeChanger={false}
-                                        itemRender={PaginationItem}
-                                    />
-                                </Card>
                             </Col>
                             <Col className="bg-metal grid justify-start col-span-2 gap-2">
-                                <Space direction="vertical">
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical" className="w-full">
-                                            <div className="flex items-center justify-between">
-                                                <Text className="text-base text-estela-black-medium break-words">
-                                                    &lt;&gt; HEALTH
-                                                </Text>
-                                                <Help className="w-4 h-4 stroke-estela-black-medium" />
-                                            </div>
-                                            {projectUseLoaded ? (
-                                                <>
-                                                    <Text className="text-xl my-2 font-bold leading-8">
-                                                        {this.formatBytes(network)}
-                                                    </Text>
-                                                </>
-                                            ) : (
-                                                <Spinner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical">
-                                            <Text className="text-base text-estela-black-medium break-words">
-                                                NETWORK USED
-                                            </Text>
-                                            {projectUseLoaded ? (
-                                                <>
-                                                    <Text className="text-xl my-2 font-bold leading-8">
-                                                        {this.formatBytes(network)}
-                                                    </Text>
-                                                </>
-                                            ) : (
-                                                <Spinner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical">
-                                            <Text className="text-base text-estela-black-medium break-words">
-                                                PROCESSING TIME USED
-                                            </Text>
-                                            {projectUseLoaded ? (
-                                                <Text className="text-xl my-2 font-bold leading-8">
-                                                    {processingTime} seg
-                                                </Text>
-                                            ) : (
-                                                <Spinner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                    <Card bordered={false} className="bg-white h-48 rounded-lg">
-                                        <Space direction="vertical">
-                                            <Text className="text-base text-estela-black-medium">STORAGE USED</Text>
-                                            {projectUseLoaded ? (
-                                                <Text className="text-xl my-2 font-bold leading-8">
-                                                    {this.formatBytes(storage)}
-                                                </Text>
-                                            ) : (
-                                                <Spinner className="my-4" />
-                                            )}
-                                            <Text className="text-sm text-estela-black-medium">Sum of all jobs</Text>
-                                        </Space>
-                                    </Card>
-                                </Space>
+                                {this.projectUsageSection()}
                             </Col>
                         </Row>
                     </Fragment>
