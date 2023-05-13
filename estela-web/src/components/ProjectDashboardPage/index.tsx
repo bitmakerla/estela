@@ -107,9 +107,14 @@ const getRuntimeDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-const getCoverageDataset = (statsData?: GlobalStats[]) => {
-    console.debug(statsData);
-    return [];
+const getCoverageDataset = (statsData: GlobalStats[]) => {
+    return [
+        {
+            label: "Item coverage (percentage)",
+            data: statsData.map((statsData) => statsData.stats.coverage.totalItemsCoverage ?? 0),
+            backgroundColor: "#32C3A4",
+        },
+    ];
 };
 
 const getSuccessRateDataset = (statsData: GlobalStats[]) => {
@@ -230,7 +235,7 @@ interface ProjectDashboardPageState {
     current: number;
     loadedStats: boolean;
     globalStats: GlobalStats[];
-    focusedStat: number;
+    focusedStatIndex: number;
     statOptionTab: StatType;
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
@@ -253,7 +258,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         current: 0,
         loadedStats: false,
         globalStats: [],
-        focusedStat: 0,
+        focusedStatIndex: 0,
         statOptionTab: StatType.JOBS,
         statsStartDate: moment("2023-04-15", "YYYY-MM-DD"),
         statsEndDate: moment(),
@@ -465,19 +470,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
 
         return (
             <>
-                <Row className="flow-root items-center space-x-4">
-                    <Button
-                        className="flex float-left items-center  rounded-3xl font-medium stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela"
-                        onClick={() => console.log("Project Dashboard")}
-                    >
-                        Project
-                    </Button>
-                    <Button
-                        className="flex float-left items-center rounded-3xl font-medium stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela"
-                        onClick={() => console.log("Spiders/Jobs Dashboard")}
-                    >
-                        Spiders / Jobs
-                    </Button>
+                <Row className="flow-root items-center justify-end space-x-4 space-x-reverse">
                     <RangePicker
                         onChange={onChangeDateRange}
                         defaultValue={[statsStartDate, statsEndDate]}
@@ -532,7 +525,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             {
                                 label: "Coverage",
                                 key: StatType.COVERAGE,
-                                disabled: true,
+                                children: this.chartsSection(),
                             },
                             {
                                 label: "Success rate",
@@ -557,7 +550,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     dataSection: () => JSX.Element = () => {
-        const { loadedStats, globalStats } = this.state;
+        const { loadedStats, globalStats, focusedStatIndex } = this.state;
 
         if (!loadedStats) {
             return (
@@ -571,35 +564,41 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             return <></>;
         }
 
+        const focusedStat: GlobalStats = globalStats[focusedStatIndex];
+
         return (
             <>
                 <Row className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md">
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">{focusedStat.stats.jobs.totalJobs ?? 0}</p>
                         <p className="text-sm text-center text-estela-black-medium">Jobs</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">{focusedStat.stats.pages.totalPages ?? 0}</p>
                         <p className="text-sm text-center text-estela-black-medium">Pages</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">{focusedStat.stats.itemsCount ?? 0}</p>
                         <p className="text-sm text-center text-estela-black-medium">Items</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">{(focusedStat.stats.runtime ?? 0).toFixed(2)}</p>
                         <p className="text-sm text-center text-estela-black-medium">Runtime</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">
+                            {(focusedStat.stats.successRate ?? 0).toFixed(2)}
+                        </p>
                         <p className="text-sm text-center text-estela-black-medium">Success rate</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">
+                            {(focusedStat.stats.coverage.totalItemsCoverage ?? 0).toFixed(2)}
+                        </p>
                         <p className="text-sm text-center text-estela-black-medium">Coverage</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">3</p>
+                        <p className="text-sm text-center text-black">{focusedStat.stats.logs.totalLogs ?? 0}</p>
                         <p className="text-sm text-center text-estela-black-medium">Logs</p>
                     </Col>
                 </Row>
@@ -624,7 +623,19 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <p className="text-sm text-center text-estela-black-full">S. RATE</p>
                     </Col>
                 </Row>
-                <Collapse bordered={false} className="bg-white" ghost accordion>
+                <Collapse
+                    bordered={false}
+                    className="bg-white"
+                    onChange={(key: string | string[]) => {
+                        if (key && !Array.isArray(key)) {
+                            const { focusedStatIndex } = this.state;
+                            const index = parseInt(key, 10);
+                            index !== focusedStatIndex && this.setState({ focusedStatIndex: index });
+                        }
+                    }}
+                    ghost
+                    accordion
+                >
                     {globalStats.map((stat, index) => {
                         const dateString = stat.date.toISOString();
                         const totalJobs = stat.stats.jobs.totalJobs ?? 0;
@@ -817,7 +828,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     />
                                 </div>
                                 <div className="flex items-center mx-auto gap-2">
-                                    <Text className="flex-auto text-4xl text-estela-black-full w-28">
+                                    <Text className="flex-auto text-4xl text-estela-black-full w-36">
                                         {Math.round(averageSuccessRates * 100)}%
                                     </Text>
                                     <Text className="flex-auto text-sm text-estela-black-medium">
