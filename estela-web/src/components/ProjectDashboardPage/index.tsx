@@ -12,6 +12,7 @@ import {
     Divider,
     Tabs,
     Collapse,
+    Tooltip as TooltipAnt,
 } from "antd";
 import {
     Chart as ChartJS,
@@ -260,7 +261,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         globalStats: [],
         focusedStatIndex: 0,
         statOptionTab: StatType.JOBS,
-        statsStartDate: moment("2023-04-15", "YYYY-MM-DD"),
+        statsStartDate: moment().subtract(7, "days").startOf("day"),
         statsEndDate: moment(),
     };
     apiService = ApiService();
@@ -795,7 +796,12 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
                             <Text className="text-base text-estela-black-medium break-words">&lt;&gt; HEALTH</Text>
-                            <Help className="w-4 h-4 stroke-estela-black-medium" />
+                            <TooltipAnt
+                                placement="left"
+                                title="Average success rate of all jobs in the specified range + Total No. scraped items."
+                            >
+                                <Help className="w-4 h-4 stroke-estela-black-medium" />
+                            </TooltipAnt>
                         </div>
                         {loadedStats ? (
                             <>
@@ -845,7 +851,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                     <Space direction="vertical" className={`${loadedStats && "w-full"}`}>
                         <div className="flex items-center justify-between mb-4">
                             <Text className="text-base text-estela-black-medium break-words">USAGE STATS</Text>
-                            <Help className="w-4 h-4 stroke-estela-black-medium" />
+                            <TooltipAnt placement="left" title="Usage of the project.">
+                                <Help className="w-4 h-4 stroke-estela-black-medium" />
+                            </TooltipAnt>
                         </div>
                         {projectUseLoaded ? (
                             <div className="space-y-2">
