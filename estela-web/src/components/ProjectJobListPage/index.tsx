@@ -21,7 +21,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
-import Run from "../../assets/icons/play.svg";
+import Play from "../../assets/icons/play.svg";
 import Filter from "../../assets/icons/filter.svg";
 import Setting from "../../assets/icons/setting.svg";
 import Add from "../../assets/icons/add.svg";
@@ -520,7 +520,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                 </Col>
                                 <Col className="float-right">
                                     <Button
-                                        icon={<Run className="mr-2" width={19} />}
+                                        icon={<Play className="mr-2" width={19} />}
                                         size="large"
                                         className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                         onClick={() => {

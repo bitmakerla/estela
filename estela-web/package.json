@@ -4,11 +4,12 @@
   "private": true,
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.14.9",
-    "antd": "^4.24.0",
+    "antd": "4",
     "chart.js": "^4.1.1",
     "cronstrue": "^2.19.0",
     "follow-redirects": "^1.14.8",
     "hosted-git-info": "^2.8.9",
+    "moment": "^2.29.4",
     "node-fetch": "^2.6.7",
     "nth-check": "^2.0.1",
     "react": "^17.0.2",
