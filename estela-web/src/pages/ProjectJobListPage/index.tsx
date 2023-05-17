@@ -14,7 +14,14 @@ import {
     SpiderJob,
     Project,
 } from "../../services/api";
-import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
+import {
+    resourceNotAllowedNotification,
+    incorrectDataNotification,
+    invalidDataNotification,
+    Spin,
+    PaginationItem,
+    RouteParams,
+} from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -62,10 +69,6 @@ interface ProjectJobListPageState {
     count: number;
     current: number;
     loading: boolean;
-}
-
-interface RouteParams {
-    projectId: string;
 }
 
 interface StateType {
