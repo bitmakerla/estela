@@ -499,7 +499,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 <Divider className="bg-estela-black-low mb-5" />
                 <Content className="flow-root">
                     <Tabs
-                        className="float-right text-estela-black-medium text-xs md:text-sm"
+                        className="float-right w-full text-estela-black-medium text-xs md:text-sm"
                         defaultActiveKey={"optionTab"}
                         onChange={this.onStatsTabChange}
                         items={[
@@ -795,7 +795,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 <Card bordered={false} className="bg-white rounded-lg">
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
-                            <Text className="text-base text-estela-black-medium break-words">&lt;&gt; HEALTH</Text>
+                            <Text className="text-base text-estela-black-medium break-words">HEALTH</Text>
                             <TooltipAnt
                                 placement="left"
                                 title="Average success rate of all jobs in the specified range + Total No. scraped items."
