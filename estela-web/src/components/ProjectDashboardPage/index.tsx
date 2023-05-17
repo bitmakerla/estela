@@ -27,7 +27,6 @@ import {
     ArcElement,
 } from "chart.js";
 import { Bar, Doughnut } from "react-chartjs-2";
-import { Layout, Pagination, Spin as Spinner, Button, Row, Col, Table, Card, Space, Typography } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
