@@ -43,6 +43,7 @@ import {
     invalidDataNotification,
     Spin,
     PaginationItem,
+    RouteParams,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { checkExternalError } from "ExternalComponents/CardNotification";
@@ -129,10 +130,6 @@ interface ProjectJobListPageState {
     current: number;
     externalComponent: JSX.Element;
     loading: boolean;
-}
-
-interface RouteParams {
-    projectId: string;
 }
 
 interface StateType {

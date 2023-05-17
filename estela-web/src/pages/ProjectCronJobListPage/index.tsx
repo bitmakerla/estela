@@ -52,6 +52,7 @@ import {
     incorrectDataNotification,
     Spin,
     PaginationItem,
+    RouteParams,
 } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { checkExternalError } from "ExternalComponents/CardNotification";
@@ -151,10 +152,6 @@ interface ProjectCronJobListPageState {
     externalComponent: JSX.Element;
     loading: boolean;
     expressionError: boolean;
-}
-
-interface RouteParams {
-    projectId: string;
 }
 
 export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteParams>, ProjectCronJobListPageState> {

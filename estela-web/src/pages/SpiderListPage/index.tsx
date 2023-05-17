@@ -9,6 +9,7 @@ import { ApiService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { ColumnsType } from "antd/lib/table";
+import moment from "moment";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -24,6 +25,8 @@ interface SpiderListPageState {
     current: number;
     count: number;
     loaded: boolean;
+    statsStartDate: moment.Moment;
+    statsEndDate: moment.Moment;
 }
 
 interface RouteParams {
@@ -37,6 +40,8 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         count: 0,
         current: 0,
         loaded: false,
+        statsStartDate: moment().subtract(7, "days").startOf("day"),
+        statsEndDate: moment(),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -99,6 +104,95 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         await this.getProjectSpiders(page);
     };
 
+    // headSection: () => JSX.Element = () => {
+    //     const { statsStartDate, statsEndDate } = this.state;
+
+    //     const onChangeDateRange: RangePickerProps["onChange"] = (_, dateStrings) => {
+    //         this.setState({ loadedStats: false });
+    //         this.getProjectStatsAndUpdateDates(dateStrings[0], dateStrings[1]);
+    //     };
+
+    //     return (
+    //         <>
+    //             <Row className="flow-root items-center justify-end space-x-4 space-x-reverse">
+    //                 <RangePicker
+    //                     onChange={onChangeDateRange}
+    //                     defaultValue={[statsStartDate, statsEndDate]}
+    //                     ranges={{
+    //                         Today: [moment(), moment()],
+    //                         "Last 72h": [moment().subtract(3, "days").startOf("day"), moment()],
+    //                         "Last 7 Days": [moment().subtract(7, "days").startOf("day"), moment()],
+    //                         "Last 14 Days": [moment().subtract(14, "days").startOf("day"), moment()],
+    //                         "Last 30 Days": [moment().subtract(30, "days").startOf("day"), moment()],
+    //                     }}
+    //                     format="YYYY-MM-DD"
+    //                     className="statDateRangePicker flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela-blue-full hover:stroke-estela bg-estela-blue-low"
+    //                 />
+    //                 <Button
+    //                     icon={<Run className="mr-2" width={19} />}
+    //                     className="flex float-right items-center rounded-3xl font-medium stroke-estela border-estela hover:stroke-estela bg-estela-blue-low text-estela hover:text-estela text-sm hover:border-estela"
+    //                     onClick={() => {
+    //                         this.setState({ loadedStats: false });
+    //                         this.getProjectStatsAndUpdateDates();
+    //                     }}
+    //                 >
+    //                     Refresh
+    //                 </Button>
+    //             </Row>
+    //             <Divider className="bg-estela-black-low mb-5" />
+    //             <Content className="flow-root">
+    //                 <Tabs
+    //                     className="float-right text-estela-black-medium text-xs md:text-sm"
+    //                     defaultActiveKey={"optionTab"}
+    //                     onChange={this.onStatsTabChange}
+    //                     items={[
+    //                         {
+    //                             label: "Jobs",
+    //                             key: StatType.JOBS,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Pages",
+    //                             key: StatType.PAGES,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Items",
+    //                             key: StatType.ITEMS,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Runtime",
+    //                             key: StatType.RUNTIME,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Coverage",
+    //                             key: StatType.COVERAGE,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Success rate",
+    //                             key: StatType.SUCCESS_RATE,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Status code",
+    //                             key: StatType.STATUS_CODE,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                         {
+    //                             label: "Logs",
+    //                             key: StatType.LOGS,
+    //                             children: this.chartsSection(),
+    //                         },
+    //                     ]}
+    //                 />
+    //             </Content>
+    //         </>
+    //     );
+    // };
+
     render(): JSX.Element {
         const { loaded, spiders, count, current } = this.state;
         return (
@@ -107,7 +201,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                     <div className="lg:m-10 md:mx-6 mx-2">
                         <Row className="flow-root my-6">
                             <Col className="float-left">
-                                <p className="text-xl font-medium text-silver float-left">SPIDER OVERVIEW</p>
+                                <p className="text-xl font-medium text-silver float-left">SPIDERS</p>
                             </Col>
                             <Col className="float-right">
                                 <Button
@@ -118,6 +212,17 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                 >
                                     Deploy new spider
                                 </Button>
+                            </Col>
+                        </Row>
+                        <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4 justify-between">
+                            <Col className="bg-metal col-span-5">
+                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5">
+                                    {/* {this.headSection()} */}
+                                    {/* {this.dataSection()} */}
+                                </Content>
+                            </Col>
+                            <Col className="bg-metal grid justify-start col-span-2 gap-2">
+                                {/* {this.projectUsageSection()} */}
                             </Col>
                         </Row>
                         <Row className="bg-white rounded-lg">
