@@ -135,12 +135,6 @@ class StatsForDashboardMixin:
             stats_results[date_str]["runtime"] += stats.get(
                 stats_mapping["runtime"], 0.0
             )
-            request_count = stats.get("downloader/request_count", 0.0)
-            stats_results[date_str]["success_rate"] += (
-                100 * stats.get("response_received_count", 0.0) / request_count
-                if request_count != 0.0
-                else 0.0
-            )
 
             stats_results[date_str]["pages"]["scraped_pages"] += stats.get(
                 stats_mapping["scraped_pages"], 0
@@ -172,10 +166,11 @@ class StatsForDashboardMixin:
 
         for stat in stats_results.values():
             if stat["jobs"]["finished_jobs"] != 0:
-                stat["success_rate"] /= stat["jobs"]["finished_jobs"]
                 stat["coverage"]["total_items_coverage"] /= stat["jobs"][
                     "finished_jobs"
                 ]
+            if stat["jobs"]["total_jobs"] != 0:
+                stat["success_rate"] = 100 * (stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"])
 
         return stats_results
 
@@ -225,6 +220,8 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         job_stats_ids: List[str] = [
             "{}-{}-job_stats".format(job.spider.sid, job.jid) for job in jobs_set
         ]
+
+        print("ids:", job_stats_ids)
 
         stats_set: List[dict] = spiderdata_db_client.get_jobs_set_stats(
             kwargs["pid"], job_stats_ids
