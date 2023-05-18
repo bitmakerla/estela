@@ -51,6 +51,7 @@ import {
     SpiderJobUpdateDataStatusEnum,
     Spider,
 } from "../../services/api";
+import { JobItemsData, JobRequestsData } from "../JobDataPage";
 import {
     resourceNotAllowedNotification,
     incorrectDataNotification,
@@ -2080,12 +2081,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         {
                                             label: "Items",
                                             key: "2",
-                                            children: this.items(),
+                                            // children: this.items(),
+                                            children: <JobItemsData projectId={this.projectId} spiderId={this.spiderId} jobId={String(this.jobId)} />
                                         },
                                         {
                                             label: "Requests",
                                             key: "3",
-                                            children: this.requests(),
+                                            // children: this.requests(),
+                                            children: <JobRequestsData projectId={this.projectId} spiderId={this.spiderId} jobId={String(this.jobId)} />
                                         },
                                         {
                                             label: "Log",
