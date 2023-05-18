@@ -15,8 +15,6 @@ import {
     Card,
     Modal,
     Select,
-    Pagination,
-    Dropdown,
     Input,
     Tooltip as AntdTooltip,
     Checkbox,
@@ -31,9 +29,6 @@ import { ApiService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
-import Export from "../../assets/icons/export.svg";
-import Delete from "../../assets/icons/trash.svg";
-import ArrowDown from "../../assets/icons/arrowDown.svg";
 
 import {
     ApiProjectsSpidersJobsReadRequest,
@@ -42,8 +37,6 @@ import {
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersListRequest,
-    ApiProjectsSpidersJobsDataDeleteRequest,
-    DeleteJobData,
     SpiderJob,
     SpiderJobCreate,
     SpiderJobEnvVar,
@@ -51,18 +44,12 @@ import {
     SpiderJobUpdateDataStatusEnum,
     Spider,
 } from "../../services/api";
-import { JobItemsData, JobRequestsData } from "../JobDataPage";
-import {
-    resourceNotAllowedNotification,
-    incorrectDataNotification,
-    dataDeletedNotification,
-    invalidDataNotification,
-    Spin,
-} from "../../shared";
+import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../JobDataPage";
+import { resourceNotAllowedNotification, incorrectDataNotification, invalidDataNotification, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 
 ChartJS.register(ArcElement, LinearScale, Tooltip, Legend);
@@ -106,14 +93,9 @@ interface Tags {
 
 interface JobDetailPageState {
     loaded: boolean;
-    loadedButton: boolean;
-    itemModal: boolean;
-    requestModal: boolean;
-    logModal: boolean;
     name: string | undefined;
     lifespan: number | undefined;
     totalResponseBytes: number | undefined;
-    requestCount: number | undefined;
     args: ArgsData[];
     envVars: SpiderJobEnvVar[];
     tags: TagsData[];
@@ -122,21 +104,11 @@ interface JobDetailPageState {
     created: string | undefined;
     status: string | undefined;
     cronjob: number | undefined | null;
-    stats: Dictionary;
-    loadedStats: boolean;
     items: Dictionary[];
     loadedItems: boolean;
     loadedItemsFirstTime: boolean;
-    requests: Dictionary[];
-    loadedRequests: boolean;
-    logs: Dictionary[];
-    loadedLogs: boolean;
     itemsCount: number;
     itemsCurrent: number;
-    requestsCount: number;
-    requestsCurrent: number;
-    logsCount: number;
-    logsCurrent: number;
     dataStatus: string | undefined;
     dataExpiryDays: number | undefined;
     loading_status: boolean;
@@ -255,14 +227,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     dataLogs = "logs";
     state: JobDetailPageState = {
         loaded: false,
-        loadedButton: false,
-        itemModal: false,
-        requestModal: false,
-        logModal: false,
         name: "",
         lifespan: 0,
         totalResponseBytes: 0,
-        requestCount: 0,
         args: [],
         envVars: [],
         tags: [],
@@ -271,21 +238,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         created: "",
         status: "",
         cronjob: null,
-        stats: {},
-        loadedStats: false,
         items: [],
         loadedItems: false,
         loadedItemsFirstTime: false,
-        requests: [],
-        loadedRequests: false,
-        logs: [],
-        loadedLogs: false,
         itemsCount: 0,
         itemsCurrent: 0,
-        requestsCount: 0,
-        requestsCurrent: 1,
-        logsCount: 0,
-        logsCurrent: 1,
         dataStatus: "",
         dataExpiryDays: 0,
         loading_status: false,
@@ -350,7 +307,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     created: `${response.created}`,
                     status: response.jobStatus,
                     cronjob: response.cronjob,
-                    requestCount: response.requestCount,
                     loaded: true,
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
@@ -470,7 +426,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     handleSubmit = (): void => {
         const futureDate: Date = new Date();
         futureDate.setDate(futureDate.getDate() + this.state.newDataExpireDays);
-        console.log(this.state.newEnvVars);
         const requestData = {
             args: [...this.state.newArgs],
             envVars: [...this.state.newEnvVars],
@@ -642,57 +597,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ dataExpiryDays: days, modified: true });
     };
 
-    getStats = (): void => {
-        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
-            pid: this.projectId,
-            sid: this.spiderId,
-            jid: this.newJobId,
-            type: "stats",
-        };
-
-        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
-            (response) => {
-                let data: Dictionary = {};
-                if (response.results?.length) {
-                    const safe_data: unknown[] = response.results ?? [];
-                    data = safe_data[0] as Dictionary;
-                    this.setState({ stats: data, loadedStats: true });
-                }
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
-    };
-
-    deleteSpiderJobData = (type_: string): void => {
-        this.setState({ loadedButton: true });
-        const request: ApiProjectsSpidersJobsDataDeleteRequest = {
-            pid: this.projectId,
-            sid: this.spiderId,
-            jid: `${this.jobId}`,
-            type: type_,
-        };
-        this.apiService.apiProjectsSpidersJobsDataDelete(request).then(
-            (response: DeleteJobData) => {
-                if (type_ == "items") {
-                    this.setState({ items: [], itemsCount: 0, itemsCurrent: 0, loadedItems: true });
-                } else if (type_ == "requests") {
-                    this.setState({ requests: [], requestsCount: 0, requestsCurrent: 0, loadedRequests: true });
-                } else if (type_ == "logs") {
-                    this.setState({ logs: [], logsCount: 0, logsCurrent: 0, loadedLogs: true });
-                }
-                this.setState({ loadedButton: false });
-                dataDeletedNotification(response.count);
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
-    };
-
     getItems = async (page: number, pageSize?: number): Promise<void> => {
         const requestParams: ApiProjectsSpidersJobsDataListRequest = {
             pid: this.projectId,
@@ -717,83 +621,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 resourceNotAllowedNotification();
             },
         );
-    };
-
-    getRequests = async (page: number, pageSize?: number): Promise<void> => {
-        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
-            pid: this.projectId,
-            sid: this.spiderId,
-            jid: this.newJobId,
-            type: "requests",
-            page: page,
-            pageSize: pageSize ?? this.PAGE_SIZE,
-        };
-        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
-            (response) => {
-                let data: Dictionary[] = [];
-                if (response.results?.length) {
-                    const safe_data: unknown[] = response.results ?? [];
-                    data = safe_data as Dictionary[];
-                    this.setState({
-                        requests: data,
-                        loadedRequests: true,
-                        requestsCurrent: page,
-                        requestsCount: response.count,
-                    });
-                }
-                this.setState({ loadedRequests: true });
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
-    };
-
-    getLogs = async (page: number, pageSize?: number): Promise<void> => {
-        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
-            pid: this.projectId,
-            sid: this.spiderId,
-            jid: this.newJobId,
-            type: "logs",
-            page: page,
-            pageSize: pageSize ?? this.PAGE_SIZE,
-        };
-        this.apiService.apiProjectsSpidersJobsDataList(requestParams).then(
-            (response) => {
-                let data: Dictionary[] = [];
-                if (response.results?.length) {
-                    const safe_data: unknown[] = response.results ?? [];
-                    data = safe_data as Dictionary[];
-                    this.setState({
-                        logs: data,
-                        loadedLogs: true,
-                        logsCurrent: page,
-                        logsCount: response.count,
-                    });
-                }
-                this.setState({ loadedLogs: true });
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
-    };
-
-    onItemsPageChange = async (page: number): Promise<void> => {
-        this.setState({ loadedItems: false });
-        await this.getItems(page);
-    };
-
-    onRequestsPageChange = async (page: number): Promise<void> => {
-        this.setState({ loadedRequests: false });
-        await this.getRequests(page);
-    };
-
-    onLogsPageChange = async (page: number): Promise<void> => {
-        this.setState({ loadedLogs: false });
-        await this.getLogs(page);
     };
 
     formatBytes = (bytes: number): BytesMetric => {
@@ -1167,551 +994,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
-    stats = (): React.ReactNode => {
-        const { loadedStats, stats } = this.state;
-
-        return (
-            <Content className="bg-metal content-padding">
-                {loadedStats ? (
-                    <Row className="grid grid-cols-5 bg-white">
-                        <Col className="col-start-2 col-span-3">
-                            {Object.entries(stats).map(([statKey, stat], index: number) => {
-                                if (stat === null) {
-                                    stat = "null";
-                                }
-
-                                if (index % 2) {
-                                    return (
-                                        <Row
-                                            key={index}
-                                            className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
-                                        >
-                                            <Col>
-                                                <Text className="font-bold">{statKey}</Text>
-                                            </Col>
-                                            <Col>
-                                                <Text className="text-estela-black-full px-4">{stat}</Text>
-                                            </Col>
-                                        </Row>
-                                    );
-                                }
-                                return (
-                                    <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
-                                        <Col>
-                                            <Text className="font-bold">{statKey}</Text>
-                                        </Col>
-                                        <Col>
-                                            <Text className="text-estela-black-full px-4">{stat}</Text>
-                                        </Col>
-                                    </Row>
-                                );
-                            })}
-                        </Col>
-                    </Row>
-                ) : (
-                    <Spin />
-                )}
-            </Content>
-        );
-    };
-
-    items = (): React.ReactNode => {
-        const { loadedItems, loadedButton, items, itemModal, itemsCurrent, itemsCount } = this.state;
-        return (
-            <Content className="bg-metal content-padding">
-                {loadedItems ? (
-                    <>
-                        <Row className="flow-root my-2 w-full space-x-2" align="middle">
-                            <Col className="flex float-left items-center space-x-3">
-                                <Text className="text-estela-black-medium text-sm">Filter by:</Text>
-                                <Dropdown disabled>
-                                    <Button
-                                        disabled
-                                        size="large"
-                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                    >
-                                        <Text className="float-left text-sm text-estela-black-medium">Field...</Text>
-                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
-                                    </Button>
-                                </Dropdown>
-                            </Col>
-                            <Col className="flex float-left items-center space-x-3">
-                                <Dropdown disabled>
-                                    <Button
-                                        disabled
-                                        size="large"
-                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                    >
-                                        <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
-                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
-                                    </Button>
-                                </Dropdown>
-                            </Col>
-                            <Col className="flex float-left items-center space-x-3">
-                                <Dropdown disabled>
-                                    <Button
-                                        disabled
-                                        size="large"
-                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                    >
-                                        <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
-                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
-                                    </Button>
-                                </Dropdown>
-                            </Col>
-                            <Col className="flex float-left">
-                                <Button
-                                    disabled
-                                    size="large"
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Update
-                                </Button>
-                            </Col>
-                            <Col className="flex float-right">
-                                <Button
-                                    loading={loadedButton}
-                                    disabled={items.length === 0}
-                                    size="large"
-                                    icon={<Delete className="h-3.5 w-4 mr-2" />}
-                                    onClick={() => {
-                                        this.setState({ itemModal: true });
-                                    }}
-                                    className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
-                                >
-                                    Delete items
-                                </Button>
-                                <Modal
-                                    open={itemModal}
-                                    onOk={() => {
-                                        this.setState({ itemModal: false });
-                                        this.deleteSpiderJobData("items");
-                                    }}
-                                    onCancel={() => {
-                                        this.setState({ itemModal: false });
-                                    }}
-                                    okText="Yes"
-                                    okType="danger"
-                                    cancelText="No"
-                                    okButtonProps={{ className: "rounded-lg" }}
-                                    cancelButtonProps={{ className: "rounded-lg" }}
-                                >
-                                    <Text>Are you sure you want to delete job items?</Text>
-                                </Modal>
-                                <Button
-                                    disabled
-                                    size="large"
-                                    icon={<Export className="h-3.5 w-4 mr-2" />}
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Download
-                                </Button>
-                            </Col>
-                        </Row>
-                        {items.map((item: Dictionary, index: number) => {
-                            return (
-                                <Card
-                                    key={index}
-                                    className="w-full mt-2"
-                                    style={{ borderRadius: "8px" }}
-                                    bordered={false}
-                                >
-                                    <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
-                                        <Col className="flex float-left">
-                                            <Text className="py-2 text-estela-black-full font-medium text-base">
-                                                ITEM {this.PAGE_SIZE * (itemsCurrent - 1) + index + 1}
-                                            </Text>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled
-                                                size="large"
-                                                icon={<Export className="h-3.5 w-4 mr-2" />}
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Download
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                    <>
-                                        {Object.entries(item).map(([itemPropKey, itemProp], index: number) => {
-                                            let itemContent = (
-                                                <Text className="text-estela-black-medium px-4">{itemProp}</Text>
-                                            );
-
-                                            if (itemProp === null) {
-                                                itemContent = (
-                                                    <Text className="text-estela-black-medium px-4">null</Text>
-                                                );
-                                            } else if (itemProp.length > 300) {
-                                                itemContent = (
-                                                    <Paragraph
-                                                        className="text-estela-black-medium px-4"
-                                                        ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                                    >
-                                                        {itemProp}
-                                                    </Paragraph>
-                                                );
-                                            }
-
-                                            return (
-                                                <Row
-                                                    key={index}
-                                                    align="middle"
-                                                    className={`grid grid-cols-8 py-1 px-2 ${
-                                                        index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                                    }`}
-                                                >
-                                                    <Col className="col-span-2">
-                                                        <Text className="font-bold">{itemPropKey}</Text>
-                                                    </Col>
-                                                    <Col className="col-span-6">{itemContent}</Col>
-                                                </Row>
-                                            );
-                                        })}
-                                    </>
-                                </Card>
-                            );
-                        })}
-                        <Pagination
-                            className="pagination"
-                            defaultCurrent={1}
-                            simple
-                            total={itemsCount}
-                            current={itemsCurrent}
-                            pageSize={this.PAGE_SIZE}
-                            onChange={this.onItemsPageChange}
-                            showSizeChanger={false}
-                        />
-                    </>
-                ) : (
-                    <Spin />
-                )}
-            </Content>
-        );
-    };
-
-    requests = (): React.ReactNode => {
-        const { loadedRequests, loadedButton, requests, requestModal, requestsCurrent, requestsCount } = this.state;
-        return (
-            <Content className="bg-metal content-padding">
-                {loadedRequests ? (
-                    <>
-                        <Row className="flow-root my-2 w-full space-x-2" align="middle">
-                            <Col className="flex float-left items-center space-x-3">
-                                <Text className="text-estela-black-medium text-sm">Filter by:</Text>
-                                <Dropdown disabled>
-                                    <Button
-                                        disabled
-                                        size="large"
-                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                    >
-                                        <Text className="float-left text-sm text-estela-black-medium">Field...</Text>
-                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
-                                    </Button>
-                                </Dropdown>
-                            </Col>
-                            <Col className="flex float-left items-center space-x-3">
-                                <Dropdown disabled>
-                                    <Button
-                                        disabled
-                                        size="large"
-                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                    >
-                                        <Text className="float-left text-sm text-estela-black-medium">Action...</Text>
-                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
-                                    </Button>
-                                </Dropdown>
-                            </Col>
-                            <Col className="flex float-left items-center space-x-3">
-                                <Dropdown disabled>
-                                    <Button
-                                        disabled
-                                        size="large"
-                                        className="flex items-center w-36 mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                    >
-                                        <Text className="float-left text-sm text-estela-black-medium">Criteria...</Text>
-                                        <ArrowDown className="h-3.5 w-4 mr-2 float-right" />
-                                    </Button>
-                                </Dropdown>
-                            </Col>
-                            <Col className="flex float-left">
-                                <Button
-                                    disabled
-                                    size="large"
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Update
-                                </Button>
-                            </Col>
-                            <Col className="flex float-right">
-                                <Button
-                                    loading={loadedButton}
-                                    disabled={requests.length === 0}
-                                    size="large"
-                                    icon={<Delete className="h-3.5 w-4 mr-2" />}
-                                    onClick={() => {
-                                        this.setState({ requestModal: true });
-                                    }}
-                                    className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
-                                >
-                                    Delete requests
-                                </Button>
-                                <Modal
-                                    open={requestModal}
-                                    onOk={() => {
-                                        this.setState({ requestModal: false });
-                                        this.deleteSpiderJobData("requests");
-                                    }}
-                                    onCancel={() => {
-                                        this.setState({ requestModal: false });
-                                    }}
-                                    okText="Yes"
-                                    okType="danger"
-                                    cancelText="No"
-                                    okButtonProps={{ className: "rounded-lg" }}
-                                    cancelButtonProps={{ className: "rounded-lg" }}
-                                >
-                                    <Text>Are you sure you want to delete job requests?</Text>
-                                </Modal>
-                                <Button
-                                    disabled
-                                    size="large"
-                                    icon={<Export className="h-3.5 w-4 mr-2" />}
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Download
-                                </Button>
-                            </Col>
-                        </Row>
-                        {requests.map((request: Dictionary, index: number) => {
-                            return (
-                                <Card
-                                    key={index}
-                                    className="w-full mt-2"
-                                    style={{ borderRadius: "8px" }}
-                                    bordered={false}
-                                >
-                                    <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
-                                        <Col className="flex float-left">
-                                            <Text className="py-2 text-estela-black-full font-medium text-base">
-                                                REQUEST {this.PAGE_SIZE * (requestsCurrent - 1) + index + 1}
-                                            </Text>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled
-                                                size="large"
-                                                icon={<Export className="h-3.5 w-4 mr-2" />}
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Download
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                    <>
-                                        {Object.entries(request).map(([requestPropKey, requestProp], index: number) => {
-                                            let requestContent = (
-                                                <Text className="text-estela-black-medium px-4">{requestProp}</Text>
-                                            );
-
-                                            if (requestProp === null) {
-                                                requestContent = (
-                                                    <Text className="text-estela-black-medium px-4">null</Text>
-                                                );
-                                            } else if (requestProp.length > 300) {
-                                                requestContent = (
-                                                    <Paragraph
-                                                        className="text-estela-black-medium px-4"
-                                                        ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                                    >
-                                                        {requestProp}
-                                                    </Paragraph>
-                                                );
-                                            }
-
-                                            return (
-                                                <Row
-                                                    key={index}
-                                                    align="middle"
-                                                    className={`grid grid-cols-8 py-1 px-2 ${
-                                                        index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                                    }`}
-                                                >
-                                                    <Col className="col-span-2">
-                                                        <Text className="font-bold">{requestPropKey}</Text>
-                                                    </Col>
-                                                    <Col className="col-span-6">{requestContent}</Col>
-                                                </Row>
-                                            );
-                                        })}
-                                    </>
-                                </Card>
-                            );
-                        })}
-                        <Pagination
-                            className="pagination"
-                            defaultCurrent={1}
-                            simple
-                            total={requestsCount}
-                            current={requestsCurrent}
-                            pageSize={this.PAGE_SIZE}
-                            onChange={this.onRequestsPageChange}
-                            showSizeChanger={false}
-                        />
-                    </>
-                ) : (
-                    <Spin />
-                )}
-            </Content>
-        );
-    };
-
-    logs = (): React.ReactNode => {
-        const { loadedLogs, loadedButton, logs, logModal, logsCurrent, logsCount } = this.state;
-        return (
-            <Content className="bg-metal content-padding">
-                {loadedLogs ? (
-                    <>
-                        <Row className="flow-root my-2 w-full space-x-2" align="middle">
-                            <Col className="flex float-left items-center space-x-3">
-                                <Text className="text-estela-black-medium text-sm">Search:</Text>
-                                <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Enter a word..." />
-                            </Col>
-                            <Col className="flex float-left">
-                                <Button
-                                    disabled
-                                    size="large"
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Update
-                                </Button>
-                            </Col>
-
-                            <Col className="flex float-right">
-                                <Button
-                                    loading={loadedButton}
-                                    disabled={logs.length === 0}
-                                    size="large"
-                                    icon={<Delete className="h-3.5 w-4 mr-2" />}
-                                    onClick={() => {
-                                        this.setState({ logModal: true });
-                                    }}
-                                    className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
-                                >
-                                    Delete logs
-                                </Button>
-                                <Modal
-                                    open={logModal}
-                                    onOk={() => {
-                                        this.setState({ logModal: false });
-                                        this.deleteSpiderJobData("logs");
-                                    }}
-                                    onCancel={() => {
-                                        this.setState({ logModal: false });
-                                    }}
-                                    okText="Yes"
-                                    okType="danger"
-                                    cancelText="No"
-                                    okButtonProps={{ className: "rounded-lg" }}
-                                    cancelButtonProps={{ className: "rounded-lg" }}
-                                >
-                                    <Text>Are you sure you want to delete job logs?</Text>
-                                </Modal>
-                                <Button
-                                    disabled
-                                    size="large"
-                                    icon={<Export className="h-3.5 w-4 mr-2" />}
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Download
-                                </Button>
-                            </Col>
-                            <Col className="flex float-right">
-                                <Button
-                                    disabled
-                                    size="large"
-                                    className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                >
-                                    Go
-                                </Button>
-                            </Col>
-                            <Col className="flex float-right items-center space-x-3">
-                                <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Go to line..." />
-                            </Col>
-                        </Row>
-                        <Content className="bg-white content-padding">
-                            <Row align="middle" className="grid grid-cols-12 py-1 px-2 rounded-lg bg-estela-blue-low">
-                                <Col className=" col-start-2 col-span-3">
-                                    <Text className="font-bold estela-black-full text-xs">TIME</Text>
-                                </Col>
-                                <Col className="col-span-2">
-                                    <Text className="font-bold estela-black-full text-xs">LEVEL</Text>
-                                </Col>
-                                <Col className="col-span-6">
-                                    <Text className="font-bold estela-black-full text-xs">MESSAGE</Text>
-                                </Col>
-                            </Row>
-                            {logs.map((log: Dictionary, index: number) => {
-                                let logContent = (
-                                    <Text className="text-estela-black-medium">{log.log ?? "No data"}</Text>
-                                );
-                                if ((log.log ?? "").length > 300) {
-                                    logContent = (
-                                        <Paragraph
-                                            className="text-estela-black-medium"
-                                            ellipsis={{ rows: 2, expandable: true, symbol: "more" }}
-                                        >
-                                            {log.log}
-                                        </Paragraph>
-                                    );
-                                }
-                                const logDate = log.datetime
-                                    ? new Date(parseFloat(log.datetime) * 1000).toDateString()
-                                    : "no date";
-
-                                return (
-                                    <Row
-                                        key={index}
-                                        align="middle"
-                                        className={`grid grid-cols-12 py-1 px-2 ${
-                                            index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                        }`}
-                                    >
-                                        <Col className="col-span-1">
-                                            <Text className="text-estela-blue-medium">
-                                                {this.PAGE_SIZE * (logsCurrent - 1) + index + 1}
-                                            </Text>
-                                        </Col>
-                                        <Col className="col-span-3">
-                                            <Text className="text-estela-black-medium">{logDate}</Text>
-                                        </Col>
-                                        <Col className="col-span-2">
-                                            <Text className="text-estela-black-medium">INFO</Text>
-                                        </Col>
-                                        <Col className="col-span-6">{logContent}</Col>
-                                    </Row>
-                                );
-                            })}
-                        </Content>
-                        <Pagination
-                            className="pagination"
-                            defaultCurrent={1}
-                            simple
-                            total={logsCount}
-                            current={logsCurrent}
-                            pageSize={this.PAGE_SIZE}
-                            onChange={this.onLogsPageChange}
-                            showSizeChanger={false}
-                        />
-                    </>
-                ) : (
-                    <Spin />
-                )}
-            </Content>
-        );
-    };
-
     render(): JSX.Element {
         const {
             loaded,
@@ -1731,13 +1013,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             newEnvVarValue,
             newEnvVarMasked,
             itemsCurrent,
-            loadedStats,
             loadedItems,
             loadedItemsFirstTime,
-            loadedRequests,
-            requestsCurrent,
-            loadedLogs,
-            logsCurrent,
         } = this.state;
         return (
             <Content className="content-padding">
@@ -2059,15 +1336,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         if (activeKey === "2" && !loadedItems && !loadedItemsFirstTime) {
                                             this.getItems(itemsCurrent);
                                         }
-                                        if (activeKey === "3" && !loadedRequests) {
-                                            this.getRequests(requestsCurrent);
-                                        }
-                                        if (activeKey === "4" && !loadedLogs) {
-                                            this.getLogs(logsCurrent);
-                                        }
-                                        if (activeKey === "5" && !loadedStats) {
-                                            this.getStats();
-                                        }
                                     }}
                                     className="w-full"
                                     activeKey={activeKey}
@@ -2081,24 +1349,46 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         {
                                             label: "Items",
                                             key: "2",
-                                            // children: this.items(),
-                                            children: <JobItemsData projectId={this.projectId} spiderId={this.spiderId} jobId={String(this.jobId)} />
+                                            children: (
+                                                <JobItemsData
+                                                    projectId={this.projectId}
+                                                    spiderId={this.spiderId}
+                                                    jobId={String(this.jobId)}
+                                                />
+                                            ),
                                         },
                                         {
                                             label: "Requests",
                                             key: "3",
-                                            // children: this.requests(),
-                                            children: <JobRequestsData projectId={this.projectId} spiderId={this.spiderId} jobId={String(this.jobId)} />
+                                            children: (
+                                                <JobRequestsData
+                                                    projectId={this.projectId}
+                                                    spiderId={this.spiderId}
+                                                    jobId={String(this.jobId)}
+                                                />
+                                            ),
                                         },
                                         {
                                             label: "Log",
                                             key: "4",
-                                            children: this.logs(),
+                                            children: (
+                                                <JobLogsData
+                                                    projectId={this.projectId}
+                                                    spiderId={this.spiderId}
+                                                    jobId={String(this.jobId)}
+                                                />
+                                            ),
                                         },
                                         {
                                             label: "Stats",
                                             key: "5",
-                                            children: this.stats(),
+                                            children: (
+                                                <JobStatsData
+                                                    projectId={this.projectId}
+                                                    spiderId={this.spiderId}
+                                                    jobId={String(this.jobId)}
+                                                />
+                                            ),
                                         },
                                     ]}
                                 />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card } from "antd";
+import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input } from "antd";
 import { resourceNotAllowedNotification, dataDeletedNotification, Spin, PaginationItem } from "../../shared";
 
 import Export from "../../assets/icons/export.svg";
@@ -185,6 +185,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 open={openModal}
                                 onOk={() => {
                                     setOpenModal(false);
+                                    setLoadedButton(true);
                                     deleteSpiderJobData("items", projectId, spiderId, jobId).then((response) => {
                                         if (response) {
                                             setItems([]);
@@ -507,10 +508,252 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     );
 }
 
-// export const JobLogsData: React.FC = () => {
-//     return <>Hello from Logs</>;
-// };
+export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
+    const [openModal, setOpenModal] = useState(false);
+    const [loadedButton, setLoadedButton] = useState(false);
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
+    const [loaded, setLoaded] = useState(false);
+    const [logs, setLogs] = useState<Dictionary[]>([]);
+    useEffect(() => {
+        getData("logs", 1, projectId, spiderId, jobId).then((response) => {
+            let data: Dictionary[] = [];
+            if (response.results?.length) {
+                const safe_data: unknown[] = response.results ?? [];
+                data = safe_data as Dictionary[];
+                setLogs(data);
+                setLoaded(true);
+                setCurrent(1);
+                setCount(response.count);
+            }
+            setLoaded(true);
+        });
+    }, []);
 
-// export const JobStatsData: React.FC = () => {
-//     return <>Hello from Stats</>;
-// };
+    const onLogsPageChange = async (page: number): Promise<void> => {
+        setLoaded(false);
+        await getData("logs", page, projectId, spiderId, jobId, page).then((response) => {
+            let data: Dictionary[] = [];
+            if (response.results?.length) {
+                const safe_data: unknown[] = response.results ?? [];
+                data = safe_data as Dictionary[];
+                setLogs(data);
+                setLoaded(true);
+                setCurrent(page);
+                setCount(response.count);
+            }
+            setLoaded(true);
+        });
+    };
+
+    return (
+        <Content className="bg-metal content-padding">
+            {loaded ? (
+                <>
+                    <Row className="flow-root my-2 w-full space-x-2" align="middle">
+                        <Col className="flex float-left items-center space-x-3">
+                            <Text className="text-estela-black-medium text-sm">Search:</Text>
+                            <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Enter a word..." />
+                        </Col>
+                        <Col className="flex float-left">
+                            <Button
+                                disabled
+                                size="large"
+                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            >
+                                Update
+                            </Button>
+                        </Col>
+                        <Col className="flex float-right">
+                            <Button
+                                loading={loadedButton}
+                                disabled={logs.length === 0}
+                                size="large"
+                                icon={<Delete className="h-3.5 w-4 mr-2" />}
+                                onClick={() => {
+                                    setOpenModal(true);
+                                }}
+                                className="flex items-center mr-2 stroke-estela-red-full border-estela-red-low bg-estela-red-low text-estela-red-full hover:text-estela-red-full text-sm hover:border-estela-red-full rounded-2xl"
+                            >
+                                Delete logs
+                            </Button>
+                            <Modal
+                                open={openModal}
+                                onOk={() => {
+                                    setOpenModal(false);
+                                    setLoadedButton(true);
+                                    deleteSpiderJobData("logs", projectId, spiderId, jobId).then((response) => {
+                                        if (response) {
+                                            setLogs([]);
+                                            setCurrent(0);
+                                            setCount(0);
+                                            setLoaded(true);
+                                            setLoadedButton(false);
+                                        }
+                                    });
+                                }}
+                                onCancel={() => {
+                                    setOpenModal(false);
+                                }}
+                                okText="Yes"
+                                okType="danger"
+                                cancelText="No"
+                                okButtonProps={{ className: "rounded-lg" }}
+                                cancelButtonProps={{ className: "rounded-lg" }}
+                            >
+                                <Text>Are you sure you want to delete job logs?</Text>
+                            </Modal>
+                            <Button
+                                disabled
+                                size="large"
+                                icon={<Export className="h-3.5 w-4 mr-2" />}
+                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            >
+                                Download
+                            </Button>
+                        </Col>
+                        <Col className="flex float-right">
+                            <Button
+                                disabled
+                                size="large"
+                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            >
+                                Go
+                            </Button>
+                        </Col>
+                        <Col className="flex float-right items-center space-x-3">
+                            <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Go to line..." />
+                        </Col>
+                    </Row>
+                    <Content className="bg-white content-padding">
+                        <Row align="middle" className="grid grid-cols-12 py-1 px-2 rounded-lg bg-estela-blue-low">
+                            <Col className=" col-start-2 col-span-3">
+                                <Text className="font-bold estela-black-full text-xs">TIME</Text>
+                            </Col>
+                            <Col className="col-span-2">
+                                <Text className="font-bold estela-black-full text-xs">LEVEL</Text>
+                            </Col>
+                            <Col className="col-span-6">
+                                <Text className="font-bold estela-black-full text-xs">MESSAGE</Text>
+                            </Col>
+                        </Row>
+                        {logs.map((log: Dictionary, index: number) => {
+                            let logContent = <Text className="text-estela-black-medium">{log.log ?? "No data"}</Text>;
+                            if ((log.log ?? "").length > 300) {
+                                logContent = (
+                                    <Paragraph
+                                        className="text-estela-black-medium"
+                                        ellipsis={{ rows: 2, expandable: true, symbol: "more" }}
+                                    >
+                                        {log.log}
+                                    </Paragraph>
+                                );
+                            }
+                            const logDate = log.datetime
+                                ? new Date(parseFloat(log.datetime) * 1000).toDateString()
+                                : "no date";
+                            return (
+                                <Row
+                                    key={index}
+                                    align="middle"
+                                    className={`grid grid-cols-12 py-1 px-2 ${
+                                        index % 2 ? "rounded-lg bg-estela-blue-low" : ""
+                                    }`}
+                                >
+                                    <Col className="col-span-1">
+                                        <Text className="text-estela-blue-medium">
+                                            {PAGE_SIZE * (current - 1) + index + 1}
+                                        </Text>
+                                    </Col>
+                                    <Col className="col-span-3">
+                                        <Text className="text-estela-black-medium">{logDate}</Text>
+                                    </Col>
+                                    <Col className="col-span-2">
+                                        <Text className="text-estela-black-medium">INFO</Text>
+                                    </Col>
+                                    <Col className="col-span-6">{logContent}</Col>
+                                </Row>
+                            );
+                        })}
+                    </Content>
+                    <Pagination
+                        className="pagination"
+                        defaultCurrent={1}
+                        simple
+                        total={count}
+                        current={current}
+                        pageSize={PAGE_SIZE}
+                        onChange={onLogsPageChange}
+                        showSizeChanger={false}
+                    />
+                </>
+            ) : (
+                <Spin />
+            )}
+        </Content>
+    );
+}
+
+export function JobStatsData({ projectId, spiderId, jobId }: JobsDataProps) {
+    const [loaded, setLoaded] = useState(false);
+    const [stats, setStats] = useState<Dictionary>({});
+
+    useEffect(() => {
+        getData("stats", 1, projectId, spiderId, jobId).then((response) => {
+            let data: Dictionary = {};
+            if (response.results?.length) {
+                const safe_data: unknown[] = response.results ?? [];
+                data = safe_data[0] as Dictionary;
+                setStats(data);
+                setLoaded(true);
+            }
+            setLoaded(true);
+        });
+    }, []);
+
+    return (
+        <Content className="bg-metal content-padding">
+            {loaded ? (
+                <Row className="grid grid-cols-5 bg-white">
+                    <Col className="col-start-2 col-span-3">
+                        {Object.entries(stats).map(([statKey, stat], index: number) => {
+                            if (statKey === "coverage") {
+                                return null;
+                            }
+                            if (stat === null) {
+                                stat = "null";
+                            }
+                            if (index % 2) {
+                                return (
+                                    <Row
+                                        key={index}
+                                        className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
+                                    >
+                                        <Col>
+                                            <Text className="font-bold">{statKey}</Text>
+                                        </Col>
+                                        <Col>
+                                            <Text className="text-estela-black-full px-4">{stat}</Text>
+                                        </Col>
+                                    </Row>
+                                );
+                            }
+                            return (
+                                <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
+                                    <Col>
+                                        <Text className="font-bold">{statKey}</Text>
+                                    </Col>
+                                    <Col>
+                                        <Text className="text-estela-black-full px-4">{stat}</Text>
+                                    </Col>
+                                </Row>
+                            );
+                        })}
+                    </Col>
+                </Row>
+            ) : (
+                <Spin />
+            )}
+        </Content>
+    );
+}
