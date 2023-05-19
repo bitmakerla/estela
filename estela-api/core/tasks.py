@@ -289,9 +289,9 @@ def record_job_coverage_event(job_id):
 
         scraped_fields_count = sum(field_counts.values())
         coverage["total_items"] = total_items
-        coverage["total_items_coverage"] = 100 * (scraped_fields_count / (
-            total_items * len(field_counts)
-        ))
+        coverage["total_items_coverage"] = 100 * (
+            scraped_fields_count / (total_items * len(field_counts))
+        )
 
         job_stats_id = f"{sid}-{job.jid}-job_stats"
         if not spiderdata_db_client.update_document(

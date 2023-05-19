@@ -207,7 +207,9 @@ class ItemsMetadata extends Component<ItemsMetadataProps> {
     parseMetadata = (): void => {
         this.metadata.splice(0, this.metadata.length);
         for (const key in this.item) {
-            this.metadata.push(this.typeDefinition(key, this.item[key]));
+            if (key !== "coverage") {
+                this.metadata.push(this.typeDefinition(key, this.item[key]));
+            }
         }
     };
 
@@ -469,7 +471,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     handleSubmit = (): void => {
         const futureDate: Date = new Date();
         futureDate.setDate(futureDate.getDate() + this.state.newDataExpireDays);
-        console.log(this.state.newEnvVars);
         const requestData = {
             args: [...this.state.newArgs],
             envVars: [...this.state.newEnvVars],
@@ -1177,6 +1178,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             {Object.entries(stats).map(([statKey, stat], index: number) => {
                                 if (stat === null) {
                                     stat = "null";
+                                }
+
+                                if (statKey === "coverage") {
+                                    return <React.Fragment key={index} />;
                                 }
 
                                 if (index % 2) {
