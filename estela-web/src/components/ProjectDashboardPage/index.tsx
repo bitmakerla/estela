@@ -535,7 +535,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 children: this.chartsSection(),
                             },
                             {
-                                label: "Job success rate",
+                                label: "Job S. rate",
                                 key: StatType.SUCCESS_RATE,
                                 children: this.chartsSection(),
                             },

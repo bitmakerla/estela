@@ -221,8 +221,6 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
             "{}-{}-job_stats".format(job.spider.sid, job.jid) for job in jobs_set
         ]
 
-        print("ids:", job_stats_ids)
-
         stats_set: List[dict] = spiderdata_db_client.get_jobs_set_stats(
             kwargs["pid"], job_stats_ids
         )
