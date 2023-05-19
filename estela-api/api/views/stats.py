@@ -145,7 +145,11 @@ class StatsForDashboardMixin:
             )
 
             stats_results[date_str]["runtime"] += stats.get(
+<<<<<<< HEAD
                 self.stats_mapping["runtime"], 0.0
+=======
+                stats_mapping["runtime"], 0.0
+>>>>>>> b7a4fb5 (BITMAKER-3121 global stats frontend: hot fix in charts section (#181))
             )
 
             stats_results[date_str]["pages"]["scraped_pages"] += stats.get(
@@ -182,9 +186,14 @@ class StatsForDashboardMixin:
                     "finished_jobs"
                 ]
             if stat["jobs"]["total_jobs"] != 0:
+<<<<<<< HEAD
                 stat["success_rate"] = 100 * (
                     stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"]
                 )
+=======
+                stat["success_rate"] = 100 * (stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"])
+
+>>>>>>> b7a4fb5 (BITMAKER-3121 global stats frontend: hot fix in charts section (#181))
         return stats_results
 
     def parse_jobs_stats(
