@@ -18,6 +18,10 @@ import {
     PermissionFromJSON,
     PermissionFromJSONTyped,
     PermissionToJSON,
+    SpiderJobEnvVar,
+    SpiderJobEnvVarFromJSON,
+    SpiderJobEnvVarFromJSONTyped,
+    SpiderJobEnvVarToJSON,
 } from './';
 
 /**
@@ -62,6 +66,12 @@ export interface Project {
      * @memberof Project
      */
     users?: Array<Permission>;
+    /**
+     * Project env variables.
+     * @type {Array<SpiderJobEnvVar>}
+     * @memberof Project
+     */
+    envVars?: Array<SpiderJobEnvVar>;
     /**
      * Data status.
      * @type {string}
@@ -120,6 +130,7 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'framework': !exists(json, 'framework') ? undefined : json['framework'],
         'containerImage': !exists(json, 'container_image') ? undefined : json['container_image'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(PermissionFromJSON)),
+        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
@@ -138,6 +149,7 @@ export function ProjectToJSON(value?: Project | null): any {
         'category': value.category,
         'framework': value.framework,
         'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(PermissionToJSON)),
+        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
     };

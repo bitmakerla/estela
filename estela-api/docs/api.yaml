@@ -1704,6 +1704,29 @@ definitions:
           - ADMIN
           - DEVELOPER
           - VIEWER
+  SpiderJobEnvVar:
+    description: Project env variables.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      name:
+        title: Name
+        description: Env variable name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        description: Env variable value.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      masked:
+        title: Masked
+        description: Whether the env variable value is masked.
+        type: boolean
   Project:
     required:
       - name
@@ -1751,6 +1774,11 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Permission'
+      env_vars:
+        description: Project env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: Data status.
@@ -1804,6 +1832,11 @@ definitions:
         enum:
           - SCRAPY
           - REQUESTS
+      env_vars:
+        description: Project env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       permission:
         title: Permission
         description: New permission.
@@ -1857,29 +1890,6 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
-  SpiderJobEnvVar:
-    description: Cron job env variables.
-    required:
-      - name
-      - value
-    type: object
-    properties:
-      name:
-        title: Name
-        description: Env variable name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      value:
-        title: Value
-        description: Env variable value.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      masked:
-        title: Masked
-        description: Whether the env variable value is masked.
-        type: boolean
   SpiderJobTag:
     description: Cron job tags.
     required:
@@ -2060,6 +2070,11 @@ definitions:
         description: Project UUID.
         type: string
         format: uuid
+      env_vars:
+        description: Spider env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: Data status.
@@ -2266,8 +2281,6 @@ definitions:
         description: Project jobs count.
         type: integer
   SpiderUpdate:
-    required:
-      - name
     type: object
     properties:
       sid:
@@ -2276,12 +2289,11 @@ definitions:
         type: string
         format: uuid
         readOnly: true
-      name:
-        title: Name
-        description: Spider's name.
-        type: string
-        maxLength: 1000
-        minLength: 1
+      env_vars:
+        description: Project env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: New data status.

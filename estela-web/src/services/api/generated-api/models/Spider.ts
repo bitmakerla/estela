@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    SpiderJobEnvVar,
+    SpiderJobEnvVarFromJSON,
+    SpiderJobEnvVarFromJSONTyped,
+    SpiderJobEnvVarToJSON,
+} from './';
+
 /**
  * Spiders in this deploy.
  * @export
@@ -37,6 +44,12 @@ export interface Spider {
      * @memberof Spider
      */
     project: string;
+    /**
+     * Spider env variables.
+     * @type {Array<SpiderJobEnvVar>}
+     * @memberof Spider
+     */
+    envVars?: Array<SpiderJobEnvVar>;
     /**
      * Data status.
      * @type {string}
@@ -73,8 +86,9 @@ export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sp
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
         'name': json['name'],
         'project': json['project'],
-        'dataStatus': json['data_status'],
-        'dataExpiryDays': json['data_expiry_days'],
+        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
+        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
     };
 }
 
@@ -89,6 +103,7 @@ export function SpiderToJSON(value?: Spider | null): any {
         
         'name': value.name,
         'project': value.project,
+        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
     };

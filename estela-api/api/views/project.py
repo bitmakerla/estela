@@ -13,7 +13,6 @@ from api import errors
 from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,
@@ -28,11 +27,33 @@ from core.models import (
     Project,
     Spider,
     SpiderCronJob,
+    SpiderJobEnvVar,
     SpiderJob,
     UsageRecord,
     User,
     Activity,
 )
+
+
+def update_env_vars(instance, env_vars, level="project"):
+    env_vars_instance = instance.env_vars.all()
+    for env_var in env_vars:
+        if env_vars_instance.filter(**env_var).exists():
+            continue
+        elif env_var["masked"] is True and env_var["value"] == "__MASKED__":
+            continue
+        elif env_var["masked"] is False and env_var["value"] == "__MASKED__":
+            env_vars_instance.filter(name=env_var["name"]).update(masked=False)
+        elif env_var["name"] in [value.name for value in env_vars_instance]:
+            env_vars_instance.filter(name=env_var["name"]).update(value=env_var["value"], masked=env_var["masked"])
+        else:
+            if level == "project":
+                SpiderJobEnvVar.objects.create(project=instance, **env_var)
+            elif level == "spider":
+                SpiderJobEnvVar.objects.create(spider=instance, **env_var)
+    for env_var in env_vars_instance:
+        if env_var.name not in [value["name"] for value in env_vars]:
+            env_var.delete()
 
 
 class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
@@ -101,6 +122,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
         description = ""
         framework = serializer.validated_data.pop("framework", "")
+        env_vars = serializer.validated_data.pop("env_vars", None)
 
         if name:
             old_name = instance.name
@@ -110,6 +132,9 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         if framework and framework != instance.framework:
             instance.framework = framework
             description = f"changed the framework to {framework}."
+
+        if env_vars is not None:
+            update_env_vars(instance, env_vars, level="project")
 
         user = request.user
         is_superuser = user.is_superuser or user.is_staff

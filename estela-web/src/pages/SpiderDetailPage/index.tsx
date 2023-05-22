@@ -16,6 +16,7 @@ import {
 } from "antd";
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
+import { EnvVarsSetting } from "../EnvVarsSettingsPage";
 
 import "./styles.scss";
 import CronjobCreateModal from "../CronjobCreateModal";
@@ -37,6 +38,7 @@ import {
     SpiderJob,
     SpiderJobArg,
     SpiderJobTag,
+    SpiderJobEnvVar,
 } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString, handleInvalidDataError } from "../../utils";
@@ -80,6 +82,7 @@ interface SpiderDetailPageState {
     newDataStatus: SpiderUpdateDataStatusEnum | undefined;
     dataStatus: SpiderDataStatusEnum | SpiderUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
+    envVars: SpiderJobEnvVar[];
 }
 
 interface RouteParams {
@@ -106,6 +109,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             dataExpiryDays: 0,
             dataStatus: SpiderDataStatusEnum.Persistent,
         },
+        envVars: [],
         loaded: false,
         count: 0,
         current: 0,
@@ -201,6 +205,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
         this.apiService.apiProjectsSpidersRead(requestParams).then(
             async (response: Spider) => {
+                console.log(response);
                 const data = await this.getSpiderJobs(1);
 
                 const waitingJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "WAITING");
@@ -225,11 +230,13 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 ];
 
                 const jobs: SpiderJobData[] = data.data;
+                const envVars = response.envVars || [];
                 this.setState({
                     spider: response,
                     name: response.name,
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays,
+                    envVars: envVars,
                     jobs: [...jobs],
                     count: data.count,
                     current: data.current,
@@ -294,7 +301,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
 
     changePersistence = (): void => {
         const requestData: SpiderUpdate = {
-            name: this.state.name,
             dataStatus: this.state.newDataStatus,
             dataExpiryDays: Number(this.state.dataExpiryDays),
         };
@@ -798,7 +804,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     ];
 
     settings = (): React.ReactNode => {
-        const { dataStatus, dataExpiryDays, persistenceChanged } = this.state;
+        const { dataStatus, dataExpiryDays, persistenceChanged, envVars } = this.state;
         return (
             <Row justify="center" className="bg-white rounded-lg">
                 <Content className="content-padding">
@@ -843,6 +849,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                             </div>
                         </Col>
                     </Row>
+                    <EnvVarsSetting
+                        projectId={this.projectId}
+                        spiderId={this.spiderId}
+                        envVarsData={envVars}
+                        level="spider"
+                    />
                 </Content>
             </Row>
         );
