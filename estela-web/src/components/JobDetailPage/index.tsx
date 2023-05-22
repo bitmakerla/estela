@@ -180,7 +180,9 @@ class ItemsMetadata extends Component<ItemsMetadataProps> {
     parseMetadata = (): void => {
         this.metadata.splice(0, this.metadata.length);
         for (const key in this.item) {
-            this.metadata.push(this.typeDefinition(key, this.item[key]));
+            if (key !== "coverage") {
+                this.metadata.push(this.typeDefinition(key, this.item[key]));
+            }
         }
     };
 

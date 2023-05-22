@@ -121,7 +121,7 @@ const getCoverageDataset = (statsData: GlobalStats[]) => {
 const getSuccessRateDataset = (statsData: GlobalStats[]) => {
     return [
         {
-            label: "Success rate (percentage)",
+            label: "Job success rate (percentage)",
             data: statsData.map((statData) => statData.stats.successRate ?? 0),
             backgroundColor: "#32C3A4",
         },
@@ -236,7 +236,6 @@ interface ProjectDashboardPageState {
     current: number;
     loadedStats: boolean;
     globalStats: GlobalStats[];
-    focusedStatIndex: number;
     statOptionTab: StatType;
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
@@ -259,7 +258,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         current: 0,
         loadedStats: false,
         globalStats: [],
-        focusedStatIndex: 0,
         statOptionTab: StatType.JOBS,
         statsStartDate: moment().subtract(7, "days").startOf("day"),
         statsEndDate: moment(),
@@ -424,6 +422,14 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         },
                         y: {
                             stacked: true,
+                            min:
+                                statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
+                                    ? 0
+                                    : undefined,
+                            max:
+                                statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
+                                    ? 100
+                                    : undefined,
                         },
                     },
                 }}
@@ -499,7 +505,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 <Divider className="bg-estela-black-low mb-5" />
                 <Content className="flow-root">
                     <Tabs
-                        className="float-right text-estela-black-medium text-xs md:text-sm"
+                        className="float-right w-full text-estela-black-medium text-xs md:text-sm"
                         defaultActiveKey={"optionTab"}
                         onChange={this.onStatsTabChange}
                         items={[
@@ -551,55 +557,59 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     dataSection: () => JSX.Element = () => {
-        const { loadedStats, globalStats, focusedStatIndex } = this.state;
+        const { loadedStats, globalStats } = this.state;
 
         if (!loadedStats) {
             return (
-                <>
-                    <Row className="animate-pulse h-12 w-full grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md" />
-                </>
+                <Row className="animate-pulse h-12 w-full grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md" />
             );
         }
 
         if (loadedStats && globalStats.length === 0) {
             return <></>;
         }
-
-        const focusedStat: GlobalStats = globalStats[focusedStatIndex];
+        const accumulatedStat = {
+            totalJobs: globalStats.reduce((acc, curr) => acc + (curr.stats.jobs.totalJobs ?? 0), 0),
+            totalPages: globalStats.reduce((acc, curr) => acc + (curr.stats.pages.totalPages ?? 0), 0),
+            totalItems: globalStats.reduce((acc, curr) => acc + (curr.stats.itemsCount ?? 0), 0),
+            totalRuntime: globalStats.reduce((acc, curr) => acc + (curr.stats.runtime ?? 0), 0),
+            totalSuccessRate:
+                globalStats.reduce((acc, curr) => acc + (curr.stats.successRate ?? 0), 0) / globalStats.length,
+            totalCoverage:
+                globalStats.reduce((acc, curr) => acc + (curr.stats.coverage.totalItemsCoverage ?? 0), 0) /
+                globalStats.length,
+            totalLogs: globalStats.reduce((acc, curr) => acc + (curr.stats.logs.totalLogs ?? 0), 0),
+        };
 
         return (
             <>
                 <Row className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md">
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">{focusedStat.stats.jobs.totalJobs ?? 0}</p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalJobs}</p>
                         <p className="text-sm text-center text-estela-black-medium">Jobs</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">{focusedStat.stats.pages.totalPages ?? 0}</p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalPages}</p>
                         <p className="text-sm text-center text-estela-black-medium">Pages</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">{focusedStat.stats.itemsCount ?? 0}</p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalItems}</p>
                         <p className="text-sm text-center text-estela-black-medium">Items</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">{(focusedStat.stats.runtime ?? 0).toFixed(2)}</p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalRuntime.toFixed(2)}</p>
                         <p className="text-sm text-center text-estela-black-medium">Runtime</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">
-                            {(focusedStat.stats.successRate ?? 0).toFixed(2)}
-                        </p>
-                        <p className="text-sm text-center text-estela-black-medium">Success rate</p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalSuccessRate.toFixed(2)}</p>
+                        <p className="text-sm text-center text-estela-black-medium">Job success rate</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">
-                            {(focusedStat.stats.coverage.totalItemsCoverage ?? 0).toFixed(2)}
-                        </p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalCoverage.toFixed(2)}</p>
                         <p className="text-sm text-center text-estela-black-medium">Coverage</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">{focusedStat.stats.logs.totalLogs ?? 0}</p>
+                        <p className="text-sm text-center text-black">{accumulatedStat.totalLogs}</p>
                         <p className="text-sm text-center text-estela-black-medium">Logs</p>
                     </Col>
                 </Row>
@@ -621,22 +631,10 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <p className="text-sm text-center text-estela-black-full">RUNTIME</p>
                     </Col>
                     <Col className="my-2">
-                        <p className="text-sm text-center text-estela-black-full">S. RATE</p>
+                        <p className="text-sm text-center text-estela-black-full">SUCCESS</p>
                     </Col>
                 </Row>
-                <Collapse
-                    bordered={false}
-                    className="bg-white"
-                    onChange={(key: string | string[]) => {
-                        if (key && !Array.isArray(key)) {
-                            const { focusedStatIndex } = this.state;
-                            const index = parseInt(key, 10);
-                            index !== focusedStatIndex && this.setState({ focusedStatIndex: index });
-                        }
-                    }}
-                    ghost
-                    accordion
-                >
+                <Collapse bordered={false} className="bg-white" ghost accordion>
                     {globalStats.map((stat, index) => {
                         const dateString = stat.date.toISOString();
                         const totalJobs = stat.stats.jobs.totalJobs ?? 0;
@@ -647,12 +645,27 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             errorJobs: totalJobs !== 0 ? (100 * (stat.stats.jobs.errorJobs ?? 0)) / totalJobs : 0,
                             unknownJobs: totalJobs !== 0 ? (100 * (stat.stats.jobs.unknownJobs ?? 0)) / totalJobs : 0,
                         };
+                        const jobsSizeArr = Object.values(jobsSize);
+                        const firstIndex = jobsSizeArr.findIndex((size) => size !== 0);
+                        const lastIndex =
+                            jobsSizeArr.length - jobsSizeArr.reverse().findIndex((size) => size !== 0) - 1;
+
                         const pagesSize = {
                             scrapedPages:
                                 totalPages !== 0 ? (100 * (stat.stats.pages.scrapedPages ?? 0)) / totalPages : 0,
                             missedPages:
                                 totalPages !== 0 ? (100 * (stat.stats.pages.missedPages ?? 0)) / totalPages : 0,
                         };
+                        if (pagesSize.scrapedPages !== 0 && pagesSize.missedPages !== 0) {
+                            const minimumRatio = 10;
+                            if (pagesSize.scrapedPages < minimumRatio) {
+                                pagesSize.scrapedPages = minimumRatio;
+                                pagesSize.missedPages = 100 - minimumRatio;
+                            } else if (pagesSize.missedPages < minimumRatio) {
+                                pagesSize.missedPages = minimumRatio;
+                                pagesSize.scrapedPages = 100 - minimumRatio;
+                            }
+                        }
                         const successRate = (stat.stats.successRate ?? 0).toFixed(2);
                         return (
                             <Panel
@@ -669,19 +682,27 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         <Col className="grid grid-cols-1 px-2">
                                             <div className="flex items-center h-2.5 justify-start">
                                                 <div
-                                                    className="h-full rounded bg-estela-complementary-green"
+                                                    className={`${firstIndex === 0 && "rounded-l"} ${
+                                                        lastIndex === 0 && "rounded-r"
+                                                    } h-full bg-estela-complementary-green`}
                                                     style={{ width: `${jobsSize.finishedJobs}%` }}
                                                 />
                                                 <div
-                                                    className="h-full rounded bg-estela-complementary-yellow"
+                                                    className={`${firstIndex === 1 && "rounded-l"} ${
+                                                        lastIndex === 1 && "rounded-r"
+                                                    } h-full bg-estela-complementary-yellow`}
                                                     style={{ width: `${jobsSize.runningJobs}%` }}
                                                 />
                                                 <div
-                                                    className="h-full rounded bg-estela-complementary-purple"
+                                                    className={`${firstIndex === 2 && "rounded-l"} ${
+                                                        lastIndex === 2 && "rounded-r"
+                                                    } h-full bg-estela-complementary-purple`}
                                                     style={{ width: `${jobsSize.errorJobs}%` }}
                                                 />
                                                 <div
-                                                    className="h-full rounded bg-estela-black-medium"
+                                                    className={`${firstIndex === 3 && "rounded-l"} ${
+                                                        lastIndex === 3 && "rounded-r"
+                                                    } h-full bg-estela-black-medium`}
                                                     style={{ width: `${jobsSize.unknownJobs}%` }}
                                                 />
                                             </div>
@@ -690,11 +711,15 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         <Col className="grid grid-cols-1 px-2">
                                             <div className="flex items-center h-2.5 justify-start">
                                                 <div
-                                                    className="h-full rounded bg-estela-complementary-green"
+                                                    className={`${pagesSize.scrapedPages > 0 && "rounded-l"} ${
+                                                        pagesSize.missedPages === 0 && "rounded-r"
+                                                    } h-full bg-estela-complementary-green`}
                                                     style={{ width: `${pagesSize.scrapedPages}%` }}
                                                 />
                                                 <div
-                                                    className="h-full rounded bg-estela-complementary-purple"
+                                                    className={`${pagesSize.missedPages > 0 && "rounded-r"} ${
+                                                        pagesSize.scrapedPages === 0 && "rounded-l"
+                                                    } h-full bg-estela-complementary-purple`}
                                                     style={{ width: `${pagesSize.missedPages}%` }}
                                                 />
                                             </div>
@@ -720,28 +745,28 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 }
                                 key={`${index}`}
                             >
-                                <Row className="grid grid-cols-6">
+                                <Row className="grid grid-cols-6 ml-8 gap-1">
                                     <Col className="col-start-2 grid grid-cols-1 content-start">
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-estela-complementary-green" />
+                                            <div className="w-3 h-3 bg-estela-complementary-green rounded" />
                                             <span className="text-estela-black-full text-xs">
-                                                {stat.stats.jobs.totalJobs ?? 0} finished
+                                                {stat.stats.jobs.finishedJobs ?? 0} finished
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-estela-complementary-yellow" />
+                                            <div className="w-3 h-3 bg-estela-complementary-yellow rounded" />
                                             <span className="text-estela-black-full text-xs">
                                                 {stat.stats.jobs.runningJobs ?? 0} running
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-estela-complementary-purple" />
+                                            <div className="w-3 h-3 bg-estela-complementary-purple rounded" />
                                             <span className="text-estela-black-full text-xs">
                                                 {stat.stats.jobs.errorJobs ?? 0} error
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-estela-black-medium" />
+                                            <div className="w-3 h-3 bg-estela-black-medium rounded" />
                                             <span className="text-estela-black-full text-xs">
                                                 {stat.stats.jobs.unknownJobs ?? 0} unknown
                                             </span>
@@ -749,13 +774,13 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     </Col>
                                     <Col className="grid grid-cols-1 content-start">
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-estela-complementary-green" />
+                                            <div className="w-3 h-3 bg-estela-complementary-green rounded" />
                                             <span className="text-estela-black-full text-xs">
                                                 {stat.stats.pages.scrapedPages ?? 0} scraped
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-estela-complementary-purple" />
+                                            <div className="w-3 h-3 bg-estela-complementary-purple rounded" />
                                             <span className="text-estela-black-full text-xs">
                                                 {stat.stats.pages.missedPages ?? 0} missed
                                             </span>
@@ -795,10 +820,10 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 <Card bordered={false} className="bg-white rounded-lg">
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
-                            <Text className="text-base text-estela-black-medium break-words">&lt;&gt; HEALTH</Text>
+                            <Text className="text-base text-estela-black-medium break-words">HEALTH</Text>
                             <TooltipAnt
                                 placement="left"
-                                title="Average success rate of all jobs in the specified range + Total No. scraped items."
+                                title="Average job success rate of all dates in the specified range + Total No. scraped items."
                             >
                                 <Help className="w-4 h-4 stroke-estela-black-medium" />
                             </TooltipAnt>
