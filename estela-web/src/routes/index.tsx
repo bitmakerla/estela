@@ -85,12 +85,6 @@ export const MainRoutes: React.FC = () => {
                         exact
                     />
                     <Route path="/projects/:projectId/spiders/:spiderId/jobs/:jobId" component={JobDetailPage} exact />
-                    <Route path="/projects/:projectId/spiders/:spiderId/cronjobs" component={CronJobListPage} exact />
-                    <Route
-                        path="/projects/:projectId/spiders/:spiderId/cronjobs/create"
-                        component={CronJobCreatePage}
-                        exact
-                    />
                     <Route
                         path="/projects/:projectId/spiders/:spiderId/cronjobs/:cronjobId"
                         component={CronJobDetailPage}

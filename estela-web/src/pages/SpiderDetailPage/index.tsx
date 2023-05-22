@@ -783,7 +783,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             size="large"
                                             className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                         >
-                                            Schedule new job
+                                            Schedule job
                                         </Button>
                                     </Col>
                                     <Col className="float-right">
