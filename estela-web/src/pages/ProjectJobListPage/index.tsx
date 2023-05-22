@@ -65,6 +65,7 @@ interface ProjectJobListPageState {
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
     errorJobs: SpiderJobData[];
+    modal: boolean;
     loaded: boolean;
     count: number;
     current: number;
@@ -87,6 +88,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         completedJobs: [],
         errorJobs: [],
         loading: false,
+        modal: this.LocationState ? this.LocationState.open : false,
         tableStatus: new Array<boolean>(4).fill(true),
         loaded: false,
         count: 0,

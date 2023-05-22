@@ -535,7 +535,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 children: this.chartsSection(),
                             },
                             {
-                                label: "Job S. rate",
+                                label: "Success rate",
                                 key: StatType.SUCCESS_RATE,
                                 children: this.chartsSection(),
                             },
@@ -568,7 +568,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         if (loadedStats && globalStats.length === 0) {
             return <></>;
         }
-        console.log("Before: ", globalStats);
         const accumulatedStat = {
             totalJobs: globalStats.reduce((acc, curr) => acc + (curr.stats.jobs.totalJobs ?? 0), 0),
             totalPages: globalStats.reduce((acc, curr) => acc + (curr.stats.pages.totalPages ?? 0), 0),
@@ -582,7 +581,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             totalLogs: globalStats.reduce((acc, curr) => acc + (curr.stats.logs.totalLogs ?? 0), 0),
         };
 
-        console.log("After: ", globalStats);
         return (
             <>
                 <Row className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-7 justify-items-center bg-estela-blue-low rounded-md">
@@ -633,7 +631,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <p className="text-sm text-center text-estela-black-full">RUNTIME</p>
                     </Col>
                     <Col className="my-2">
-                        <p className="text-sm text-center text-estela-black-full">JOB S. RATE</p>
+                        <p className="text-sm text-center text-estela-black-full">SUCCESS</p>
                     </Col>
                 </Row>
                 <Collapse bordered={false} className="bg-white" ghost accordion>
