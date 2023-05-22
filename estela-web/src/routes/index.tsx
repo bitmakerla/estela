@@ -15,8 +15,6 @@ import { DeployListPage } from "../components/DeployListPage";
 import { SpiderListPage } from "../components/SpiderListPage";
 import { SpiderDetailPage } from "../components/SpiderDetailPage";
 import { JobDetailPage } from "../components/JobDetailPage";
-import { CronJobListPage } from "../components/CronJobListPage";
-import { CronJobCreatePage } from "../components/CronJobCreatePage";
 import { CronJobDetailPage } from "../components/CronJobDetailPage";
 import { JobDataListPage } from "../components/JobDataListPage";
 import { ProjectDashboardPage } from "../components/ProjectDashboardPage";
@@ -85,12 +83,6 @@ export const MainRoutes: React.FC = () => {
                         exact
                     />
                     <Route path="/projects/:projectId/spiders/:spiderId/jobs/:jobId" component={JobDetailPage} exact />
-                    <Route path="/projects/:projectId/spiders/:spiderId/cronjobs" component={CronJobListPage} exact />
-                    <Route
-                        path="/projects/:projectId/spiders/:spiderId/cronjobs/create"
-                        component={CronJobCreatePage}
-                        exact
-                    />
                     <Route
                         path="/projects/:projectId/spiders/:spiderId/cronjobs/:cronjobId"
                         component={CronJobDetailPage}
