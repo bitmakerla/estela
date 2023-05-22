@@ -604,7 +604,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
                         <p className="text-sm text-center text-black">{accumulatedStat.totalSuccessRate.toFixed(2)}</p>
-                        <p className="text-sm text-center text-estela-black-medium">Job success rate</p>
+                        <p className="text-sm text-center text-estela-black-medium">Job S.Rate</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
                         <p className="text-sm text-center text-black">{accumulatedStat.totalCoverage.toFixed(2)}</p>
