@@ -56,6 +56,7 @@ class SpiderCronJobViewSet(
                 description="Cron job tag.",
             ),
         ],
+        tags=["spider-cronjobs"],
     )
     def list(self, *args, **kwargs):
         return super(SpiderCronJobViewSet, self).list(*args, **kwargs)
@@ -63,6 +64,7 @@ class SpiderCronJobViewSet(
     @swagger_auto_schema(
         request_body=SpiderCronJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderCronJobCreateSerializer()},
+        tags=["spider-cronjobs"],
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
@@ -101,6 +103,7 @@ class SpiderCronJobViewSet(
     @swagger_auto_schema(
         request_body=SpiderCronJobUpdateSerializer,
         responses={status.HTTP_200_OK: SpiderCronJobUpdateSerializer()},
+        tags=["spider-cronjobs"],
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -118,6 +121,7 @@ class SpiderCronJobViewSet(
 
     @swagger_auto_schema(
         responses={status.HTTP_204_NO_CONTENT: "Cronjob deleted"},
+        tags=["spider-cronjobs"],
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -131,7 +135,9 @@ class SpiderCronJobViewSet(
         instance.save()
 
     @swagger_auto_schema(
-        methods=["GET"], responses={status.HTTP_200_OK: SpiderCronJobSerializer()}
+        methods=["GET"],
+        responses={status.HTTP_200_OK: SpiderCronJobSerializer()},
+        tags=["spider-cronjobs"],
     )
     @action(methods=["GET"], detail=True)
     def run_once(self, request, *args, **kwargs):
@@ -142,3 +148,17 @@ class SpiderCronJobViewSet(
 
         run_cronjob_once(cronjob.data)
         return Response(cronjob.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: SpiderCronJobSerializer()},
+        tags=["spider-cronjobs"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: SpiderCronJobSerializer()},
+        tags=["spider-cronjobs"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)

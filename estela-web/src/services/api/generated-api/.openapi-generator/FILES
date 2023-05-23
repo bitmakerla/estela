@@ -1,5 +1,11 @@
 .openapi-generator-ignore
-apis/ApiApi.ts
+apis/AuthApi.ts
+apis/DeploysApi.ts
+apis/ProjectsApi.ts
+apis/SpiderCronjobsApi.ts
+apis/SpiderJobsApi.ts
+apis/SpidersApi.ts
+apis/StatsApi.ts
 apis/index.ts
 index.ts
 models/AuthToken.ts

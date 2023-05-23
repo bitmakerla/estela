@@ -33,7 +33,7 @@ paths:
           schema:
             $ref: '#/definitions/Token'
       tags:
-        - api
+        - auth
     parameters: []
   /api/account/resetPassword/confirm:
     patch:
@@ -68,7 +68,7 @@ paths:
               error:
                 type: string
       tags:
-        - api
+        - auth
     parameters: []
   /api/account/resetPassword/request:
     post:
@@ -81,12 +81,12 @@ paths:
           schema:
             $ref: '#/definitions/ResetPasswordRequest'
       responses:
-        '201':
+        '200':
           description: ''
           schema:
-            $ref: '#/definitions/ResetPasswordRequest'
+            $ref: '#/definitions/Token'
       tags:
-        - api
+        - auth
     parameters: []
   /api/account/resetPassword/validate:
     get:
@@ -119,7 +119,7 @@ paths:
               message:
                 type: string
       tags:
-        - api
+        - auth
     parameters: []
   /api/auth/activate:
     get:
@@ -134,7 +134,7 @@ paths:
             items:
               $ref: '#/definitions/AuthToken'
       tags:
-        - api
+        - auth
     parameters: []
   /api/auth/login:
     post:
@@ -152,7 +152,7 @@ paths:
           schema:
             $ref: '#/definitions/Token'
       tags:
-        - api
+        - auth
     parameters: []
   /api/auth/profile:
     get:
@@ -167,7 +167,7 @@ paths:
             items:
               $ref: '#/definitions/UserProfile'
       tags:
-        - api
+        - auth
     post:
       operationId: api_auth_profile_create
       description: ''
@@ -183,7 +183,7 @@ paths:
           schema:
             $ref: '#/definitions/UserProfile'
       tags:
-        - api
+        - auth
     parameters: []
   /api/auth/profile/{username}:
     get:
@@ -196,7 +196,7 @@ paths:
           schema:
             $ref: '#/definitions/UserProfile'
       tags:
-        - api
+        - auth
     put:
       operationId: api_auth_profile_update
       description: ''
@@ -212,7 +212,7 @@ paths:
           schema:
             $ref: '#/definitions/UserProfile'
       tags:
-        - api
+        - auth
     patch:
       operationId: api_auth_profile_partial_update
       description: ''
@@ -228,16 +228,16 @@ paths:
           schema:
             $ref: '#/definitions/UserProfile'
       tags:
-        - api
+        - auth
     delete:
       operationId: api_auth_profile_delete
       description: ''
       parameters: []
       responses:
         '204':
-          description: ''
+          description: No Content
       tags:
-        - api
+        - auth
     parameters:
       - name: username
         in: path
@@ -262,7 +262,7 @@ paths:
           schema:
             $ref: '#/definitions/Token'
       tags:
-        - api
+        - auth
     parameters: []
   /api/projects:
     get:
@@ -303,7 +303,7 @@ paths:
                 items:
                   $ref: '#/definitions/Project'
       tags:
-        - api
+        - projects
     post:
       operationId: api_projects_create
       description: ''
@@ -319,7 +319,7 @@ paths:
           schema:
             $ref: '#/definitions/Project'
       tags:
-        - api
+        - projects
     parameters: []
   /api/projects/{pid}:
     get:
@@ -332,7 +332,7 @@ paths:
           schema:
             $ref: '#/definitions/Project'
       tags:
-        - api
+        - projects
     put:
       operationId: api_projects_update
       description: ''
@@ -348,7 +348,7 @@ paths:
           schema:
             $ref: '#/definitions/ProjectUpdate'
       tags:
-        - api
+        - projects
     patch:
       operationId: api_projects_partial_update
       description: ''
@@ -364,7 +364,7 @@ paths:
           schema:
             $ref: '#/definitions/Project'
       tags:
-        - api
+        - projects
     delete:
       operationId: api_projects_delete
       description: ''
@@ -373,7 +373,7 @@ paths:
         '204':
           description: Project deleted
       tags:
-        - api
+        - projects
     parameters:
       - name: pid
         in: path
@@ -402,7 +402,7 @@ paths:
           schema:
             $ref: '#/definitions/ProjectCronJob'
       tags:
-        - api
+        - projects
     parameters:
       - name: pid
         in: path
@@ -421,7 +421,7 @@ paths:
           schema:
             $ref: '#/definitions/ProjectUsage'
       tags:
-        - api
+        - projects
     parameters:
       - name: pid
         in: path
@@ -468,7 +468,7 @@ paths:
                 items:
                   $ref: '#/definitions/Deploy'
       tags:
-        - api
+        - deploys
     post:
       operationId: api_projects_deploys_create
       description: ''
@@ -484,7 +484,7 @@ paths:
           schema:
             $ref: '#/definitions/DeployCreate'
       tags:
-        - api
+        - deploys
     parameters:
       - name: pid
         in: path
@@ -501,7 +501,7 @@ paths:
           schema:
             $ref: '#/definitions/Deploy'
       tags:
-        - api
+        - deploys
     put:
       operationId: api_projects_deploys_update
       description: ''
@@ -517,7 +517,7 @@ paths:
           schema:
             $ref: '#/definitions/DeployUpdate'
       tags:
-        - api
+        - deploys
     patch:
       operationId: api_projects_deploys_partial_update
       description: ''
@@ -533,16 +533,16 @@ paths:
           schema:
             $ref: '#/definitions/Deploy'
       tags:
-        - api
+        - deploys
     delete:
       operationId: api_projects_deploys_delete
       description: ''
       parameters: []
       responses:
         '204':
-          description: ''
+          description: No Content
       tags:
-        - api
+        - deploys
     parameters:
       - name: did
         in: path
@@ -574,7 +574,7 @@ paths:
           schema:
             $ref: '#/definitions/ProjectJob'
       tags:
-        - api
+        - projects
     parameters:
       - name: pid
         in: path
@@ -621,7 +621,7 @@ paths:
                 items:
                   $ref: '#/definitions/Spider'
       tags:
-        - api
+        - spiders
     parameters:
       - name: pid
         in: path
@@ -638,7 +638,7 @@ paths:
           schema:
             $ref: '#/definitions/Spider'
       tags:
-        - api
+        - spiders
     put:
       operationId: api_projects_spiders_update
       description: ''
@@ -654,7 +654,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderUpdate'
       tags:
-        - api
+        - spiders
     patch:
       operationId: api_projects_spiders_partial_update
       description: ''
@@ -670,7 +670,7 @@ paths:
           schema:
             $ref: '#/definitions/Spider'
       tags:
-        - api
+        - spiders
     parameters:
       - name: pid
         in: path
@@ -725,7 +725,7 @@ paths:
                 items:
                   $ref: '#/definitions/SpiderCronJob'
       tags:
-        - api
+        - spider-cronjobs
     post:
       operationId: api_projects_spiders_cronjobs_create
       description: ''
@@ -741,7 +741,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderCronJobCreate'
       tags:
-        - api
+        - spider-cronjobs
     parameters:
       - name: pid
         in: path
@@ -762,7 +762,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderCronJob'
       tags:
-        - api
+        - spider-cronjobs
     put:
       operationId: api_projects_spiders_cronjobs_update
       description: ''
@@ -778,7 +778,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderCronJobUpdate'
       tags:
-        - api
+        - spider-cronjobs
     patch:
       operationId: api_projects_spiders_cronjobs_partial_update
       description: ''
@@ -794,7 +794,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderCronJob'
       tags:
-        - api
+        - spider-cronjobs
     delete:
       operationId: api_projects_spiders_cronjobs_delete
       description: ''
@@ -803,7 +803,7 @@ paths:
         '204':
           description: Cronjob deleted
       tags:
-        - api
+        - spider-cronjobs
     parameters:
       - name: cjid
         in: path
@@ -829,7 +829,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderCronJob'
       tags:
-        - api
+        - spider-cronjobs
     parameters:
       - name: cjid
         in: path
@@ -898,7 +898,7 @@ paths:
                 items:
                   $ref: '#/definitions/SpiderJob'
       tags:
-        - api
+        - spider-jobs
     post:
       operationId: api_projects_spiders_jobs_create
       description: ''
@@ -918,7 +918,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderJobCreate'
       tags:
-        - api
+        - spider-jobs
     parameters:
       - name: pid
         in: path
@@ -939,7 +939,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderJob'
       tags:
-        - api
+        - spider-jobs
     put:
       operationId: api_projects_spiders_jobs_update
       description: ''
@@ -955,7 +955,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderJobUpdate'
       tags:
-        - api
+        - spider-jobs
     patch:
       operationId: api_projects_spiders_jobs_partial_update
       description: ''
@@ -971,7 +971,7 @@ paths:
           schema:
             $ref: '#/definitions/SpiderJob'
       tags:
-        - api
+        - spider-jobs
     parameters:
       - name: jid
         in: path
@@ -1034,7 +1034,7 @@ paths:
                 items:
                   type: object
       tags:
-        - api
+        - spider-jobs
     parameters:
       - name: jid
         in: path
@@ -1064,7 +1064,7 @@ paths:
           schema:
             $ref: '#/definitions/DeleteJobData'
       tags:
-        - api
+        - spider-jobs
     parameters:
       - name: jid
         in: path
@@ -1112,7 +1112,7 @@ paths:
             items:
               $ref: '#/definitions/GlobalStats'
       tags:
-        - api
+        - stats
     parameters:
       - name: pid
         in: path
@@ -1152,7 +1152,7 @@ paths:
             items:
               $ref: '#/definitions/SpidersJobsStats'
       tags:
-        - api
+        - stats
     parameters:
       - name: pid
         in: path
@@ -1185,7 +1185,7 @@ paths:
             items:
               $ref: '#/definitions/UsageRecord'
       tags:
-        - api
+        - projects
     parameters:
       - name: pid
         in: path

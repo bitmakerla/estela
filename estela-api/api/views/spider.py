@@ -26,6 +26,7 @@ class SpiderViewSet(
     @swagger_auto_schema(
         request_body=SpiderUpdateSerializer,
         responses={status.HTTP_200_OK: SpiderUpdateSerializer()},
+        tags=["spiders"],
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -40,3 +41,23 @@ class SpiderViewSet(
             instance._prefetched_objects_cache = {}
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        tags=["spiders"],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: SpiderSerializer()},
+        tags=["spiders"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: SpiderSerializer()},
+        tags=["spiders"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)

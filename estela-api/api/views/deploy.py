@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -40,6 +41,7 @@ class DeployViewSet(
     @swagger_auto_schema(
         request_body=DeployCreateSerializer,
         responses={status.HTTP_201_CREATED: DeployCreateSerializer()},
+        tags=["deploys"],
     )
     def create(self, request, *args, **kwargs):
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
@@ -74,6 +76,7 @@ class DeployViewSet(
     @swagger_auto_schema(
         request_body=DeployUpdateSerializer,
         responses={status.HTTP_200_OK: DeployUpdateSerializer()},
+        tags=["deploys"],
     )
     def update(self, request, *args, **kwargs):
         if not request.user.is_superuser:
@@ -93,3 +96,32 @@ class DeployViewSet(
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    @swagger_auto_schema(
+        tags=["deploys"],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: DeploySerializer()},
+        tags=["deploys"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: DeploySerializer()},
+        tags=["deploys"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_204_NO_CONTENT: openapi.Response("No Content"),
+        },
+        tags=["deploys"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)

@@ -1,4 +1,3 @@
-from datetime import date, timedelta
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -80,6 +79,7 @@ class SpiderJobViewSet(
                 description="Job tag.",
             ),
         ],
+        tags=["spider-jobs"],
     )
     def list(self, *args, **kwargs):
         return super(SpiderJobViewSet, self).list(*args, **kwargs)
@@ -95,6 +95,7 @@ class SpiderJobViewSet(
         ],
         request_body=SpiderJobCreateSerializer,
         responses={status.HTTP_201_CREATED: SpiderJobCreateSerializer()},
+        tags=["spider-jobs"],
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
@@ -146,6 +147,7 @@ class SpiderJobViewSet(
     @swagger_auto_schema(
         request_body=SpiderJobUpdateSerializer,
         responses={status.HTTP_200_OK: SpiderJobUpdateSerializer()},
+        tags=["spider-jobs"],
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -161,3 +163,17 @@ class SpiderJobViewSet(
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: SpiderJobSerializer()},
+        tags=["spider-jobs"],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: SpiderJobSerializer()},
+        tags=["spider-jobs"],
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
