@@ -13,7 +13,7 @@ from api.serializers.job import SpiderJobCreateSerializer
 from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
 from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
-
+from core.utils import report_failed_job
 
 def get_default_token(job):
     user = job.spider.project.users.first()
@@ -110,6 +110,7 @@ def check_and_update_job_status_errors():
             job_status.active is None and job_status.succeeded is None
         ):
             job.status = SpiderJob.ERROR_STATUS
+            report_failed_job(job)
             job.save()
 
 

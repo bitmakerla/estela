@@ -1,0 +1,5 @@
+{% autoescape off %}
+Hello {{ user.username }},
+
+Your job {{ job.name }} has failed. You can check the error log at {{ domain }}/projects/{{ pid }}/spiders/{{ sid }}/jobs/{{ job.jid }}.
+{% endautoescape %}
