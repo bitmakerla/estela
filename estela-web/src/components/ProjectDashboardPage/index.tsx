@@ -228,7 +228,7 @@ interface Ids {
 interface ProjectDashboardPageState {
     name: string;
     network: number;
-    processingTime: string;
+    processingTime: number;
     storage: number;
     projectUseLoaded: boolean;
     loaded: boolean;
@@ -250,7 +250,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     state: ProjectDashboardPageState = {
         name: "",
         network: 0,
-        processingTime: "0",
+        processingTime: 0,
         storage: 0,
         loaded: false,
         projectUseLoaded: false,
@@ -331,7 +331,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             this.setState({
                 projectUseLoaded: true,
                 network: response.networkUsage,
-                processingTime: String(Math.round(time * 100) / 100),
+                processingTime: Math.round(time * 100) / 100,
                 storage: response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
                 loaded: true,
             });
@@ -368,6 +368,18 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
             const i = Math.floor(Math.log(bytes) / Math.log(1024));
             return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
+        }
+    };
+
+    formatTime = (time: number): string => {
+        if (!+time) {
+            return "0 seconds";
+        } else {
+            if (time >= 60) {
+                return `${Math.floor(time / 60)} min`;
+            } else {
+                return `${time} seconds`;
+            }
         }
     };
 
@@ -887,7 +899,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         Processing time
                                     </Text>
                                     <Text className="text-base text-estela-black-full break-words">
-                                        {processingTime} seg
+                                        {this.formatTime(processingTime)}
                                     </Text>
                                 </div>
                                 <div className="flex items-center justify-between">
