@@ -2280,10 +2280,23 @@ definitions:
         $ref: '#/definitions/LogsStats'
       coverage:
         $ref: '#/definitions/CoverageStats'
+  JobsMetadata:
+    type: object
+    properties:
+      jid:
+        title: Jid
+        description: A unique integer value identifying this job.
+        type: integer
+        readOnly: true
+      sid:
+        title: Sid
+        type: string
+        readOnly: true
   GlobalStats:
     required:
       - date
       - stats
+      - jobs_metadata
     type: object
     properties:
       date:
@@ -2292,10 +2305,15 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
+      jobs_metadata:
+        type: array
+        items:
+          $ref: '#/definitions/JobsMetadata'
   SpidersJobsStats:
     required:
       - date
       - stats
+      - jobs_metadata
     type: object
     properties:
       date:
@@ -2304,6 +2322,10 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
+      jobs_metadata:
+        type: array
+        items:
+          $ref: '#/definitions/JobsMetadata'
   UsageRecord:
     required:
       - processing_time

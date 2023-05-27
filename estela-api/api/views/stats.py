@@ -1,8 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, time
-from typing import Any, List, Tuple
+from typing import List, Tuple
 from re import findall
-from django.utils import timezone
 from django.db.models.query import QuerySet
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -10,6 +9,7 @@ from rest_framework import status, mixins
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import ListSerializer
+from rest_framework.decorators import action
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
@@ -17,6 +17,8 @@ from api.serializers.stats import (
     StatsSerializer,
     GlobalStatsSerializer,
     SpidersJobsStatsSerializer,
+    JobsMetadataSerializer,
+    JobsStatsSerializer,
 )
 from config.job_manager import spiderdata_db_client
 from core.models import (
@@ -28,8 +30,8 @@ from core.models import (
 
 class StatsForDashboardMixin:
     def get_parameters(self, request: Request) -> Tuple[datetime, datetime]:
-        start_date = request.query_params.get("start_date", timezone.now())
-        end_date: datetime = request.query_params.get("end_date", timezone.now())
+        start_date = request.query_params.get("start_date", datetime.utcnow())
+        end_date = request.query_params.get("end_date", datetime.utcnow())
 
         if type(start_date) == str:
             start_date = datetime.strptime(start_date, "%Y-%m-%d")
@@ -105,8 +107,8 @@ class StatsForDashboardMixin:
                 "total_items": 0,
                 "total_items_coverage": 0.0,
             },
+            "jobs_metadata": [],
         }
-
         jobs_ids = {job.jid: job.created.strftime("%Y-%m-%d") for job in jobs_set}
         for job in jobs_set:
             date_str = jobs_ids[job.jid]
@@ -125,6 +127,8 @@ class StatsForDashboardMixin:
             stats_results[date_str]["jobs"]["finished_jobs"] += int(
                 job.status == SpiderJob.COMPLETED_STATUS
             )
+            job_metadata_serializer = JobsMetadataSerializer(job)
+            stats_results[date_str]["jobs_metadata"].append(job_metadata_serializer.data)
 
         for stats in stats_set:
             job_id = int(findall(r"\d+", stats["_id"])[1])
@@ -132,6 +136,7 @@ class StatsForDashboardMixin:
             stats_results[date_str]["items_count"] += stats.get(
                 stats_mapping["items_count"], 0
             )
+
             stats_results[date_str]["runtime"] += stats.get(
                 stats_mapping["runtime"], 0.0
             )
@@ -170,11 +175,12 @@ class StatsForDashboardMixin:
                     "finished_jobs"
                 ]
             if stat["jobs"]["total_jobs"] != 0:
-                stat["success_rate"] = 100 * (stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"])
-
+                stat["success_rate"] = 100 * (
+                    stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"]
+                )
         return stats_results
 
-
+    
 class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
     model_class = Project
     lookup_field = "pid"
@@ -230,12 +236,32 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         for date, stat_result in global_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
-                response_schema.append({"date": date, "stats": stat_serializer.data})
+                response_schema.append({
+                    "date": date, 
+                    "stats": stat_serializer.data, 
+                    "jobs_metadata": stat_result["jobs_metadata"]
+                })
 
         return Response(
             data=response_schema,
             status=status.HTTP_200_OK,
         )
+
+    @swagger_auto_schema(
+        operation_description="Retrieve stats of all jobs metadata.",
+        request_body=ListSerializer(child=JobsMetadataSerializer()),
+        request_body_description="The list of jobs metadata to retrieve its stats.",
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                description="Array with stats summary for each job",
+                schema=ListSerializer(child=JobsStatsSerializer()),
+            ),
+        },
+    )
+    @action(methods=["GET"], detail=True)
+    def jobs_stats(self, request: Request, *args, **kwargs):
+        print(request.data)
+        return Response(data=[], status=status.HTTP_200_OK)
 
 
 class SpidersJobsStatsViewSet(
@@ -296,7 +322,11 @@ class SpidersJobsStatsViewSet(
         for date, stat_result in spider_jobs_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
-                response_schema.append({"date": date, "stats": stat_serializer.data})
+                response_schema.append({
+                    "date": date, 
+                    "stats": stat_serializer.data, 
+                    "jobs_metadata": stat_result["jobs_metadata"]
+                })
 
         return Response(
             data=response_schema,
