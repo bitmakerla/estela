@@ -8,18 +8,8 @@ from core.tasks import get_chain_to_process_usage_data, record_job_coverage_even
 
 def update_spiderjobs_status(apps, schema_editor):
     SpiderJob = apps.get_model("core", "SpiderJob")
-    incomplete_jobs = SpiderJob.objects.filter(status=SpiderJob.INCOMPLETE_STATUS)
-    incomplete_jobs.update(status=SpiderJob.COMPLETED_STATUS)
-
-    for job in incomplete_jobs:
-        chain_of_usage_process = get_chain_to_process_usage_data(job_id=job.jid)
-        chain_of_usage_process.apply_async(
-            countdown=settings.COUNTDOWN_RECORD_PROJECT_USAGE_AFTER_JOB_EVENT
-        )
-        record_job_coverage_event.apply_async(
-            args=[job.jid],
-            countdown=settings.COUNTDOWN_RECORD_COVERAGE_AFTER_JOB_EVENT,
-        )
+    incomplete_jobs = SpiderJob.objects.filter(status="INCOMPLETE")
+    incomplete_jobs.update(status="COMPLETED")
 
 
 class Migration(migrations.Migration):
