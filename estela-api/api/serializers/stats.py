@@ -49,7 +49,7 @@ class CoverageStatsSerializer(serializers.Serializer):
 
 
 class StatsSerializer(serializers.Serializer):
-    jobs = JobsStatsSerializer()
+    jobs = JobsStatsSerializer(required=False)
     pages = PagesStatsSerializer()
     items_count = serializers.IntegerField(default=0)
     runtime = serializers.FloatField(default=0.0)
@@ -61,12 +61,17 @@ class StatsSerializer(serializers.Serializer):
 
 class JobsMetadataSerializer(serializers.ModelSerializer):
     sid = serializers.PrimaryKeyRelatedField(read_only=True, source="spider.sid")
-
+    job_status = serializers.CharField(
+        required=False, read_only=True, help_text="Current job status."
+    )
     class Meta:
         model = SpiderJob
-        fields = ("jid", "sid", "created")
+        fields = ("jid", "sid", "job_status")
 
-class JobStatsSerializer(JobsMetadataSerializer):
+
+class GetJobsStatsSerializer(serializers.Serializer):
+    jid = serializers.IntegerField(default=0)
+    sid = serializers.IntegerField(default=0)
     stats = StatsSerializer()
 
 class GlobalStatsSerializer(serializers.Serializer):

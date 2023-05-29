@@ -16,34 +16,28 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface JobsMetadata
+ * @interface InlineObject
  */
-export interface JobsMetadata {
-    /**
-     * A unique integer value identifying this job.
-     * @type {number}
-     * @memberof JobsMetadata
-     */
-    readonly jid?: number;
+export interface InlineObject {
     /**
      * 
-     * @type {string}
-     * @memberof JobsMetadata
+     * @type {number}
+     * @memberof InlineObject
      */
-    readonly sid?: string;
+    jid?: number;
     /**
-     * Current job status.
-     * @type {string}
-     * @memberof JobsMetadata
+     * 
+     * @type {number}
+     * @memberof InlineObject
      */
-    readonly jobStatus?: string;
+    sid?: number;
 }
 
-export function JobsMetadataFromJSON(json: any): JobsMetadata {
-    return JobsMetadataFromJSONTyped(json, false);
+export function InlineObjectFromJSON(json: any): InlineObject {
+    return InlineObjectFromJSONTyped(json, false);
 }
 
-export function JobsMetadataFromJSONTyped(json: any, ignoreDiscriminator: boolean): JobsMetadata {
+export function InlineObjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineObject {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -51,11 +45,10 @@ export function JobsMetadataFromJSONTyped(json: any, ignoreDiscriminator: boolea
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
-        'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
     };
 }
 
-export function JobsMetadataToJSON(value?: JobsMetadata | null): any {
+export function InlineObjectToJSON(value?: InlineObject | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -64,6 +57,8 @@ export function JobsMetadataToJSON(value?: JobsMetadata | null): any {
     }
     return {
         
+        'jid': value.jid,
+        'sid': value.sid,
     };
 }
 

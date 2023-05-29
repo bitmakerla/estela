@@ -1078,9 +1078,40 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/stats:
+  /api/projects/{pid}/usage:
     get:
-      operationId: api_projects_stats_list
+      operationId: api_projects_usage
+      description: ''
+      parameters:
+        - name: start_date
+          in: query
+          description: Start of date range.
+          required: false
+          type: string
+        - name: end_date
+          in: query
+          description: End of date range.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UsageRecord'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
+  /api/stats/{pid}:
+    get:
+      operationId: api_stats_list
       description: Retrieve stats of all jobs in a range of time, dates must have
         the format YYYY-mm-dd.
       parameters:
@@ -1118,9 +1149,40 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/stats/spiders/{sid}:
+  /api/stats/{pid}/jobs_stats:
+    post:
+      operationId: api_stats_jobs_stats
+      description: Retrieve stats of all jobs metadata.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                jid:
+                  type: integer
+                sid:
+                  type: integer
+      responses:
+        '200':
+          description: Array with stats summary for each job
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/JobsStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/stats/{pid}/spider/{sid}:
     get:
-      operationId: api_projects_stats_spiders_list
+      operationId: api_stats_spider_list
       description: Retrieve stats of all jobs of a spider in a range of time, dates
         must have the format YYYY-mm-dd.
       parameters:
@@ -1162,37 +1224,41 @@ paths:
         in: path
         required: true
         type: string
-  /api/projects/{pid}/usage:
-    get:
-      operationId: api_projects_usage
-      description: ''
+  /api/stats/{pid}/spider/{sid}/jobs_stats:
+    post:
+      operationId: api_stats_spider_jobs_stats
+      description: Retrieve stats of all jobs metadata.
       parameters:
-        - name: start_date
-          in: query
-          description: Start of date range.
-          required: false
-          type: string
-        - name: end_date
-          in: query
-          description: End of date range.
-          required: false
-          type: string
-      responses:
-        '200':
-          description: ''
+        - name: data
+          in: body
+          required: true
           schema:
             type: array
             items:
-              $ref: '#/definitions/UsageRecord'
+              type: object
+              properties:
+                jid:
+                  type: integer
+                sid:
+                  type: integer
+      responses:
+        '200':
+          description: Array with stats summary for each job
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/JobsStats'
       tags:
         - api
     parameters:
       - name: pid
         in: path
-        description: A UUID identifying this project.
         required: true
         type: string
-        format: uuid
+      - name: sid
+        in: path
+        required: true
+        type: string
 definitions:
   ChangePassword:
     required:
@@ -2118,6 +2184,63 @@ definitions:
         title: Count
         description: Deleted items count.
         type: integer
+  UsageRecord:
+    required:
+      - processing_time
+      - network_usage
+      - item_count
+      - request_count
+      - items_data_size
+      - requests_data_size
+      - logs_data_size
+    type: object
+    properties:
+      created_at:
+        title: Created at
+        description: Usage record creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      processing_time:
+        title: Processing time
+        description: Time of CPU use.
+        type: number
+      network_usage:
+        title: Network usage
+        description: Amount of network bytes used.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        description: Amount of items extracted.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        description: Amount of requests made.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      items_data_size:
+        title: Items data size
+        description: Amount in bytes occupied by items in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      requests_data_size:
+        title: Requests data size
+        description: Amount in bytes occupied by requests in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      logs_data_size:
+        title: Logs data size
+        description: Amount in bytes occupied by logs in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
   JobsStats:
     type: object
     properties:
@@ -2251,7 +2374,6 @@ definitions:
           $ref: '#/definitions/FieldCoverageStats'
   Stats:
     required:
-      - jobs
       - pages
       - status_codes
       - logs
@@ -2292,6 +2414,12 @@ definitions:
         title: Sid
         type: string
         readOnly: true
+      job_status:
+        title: Job status
+        description: Current job status.
+        type: string
+        readOnly: true
+        minLength: 1
   GlobalStats:
     required:
       - date
@@ -2326,60 +2454,3 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/JobsMetadata'
-  UsageRecord:
-    required:
-      - processing_time
-      - network_usage
-      - item_count
-      - request_count
-      - items_data_size
-      - requests_data_size
-      - logs_data_size
-    type: object
-    properties:
-      created_at:
-        title: Created at
-        description: Usage record creation date.
-        type: string
-        format: date-time
-        readOnly: true
-      processing_time:
-        title: Processing time
-        description: Time of CPU use.
-        type: number
-      network_usage:
-        title: Network usage
-        description: Amount of network bytes used.
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      item_count:
-        title: Item count
-        description: Amount of items extracted.
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      request_count:
-        title: Request count
-        description: Amount of requests made.
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      items_data_size:
-        title: Items data size
-        description: Amount in bytes occupied by items in the database
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      requests_data_size:
-        title: Requests data size
-        description: Amount in bytes occupied by requests in the database
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0
-      logs_data_size:
-        title: Logs data size
-        description: Amount in bytes occupied by logs in the database
-        type: integer
-        maximum: 18446744073709551615
-        minimum: 0

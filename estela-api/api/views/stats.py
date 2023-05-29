@@ -1,7 +1,8 @@
 from collections import defaultdict
 from datetime import datetime, time
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from re import findall
+from json import dumps
 from django.db.models.query import QuerySet
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -10,8 +11,9 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.serializers import ListSerializer
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from api import errors
-from api.exceptions import DataBaseError
+from api.exceptions import DataBaseError, InvalidDateFormatException
 from api.mixins import BaseViewSet
 from api.serializers.stats import (
     StatsSerializer,
@@ -19,6 +21,7 @@ from api.serializers.stats import (
     SpidersJobsStatsSerializer,
     JobsMetadataSerializer,
     JobsStatsSerializer,
+    GetJobsStatsSerializer,
 )
 from config.job_manager import spiderdata_db_client
 from core.models import (
@@ -29,22 +32,7 @@ from core.models import (
 
 
 class StatsForDashboardMixin:
-    def get_parameters(self, request: Request) -> Tuple[datetime, datetime]:
-        start_date = request.query_params.get("start_date", datetime.utcnow())
-        end_date = request.query_params.get("end_date", datetime.utcnow())
-
-        if type(start_date) == str:
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        start_date = datetime.combine(start_date, time.min)
-        if type(end_date) == str:
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
-        end_date = datetime.combine(end_date, time.max)
-        return start_date, end_date
-
-    def summarize_stats_results(
-        self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob]
-    ) -> dict:
-        stats_mapping: dict = {
+    stats_mapping: dict = {
             "items_count": "item_scraped_count",
             "runtime": "elapsed_time_seconds",
             "scraped_pages": "downloader/response_status_count/200",
@@ -68,6 +56,27 @@ class StatsForDashboardMixin:
             },
             "coverage": "coverage",
         }
+    
+    def get_parameters(self, request: Request) -> Tuple[datetime, datetime]:
+        start_date = request.query_params.get("start_date", datetime.utcnow())
+        end_date = request.query_params.get("end_date", datetime.utcnow())
+
+        try:
+            if type(start_date) == str:
+                start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            start_date = datetime.combine(start_date, time.min)
+            if type(end_date) == str:
+                end_date = datetime.strptime(end_date, "%Y-%m-%d")
+            end_date = datetime.combine(end_date, time.max)
+        except ValueError:
+            raise InvalidDateFormatException()
+
+        return start_date, end_date
+
+    def summarize_stats_results(
+        self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob]
+    ) -> dict:
+        
         stats_results = defaultdict(lambda: defaultdict(int))
         stats_results.default_factory = lambda: {
             "jobs": {
@@ -128,40 +137,42 @@ class StatsForDashboardMixin:
                 job.status == SpiderJob.COMPLETED_STATUS
             )
             job_metadata_serializer = JobsMetadataSerializer(job)
-            stats_results[date_str]["jobs_metadata"].append(job_metadata_serializer.data)
+            stats_results[date_str]["jobs_metadata"].append(
+                job_metadata_serializer.data
+            )
 
         for stats in stats_set:
             job_id = int(findall(r"\d+", stats["_id"])[1])
             date_str = jobs_ids[job_id]
             stats_results[date_str]["items_count"] += stats.get(
-                stats_mapping["items_count"], 0
+                self.stats_mapping["items_count"], 0
             )
 
             stats_results[date_str]["runtime"] += stats.get(
-                stats_mapping["runtime"], 0.0
+                self.stats_mapping["runtime"], 0.0
             )
 
             stats_results[date_str]["pages"]["scraped_pages"] += stats.get(
-                stats_mapping["scraped_pages"], 0
+                self.stats_mapping["scraped_pages"], 0
             )
             stats_results[date_str]["pages"]["missed_pages"] += stats.get(
-                stats_mapping["total_pages"], 0
-            ) - stats.get(stats_mapping["scraped_pages"], 0)
+                self.stats_mapping["total_pages"], 0
+            ) - stats.get(self.stats_mapping["scraped_pages"], 0)
             stats_results[date_str]["pages"]["total_pages"] += stats.get(
-                stats_mapping["total_pages"], 0
+                self.stats_mapping["total_pages"], 0
             )
 
-            for status_code in stats_mapping["status_codes"]:
+            for status_code in self.stats_mapping["status_codes"]:
                 stats_results[date_str]["status_codes"][status_code] += stats.get(
-                    stats_mapping["status_codes"][status_code], 0
+                    self.stats_mapping["status_codes"][status_code], 0
                 )
 
-            for log in stats_mapping["logs"]:
-                log_count = stats.get(stats_mapping["logs"][log], 0)
+            for log in self.stats_mapping["logs"]:
+                log_count = stats.get(self.stats_mapping["logs"][log], 0)
                 stats_results[date_str]["logs"][log] += log_count
                 stats_results[date_str]["logs"]["total_logs"] += log_count
 
-            coverage = stats.get(stats_mapping["coverage"], None)
+            coverage = stats.get(self.stats_mapping["coverage"], None)
             stats_results[date_str]["coverage"]["total_items"] += (
                 coverage["total_items"] if coverage is not None else 0
             )
@@ -180,7 +191,107 @@ class StatsForDashboardMixin:
                 )
         return stats_results
 
-    
+    def parse_jobs_stats(self, stats_ids: List[str], stats_set: List[dict]) -> GetJobsStatsSerializer:
+        reformatted_stats_set: dict = {stat["_id"]:stat for stat in stats_set}
+        jobs_stats_results:List[dict] = []
+        
+        for stat_id in stats_ids:
+            ids = findall(r"\d+", stat_id)
+            spider_id, job_id = int(ids[0]), int(ids[1])
+            job_stat_result:dict = {
+                "jid": job_id,
+                "sid": spider_id,
+                "stats": {}
+            }
+            stats:Union[dict,None] = reformatted_stats_set.get(stat_id)
+            if isinstance(stats, dict):
+                job_stat_result["stats"]["items_count"] = stats.get(
+                    self.stats_mapping["items_count"], 0
+                )
+
+                job_stat_result["stats"]["runtime"] = stats.get(
+                    self.stats_mapping["runtime"], 0.0
+                )
+                
+                job_stat_result["stats"]["pages"]:dict = {}
+                job_stat_result["stats"]["pages"]["scraped_pages"] = stats.get(
+                    self.stats_mapping["scraped_pages"], 0
+                )
+                job_stat_result["stats"]["pages"]["missed_pages"] = stats.get(
+                    self.stats_mapping["total_pages"], 0
+                ) - stats.get(self.stats_mapping["scraped_pages"], 0)
+                job_stat_result["stats"]["pages"]["total_pages"] = stats.get(
+                    self.stats_mapping["total_pages"], 0
+                )
+
+                job_stat_result["stats"]["status_codes"]:dict = {}
+                for status_code in self.stats_mapping["status_codes"]:
+                    job_stat_result["stats"]["status_codes"][status_code] = stats.get(
+                        self.stats_mapping["status_codes"][status_code], 0
+                    )
+
+                job_stat_result["stats"]["logs"]:dict = {}
+                for log in self.stats_mapping["logs"]:
+                    log_count = stats.get(self.stats_mapping["logs"][log], 0)
+                    job_stat_result["stats"]["logs"][log] = log_count
+                    job_stat_result["stats"]["logs"]["total_logs"] = log_count
+
+                job_stat_result["stats"]["coverage"]:dict = {}
+                coverage:Union[dict, None] = stats.get(self.stats_mapping["coverage"], None)
+                if isinstance(coverage, dict):
+                    for coverage_field, coverage_value in coverage.items():
+                        job_stat_result["stats"]["coverage"][coverage_field] = coverage_value
+            jobs_stats_results.append(job_stat_result)
+
+        return GetJobsStatsSerializer(data=jobs_stats_results, many=True)
+
+    @swagger_auto_schema(
+        operation_description="Retrieve stats of all jobs metadata.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            items=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "jid": openapi.Schema(type=openapi.TYPE_INTEGER),
+                    "sid": openapi.Schema(type=openapi.TYPE_INTEGER),
+                },
+            ),
+        ),
+        request_body_description="The list of jobs metadata to retrieve its stats.",
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                description="Array with stats summary for each job",
+                schema=ListSerializer(child=JobsStatsSerializer()),
+            ),
+        },
+    )
+    @action(methods=["POST"], detail=False)
+    def jobs_stats(self, request: Request, *args, **kwargs):
+        jobs_stats_ids:List[str] = []
+        try:
+            if not isinstance(request.data, list):
+                raise ValidationError("Please provide a valid body schema [{jid:number, sid:number}]")
+            for job_metadata in request.data:
+                if job_metadata.get('sid') is not None and job_metadata.get('jid') is not None:
+                    jobs_stats_ids.append(f"{job_metadata.get('sid')}-{job_metadata.get('jid')}-job_stats")
+                else:
+                    raise ValidationError("Please provide a valid body schema [{jid:number, sid:number}]")
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if not spiderdata_db_client.get_connection():
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
+        
+        stats_set: List[dict] = spiderdata_db_client.get_jobs_set_stats(
+            kwargs["pid"], jobs_stats_ids
+        )
+        print(dumps(stats_set, indent=2))
+        
+        serializer = self.parse_jobs_stats(jobs_stats_ids, stats_set)
+        if not serializer.is_valid():
+            return Response({"error": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
 class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
     model_class = Project
     lookup_field = "pid"
@@ -211,7 +322,11 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         },
     )
     def list(self, request: Request, *args, **kwargs):
-        start_date, end_date = self.get_parameters(request)
+        try:
+            start_date, end_date = self.get_parameters(request)
+        except InvalidDateFormatException as e:
+            return Response({"error": str(e.detail)}, status=e.status_code)
+
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
@@ -236,32 +351,18 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         for date, stat_result in global_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
-                response_schema.append({
-                    "date": date, 
-                    "stats": stat_serializer.data, 
-                    "jobs_metadata": stat_result["jobs_metadata"]
-                })
+                response_schema.append(
+                    {
+                        "date": date,
+                        "stats": stat_serializer.data,
+                        "jobs_metadata": stat_result["jobs_metadata"],
+                    }
+                )
 
         return Response(
             data=response_schema,
             status=status.HTTP_200_OK,
         )
-
-    @swagger_auto_schema(
-        operation_description="Retrieve stats of all jobs metadata.",
-        request_body=ListSerializer(child=JobsMetadataSerializer()),
-        request_body_description="The list of jobs metadata to retrieve its stats.",
-        responses={
-            status.HTTP_200_OK: openapi.Response(
-                description="Array with stats summary for each job",
-                schema=ListSerializer(child=JobsStatsSerializer()),
-            ),
-        },
-    )
-    @action(methods=["GET"], detail=True)
-    def jobs_stats(self, request: Request, *args, **kwargs):
-        print(request.data)
-        return Response(data=[], status=status.HTTP_200_OK)
 
 
 class SpidersJobsStatsViewSet(
@@ -296,7 +397,10 @@ class SpidersJobsStatsViewSet(
         },
     )
     def list(self, request, *args, **kwargs):
-        start_date, end_date = self.get_parameters(request)
+        try:
+            start_date, end_date = self.get_parameters(request)
+        except InvalidDateFormatException as e:
+            return Response({"error": str(e.detail)}, status=e.status_code)
 
         if not spiderdata_db_client.get_connection():
             raise ConnectionError({"error": errors.UNABLE_CONNECT_DB})
@@ -322,11 +426,13 @@ class SpidersJobsStatsViewSet(
         for date, stat_result in spider_jobs_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
-                response_schema.append({
-                    "date": date, 
-                    "stats": stat_serializer.data, 
-                    "jobs_metadata": stat_result["jobs_metadata"]
-                })
+                response_schema.append(
+                    {
+                        "date": date,
+                        "stats": stat_serializer.data,
+                        "jobs_metadata": stat_result["jobs_metadata"],
+                    }
+                )
 
         return Response(
             data=response_schema,

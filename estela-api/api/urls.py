@@ -43,14 +43,14 @@ router.register(
     basename="cronjob",
 )
 router.register(
-    prefix=r"projects/(?P<pid>[0-9a-z-]+)/stats",
+    prefix=r"stats/(?P<pid>[0-9a-z-]+)",
     viewset=stats_views.GlobalStatsViewSet,
-    basename="stats",
+    basename="global-stats",
 )
 router.register(
-    prefix=r"projects/(?P<pid>[0-9a-z-]+)/stats/spiders/(?P<sid>\d+)",
+    prefix=r"stats/(?P<pid>[0-9a-z-]+)/spider/(?P<sid>\d+)",
     viewset=stats_views.SpidersJobsStatsViewSet,
-    basename="stats-spider",
+    basename="spider-stats",
 )
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 router.register(

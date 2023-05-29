@@ -7,6 +7,7 @@ export * from './DeployCreate';
 export * from './DeployUpdate';
 export * from './FieldCoverageStats';
 export * from './GlobalStats';
+export * from './InlineObject';
 export * from './InlineResponse200';
 export * from './InlineResponse2001';
 export * from './InlineResponse2002';
