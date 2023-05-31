@@ -60,19 +60,16 @@ class StatsSerializer(serializers.Serializer):
 
 
 class JobsMetadataSerializer(serializers.ModelSerializer):
-    sid = serializers.PrimaryKeyRelatedField(read_only=True, source="spider.sid")
-    job_status = serializers.CharField(
-        required=False, read_only=True, help_text="Current job status."
-    )
     class Meta:
         model = SpiderJob
-        fields = ("jid", "sid", "job_status")
+        fields = ("jid", "spider", "job_status")
 
 
 class GetJobsStatsSerializer(serializers.Serializer):
     jid = serializers.IntegerField(default=0)
-    sid = serializers.IntegerField(default=0)
-    stats = StatsSerializer()
+    spider = serializers.IntegerField(default=0)
+    stats = StatsSerializer(required=False)
+
 
 class GlobalStatsSerializer(serializers.Serializer):
     date = serializers.DateField(format="%Y-%m-%d")

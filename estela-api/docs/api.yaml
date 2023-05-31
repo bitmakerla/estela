@@ -1160,19 +1160,14 @@ paths:
           schema:
             type: array
             items:
-              type: object
-              properties:
-                jid:
-                  type: integer
-                sid:
-                  type: integer
+              $ref: '#/definitions/GetJobsStats'
       responses:
         '200':
           description: Array with stats summary for each job
           schema:
             type: array
             items:
-              $ref: '#/definitions/JobsStats'
+              $ref: '#/definitions/GetJobsStats'
       tags:
         - api
     parameters:
@@ -1235,19 +1230,14 @@ paths:
           schema:
             type: array
             items:
-              type: object
-              properties:
-                jid:
-                  type: integer
-                sid:
-                  type: integer
+              $ref: '#/definitions/GetJobsStats'
       responses:
         '200':
           description: Array with stats summary for each job
           schema:
             type: array
             items:
-              $ref: '#/definitions/JobsStats'
+              $ref: '#/definitions/GetJobsStats'
       tags:
         - api
     parameters:
@@ -2403,6 +2393,8 @@ definitions:
       coverage:
         $ref: '#/definitions/CoverageStats'
   JobsMetadata:
+    required:
+      - spider
     type: object
     properties:
       jid:
@@ -2410,16 +2402,14 @@ definitions:
         description: A unique integer value identifying this job.
         type: integer
         readOnly: true
-      sid:
-        title: Sid
-        type: string
-        readOnly: true
+      spider:
+        title: Spider
+        description: Spider sid.
+        type: integer
       job_status:
         title: Job status
-        description: Current job status.
         type: string
         readOnly: true
-        minLength: 1
   GlobalStats:
     required:
       - date
@@ -2437,6 +2427,19 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/JobsMetadata'
+  GetJobsStats:
+    type: object
+    properties:
+      jid:
+        title: Jid
+        type: integer
+        default: 0
+      spider:
+        title: Spider
+        type: integer
+        default: 0
+      stats:
+        $ref: '#/definitions/Stats'
   SpidersJobsStats:
     required:
       - date

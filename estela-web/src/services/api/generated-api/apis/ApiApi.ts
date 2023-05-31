@@ -33,12 +33,12 @@ import {
     DeployUpdate,
     DeployUpdateFromJSON,
     DeployUpdateToJSON,
+    GetJobsStats,
+    GetJobsStatsFromJSON,
+    GetJobsStatsToJSON,
     GlobalStats,
     GlobalStatsFromJSON,
     GlobalStatsToJSON,
-    InlineObject,
-    InlineObjectFromJSON,
-    InlineObjectToJSON,
     InlineResponse200,
     InlineResponse200FromJSON,
     InlineResponse200ToJSON,
@@ -63,9 +63,6 @@ import {
     InlineResponse401,
     InlineResponse401FromJSON,
     InlineResponse401ToJSON,
-    JobsStats,
-    JobsStatsFromJSON,
-    JobsStatsToJSON,
     Project,
     ProjectFromJSON,
     ProjectToJSON,
@@ -383,7 +380,7 @@ export interface ApiProjectsUsageRequest {
 
 export interface ApiStatsJobsStatsRequest {
     pid: string;
-    data: Array<InlineObject>;
+    data: Array<GetJobsStats>;
 }
 
 export interface ApiStatsListRequest {
@@ -397,7 +394,7 @@ export interface ApiStatsListRequest {
 export interface ApiStatsSpiderJobsStatsRequest {
     pid: string;
     sid: string;
-    data: Array<InlineObject>;
+    data: Array<GetJobsStats>;
 }
 
 export interface ApiStatsSpiderListRequest {
@@ -2240,7 +2237,7 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Retrieve stats of all jobs metadata.
      */
-    async apiStatsJobsStatsRaw(requestParameters: ApiStatsJobsStatsRequest): Promise<runtime.ApiResponse<Array<JobsStats>>> {
+    async apiStatsJobsStatsRaw(requestParameters: ApiStatsJobsStatsRequest): Promise<runtime.ApiResponse<Array<GetJobsStats>>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsJobsStats.');
         }
@@ -2263,16 +2260,16 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters.data.map(InlineObjectToJSON),
+            body: requestParameters.data.map(GetJobsStatsToJSON),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(JobsStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GetJobsStatsFromJSON));
     }
 
     /**
      * Retrieve stats of all jobs metadata.
      */
-    async apiStatsJobsStats(requestParameters: ApiStatsJobsStatsRequest): Promise<Array<JobsStats>> {
+    async apiStatsJobsStats(requestParameters: ApiStatsJobsStatsRequest): Promise<Array<GetJobsStats>> {
         const response = await this.apiStatsJobsStatsRaw(requestParameters);
         return await response.value();
     }
@@ -2337,7 +2334,7 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Retrieve stats of all jobs metadata.
      */
-    async apiStatsSpiderJobsStatsRaw(requestParameters: ApiStatsSpiderJobsStatsRequest): Promise<runtime.ApiResponse<Array<JobsStats>>> {
+    async apiStatsSpiderJobsStatsRaw(requestParameters: ApiStatsSpiderJobsStatsRequest): Promise<runtime.ApiResponse<Array<GetJobsStats>>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiderJobsStats.');
         }
@@ -2364,16 +2361,16 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters.data.map(InlineObjectToJSON),
+            body: requestParameters.data.map(GetJobsStatsToJSON),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(JobsStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GetJobsStatsFromJSON));
     }
 
     /**
      * Retrieve stats of all jobs metadata.
      */
-    async apiStatsSpiderJobsStats(requestParameters: ApiStatsSpiderJobsStatsRequest): Promise<Array<JobsStats>> {
+    async apiStatsSpiderJobsStats(requestParameters: ApiStatsSpiderJobsStatsRequest): Promise<Array<GetJobsStats>> {
         const response = await this.apiStatsSpiderJobsStatsRaw(requestParameters);
         return await response.value();
     }

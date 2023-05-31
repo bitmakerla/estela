@@ -13,42 +13,56 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    Stats,
+    StatsFromJSON,
+    StatsFromJSONTyped,
+    StatsToJSON,
+} from './';
+
 /**
  * 
  * @export
- * @interface InlineObject
+ * @interface GetJobsStats
  */
-export interface InlineObject {
+export interface GetJobsStats {
     /**
      * 
      * @type {number}
-     * @memberof InlineObject
+     * @memberof GetJobsStats
      */
     jid?: number;
     /**
      * 
      * @type {number}
-     * @memberof InlineObject
+     * @memberof GetJobsStats
      */
-    sid?: number;
+    spider?: number;
+    /**
+     * 
+     * @type {Stats}
+     * @memberof GetJobsStats
+     */
+    stats?: Stats;
 }
 
-export function InlineObjectFromJSON(json: any): InlineObject {
-    return InlineObjectFromJSONTyped(json, false);
+export function GetJobsStatsFromJSON(json: any): GetJobsStats {
+    return GetJobsStatsFromJSONTyped(json, false);
 }
 
-export function InlineObjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineObject {
+export function GetJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): GetJobsStats {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
-        'sid': !exists(json, 'sid') ? undefined : json['sid'],
+        'spider': !exists(json, 'spider') ? undefined : json['spider'],
+        'stats': !exists(json, 'stats') ? undefined : StatsFromJSON(json['stats']),
     };
 }
 
-export function InlineObjectToJSON(value?: InlineObject | null): any {
+export function GetJobsStatsToJSON(value?: GetJobsStats | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -58,7 +72,8 @@ export function InlineObjectToJSON(value?: InlineObject | null): any {
     return {
         
         'jid': value.jid,
-        'sid': value.sid,
+        'spider': value.spider,
+        'stats': StatsToJSON(value.stats),
     };
 }
 

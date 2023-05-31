@@ -26,13 +26,13 @@ export interface JobsMetadata {
      */
     readonly jid?: number;
     /**
-     * 
-     * @type {string}
+     * Spider sid.
+     * @type {number}
      * @memberof JobsMetadata
      */
-    readonly sid?: string;
+    spider: number;
     /**
-     * Current job status.
+     * 
      * @type {string}
      * @memberof JobsMetadata
      */
@@ -50,7 +50,7 @@ export function JobsMetadataFromJSONTyped(json: any, ignoreDiscriminator: boolea
     return {
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
-        'sid': !exists(json, 'sid') ? undefined : json['sid'],
+        'spider': json['spider'],
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
     };
 }
@@ -64,6 +64,7 @@ export function JobsMetadataToJSON(value?: JobsMetadata | null): any {
     }
     return {
         
+        'spider': value.spider,
     };
 }
 
