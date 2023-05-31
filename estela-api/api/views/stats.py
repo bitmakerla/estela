@@ -199,9 +199,10 @@ class StatsForDashboardMixin:
         for stat_id in stats_ids:
             ids = findall(r"\d+", stat_id)
             spider_id, job_id = int(ids[0]), int(ids[1])
-            job_stat_result: dict = {"jid": job_id, "spider": spider_id, "stats": {}}
+            job_stat_result: dict = {"jid": job_id, "spider": spider_id}
             stats: Union[dict, None] = reformatted_stats_set.get(stat_id)
             if isinstance(stats, dict):
+                job_stat_result["stats"] = {}
                 job_stat_result["stats"]["items_count"] = stats.get(
                     self.stats_mapping["items_count"], 0
                 )
@@ -243,7 +244,6 @@ class StatsForDashboardMixin:
                             coverage_field
                         ] = coverage_value
             jobs_stats_results.append(job_stat_result)
-
         return GetJobsStatsSerializer(data=jobs_stats_results, many=True)
 
     @swagger_auto_schema(

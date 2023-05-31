@@ -14,6 +14,8 @@ import {
     Collapse,
     Tooltip as TooltipAnt,
     Table,
+    notification,
+    Empty,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -326,16 +328,25 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             });
         }
 
-        await this.apiService.apiStatsList(params).then((response: GlobalStats[]) => {
-            const newLoadedJobsStats = new Array(response.length).fill(false);
-            const newJobsDateStats = new Array<GetJobsStats[]>(response.length);
-            this.setState({
-                globalStats: response,
-                jobsDateStats: [...newJobsDateStats],
-                loadedJobsDateStats: [...newLoadedJobsStats],
-                loadedStats: true,
-            });
-        });
+        await this.apiService.apiStatsList(params).then(
+            (response: GlobalStats[]) => {
+                const newLoadedJobsStats = new Array(response.length).fill(false);
+                const newJobsDateStats = new Array<GetJobsStats[]>(response.length);
+                this.setState({
+                    globalStats: response,
+                    jobsDateStats: [...newJobsDateStats],
+                    loadedJobsDateStats: [...newLoadedJobsStats],
+                    loadedStats: true,
+                });
+            },
+            (error: Error) => {
+                notification.error({
+                    message: "No data",
+                    description: error.message,
+                });
+                this.setState({ loadedStats: true });
+            },
+        );
     };
 
     retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
@@ -357,15 +368,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     formatTime = (time: number): string => {
-        if (!+time) {
-            return "0 seconds";
-        } else {
-            if (time >= 60) {
-                return `${Math.floor(time / 60)} min`;
-            } else {
-                return `${time} seconds`;
-            }
-        }
+        return moment().startOf("day").seconds(time).format("HH:mm:ss");
     };
 
     formatBytes = (bytes: number): string => {
@@ -412,36 +415,42 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         }
 
         return (
-            <Bar
-                options={{
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: "bottom" as const,
-                        },
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: {
-                                display: false,
+            <>
+                {globalStats.length === 0 ? (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                ) : (
+                    <Bar
+                        options={{
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: "bottom" as const,
+                                },
                             },
-                        },
-                        y: {
-                            stacked: true,
-                            min:
-                                statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
-                                    ? 0
-                                    : undefined,
-                            max:
-                                statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
-                                    ? 100
-                                    : undefined,
-                        },
-                    },
-                }}
-                data={data}
-            />
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    grid: {
+                                        display: false,
+                                    },
+                                },
+                                y: {
+                                    stacked: true,
+                                    min:
+                                        statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
+                                            ? 0
+                                            : undefined,
+                                    max:
+                                        statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
+                                            ? 100
+                                            : undefined,
+                                },
+                            },
+                        }}
+                        data={data}
+                    />
+                )}
+            </>
         );
     };
 
@@ -583,6 +592,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 title: "JOB",
                 dataIndex: "id",
                 key: "id",
+                align: "center",
                 render: (_, { jobStats }): ReactElement => {
                     const spiderID = jobStats.spider ?? 0;
                     const jobID = jobStats.jid ?? 0;
@@ -601,6 +611,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 title: "SPIDER ID",
                 dataIndex: "spider",
                 key: "spider",
+                align: "center",
                 render: (_, { jobStats }): ReactElement => {
                     const spiderID = jobStats.spider ?? 0;
                     return (
@@ -617,7 +628,27 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             {
                 title: "STATUS",
                 dataIndex: "status",
+                filters: [
+                    {
+                        text: "COMPLETED",
+                        value: "COMPLETED",
+                    },
+                    {
+                        text: "ERROR",
+                        value: "ERROR",
+                    },
+                    {
+                        text: "RUNNING",
+                        value: "RUNNING",
+                    },
+                    {
+                        text: "UNKNOWN",
+                        value: "UNKNOWN",
+                    },
+                ],
                 key: "status",
+                align: "center",
+                onFilter: (status, record) => String(status) === record.jobStatus,
                 render: (_, { jobStatus }): ReactElement => (
                     <span className="text-xs text-estela-black-medium">{jobStatus}</span>
                 ),
@@ -626,23 +657,28 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 title: "ITEMS",
                 dataIndex: "items",
                 key: "items",
-                render: (_, { jobStats }): ReactElement => (
-                    <span className="text-xs text-estela-black-medium">{jobStats.stats?.itemsCount ?? 0}</span>
-                ),
+                align: "center",
+                render: (_, { jobStats }): ReactElement => {
+                    const items = jobStats.stats?.itemsCount || "no data";
+                    return <span className="text-xs text-estela-black-medium">{items}</span>;
+                },
             },
             {
                 title: "RUNTIME",
                 dataIndex: "runtime",
                 key: "runtime",
+                align: "center",
                 render: (_, { jobStats }): ReactElement => {
-                    const runtime = (jobStats.stats?.runtime ?? 0).toFixed(2);
-                    return <span className="text-xs text-estela-black-medium">{runtime} sec</span>;
+                    let runtime = "no data";
+                    if (jobStats.stats) runtime = this.formatTime(jobStats.stats.runtime ?? 0);
+                    return <span className="text-xs text-estela-black-medium">{runtime}</span>;
                 },
             },
             {
                 title: "SCRAPED PAGES",
                 dataIndex: "scraped_pages",
                 key: "scraped_pages",
+                align: "center",
                 render: (_, { jobStats }): ReactElement => (
                     <span className="text-xs text-estela-black-medium">
                         {jobStats.stats?.pages.scrapedPages ?? "no data"}
@@ -653,59 +689,25 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 title: "MISSED PAGES",
                 dataIndex: "missed_pages",
                 key: "missed_pages",
+                align: "center",
                 render: (_, { jobStats }): ReactElement => (
                     <span className="text-xs text-estela-black-medium">
                         {jobStats.stats?.pages.missedPages ?? "no data"}
                     </span>
                 ),
             },
-            {
-                title: "LOGS",
-                dataIndex: "logs",
-                key: "logs",
-                render: (_, { jobStats }): ReactElement => {
-                    const logs = jobStats.stats?.logs;
-                    if (!logs) {
-                        return <span className="text-xs text-estela-black-medium">no data</span>;
-                    }
-                    return (
-                        <Row className="grid grid-cols-1 content-start">
-                            <div className="flex items-center gap-1">
-                                <div className="w-3 h-3 bg-estela-complementary-green rounded" />
-                                <span className="text-estela-black-full text-xs">{logs.infoLogs ?? 0} info</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-3 h-3 bg-estela-complementary-yellow rounded" />
-                                <span className="text-estela-black-full text-xs">{logs.debugLogs ?? 0} debug</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-3 h-3 bg-estela-complementary-purple rounded" />
-                                <span className="text-estela-black-full text-xs">{logs.errorLogs ?? 0} error</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-3 h-3 bg-estela-states-yellow-medium rounded" />
-                                <span className="text-estela-black-full text-xs">{logs.warningLogs ?? 0} warning</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <div className="w-3 h-3 bg-estela-black-medium rounded" />
-                                <span className="text-estela-black-full text-xs">
-                                    {logs.criticalLogs ?? 0} critical
-                                </span>
-                            </div>
-                        </Row>
-                    );
-                },
-            },
         ];
-        columns;
 
         const generateDataSource = (index: number) => {
             const data: TableDataType[] = jobsDateStats[index].map((jobStat: GetJobsStats, jobIndex: number) => {
+                let status =
+                    globalStats[index].jobsMetadata.find((jobMeta) => jobMeta.jid === jobStat.jid)?.jobStatus ??
+                    "UNKNOWN";
+                if (status !== "COMPLETED" && status !== "ERROR" && status !== "RUNNING") status = "UNKNOWN";
                 return {
                     key: `${jobIndex}`,
                     jobStats: jobStat,
-                    jobStatus:
-                        globalStats[index].jobsMetadata.find((jobMeta) => jobMeta.jid === jobStat.jid)?.jobStatus ?? "",
+                    jobStatus: status,
                 };
             });
             return data;
@@ -729,7 +731,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
 
         return (
             <>
-                <Row className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-6 justify-items-center bg-estela-blue-low rounded-md">
+                <Row className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-6 justify-items-center bg-estela-blue-low rounded-md mt-2">
                     <Col className="grid grid-cols-1 my-2">
                         <p className="text-sm text-center text-black">{accumulatedStat.totalJobs}</p>
                         <p className="text-sm text-center text-estela-black-medium">Jobs</p>
@@ -743,7 +745,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <p className="text-sm text-center text-estela-black-medium">Items</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
-                        <p className="text-sm text-center text-black">{accumulatedStat.totalRuntime.toFixed(2)}</p>
+                        <p className="text-sm text-center text-black">
+                            {this.formatTime(accumulatedStat.totalRuntime)}
+                        </p>
                         <p className="text-sm text-center text-estela-black-medium">Runtime</p>
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
@@ -898,10 +902,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         </Col>
                                         <Col className="m-auto">
                                             <p className="text-estela-black-full">
-                                                {moment()
-                                                    .startOf("day")
-                                                    .seconds(stat.stats.runtime ?? 0)
-                                                    .format("HH:mm:ss")}
+                                                {this.formatTime(stat.stats.runtime ?? 0)}
                                             </p>
                                         </Col>
                                         <Col className="m-auto">
@@ -910,6 +911,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     </Row>
                                 }
                                 key={`${index}`}
+                                className="my-auto"
                             >
                                 {loadedJobsDateStats[index] && (
                                     <Table
@@ -956,7 +958,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             <Text className="text-base text-estela-black-medium break-words">HEALTH</Text>
                             <TooltipAnt
                                 placement="left"
-                                title="Average job success rate of all dates in the specified range + Total No. scraped items."
+                                title="Average job success rate of all dates in the specified range."
                             >
                                 <Help className="w-4 h-4 stroke-estela-black-medium" />
                             </TooltipAnt>
@@ -1005,7 +1007,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         </div>
                         {projectUseLoaded ? (
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">
                                         Processing time
                                     </Text>
@@ -1013,13 +1015,13 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         {this.formatTime(processingTime)}
                                     </Text>
                                 </div>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">Bandwidth</Text>
                                     <Text className="text-base text-estela-black-full break-words">
                                         {this.formatBytes(network)}
                                     </Text>
                                 </div>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">Storage</Text>
                                     <Text className="text-base text-estela-black-full break-words">
                                         {this.formatBytes(storage)}
