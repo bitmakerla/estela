@@ -229,8 +229,6 @@ class SpiderJob(models.Model):
     WAITING_STATUS = "WAITING"
     RUNNING_STATUS = "RUNNING"
     STOPPED_STATUS = "STOPPED"
-    INCOMPLETE_STATUS = "INCOMPLETE"
-    CANCELLED_STATUS = "CANCELLED"
     COMPLETED_STATUS = "COMPLETED"
     IN_QUEUE_STATUS = "IN_QUEUE"
     ERROR_STATUS = "ERROR"
@@ -239,8 +237,6 @@ class SpiderJob(models.Model):
         (WAITING_STATUS, "Waiting"),
         (RUNNING_STATUS, "Running"),
         (STOPPED_STATUS, "Stopped"),
-        (INCOMPLETE_STATUS, "Incomplete"),
-        (CANCELLED_STATUS, "Cancelled"),
         (COMPLETED_STATUS, "Completed"),
         (ERROR_STATUS, "Error"),
     ]
