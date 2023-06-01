@@ -1,34 +1,31 @@
 from collections import defaultdict
 from datetime import datetime, time
-from typing import List, Tuple, Union
 from re import findall
-from json import dumps
+from typing import List, Tuple, Union
+
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, mixins
-from rest_framework.response import Response
-from rest_framework.request import Request
-from rest_framework.serializers import ListSerializer
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.serializers import ListSerializer
+
 from api import errors
 from api.exceptions import DataBaseError, InvalidDateFormatException
 from api.mixins import BaseViewSet
 from api.serializers.stats import (
-    StatsSerializer,
-    GlobalStatsSerializer,
-    SpidersJobsStatsSerializer,
-    JobsMetadataSerializer,
     GetJobsStatsSerializer,
+    GlobalStatsSerializer,
+    JobsMetadataSerializer,
+    SpidersJobsStatsSerializer,
+    StatsSerializer,
 )
 from config.job_manager import spiderdata_db_client
-from core.models import (
-    Project,
-    Spider,
-    SpiderJob,
-)
+from core.models import Project, Spider, SpiderJob
 
 
 class StatsForDashboardMixin:
@@ -210,7 +207,7 @@ class StatsForDashboardMixin:
                 job_stat_result["stats"]["runtime"] = stats.get(
                     self.stats_mapping["runtime"], 0.0
                 )
-                
+
                 job_stat_result["stats"]["pages"]: dict = {}
                 job_stat_result["stats"]["pages"]["scraped_pages"] = stats.get(
                     self.stats_mapping["scraped_pages"], 0

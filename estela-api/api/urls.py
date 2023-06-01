@@ -1,15 +1,13 @@
 from rest_framework import routers
 
-from api.views import (
-    project as project_views,
-    deploy as deploy_views,
-    spider as spider_views,
-    job as job_views,
-    auth as auth_views,
-    cronjob as cronjob_views,
-    job_data as job_data_views,
-    stats as stats_views,
-)
+from api.views import auth as auth_views
+from api.views import cronjob as cronjob_views
+from api.views import deploy as deploy_views
+from api.views import job as job_views
+from api.views import job_data as job_data_views
+from api.views import project as project_views
+from api.views import spider as spider_views
+from api.views import stats as stats_views
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(
