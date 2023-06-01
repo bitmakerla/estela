@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    JobsMetadata,
+    JobsMetadataFromJSON,
+    JobsMetadataFromJSONTyped,
+    JobsMetadataToJSON,
     Stats,
     StatsFromJSON,
     StatsFromJSONTyped,
@@ -38,6 +42,12 @@ export interface GlobalStats {
      * @memberof GlobalStats
      */
     stats: Stats;
+    /**
+     * 
+     * @type {Array<JobsMetadata>}
+     * @memberof GlobalStats
+     */
+    jobsMetadata: Array<JobsMetadata>;
 }
 
 export function GlobalStatsFromJSON(json: any): GlobalStats {
@@ -52,6 +62,7 @@ export function GlobalStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean
         
         'date': (new Date(json['date'])),
         'stats': StatsFromJSON(json['stats']),
+        'jobsMetadata': ((json['jobs_metadata'] as Array<any>).map(JobsMetadataFromJSON)),
     };
 }
 
@@ -66,6 +77,7 @@ export function GlobalStatsToJSON(value?: GlobalStats | null): any {
         
         'date': (value.date.toISOString().substr(0,10)),
         'stats': StatsToJSON(value.stats),
+        'jobs_metadata': ((value.jobsMetadata as Array<any>).map(JobsMetadataToJSON)),
     };
 }
 

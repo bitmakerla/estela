@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from api import errors
@@ -18,3 +19,11 @@ class UserNotFoundError(APIException):
     status_code = 404
     default_detail = errors.USER_NOT_FOUND
     default_code = "user_not_found"
+
+
+class InvalidDateFormatException(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = (
+        "Invalid date format. Please provide dates in the format YYYY-MM-DD."
+    )
+    default_code = "invalid_date_format"

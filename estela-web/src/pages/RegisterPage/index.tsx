@@ -82,12 +82,12 @@ export class RegisterPage extends Component<unknown> {
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
                     <Content>
-                        <Estela className="w-32 h-24" />
+                        <Estela className="w-48 h-24" />
                         <p className="text-5xl font-bold mt-4">
                             Stable, reliable and <span className="text-estela">open source</span>.
                         </p>
                         <p className="text-3xl font-normal py-6 sm:p-auto">
-                            Scrape <span className="text-estela">when </span>you want it.
+                            Scrape <span className="text-estela">when you want it</span>.
                         </p>
                         <Space>
                             <Text className="text-sm font-normal">Powered by&nbsp;</Text>

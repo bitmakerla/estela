@@ -10,6 +10,7 @@ models/Deploy.ts
 models/DeployCreate.ts
 models/DeployUpdate.ts
 models/FieldCoverageStats.ts
+models/GetJobsStats.ts
 models/GlobalStats.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
@@ -19,6 +20,7 @@ models/InlineResponse2004.ts
 models/InlineResponse2005.ts
 models/InlineResponse2006.ts
 models/InlineResponse401.ts
+models/JobsMetadata.ts
 models/JobsStats.ts
 models/LogsStats.ts
 models/PagesStats.ts
