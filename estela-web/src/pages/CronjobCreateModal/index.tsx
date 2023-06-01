@@ -41,9 +41,7 @@ const { Content } = Layout;
 const { Option } = Select;
 const { Text } = Typography;
 
-interface CronjobCreateModalProps {
-    openModal: boolean;
-    spider: Spider | null;
+interface JobCreateModalProps {
     projectId: string;
 }
 
@@ -150,10 +148,10 @@ const weekOptions = [
     { label: "S", key: 6, value: 6 },
 ];
 
-export default function CronjobCreateModal({ openModal, spider, projectId }: CronjobCreateModalProps) {
+export default function CronjobCreateModal({ projectId }: JobCreateModalProps) {
     const PAGE_SIZE = 15;
     const apiService = ApiService();
-    const [open, setOpen] = useState(openModal);
+    const [open, setOpen] = useState(false);
     const [countKey, setCountKey] = useState(0);
     const [loading, setLoading] = useState(false);
     const [spiders, setSpiders] = useState<Spider[]>([]);
@@ -164,8 +162,8 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         envVars: [],
         tags: [],
         dataStatus: "",
-        dataStatus: spider ? spider.dataStatus : undefined,
-        dataExpiryDays: spider ? spider.dataExpiryDays : 1,
+        dataExpiryDays: 1,
+        uniqueCollection: false,
     });
     const [newCronjob, setNewCronjob] = useState<Cronjob>({
         newArgName: "",
@@ -204,32 +202,12 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
         apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const spider_list = results.results ? results.results : [];
-                if (spider) {
-                    let index = 0;
-                    index = spider_list.findIndex((listedSpider: Spider) => {
-                        return listedSpider.sid == spider.sid;
-                    });
-
-                    if (index < 0) {
-                        spider_list.unshift(spider);
-                        index = 0;
-                    }
-                    setProjectData({ ...projectData, sid: String(spider_list[index].sid) });
-                    setCronjobData({
-                        ...cronjobData,
-                        dataStatus: spider_list[index].dataStatus,
-                        dataExpiryDays: spider_list[index].dataExpiryDays,
-                    });
-                } else if (spider_list.length > 0) {
-                    setProjectData({ ...projectData, sid: String(spider_list[0].sid) });
-                    setCronjobData({
-                        ...cronjobData,
-                        dataStatus: spider_list[0].dataStatus,
-                        dataExpiryDays: spider_list[0].dataExpiryDays,
-                    });
+                if (results.results.length == 0 || results.results == undefined) {
+                    setSpiders([]);
+                } else {
+                    setSpiders([...results.results]);
+                    setProjectData({ ...projectData, sid: String(results.results[0].sid) });
                 }
-                setSpiders(spider_list);
             },
             (error: unknown) => {
                 error;
@@ -503,7 +481,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 style={{ borderRadius: 16 }}
                                 size="large"
                                 className="w-full"
-                                defaultValue={spider ? spider.name : spiders[0] ? spiders[0].name : ""}
+                                defaultValue={spiders[0] ? spiders[0].name : ""}
                                 onChange={handleSpiderChange}
                             >
                                 {spiders.map((spider: Spider) => (
@@ -519,9 +497,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 onChange={handlePersistenceChange}
                                 className="w-full"
                                 size="large"
-                                defaultValue={
-                                    cronjobData.dataStatus === "PERSISTENT" ? 720 : cronjobData.dataExpiryDays
-                                }
+                                defaultValue={dataPersistenceOptions[0].value}
                             >
                                 {dataPersistenceOptions.map((option: OptionDataPersistance) => (
                                     <Option className="text-sm" key={option.key} value={option.value}>

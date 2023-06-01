@@ -146,10 +146,14 @@ class StatsForDashboardMixin:
 
             stats_results[date_str]["runtime"] += stats.get(
 <<<<<<< HEAD
+<<<<<<< HEAD
                 self.stats_mapping["runtime"], 0.0
 =======
                 stats_mapping["runtime"], 0.0
 >>>>>>> b7a4fb5 (BITMAKER-3121 global stats frontend: hot fix in charts section (#181))
+=======
+                self.stats_mapping["runtime"], 0.0
+>>>>>>> 56b1afe (BITMAKER-3215 global job stats: Jobs Traceability (#185))
             )
 
             stats_results[date_str]["pages"]["scraped_pages"] += stats.get(
@@ -187,6 +191,7 @@ class StatsForDashboardMixin:
                 ]
             if stat["jobs"]["total_jobs"] != 0:
 <<<<<<< HEAD
+<<<<<<< HEAD
                 stat["success_rate"] = 100 * (
                     stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"]
                 )
@@ -194,6 +199,11 @@ class StatsForDashboardMixin:
                 stat["success_rate"] = 100 * (stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"])
 
 >>>>>>> b7a4fb5 (BITMAKER-3121 global stats frontend: hot fix in charts section (#181))
+=======
+                stat["success_rate"] = 100 * (
+                    stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"]
+                )
+>>>>>>> 56b1afe (BITMAKER-3215 global job stats: Jobs Traceability (#185))
         return stats_results
 
     def parse_jobs_stats(
