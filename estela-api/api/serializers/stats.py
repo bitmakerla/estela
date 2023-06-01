@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from core.models import SpiderJob
+
 
 class LogsStatsSerializer(serializers.Serializer):
     total_logs = serializers.IntegerField(default=0)
@@ -48,7 +50,7 @@ class CoverageStatsSerializer(serializers.Serializer):
 
 
 class StatsSerializer(serializers.Serializer):
-    jobs = JobsStatsSerializer()
+    jobs = JobsStatsSerializer(required=False)
     pages = PagesStatsSerializer()
     items_count = serializers.IntegerField(default=0)
     runtime = serializers.FloatField(default=0.0)
@@ -58,9 +60,22 @@ class StatsSerializer(serializers.Serializer):
     coverage = CoverageStatsSerializer()
 
 
+class JobsMetadataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpiderJob
+        fields = ("jid", "spider", "job_status")
+
+
+class GetJobsStatsSerializer(serializers.Serializer):
+    jid = serializers.IntegerField(default=0)
+    spider = serializers.IntegerField(default=0)
+    stats = StatsSerializer(required=False)
+
+
 class GlobalStatsSerializer(serializers.Serializer):
     date = serializers.DateField(format="%Y-%m-%d")
     stats = StatsSerializer()
+    jobs_metadata = JobsMetadataSerializer(many=True)
 
 
 class SpidersJobsStatsSerializer(GlobalStatsSerializer):

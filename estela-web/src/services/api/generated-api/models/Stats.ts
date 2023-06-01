@@ -47,7 +47,7 @@ export interface Stats {
      * @type {JobsStats}
      * @memberof Stats
      */
-    jobs: JobsStats;
+    jobs?: JobsStats;
     /**
      * 
      * @type {PagesStats}
@@ -102,7 +102,7 @@ export function StatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
     }
     return {
         
-        'jobs': JobsStatsFromJSON(json['jobs']),
+        'jobs': !exists(json, 'jobs') ? undefined : JobsStatsFromJSON(json['jobs']),
         'pages': PagesStatsFromJSON(json['pages']),
         'itemsCount': !exists(json, 'items_count') ? undefined : json['items_count'],
         'runtime': !exists(json, 'runtime') ? undefined : json['runtime'],

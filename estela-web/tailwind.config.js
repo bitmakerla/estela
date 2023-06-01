@@ -30,6 +30,7 @@ module.exports = {
                 "estela-yellow": "#D1A34F",
                 "estela-yellow-low": "#FFFDB2",
                 "estela-complementary-yellow": "#D1A34F",
+                "estela-states-yellow-medium": "#E7E255",
                 "estela-red-full": "#E34A46",
                 "estela-red-low": "#FFF5F2",
                 "estela-background": "#FBFCFD",
