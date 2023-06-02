@@ -47,6 +47,7 @@ import {
     ApiStatsJobsStatsRequest,
     GetJobsStats,
 } from "../../services/api";
+import { formatSecondsToHHMMSS, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
@@ -210,20 +211,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 loadedJobsDateStats: [...newLoadedJobsDateStats],
             });
         });
-    };
-
-    formatTime = (time: number): string => {
-        return moment().startOf("day").seconds(time).format("HH:mm:ss");
-    };
-
-    formatBytes = (bytes: number): string => {
-        if (!+bytes) {
-            return "0 Bytes";
-        } else {
-            const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
-        }
     };
 
     calcAverageSuccessRate = (): number => {
@@ -398,7 +385,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 children: this.chartsSection(),
                             },
                             {
-                                label: "Success rate",
+                                label: "Job Success rate",
                                 key: StatType.SUCCESS_RATE,
                                 children: this.chartsSection(),
                             },
@@ -515,7 +502,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 align: "center",
                 render: (_, { jobStats }): ReactElement => {
                     let runtime = "no data";
-                    if (jobStats.stats) runtime = this.formatTime(jobStats.stats.runtime ?? 0);
+                    if (jobStats.stats) runtime = formatSecondsToHHMMSS(jobStats.stats.runtime ?? 0);
                     return <span className="text-xs text-estela-black-medium">{runtime}</span>;
                 },
             },
@@ -591,7 +578,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
                         <p className="text-sm text-center text-black">
-                            {this.formatTime(accumulatedStat.totalRuntime)}
+                            {formatSecondsToHHMMSS(accumulatedStat.totalRuntime)}
                         </p>
                         <p className="text-sm text-center text-estela-black-medium">Runtime</p>
                     </Col>
@@ -621,7 +608,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <p className="text-sm text-center text-estela-black-full">RUNTIME</p>
                     </Col>
                     <Col className="my-2">
-                        <p className="text-sm text-center text-estela-black-full">SUCCESS</p>
+                        <p className="text-sm text-center text-estela-black-full">JOB SUCCESS RATE</p>
                     </Col>
                 </Row>
                 <Collapse
@@ -747,7 +734,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         </Col>
                                         <Col className="m-auto">
                                             <p className="text-estela-black-full">
-                                                {this.formatTime(stat.stats.runtime ?? 0)}
+                                                {formatSecondsToHHMMSS(stat.stats.runtime ?? 0)}
                                             </p>
                                         </Col>
                                         <Col className="m-auto">
@@ -857,13 +844,17 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         Processing time
                                     </Text>
                                     <Text className="text-base text-estela-black-full break-words">
-                                        {this.formatTime(processingTime)}
+                                        {formatSecondsToHHMMSS(processingTime)}
                                     </Text>
                                 </div>
                                 <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">Bandwidth</Text>
                                     <Text className="text-base text-estela-black-full break-words">
+<<<<<<< HEAD
                                         {formattedNetwork.quantity} {formattedNetwork.type}
+=======
+                                        {formatBytes(network)}
+>>>>>>> dd0f400 (Add utils functions to format time and bytes, fix issues on dashboard)
                                     </Text>
                                 </div>
                                 <div className="flex items-center justify-between space-x-4">
