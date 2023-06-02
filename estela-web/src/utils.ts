@@ -20,6 +20,27 @@ export function convertDateToString(date: Date | undefined): string {
     return "";
 }
 
+export function formatSecondsToHHMMSS(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    const formattedTime = [
+        hours.toString().padStart(2, "0"),
+        minutes.toString().padStart(2, "0"),
+        remainingSeconds.toString().padStart(2, "0"),
+    ].join(":");
+    return formattedTime;
+}
+
+export function formatBytes(bytes: number): string {
+    if (!+bytes) {
+        return "0 Bytes";
+    }
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
+}
+
 export function handleInvalidDataError(error: unknown): void {
     if (error instanceof Response) {
         error
