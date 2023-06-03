@@ -13,6 +13,7 @@ import {
 import { Bar } from "react-chartjs-2";
 import { StatType } from "../../shared";
 import { GlobalStats, SpidersJobsStats } from "../../services";
+import { Empty, Spin } from "antd";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -20,22 +21,22 @@ export const getJobsDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "Finished",
-            data: statsData.map((statData) => statData.stats.jobs.finishedJobs ?? 0),
+            data: statsData.map((statData) => statData.stats.jobs?.finishedJobs ?? 0),
             backgroundColor: "#32C3A4",
         },
         {
             label: "Running",
-            data: statsData.map((statData) => statData.stats.jobs.runningJobs ?? 0),
+            data: statsData.map((statData) => statData.stats.jobs?.runningJobs ?? 0),
             backgroundColor: "#D1A34F",
         },
         {
             label: "Error",
-            data: statsData.map((statData) => statData.stats.jobs.errorJobs ?? 0),
+            data: statsData.map((statData) => statData.stats.jobs?.errorJobs ?? 0),
             backgroundColor: "#A13764",
         },
         {
             label: "Unknown",
-            data: statsData.map((statData) => statData.stats.jobs.unknownJobs ?? 0),
+            data: statsData.map((statData) => statData.stats.jobs?.unknownJobs ?? 0),
             backgroundColor: "#6C757D",
         },
     ];
@@ -173,7 +174,8 @@ export const getLogsDataset = (statData: GlobalStats[]) => {
 };
 
 interface ChartProps {
-    data: GlobalStats[] | SpidersJobsStats[];
+    loadedStats: boolean;
+    stats: GlobalStats[] | SpidersJobsStats[];
 }
 
 interface ChartState {
@@ -181,8 +183,6 @@ interface ChartState {
 }
 
 export class Chart extends Component<ChartProps, ChartState> {
-    stats = this.props.data;
-
     state: ChartState = {
         statOption: StatType.JOBS,
     };
@@ -198,39 +198,60 @@ export class Chart extends Component<ChartProps, ChartState> {
         [StatType.LOGS]: getLogsDataset,
     };
 
-    labels: string[] = this.stats.map((stat) => stat.date.toISOString().slice(0, 10));
-
-    datasets: ChartDataset<"bar", number[]>[] = this.datasetsGenerators[this.state.statOption](this.stats);
-
-    data: ChartData<"bar", number[], string> = {
-        labels: this.labels,
-        datasets: this.datasets,
-    };
-
     render() {
+        const { statOption } = this.state;
+        const { loadedStats, stats } = this.props;
+
+        const labels: string[] = stats.map((stat) => stat.date.toLocaleDateString().slice(0, 10));
+
+        const datasets: ChartDataset<"bar", number[]>[] = this.datasetsGenerators[statOption](stats);
+
+        const data: ChartData<"bar", number[], string> = {
+            labels: labels,
+            datasets: datasets,
+        };
+
+        if (!loadedStats) {
+            return <Spin />;
+        }
+
         return (
-            <Bar
-                options={{
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: "bottom" as const,
-                        },
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            grid: {
-                                display: false,
+            <>
+                {stats.length === 0 ? (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                ) : (
+                    <Bar
+                        options={{
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: "bottom" as const,
+                                },
                             },
-                        },
-                        y: {
-                            stacked: true,
-                        },
-                    },
-                }}
-                data={this.data}
-            />
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    grid: {
+                                        display: false,
+                                    },
+                                },
+                                y: {
+                                    stacked: true,
+                                    min:
+                                        statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
+                                            ? 0
+                                            : undefined,
+                                    max:
+                                        statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
+                                            ? 100
+                                            : undefined,
+                                },
+                            },
+                        }}
+                        data={data}
+                    />
+                )}
+            </>
         );
     }
 }

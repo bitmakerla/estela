@@ -15,22 +15,10 @@ import {
     Tooltip as TooltipAnt,
     Table,
     notification,
-    Empty,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend,
-    ChartDataset,
-    ChartData,
-    ArcElement,
-} from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, Title, Tooltip, Legend, ArcElement } from "chart.js";
+import { Doughnut } from "react-chartjs-2";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -52,7 +40,7 @@ import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
-import { Chart, DataListSection, HeaderSection } from "../../components";
+import { Chart } from "../../components";
 
 ChartJS.register(CategoryScale, ArcElement, Title, Tooltip, Legend);
 
@@ -227,71 +215,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         return sumSuccessRates / successRates.length;
     };
 
-    chartsSection: () => JSX.Element = () => {
-        const { globalStats, statOptionTab, loadedStats } = this.state;
-        const datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } =
-            {
-                [StatType.JOBS]: getJobsDataset,
-                [StatType.PAGES]: getPagesDataset,
-                [StatType.ITEMS]: getItemsDataset,
-                [StatType.RUNTIME]: getRuntimeDataset,
-                [StatType.COVERAGE]: getCoverageDataset,
-                [StatType.SUCCESS_RATE]: getSuccessRateDataset,
-                [StatType.STATUS_CODE]: getStatusCodeDataset,
-                [StatType.LOGS]: getLogsDataset,
-            };
-        const reversedGlobalStats = globalStats.slice().reverse();
-        const labels: string[] = reversedGlobalStats.map((stat) => stat.date.toLocaleDateString().slice(0, 10));
-        const datasets: ChartDataset<"bar", number[]>[] = datasetsGenerators[statOptionTab](reversedGlobalStats);
-        const data: ChartData<"bar", number[], string> = {
-            labels,
-            datasets: datasets,
-        };
-
-        if (!loadedStats) {
-            return <Spin />;
-        }
-
-        return (
-            <>
-                {globalStats.length === 0 ? (
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                ) : (
-                    <Bar
-                        options={{
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: "bottom" as const,
-                                },
-                            },
-                            scales: {
-                                x: {
-                                    stacked: true,
-                                    grid: {
-                                        display: false,
-                                    },
-                                },
-                                y: {
-                                    stacked: true,
-                                    min:
-                                        statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
-                                            ? 0
-                                            : undefined,
-                                    max:
-                                        statOptionTab === StatType.COVERAGE || statOptionTab === StatType.SUCCESS_RATE
-                                            ? 100
-                                            : undefined,
-                                },
-                            },
-                        }}
-                        data={data}
-                    />
-                )}
-            </>
-        );
-    };
-
     onStatsTabChange: (activeStat: string) => void = (activeStat: string) => {
         switch (activeStat) {
             case "JOBS":
@@ -322,7 +245,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     headSection: () => JSX.Element = () => {
-        const { statsStartDate, statsEndDate } = this.state;
+        const { statsStartDate, statsEndDate, globalStats, loadedStats } = this.state;
 
         const onChangeDateRange: RangePickerProps["onChange"] = (_, dateStrings) => {
             this.setState({ loadedStats: false });
@@ -373,37 +296,37 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             {
                                 label: "Jobs",
                                 key: StatType.JOBS,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                             {
                                 label: "Pages",
                                 key: StatType.PAGES,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                             {
                                 label: "Items",
                                 key: StatType.ITEMS,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                             {
                                 label: "Runtime",
                                 key: StatType.RUNTIME,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                             {
                                 label: "Job Success rate",
                                 key: StatType.SUCCESS_RATE,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                             {
                                 label: "Status code",
                                 key: StatType.STATUS_CODE,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                             {
                                 label: "Logs",
                                 key: StatType.LOGS,
-                                children: this.chartsSection(),
+                                children: <Chart stats={globalStats} loadedStats={loadedStats} />,
                             },
                         ]}
                     />
