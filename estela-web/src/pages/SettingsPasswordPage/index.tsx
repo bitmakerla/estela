@@ -73,8 +73,8 @@ export class SettingsPasswordPage extends Component<unknown, PasswordSettingsPag
                     this.setState({ loadingSendRequest: false, successfullyChanged: true, showPasswordModal: false });
                 }
             },
-            (error) => {
-                console.error(error);
+            () => {
+                // Error
                 wrongPasswordNotification();
                 this.oldPasswordForm.current?.resetFields();
                 this.setState({ loadingSendRequest: false });

@@ -26,6 +26,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
+import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
@@ -144,11 +145,6 @@ type ItemsMetadataProps = {
 
 interface MetadataField {
     field: string;
-    type: string;
-}
-
-interface BytesMetric {
-    quantity: number;
     type: string;
 }
 
@@ -625,22 +621,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
-    formatBytes = (bytes: number): BytesMetric => {
-        if (!+bytes) {
-            return {
-                quantity: 0,
-                type: "Bytes",
-            };
-        } else {
-            const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            return {
-                quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
-                type: `${sizes[i > sizes.length - 1 ? 3 : i]}`,
-            };
-        }
-    };
-
     chartConfigs = (bytes: BytesMetric): [number[], string[]] => {
         const dataChartProportions = [1, 0];
         const colorChartArray = ["#7DC932", "#F1F1F1"];
@@ -682,7 +662,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             items,
             status,
         } = this.state;
-        const bandwidth: BytesMetric = this.formatBytes(Number(totalResponseBytes));
+        const bandwidth: BytesMetric = formatBytes(Number(totalResponseBytes));
         const [dataChartProportions, colorChartArray] = this.chartConfigs(bandwidth);
         const lifespanPercentage: number = Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
         const dataChart = {
@@ -941,13 +921,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </Row>
                     </Card>
                     <Card className="w-full col-span-3 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">Processing Time</Text>
+                        <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">
+                            Processing Time (HH:MM:SS)
+                        </Text>
                         <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">
-                                    {(lifespan ?? 0).toFixed(2)}
+                                    {formatSecondsToHHMMSS(lifespan ?? 0)}
                                 </Text>
-                                <Text className="text-estela-black-full text-base"> seg</Text>
                             </Col>
                             <Col>
                                 <Text className="text-estela-black-medium text-xs">this job</Text>

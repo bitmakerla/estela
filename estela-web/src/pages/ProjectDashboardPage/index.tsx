@@ -47,6 +47,7 @@ import {
     ApiStatsJobsStatsRequest,
     GetJobsStats,
 } from "../../services/api";
+import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
@@ -234,9 +235,9 @@ enum StatType {
 
 interface ProjectDashboardPageState {
     name: string;
-    network: number;
+    formattedNetwork: BytesMetric;
     processingTime: number;
-    storage: number;
+    formattedStorage: BytesMetric;
     projectUseLoaded: boolean;
     loaded: boolean;
     count: number;
@@ -258,9 +259,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     PAGE_SIZE = 10;
     state: ProjectDashboardPageState = {
         name: "",
-        network: 0,
+        formattedNetwork: {},
         processingTime: 0,
-        storage: 0,
+        formattedStorage: {},
         loaded: false,
         projectUseLoaded: false,
         count: 0,
@@ -302,9 +303,11 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             const time = parseFloat(response.processingTime ?? "0");
             this.setState({
                 projectUseLoaded: true,
-                network: response.networkUsage,
+                formattedNetwork: formatBytes(response.networkUsage),
                 processingTime: Math.round(time * 100) / 100,
-                storage: response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
+                formattedStorage: formatBytes(
+                    response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
+                ),
                 loaded: true,
             });
         });
@@ -365,20 +368,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 loadedJobsDateStats: [...newLoadedJobsDateStats],
             });
         });
-    };
-
-    formatTime = (time: number): string => {
-        return moment().startOf("day").seconds(time).format("HH:mm:ss");
-    };
-
-    formatBytes = (bytes: number): string => {
-        if (!+bytes) {
-            return "0 Bytes";
-        } else {
-            const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(1024));
-            return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
-        }
     };
 
     calcAverageSuccessRate = (): number => {
@@ -553,7 +542,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 children: this.chartsSection(),
                             },
                             {
-                                label: "Success rate",
+                                label: "Job Success rate",
                                 key: StatType.SUCCESS_RATE,
                                 children: this.chartsSection(),
                             },
@@ -670,7 +659,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 align: "center",
                 render: (_, { jobStats }): ReactElement => {
                     let runtime = "no data";
-                    if (jobStats.stats) runtime = this.formatTime(jobStats.stats.runtime ?? 0);
+                    if (jobStats.stats) runtime = formatSecondsToHHMMSS(jobStats.stats.runtime ?? 0);
                     return <span className="text-xs text-estela-black-medium">{runtime}</span>;
                 },
             },
@@ -746,7 +735,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                     </Col>
                     <Col className="grid grid-cols-1 my-2">
                         <p className="text-sm text-center text-black">
-                            {this.formatTime(accumulatedStat.totalRuntime)}
+                            {formatSecondsToHHMMSS(accumulatedStat.totalRuntime)}
                         </p>
                         <p className="text-sm text-center text-estela-black-medium">Runtime</p>
                     </Col>
@@ -776,7 +765,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <p className="text-sm text-center text-estela-black-full">RUNTIME</p>
                     </Col>
                     <Col className="my-2">
-                        <p className="text-sm text-center text-estela-black-full">SUCCESS</p>
+                        <p className="text-sm text-center text-estela-black-full">JOB SUCCESS RATE</p>
                     </Col>
                 </Row>
                 <Collapse
@@ -902,7 +891,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         </Col>
                                         <Col className="m-auto">
                                             <p className="text-estela-black-full">
-                                                {this.formatTime(stat.stats.runtime ?? 0)}
+                                                {formatSecondsToHHMMSS(stat.stats.runtime ?? 0)}
                                             </p>
                                         </Col>
                                         <Col className="m-auto">
@@ -932,7 +921,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     projectUsageSection: () => JSX.Element = () => {
-        const { projectUseLoaded, network, processingTime, storage, loadedStats } = this.state;
+        const { projectUseLoaded, formattedNetwork, processingTime, formattedStorage, loadedStats } = this.state;
 
         const averageSuccessRates = this.calcAverageSuccessRate();
         const dataChart = {
@@ -1012,19 +1001,19 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         Processing time
                                     </Text>
                                     <Text className="text-base text-estela-black-full break-words">
-                                        {this.formatTime(processingTime)}
+                                        {formatSecondsToHHMMSS(processingTime)}
                                     </Text>
                                 </div>
                                 <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">Bandwidth</Text>
                                     <Text className="text-base text-estela-black-full break-words">
-                                        {this.formatBytes(network)}
+                                        {formattedNetwork.quantity} {formattedNetwork.type}
                                     </Text>
                                 </div>
                                 <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">Storage</Text>
                                     <Text className="text-base text-estela-black-full break-words">
-                                        {this.formatBytes(storage)}
+                                        {formattedStorage.quantity} {formattedStorage.type}
                                     </Text>
                                 </div>
                             </div>

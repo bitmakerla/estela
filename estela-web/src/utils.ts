@@ -1,5 +1,10 @@
 import { invalidDataNotification } from "./shared";
 
+interface BytesMetric {
+    quantity: number;
+    type: string;
+}
+
 function completeDateInfo(data: number): string {
     if (data < 10) {
         return `0${data}`;
@@ -18,6 +23,34 @@ export function convertDateToString(date: Date | undefined): string {
         return `${hourUTC}:${minutesUTC}:${secondsUTC} ${monthUTC}-${dayUTC}-${yearUTC} UTC`;
     }
     return "";
+}
+
+export function formatSecondsToHHMMSS(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    const formattedTime = [
+        hours.toString().padStart(2, "0"),
+        minutes.toString().padStart(2, "0"),
+        remainingSeconds.toString().padStart(2, "0"),
+    ].join(":");
+    return formattedTime;
+}
+
+export function formatBytes(bytes: number): BytesMetric {
+    if (!+bytes) {
+        return {
+            quantity: 0,
+            type: "Bytes",
+        };
+    }
+
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return {
+        quantity: parseFloat((bytes / Math.pow(1024, i)).toFixed(2)),
+        type: `${sizes[i > sizes.length - 1 ? 3 : i]}`,
+    };
 }
 
 export function handleInvalidDataError(error: unknown): void {
