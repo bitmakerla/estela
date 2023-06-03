@@ -18,10 +18,9 @@ import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import "./styles.scss";
-import history from "../../history";
+import CronjobCreateModal from "../CronjobCreateModal";
+import JobCreateModal from "../JobCreateModal";
 import { ApiService } from "../../services";
-import Add from "../../assets/icons/add.svg";
-import Play from "../../assets/icons/play.svg";
 import Setting from "../../assets/icons/setting.svg";
 import Filter from "../../assets/icons/filter.svg";
 
@@ -775,31 +774,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                         <Text className="text-estela-black-medium text-xl">{name}</Text>
                                     </Col>
                                     <Col className="float-right">
-                                        <Button
-                                            onClick={() => {
-                                                history.push(`/projects/${this.projectId}/cronjobs`);
-                                            }}
-                                            icon={<Add className="mr-2" width={19} />}
-                                            size="large"
-                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                        >
-                                            Schedule job
-                                        </Button>
+                                        <CronjobCreateModal
+                                            openModal={false}
+                                            spider={this.state.spider}
+                                            projectId={this.projectId}
+                                        />
                                     </Col>
                                     <Col className="float-right">
-                                        <Button
-                                            onClick={() => {
-                                                history.push(`/projects/${this.projectId}/jobs`, {
-                                                    open: true,
-                                                    spider: this.state.spider,
-                                                });
-                                            }}
-                                            icon={<Play className="mr-2" width={19} />}
-                                            size="large"
-                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                        >
-                                            Run new job
-                                        </Button>
+                                        <JobCreateModal
+                                            openModal={false}
+                                            spider={this.state.spider}
+                                            projectId={this.projectId}
+                                        />
                                     </Col>
                                 </Row>
                                 <Tabs

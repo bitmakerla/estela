@@ -19,6 +19,8 @@ import Add from "../../assets/icons/add.svg";
 const { Option } = Select;
 
 interface JobCreateModalProps {
+    openModal: boolean;
+    spider: Spider | null;
     projectId: string;
 }
 
@@ -81,10 +83,10 @@ const dataPersistenceOptions = [
     { label: "Forever", key: 7, value: 720 },
 ];
 
-export default function JobCreateModal({ projectId }: JobCreateModalProps) {
+export default function JobCreateModal({ openModal, spider, projectId }: JobCreateModalProps) {
     const PAGE_SIZE = 15;
     const apiService = ApiService();
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(openModal);
     const [loading, setLoading] = useState(false);
     const [countKey, setCountKey] = useState(0);
     const [spiders, setSpiders] = useState<Spider[]>([]);
@@ -93,8 +95,8 @@ export default function JobCreateModal({ projectId }: JobCreateModalProps) {
         args: [],
         envVars: [],
         tags: [],
-        dataStatus: undefined,
-        dataExpiryDays: 1,
+        dataStatus: spider ? spider.dataStatus : undefined,
+        dataExpiryDays: spider ? spider.dataExpiryDays : 1,
     });
     const [variable, setVariable] = useState<Variable>({
         newArgName: "",
@@ -117,17 +119,32 @@ export default function JobCreateModal({ projectId }: JobCreateModalProps) {
         const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
         apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                if (results.results.length == 0 || results.results == undefined) {
-                    setSpiders([]);
-                } else {
+                const spider_list = results.results;
+                if (spider) {
+                    let index = 0;
+                    index = spider_list.findIndex((listedSpider: Spider) => {
+                        return listedSpider.sid == spider.sid;
+                    });
+
+                    if (index < 0) {
+                        spider_list.unshift(spider);
+                        index = 0;
+                    }
+                    setRequest({ ...request, sid: String(spider_list[index].sid) });
                     setJobData({
                         ...jobData,
-                        dataStatus: results.results[0].dataStatus,
-                        dataExpiryDays: results.results[0].dataExpiryDays,
+                        dataStatus: spider_list[index].dataStatus,
+                        dataExpiryDays: spider_list[index].dataExpiryDays,
                     });
-                    setRequest({ ...request, sid: String(results.results[0].sid) });
-                    setSpiders(results.results);
+                } else {
+                    setRequest({ ...request, sid: String(spider_list[0].sid) });
+                    setJobData({
+                        ...jobData,
+                        dataStatus: spider_list[0].dataStatus,
+                        dataExpiryDays: spider_list[0].dataExpiryDays,
+                    });
                 }
+                setSpiders(spider_list);
             },
             (error: unknown) => {
                 error;
@@ -300,7 +317,7 @@ export default function JobCreateModal({ projectId }: JobCreateModalProps) {
                         style={{ borderRadius: 16 }}
                         size="large"
                         className="w-full"
-                        defaultValue={spiders[0] ? spiders[0].name : ""}
+                        defaultValue={spider ? spider.name : spiders[0] ? spiders[0].name : ""}
                         onChange={handleSpiderChange}
                     >
                         {spiders.map((spider: Spider) => (
