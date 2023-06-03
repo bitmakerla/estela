@@ -35,7 +35,7 @@ import {
     ApiStatsJobsStatsRequest,
     GetJobsStats,
 } from "../../services/api";
-import { formatSecondsToHHMMSS, formatBytes } from "../../utils";
+import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
@@ -68,9 +68,9 @@ enum StatType {
 
 interface ProjectDashboardPageState {
     name: string;
-    network: number;
+    formattedNetwork: BytesMetric;
     processingTime: number;
-    storage: number;
+    formattedStorage: BytesMetric;
     projectUseLoaded: boolean;
     loaded: boolean;
     count: number;
@@ -92,9 +92,9 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     PAGE_SIZE = 10;
     state: ProjectDashboardPageState = {
         name: "",
-        network: 0,
+        formattedNetwork: {},
         processingTime: 0,
-        storage: 0,
+        formattedStorage: {},
         loaded: false,
         projectUseLoaded: false,
         count: 0,
@@ -136,9 +136,11 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             const time = parseFloat(response.processingTime ?? "0");
             this.setState({
                 projectUseLoaded: true,
-                network: response.networkUsage,
+                formattedNetwork: formatBytes(response.networkUsage),
                 processingTime: Math.round(time * 100) / 100,
-                storage: response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
+                formattedStorage: formatBytes(
+                    response.itemsDataSize + response.requestsDataSize + response.logsDataSize,
+                ),
                 loaded: true,
             });
         });
@@ -687,7 +689,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     };
 
     projectUsageSection: () => JSX.Element = () => {
-        const { projectUseLoaded, network, processingTime, storage, loadedStats } = this.state;
+        const { projectUseLoaded, formattedNetwork, processingTime, formattedStorage, loadedStats } = this.state;
 
         const averageSuccessRates = this.calcAverageSuccessRate();
         const dataChart = {
@@ -773,11 +775,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">Bandwidth</Text>
                                     <Text className="text-base text-estela-black-full break-words">
-<<<<<<< HEAD
                                         {formattedNetwork.quantity} {formattedNetwork.type}
-=======
-                                        {formatBytes(network)}
->>>>>>> dd0f400 (Add utils functions to format time and bytes, fix issues on dashboard)
                                     </Text>
                                 </div>
                                 <div className="flex items-center justify-between space-x-4">
