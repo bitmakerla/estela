@@ -3,7 +3,7 @@ import { DatePicker, Button, Divider, Layout, Tabs } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
 import moment from "moment";
 import Run from "../../assets/icons/run.svg";
-import { ApiProjectsStatsListRequest, ApiService, GlobalStats, SpidersJobsStats } from "../../services";
+import { ApiService, GlobalStats, SpidersJobsStats } from "../../services";
 import { StatType } from "../../shared";
 import { Row } from "antd";
 import { Chart } from "./ChartSection";
