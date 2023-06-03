@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { flatten } from "flat";
 import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input } from "antd";
 import { resourceNotAllowedNotification, dataDeletedNotification, Spin, PaginationItem } from "../../shared";
 
@@ -90,7 +91,10 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
         getData("items", 1, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];
             if (response.results?.length) {
-                const safe_data: unknown[] = response.results ?? [];
+                let safe_data: unknown[] = response.results ?? [];
+                safe_data = safe_data.map((item) => {
+                    return flatten(item, { safe: true });
+                });
                 data = safe_data as Dictionary[];
                 setItems(data);
                 setCurrent(1);
