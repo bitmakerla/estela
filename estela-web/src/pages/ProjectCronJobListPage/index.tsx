@@ -56,6 +56,7 @@ interface ProjectCronJobListPageState {
     count: number;
     current: number;
     loading: boolean;
+    page: number;
 }
 
 interface RouteParams {
@@ -72,6 +73,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         count: 0,
         current: 0,
         loading: false,
+        page: 1,
     };
 
     apiService = ApiService();
@@ -126,7 +128,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                     <Switch
                         size="small"
                         className="bg-estela-white-low"
-                        defaultChecked={status === SpiderCronJobStatusEnum.Active}
+                        checked={status === SpiderCronJobStatusEnum.Active}
                         onChange={() => this.updateStatus(cronjob)}
                     />
                 );
@@ -202,7 +204,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 resourceNotAllowedNotification();
             },
         );
-        this.getCronJobs(1);
+        this.getCronJobs(this.state.page);
     }
 
     getCronJobs = async (page: number): Promise<void> => {
@@ -245,7 +247,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
             (response) => {
                 message.success(`ScheduledJob ${response.cjid} ${response.status}`);
-                this.getCronJobs(1);
+                this.getCronJobs(this.state.page);
             },
             (error: unknown) => {
                 error;
@@ -255,6 +257,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     onPageChange = async (page: number): Promise<void> => {
+        this.setState({ page: page });
         await this.getCronJobs(page);
     };
 
