@@ -30,3 +30,6 @@ class NotificationsHandlerMixin:
             project=project,
         )
         notification.save()
+        for _user in project.users.all():
+            notification.users.add(_user, through_defaults={"seen": False})
+        notification.save()

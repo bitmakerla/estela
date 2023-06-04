@@ -264,65 +264,6 @@ paths:
       tags:
         - api
     parameters: []
-  /api/notifications:
-    get:
-      operationId: api_notifications_list
-      description: ''
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-        - name: page_size
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-      responses:
-        '200':
-          description: ''
-          schema:
-            required:
-              - count
-              - results
-            type: object
-            properties:
-              count:
-                type: integer
-              next:
-                type: string
-                format: uri
-                x-nullable: true
-              previous:
-                type: string
-                format: uri
-                x-nullable: true
-              results:
-                type: array
-                items:
-                  $ref: '#/definitions/Notification'
-      tags:
-        - api
-    parameters: []
-  /api/notifications/{nid}:
-    get:
-      operationId: api_notifications_read
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Notification'
-      tags:
-        - api
-    parameters:
-      - name: nid
-        in: path
-        description: A unique integer value identifying each notification
-        required: true
-        type: integer
   /api/projects:
     get:
       operationId: api_projects_list
@@ -1308,6 +1249,123 @@ paths:
         in: path
         required: true
         type: string
+        format: uuid
+  /api/user_notifications:
+    get:
+      operationId: api_user_notifications_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    post:
+      operationId: api_user_notifications_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserNotification'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    parameters: []
+  /api/user_notifications/{id}:
+    get:
+      operationId: api_user_notifications_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    put:
+      operationId: api_user_notifications_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserNotificationUpdate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotificationUpdate'
+      tags:
+        - api
+    patch:
+      operationId: api_user_notifications_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserNotification'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    delete:
+      operationId: api_user_notifications_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - api
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this user notification.
+        required: true
+        type: integer
 definitions:
   ChangePassword:
     required:
@@ -1445,54 +1503,6 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
-  ProjectDetail:
-    description: Project where the action was performed.
-    type: object
-    properties:
-      pid:
-        title: Pid
-        description: A UUID identifying this project.
-        type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        description: Project name.
-        type: string
-        readOnly: true
-        minLength: 1
-  Notification:
-    required:
-      - user
-      - message
-      - project
-    type: object
-    properties:
-      nid:
-        title: Nid
-        description: A unique integer value identifying each notification
-        type: integer
-        readOnly: true
-      user:
-        $ref: '#/definitions/UserDetail'
-      message:
-        title: Message
-        description: Notification message.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      project:
-        $ref: '#/definitions/ProjectDetail'
-      seen:
-        title: Seen
-        description: Whether the notification was seen.
-        type: boolean
-      created_at:
-        title: Created at
-        description: Notification send date.
-        type: string
-        format: date-time
-        readOnly: true
   Permission:
     description: Users with permissions on this project.
     type: object
@@ -2561,3 +2571,129 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/JobsMetadata'
+  UsageRecord:
+    required:
+      - processing_time
+      - network_usage
+      - item_count
+      - request_count
+      - items_data_size
+      - requests_data_size
+      - logs_data_size
+    type: object
+    properties:
+      created_at:
+        title: Created at
+        description: Usage record creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      processing_time:
+        title: Processing time
+        description: Time of CPU use.
+        type: number
+      network_usage:
+        title: Network usage
+        description: Amount of network bytes used.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        description: Amount of items extracted.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        description: Amount of requests made.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      items_data_size:
+        title: Items data size
+        description: Amount in bytes occupied by items in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      requests_data_size:
+        title: Requests data size
+        description: Amount in bytes occupied by requests in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      logs_data_size:
+        title: Logs data size
+        description: Amount in bytes occupied by logs in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+  ProjectDetail:
+    description: Project where the action was performed.
+    type: object
+    properties:
+      pid:
+        title: Pid
+        description: A UUID identifying this project.
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Project name.
+        type: string
+        readOnly: true
+        minLength: 1
+  Notification:
+    description: Notification to which the user is subscribed.
+    required:
+      - message
+      - user
+      - project
+    type: object
+    properties:
+      nid:
+        title: Nid
+        description: A unique integer value identifying each notification
+        type: integer
+        readOnly: true
+      message:
+        title: Message
+        description: Notification message.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      user:
+        $ref: '#/definitions/UserDetail'
+      project:
+        $ref: '#/definitions/ProjectDetail'
+  UserNotification:
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      notification:
+        $ref: '#/definitions/Notification'
+      seen:
+        title: Seen
+        description: Whether the notification was seen.
+        type: boolean
+      created_at:
+        title: Created at
+        description: Subscription date.
+        type: string
+        format: date-time
+        readOnly: true
+  UserNotificationUpdate:
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      seen:
+        title: Seen
+        description: Whether the user has seen the notification.
+        type: boolean

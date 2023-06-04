@@ -49,4 +49,6 @@ export * from './Token';
 export * from './UsageRecord';
 export * from './User';
 export * from './UserDetail';
+export * from './UserNotification';
+export * from './UserNotificationUpdate';
 export * from './UserProfile';

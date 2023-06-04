@@ -92,7 +92,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     emptyText = (): ReactElement => (
         <Content className="flex flex-col items-center justify-center text-estela-black-medium">
             <FolderDotted className="w-20 h-20" />
-            <p>No proyects yet.</p>
+            <p>No projects yet.</p>
         </Content>
     );
 

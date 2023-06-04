@@ -1,14 +1,21 @@
-import React, { Component } from "react";
+import React, { Component, ReactElement } from "react";
 import { Layout, Badge, Pagination } from "antd";
-import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
+import {
+    AuthService,
+    ApiService,
+    ApiUserNotificationsListRequest,
+    UserNotification,
+    ApiUserNotificationsUpdateRequest,
+} from "../../services";
 import { Spin, PaginationItem } from "../../shared";
 import Circle from "../../assets/icons/ellipse.svg";
+import FolderDotted from "../../assets/icons/folderDotted.svg";
 import "./styles.scss";
 
 const { Content } = Layout;
 
 interface NotificationInboxState {
-    notifications: Notification[];
+    notifications: UserNotification[];
     loaded: boolean;
     count: number;
     current: number;
@@ -30,11 +37,12 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
     }
 
     getNotifications = async (page: number): Promise<void> => {
-        const requestParams: ApiNotificationsListRequest = {
+        const requestParams: ApiUserNotificationsListRequest = {
             pageSize: this.PAGE_SIZE,
             page: page,
         };
-        this.apiService.apiNotificationsList(requestParams).then((response) => {
+        this.apiService.apiUserNotificationsList(requestParams).then((response) => {
+            console.log(response);
             this.setState({ notifications: response.results, loaded: true, count: response.count, current: page });
         });
     };
@@ -43,12 +51,33 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
         await this.getNotifications(page);
     };
 
-    changeNotificationStatus(nid: number | undefined): void {
+    changeNotificationStatus(id: number): void {
+        const requestData = {
+            seen: true,
+        };
+        const requestParams: ApiUserNotificationsUpdateRequest = {
+            id: id,
+            data: requestData,
+        };
         const notifications = this.state.notifications;
-        const index = notifications.findIndex((notification) => notification.nid == nid);
+        const index = notifications.findIndex((user_notification) => user_notification.id == id);
+        if (notifications[index].seen) return;
+
         notifications[index].seen = true;
         this.setState({ notifications: notifications });
+        this.apiService.apiUserNotificationsUpdate(requestParams).then((response) => {
+            notifications[index].seen = response.seen;
+            this.setState({ notifications: notifications });
+            
+        });
     }
+
+    emptyNotification = (): ReactElement => (
+        <Content className="flex flex-col mb-10 items-center justify-center text-estela-black-medium">
+            <FolderDotted className="w-20 h-20" />
+            <p>No projects yet.</p>
+        </Content>
+    );
 
     render(): JSX.Element {
         const { loaded, notifications, count, current } = this.state;
@@ -58,13 +87,14 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                     <p className="text-2xl mb-6 text-black">Inbox</p>
                     {loaded ? (
                         <Content>
-                            {notifications.map((notification) => (
+                            {notifications.length == 0 && this.emptyNotification()}
+                            {notifications.map((user_notification) => (
                                 <div
-                                    onClick={() => this.changeNotificationStatus(notification.nid)}
+                                    onClick={() => this.changeNotificationStatus(user_notification.id)}
                                     className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
-                                    key={notification.nid}
+                                    key={user_notification.id}
                                 >
-                                    {!notification.seen ? (
+                                    {!user_notification.seen ? (
                                         <Badge
                                             count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}
                                         ></Badge>
@@ -73,18 +103,20 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                     )}
                                     <div className="text-estela-black-medium">
                                         <span className="font-semibold text-estela-black-full text-sm capitalize">
-                                            {notification.user.email == AuthService.getUserEmail()
+                                            {user_notification.notification?.user.email == AuthService.getUserEmail()
                                                 ? "You"
-                                                : notification.user.username}
+                                                : user_notification.notification?.user.username}
                                         </span>
-                                        {AuthService.getUserEmail() == notification.user.email ? " have " : " has "}
-                                        {notification.message}&nbsp;In&nbsp;
+                                        {AuthService.getUserEmail() == user_notification.notification?.user.email
+                                            ? " have "
+                                            : " has "}
+                                        {user_notification.notification?.message}&nbsp;In&nbsp;
                                         <span className="font-semibold text-estela-black-full">
-                                            {notification.project.name}&nbsp;
+                                            {user_notification.notification?.project.name}&nbsp;
                                         </span>
                                         project.
                                         <p className="text-xs text-estela-black-low">
-                                            {notification.createdAt?.toDateString()}
+                                            {user_notification.createdAt?.toDateString()}
                                         </p>
                                     </div>
                                 </div>

@@ -25,7 +25,7 @@ import {
 } from './';
 
 /**
- * 
+ * Notification to which the user is subscribed.
  * @export
  * @interface Notification
  */
@@ -37,12 +37,6 @@ export interface Notification {
      */
     readonly nid?: number;
     /**
-     * 
-     * @type {UserDetail}
-     * @memberof Notification
-     */
-    user: UserDetail;
-    /**
      * Notification message.
      * @type {string}
      * @memberof Notification
@@ -50,22 +44,16 @@ export interface Notification {
     message: string;
     /**
      * 
+     * @type {UserDetail}
+     * @memberof Notification
+     */
+    user: UserDetail;
+    /**
+     * 
      * @type {ProjectDetail}
      * @memberof Notification
      */
     project: ProjectDetail;
-    /**
-     * Whether the notification was seen.
-     * @type {boolean}
-     * @memberof Notification
-     */
-    seen?: boolean;
-    /**
-     * Notification send date.
-     * @type {Date}
-     * @memberof Notification
-     */
-    readonly createdAt?: Date;
 }
 
 export function NotificationFromJSON(json: any): Notification {
@@ -79,11 +67,9 @@ export function NotificationFromJSONTyped(json: any, ignoreDiscriminator: boolea
     return {
         
         'nid': !exists(json, 'nid') ? undefined : json['nid'],
-        'user': UserDetailFromJSON(json['user']),
         'message': json['message'],
+        'user': UserDetailFromJSON(json['user']),
         'project': ProjectDetailFromJSON(json['project']),
-        'seen': !exists(json, 'seen') ? undefined : json['seen'],
-        'createdAt': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
     };
 }
 
@@ -96,10 +82,9 @@ export function NotificationToJSON(value?: Notification | null): any {
     }
     return {
         
-        'user': UserDetailToJSON(value.user),
         'message': value.message,
+        'user': UserDetailToJSON(value.user),
         'project': ProjectDetailToJSON(value.project),
-        'seen': value.seen,
     };
 }
 

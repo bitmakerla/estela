@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    SpiderJob,
-    SpiderJobFromJSON,
-    SpiderJobFromJSONTyped,
-    SpiderJobToJSON,
-} from './';
-
 /**
  * 
  * @export
@@ -27,29 +20,29 @@ import {
  */
 export interface InlineResponse2006 {
     /**
-     * 
+     * Data items count.
      * @type {number}
      * @memberof InlineResponse2006
      */
     count: number;
     /**
-     * 
-     * @type {string}
-     * @memberof InlineResponse2006
-     */
-    next?: string | null;
-    /**
-     * 
+     * URI to the previous data chunk.
      * @type {string}
      * @memberof InlineResponse2006
      */
     previous?: string | null;
     /**
-     * 
-     * @type {Array<SpiderJob>}
+     * URI to the next data chunk.
+     * @type {string}
      * @memberof InlineResponse2006
      */
-    results: Array<SpiderJob>;
+    next?: string | null;
+    /**
+     * Data items.
+     * @type {Array<object>}
+     * @memberof InlineResponse2006
+     */
+    results?: Array<object>;
 }
 
 export function InlineResponse2006FromJSON(json: any): InlineResponse2006 {
@@ -63,9 +56,9 @@ export function InlineResponse2006FromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'count': json['count'],
-        'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(SpiderJobFromJSON)),
+        'next': !exists(json, 'next') ? undefined : json['next'],
+        'results': !exists(json, 'results') ? undefined : json['results'],
     };
 }
 
@@ -79,9 +72,9 @@ export function InlineResponse2006ToJSON(value?: InlineResponse2006 | null): any
     return {
         
         'count': value.count,
-        'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(SpiderJobToJSON)),
+        'next': value.next,
+        'results': value.results,
     };
 }
 

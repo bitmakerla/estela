@@ -66,9 +66,6 @@ import {
     InlineResponse401,
     InlineResponse401FromJSON,
     InlineResponse401ToJSON,
-    Notification,
-    NotificationFromJSON,
-    NotificationToJSON,
     Project,
     ProjectFromJSON,
     ProjectToJSON,
@@ -126,6 +123,12 @@ import {
     User,
     UserFromJSON,
     UserToJSON,
+    UserNotification,
+    UserNotificationFromJSON,
+    UserNotificationToJSON,
+    UserNotificationUpdate,
+    UserNotificationUpdateFromJSON,
+    UserNotificationUpdateToJSON,
     UserProfile,
     UserProfileFromJSON,
     UserProfileToJSON,
@@ -178,15 +181,6 @@ export interface ApiAuthProfileUpdateRequest {
 
 export interface ApiAuthRegisterRequest {
     data: User;
-}
-
-export interface ApiNotificationsListRequest {
-    page?: number;
-    pageSize?: number;
-}
-
-export interface ApiNotificationsReadRequest {
-    nid: number;
 }
 
 export interface ApiProjectsCreateRequest {
@@ -402,6 +396,16 @@ export interface ApiStatsListRequest {
     pid: string;
     startDate: string;
     endDate: string;
+}
+export interface ApiUserNotificationsCreateRequest {
+    data: UserNotification;
+}
+
+export interface ApiUserNotificationsDeleteRequest {
+    id: number;
+}
+
+export interface ApiUserNotificationsListRequest {
     page?: number;
     pageSize?: number;
 }
@@ -419,6 +423,19 @@ export interface ApiStatsSpiderListRequest {
     endDate: string;
     page?: number;
     pageSize?: number;
+}
+export interface ApiUserNotificationsPartialUpdateRequest {
+    id: number;
+    data: UserNotification;
+}
+
+export interface ApiUserNotificationsReadRequest {
+    id: number;
+}
+
+export interface ApiUserNotificationsUpdateRequest {
+    id: number;
+    data: UserNotificationUpdate;
 }
 
 /**
@@ -882,72 +899,6 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsListRaw(requestParameters: ApiNotificationsListRequest): Promise<runtime.ApiResponse<InlineResponse2001>> {
-        const queryParameters: any = {};
-
-        if (requestParameters.page !== undefined) {
-            queryParameters['page'] = requestParameters.page;
-        }
-
-        if (requestParameters.pageSize !== undefined) {
-            queryParameters['page_size'] = requestParameters.pageSize;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/notifications`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2001FromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiNotificationsList(requestParameters: ApiNotificationsListRequest): Promise<InlineResponse2001> {
-        const response = await this.apiNotificationsListRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiNotificationsReadRaw(requestParameters: ApiNotificationsReadRequest): Promise<runtime.ApiResponse<Notification>> {
-        if (requestParameters.nid === null || requestParameters.nid === undefined) {
-            throw new runtime.RequiredError('nid','Required parameter requestParameters.nid was null or undefined when calling apiNotificationsRead.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/notifications/{nid}`.replace(`{${"nid"}}`, encodeURIComponent(String(requestParameters.nid))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => NotificationFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiNotificationsRead(requestParameters: ApiNotificationsReadRequest): Promise<Notification> {
-        const response = await this.apiNotificationsReadRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
     async apiProjectsCreateRaw(requestParameters: ApiProjectsCreateRequest): Promise<runtime.ApiResponse<Project>> {
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsCreate.');
@@ -1154,7 +1105,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsDeploysListRaw(requestParameters: ApiProjectsDeploysListRequest): Promise<runtime.ApiResponse<InlineResponse2003>> {
+    async apiProjectsDeploysListRaw(requestParameters: ApiProjectsDeploysListRequest): Promise<runtime.ApiResponse<InlineResponse2002>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsDeploysList.');
         }
@@ -1181,12 +1132,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2003FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2002FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsDeploysList(requestParameters: ApiProjectsDeploysListRequest): Promise<InlineResponse2003> {
+    async apiProjectsDeploysList(requestParameters: ApiProjectsDeploysListRequest): Promise<InlineResponse2002> {
         const response = await this.apiProjectsDeploysListRaw(requestParameters);
         return await response.value();
     }
@@ -1351,7 +1302,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsListRaw(requestParameters: ApiProjectsListRequest): Promise<runtime.ApiResponse<InlineResponse2002>> {
+    async apiProjectsListRaw(requestParameters: ApiProjectsListRequest): Promise<runtime.ApiResponse<InlineResponse2001>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -1374,12 +1325,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2002FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2001FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsList(requestParameters: ApiProjectsListRequest): Promise<InlineResponse2002> {
+    async apiProjectsList(requestParameters: ApiProjectsListRequest): Promise<InlineResponse2001> {
         const response = await this.apiProjectsListRaw(requestParameters);
         return await response.value();
     }
@@ -1535,7 +1486,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2005>> {
+    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsList.');
         }
@@ -1570,12 +1521,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2005FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2005> {
+    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2004> {
         const response = await this.apiProjectsSpidersCronjobsListRaw(requestParameters);
         return await response.value();
     }
@@ -1845,7 +1796,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2007>> {
+    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataList.');
         }
@@ -1884,19 +1835,19 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2007FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2006FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2007> {
+    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2006> {
         const response = await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
         return await response.value();
     }
 
     /**
      */
-    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
+    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2005>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsList.');
         }
@@ -1939,12 +1890,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2006FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2005FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2006> {
+    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2005> {
         const response = await this.apiProjectsSpidersJobsListRaw(requestParameters);
         return await response.value();
     }
@@ -2082,7 +2033,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersListRaw(requestParameters: ApiProjectsSpidersListRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
+    async apiProjectsSpidersListRaw(requestParameters: ApiProjectsSpidersListRequest): Promise<runtime.ApiResponse<InlineResponse2003>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersList.');
         }
@@ -2109,12 +2060,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2003FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersList(requestParameters: ApiProjectsSpidersListRequest): Promise<InlineResponse2004> {
+    async apiProjectsSpidersList(requestParameters: ApiProjectsSpidersListRequest): Promise<InlineResponse2003> {
         const response = await this.apiProjectsSpidersListRaw(requestParameters);
         return await response.value();
     }
@@ -2316,15 +2267,10 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve stats of all jobs metadata.
      */
-    async apiStatsJobsStatsRaw(requestParameters: ApiStatsJobsStatsRequest): Promise<runtime.ApiResponse<Array<GetJobsStats>>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsJobsStats.');
-        }
-
+    async apiUserNotificationsCreateRaw(requestParameters: ApiUserNotificationsCreateRequest): Promise<runtime.ApiResponse<UserNotification>> {
         if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiStatsJobsStats.');
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiUserNotificationsCreate.');
         }
 
         const queryParameters: any = {};
@@ -2337,40 +2283,56 @@ export class ApiApi extends runtime.BaseAPI {
             headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
         }
         const response = await this.request({
-            path: `/api/stats/{pid}/jobs_stats`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            path: `/api/user_notifications`,
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters.data.map(GetJobsStatsToJSON),
+            body: UserNotificationToJSON(requestParameters.data),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GetJobsStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserNotificationFromJSON(jsonValue));
     }
 
     /**
-     * Retrieve stats of all jobs metadata.
      */
-    async apiStatsJobsStats(requestParameters: ApiStatsJobsStatsRequest): Promise<Array<GetJobsStats>> {
-        const response = await this.apiStatsJobsStatsRaw(requestParameters);
+    async apiUserNotificationsCreate(requestParameters: ApiUserNotificationsCreateRequest): Promise<UserNotification> {
+        const response = await this.apiUserNotificationsCreateRaw(requestParameters);
         return await response.value();
     }
 
     /**
-     * Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiStatsListRaw(requestParameters: ApiStatsListRequest): Promise<runtime.ApiResponse<Array<GlobalStats>>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsList.');
+    async apiUserNotificationsDeleteRaw(requestParameters: ApiUserNotificationsDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiUserNotificationsDelete.');
         }
 
-        if (requestParameters.startDate === null || requestParameters.startDate === undefined) {
-            throw new runtime.RequiredError('startDate','Required parameter requestParameters.startDate was null or undefined when calling apiStatsList.');
-        }
+        const queryParameters: any = {};
 
-        if (requestParameters.endDate === null || requestParameters.endDate === undefined) {
-            throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiStatsList.');
-        }
+        const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/user_notifications/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiUserNotificationsDelete(requestParameters: ApiUserNotificationsDeleteRequest): Promise<void> {
+        await this.apiUserNotificationsDeleteRaw(requestParameters);
+    }
+
+    /**
+     */
+    async apiUserNotificationsListRaw(requestParameters: ApiUserNotificationsListRequest): Promise<runtime.ApiResponse<InlineResponse2007>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -2381,51 +2343,37 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['page_size'] = requestParameters.pageSize;
         }
 
-        if (requestParameters.startDate !== undefined) {
-            queryParameters['start_date'] = requestParameters.startDate;
-        }
-
-        if (requestParameters.endDate !== undefined) {
-            queryParameters['end_date'] = requestParameters.endDate;
-        }
-
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
             headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
         }
         const response = await this.request({
-            path: `/api/stats/{pid}`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            path: `/api/user_notifications`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GlobalStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2007FromJSON(jsonValue));
     }
 
     /**
-     * Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiStatsList(requestParameters: ApiStatsListRequest): Promise<Array<GlobalStats>> {
-        const response = await this.apiStatsListRaw(requestParameters);
+    async apiUserNotificationsList(requestParameters: ApiUserNotificationsListRequest): Promise<InlineResponse2007> {
+        const response = await this.apiUserNotificationsListRaw(requestParameters);
         return await response.value();
     }
 
     /**
-     * Retrieve stats of all jobs metadata.
      */
-    async apiStatsSpiderJobsStatsRaw(requestParameters: ApiStatsSpiderJobsStatsRequest): Promise<runtime.ApiResponse<Array<GetJobsStats>>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiderJobsStats.');
-        }
-
-        if (requestParameters.sid === null || requestParameters.sid === undefined) {
-            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiStatsSpiderJobsStats.');
+    async apiUserNotificationsPartialUpdateRaw(requestParameters: ApiUserNotificationsPartialUpdateRequest): Promise<runtime.ApiResponse<UserNotification>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiUserNotificationsPartialUpdate.');
         }
 
         if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiStatsSpiderJobsStats.');
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiUserNotificationsPartialUpdate.');
         }
 
         const queryParameters: any = {};
@@ -2438,61 +2386,31 @@ export class ApiApi extends runtime.BaseAPI {
             headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
         }
         const response = await this.request({
-            path: `/api/stats/{pid}/spider/{sid}/jobs_stats`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
-            method: 'POST',
+            path: `/api/user_notifications/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters.data.map(GetJobsStatsToJSON),
+            body: UserNotificationToJSON(requestParameters.data),
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(GetJobsStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserNotificationFromJSON(jsonValue));
     }
 
     /**
-     * Retrieve stats of all jobs metadata.
      */
-    async apiStatsSpiderJobsStats(requestParameters: ApiStatsSpiderJobsStatsRequest): Promise<Array<GetJobsStats>> {
-        const response = await this.apiStatsSpiderJobsStatsRaw(requestParameters);
+    async apiUserNotificationsPartialUpdate(requestParameters: ApiUserNotificationsPartialUpdateRequest): Promise<UserNotification> {
+        const response = await this.apiUserNotificationsPartialUpdateRaw(requestParameters);
         return await response.value();
     }
 
     /**
-     * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiStatsSpiderListRaw(requestParameters: ApiStatsSpiderListRequest): Promise<runtime.ApiResponse<Array<SpidersJobsStats>>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiderList.');
-        }
-
-        if (requestParameters.sid === null || requestParameters.sid === undefined) {
-            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiStatsSpiderList.');
-        }
-
-        if (requestParameters.startDate === null || requestParameters.startDate === undefined) {
-            throw new runtime.RequiredError('startDate','Required parameter requestParameters.startDate was null or undefined when calling apiStatsSpiderList.');
-        }
-
-        if (requestParameters.endDate === null || requestParameters.endDate === undefined) {
-            throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiStatsSpiderList.');
+    async apiUserNotificationsReadRaw(requestParameters: ApiUserNotificationsReadRequest): Promise<runtime.ApiResponse<UserNotification>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiUserNotificationsRead.');
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters.page !== undefined) {
-            queryParameters['page'] = requestParameters.page;
-        }
-
-        if (requestParameters.pageSize !== undefined) {
-            queryParameters['page_size'] = requestParameters.pageSize;
-        }
-
-        if (requestParameters.startDate !== undefined) {
-            queryParameters['start_date'] = requestParameters.startDate;
-        }
-
-        if (requestParameters.endDate !== undefined) {
-            queryParameters['end_date'] = requestParameters.endDate;
-        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -2500,20 +2418,57 @@ export class ApiApi extends runtime.BaseAPI {
             headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
         }
         const response = await this.request({
-            path: `/api/stats/{pid}/spider/{sid}`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            path: `/api/user_notifications/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SpidersJobsStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserNotificationFromJSON(jsonValue));
     }
 
     /**
-     * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiStatsSpiderList(requestParameters: ApiStatsSpiderListRequest): Promise<Array<SpidersJobsStats>> {
-        const response = await this.apiStatsSpiderListRaw(requestParameters);
+    async apiUserNotificationsRead(requestParameters: ApiUserNotificationsReadRequest): Promise<UserNotification> {
+        const response = await this.apiUserNotificationsReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiUserNotificationsUpdateRaw(requestParameters: ApiUserNotificationsUpdateRequest): Promise<runtime.ApiResponse<UserNotificationUpdate>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiUserNotificationsUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiUserNotificationsUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/user_notifications/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserNotificationUpdateToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserNotificationUpdateFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiUserNotificationsUpdate(requestParameters: ApiUserNotificationsUpdateRequest): Promise<UserNotificationUpdate> {
+        const response = await this.apiUserNotificationsUpdateRaw(requestParameters);
         return await response.value();
     }
 

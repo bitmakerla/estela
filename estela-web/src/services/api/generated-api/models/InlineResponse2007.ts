@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    UserNotification,
+    UserNotificationFromJSON,
+    UserNotificationFromJSONTyped,
+    UserNotificationToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -20,29 +27,29 @@ import { exists, mapValues } from '../runtime';
  */
 export interface InlineResponse2007 {
     /**
-     * Data items count.
+     * 
      * @type {number}
      * @memberof InlineResponse2007
      */
     count: number;
     /**
-     * URI to the previous data chunk.
-     * @type {string}
-     * @memberof InlineResponse2007
-     */
-    previous?: string | null;
-    /**
-     * URI to the next data chunk.
+     * 
      * @type {string}
      * @memberof InlineResponse2007
      */
     next?: string | null;
     /**
-     * Data items.
-     * @type {Array<object>}
+     * 
+     * @type {string}
      * @memberof InlineResponse2007
      */
-    results?: Array<object>;
+    previous?: string | null;
+    /**
+     * 
+     * @type {Array<UserNotification>}
+     * @memberof InlineResponse2007
+     */
+    results: Array<UserNotification>;
 }
 
 export function InlineResponse2007FromJSON(json: any): InlineResponse2007 {
@@ -56,9 +63,9 @@ export function InlineResponse2007FromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'count': json['count'],
-        'previous': !exists(json, 'previous') ? undefined : json['previous'],
         'next': !exists(json, 'next') ? undefined : json['next'],
-        'results': !exists(json, 'results') ? undefined : json['results'],
+        'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'results': ((json['results'] as Array<any>).map(UserNotificationFromJSON)),
     };
 }
 
@@ -72,9 +79,9 @@ export function InlineResponse2007ToJSON(value?: InlineResponse2007 | null): any
     return {
         
         'count': value.count,
-        'previous': value.previous,
         'next': value.next,
-        'results': value.results,
+        'previous': value.previous,
+        'results': ((value.results as Array<any>).map(UserNotificationToJSON)),
     };
 }
 

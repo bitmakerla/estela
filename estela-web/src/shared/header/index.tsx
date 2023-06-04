@@ -4,7 +4,7 @@ import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
-import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
+import { AuthService, ApiService, ApiUserNotificationsListRequest, UserNotification } from "../../services";
 import { UserContext, UserContextProps } from "../../context";
 
 import User from "../../assets/icons/user.svg";
@@ -20,7 +20,7 @@ const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 
 interface HeaderState {
-    notifications: Notification[];
+    notifications: UserNotification[];
     loaded: boolean;
     path: string;
     news: boolean;
@@ -33,6 +33,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         path: "",
         news: false,
     };
+    timer: NodeJS.Timeout | undefined;
 
     async componentDidMount() {
         userDropdownSidenavItems.forEach((element: MenuItem) => {
@@ -53,24 +54,39 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         });
         this.getNotifications();
         this.setState({ path: document.location.pathname });
-    }
+        this.timer = setInterval(() => {
+            console.log("getNotifications");
+            this.getNotifications();
+        }, 15000);
+    };
+
+    componentWillUnmount() {
+        if (this.timer) {
+            clearInterval(this.timer);
+        }
+    };
 
     apiService = ApiService();
     static contextType = UserContext;
 
     getNotifications = async (): Promise<void> => {
-        const requestParams: ApiNotificationsListRequest = {
+        const requestParams: ApiUserNotificationsListRequest = {
             pageSize: 3,
         };
-        this.apiService.apiNotificationsList(requestParams).then((response) => {
+        this.apiService.apiUserNotificationsList(requestParams).then((response) => {
+            this.setState({ news: false });
             if (response.count === 0) {
-                this.setState({ news: false, loaded: true });
+                this.setState({ loaded: true });
                 return;
             }
+            let change = false;
             response.results.find((notification) => {
-                notification.seen === false;
-                this.setState({ news: true });
+                if (notification.seen === false) {
+                    // this.setState({ news: true });
+                    change = true;
+                }
             });
+            this.setState({ news: change });
             this.setState({ notifications: response.results, loaded: true });
         });
     };
@@ -102,15 +118,22 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         history.push("/login");
     };
 
-    renderNotificationIcon = (inbox: boolean): React.ReactNode => {
-        const { news } = this.state;
+    renderNotificationIcon = (inbox: boolean, news: boolean): React.ReactNode => {
+        // const { news } = this.state;
         const color = inbox
             ? "stroke-estela-blue-full bg-estela-blue-low border border-estela-blue-full"
             : "hover:stroke-estela-blue-full stroke-estela-black-full hover:bg-estela-blue-low";
-        const circleStyle = "fill-estela-red-full stroke-estela-red-full h-2";
+        // const circleStyle = "fill-estela-red-full stroke-estela-red-full h-2";
         return (
             <a className={`flex justify-center items-center rounded-lg w-14 h-14 ${color}`}>
-                <Badge offset={[0, 2]} count={news ? <Circle className={circleStyle} /> : null}>
+                <Badge
+                    offset={[0, 2]}
+                    // count={news
+                    //     ? <Circle className="fill-estela-red-full stroke-estela-red-full h-2" />
+                    //     : <Circle className="fill-white stroke-white h-2" />
+                    // }
+                    dot={news}
+                >
                     <Message className="w-6 h-6" />
                 </Badge>
             </a>
@@ -163,30 +186,32 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             key: "1",
             label: (
                 <Content className="w-[360px] mt-1">
-                    {this.state.notifications.map((notification) => (
+                    {this.state.notifications.map((user_notification) => (
                         <div
                             onClick={() => {
                                 this.setState({ path: "/notifications/inbox" });
                                 history.push("/notifications/inbox");
                             }}
                             className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
-                            key={notification.nid}
+                            key={user_notification.notification?.nid}
                         >
-                            {!notification.seen ? (
+                            {!user_notification.seen ? (
                                 <Badge count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}></Badge>
                             ) : (
                                 <div className="mr-[22px]"></div>
                             )}
                             <div>
                                 <span className="font-semibold text-sm capitalize">
-                                    {notification.user.email == AuthService.getUserEmail()
+                                    {user_notification.notification?.user.email == AuthService.getUserEmail()
                                         ? "You"
-                                        : notification.user.username}
+                                        : user_notification.notification?.user.username}
                                 </span>
-                                {AuthService.getUserEmail() == notification.user.email ? " have " : " has "}
-                                {notification.message}
+                                {AuthService.getUserEmail() == user_notification.notification?.user.email
+                                    ? " have "
+                                    : " has "}
+                                {user_notification.notification?.message}
                                 <p className="text-xs text-estela-black-low">
-                                    {notification.createdAt?.toDateString()}
+                                    {user_notification.createdAt?.toDateString()}
                                 </p>
                             </div>
                         </div>
@@ -219,10 +244,18 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         {
             key: "1",
             label: (
-                <Content className="w-[320px] rounded-md p-2 hover:bg-estela-blue-low m-0">
-                    <p className="text-sm text-estela-blue-full font-medium">
+                <Content
+                    className="w-[320px] rounded-md p-2 hover:bg-estela-blue-low m-0"
+                    onClick={() => {
+                        this.setState({ path: "/notifications/inbox" });
+                    }}
+                >
+                    <Link
+                        to={"/notifications/inbox"}
+                        className="text-sm text-estela-blue-full hover:text-estela-blue-full font-medium"
+                    >
                         You don&apos;t have any notifications yet.
-                    </p>
+                    </Link>
                 </Content>
             ),
             style: { backgroundColor: "white" },
@@ -230,7 +263,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     ];
 
     render(): JSX.Element {
-        const { path, loaded, notifications } = this.state;
+    const { loaded, notifications, news } = this.state;
         return (
             <>
                 {loaded ? (
@@ -248,7 +281,12 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                     }}
                                     trigger={["click"]}
                                 >
-                                    {this.renderNotificationIcon(path === "/notifications/inbox")}
+                                    {/* {this.renderNotificationIcon(path === "/notifications/inbox", news)} */}
+                                    <a className="flex justify-center items-center rounded-lg w-14 h-14 stroke-estela-blue-full bg-estela-blue-low border border-estela-blue-full">
+                                        <Badge offset={[0, 2]} dot={news}>
+                                            <Message className="w-6 h-6" />
+                                        </Badge>
+                                    </a>
                                 </Dropdown>
                             </Col>
                             <Col>
