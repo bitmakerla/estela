@@ -58,11 +58,11 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             console.log("refreshing header notifications");
             this.getNotifications();
         }, 15000);
-    };
+    }
 
     componentWillUnmount() {
         clearInterval(this.timer);
-    };
+    }
 
     apiService = ApiService();
     static contextType = UserContext;
@@ -256,7 +256,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     ];
 
     render(): JSX.Element {
-    const { path, loaded, notifications, news } = this.state;
+        const { path, loaded, notifications, news } = this.state;
         return (
             <>
                 {loaded ? (
