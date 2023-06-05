@@ -27,17 +27,17 @@ import {
  */
 export interface UserNotification {
     /**
-     * 
+     * Unique user notification ID.
      * @type {number}
      * @memberof UserNotification
      */
-    readonly id?: number;
+    id: number;
     /**
      * 
      * @type {Notification}
      * @memberof UserNotification
      */
-    notification?: Notification;
+    notification: Notification;
     /**
      * Whether the notification was seen.
      * @type {boolean}
@@ -62,8 +62,8 @@ export function UserNotificationFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
-        'id': !exists(json, 'id') ? undefined : json['id'],
-        'notification': !exists(json, 'notification') ? undefined : NotificationFromJSON(json['notification']),
+        'id': json['id'],
+        'notification': NotificationFromJSON(json['notification']),
         'seen': !exists(json, 'seen') ? undefined : json['seen'],
         'createdAt': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
     };
@@ -78,6 +78,7 @@ export function UserNotificationToJSON(value?: UserNotification | null): any {
     }
     return {
         
+        'id': value.id,
         'notification': NotificationToJSON(value.notification),
         'seen': value.seen,
     };

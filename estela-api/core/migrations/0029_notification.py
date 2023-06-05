@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("core", "0027_spiderjobenvvar_masked"),
+        ("core", "0028_remove_job_statuses"),
     ]
 
     operations = [

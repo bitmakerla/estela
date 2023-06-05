@@ -42,7 +42,6 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
             page: page,
         };
         this.apiService.apiUserNotificationsList(requestParams).then((response) => {
-            console.log(response);
             this.setState({ notifications: response.results, loaded: true, count: response.count, current: page });
         });
     };
@@ -68,7 +67,6 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
         this.apiService.apiUserNotificationsUpdate(requestParams).then((response) => {
             notifications[index].seen = response.seen;
             this.setState({ notifications: notifications });
-            
         });
     }
 
@@ -103,16 +101,16 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                     )}
                                     <div className="text-estela-black-medium">
                                         <span className="font-semibold text-estela-black-full text-sm capitalize">
-                                            {user_notification.notification?.user.email == AuthService.getUserEmail()
+                                            {user_notification.notification.user.email == AuthService.getUserEmail()
                                                 ? "You"
-                                                : user_notification.notification?.user.username}
+                                                : user_notification.notification.user.username}
                                         </span>
-                                        {AuthService.getUserEmail() == user_notification.notification?.user.email
+                                        {AuthService.getUserEmail() == user_notification.notification.user.email
                                             ? " have "
                                             : " has "}
-                                        {user_notification.notification?.message}&nbsp;In&nbsp;
+                                        {user_notification.notification.message}&nbsp;In&nbsp;
                                         <span className="font-semibold text-estela-black-full">
-                                            {user_notification.notification?.project.name}&nbsp;
+                                            {user_notification.notification.project.name}&nbsp;
                                         </span>
                                         project.
                                         <p className="text-xs text-estela-black-low">

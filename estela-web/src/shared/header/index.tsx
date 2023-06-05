@@ -55,15 +55,13 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         this.getNotifications();
         this.setState({ path: document.location.pathname });
         this.timer = setInterval(() => {
-            console.log("getNotifications");
+            console.log("refreshing header notifications");
             this.getNotifications();
         }, 15000);
     };
 
     componentWillUnmount() {
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
+        clearInterval(this.timer);
     };
 
     apiService = ApiService();
@@ -82,7 +80,6 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             let change = false;
             response.results.find((notification) => {
                 if (notification.seen === false) {
-                    // this.setState({ news: true });
                     change = true;
                 }
             });
@@ -188,11 +185,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                 <Content className="w-[360px] mt-1">
                     {this.state.notifications.map((user_notification) => (
                         <div
-                            onClick={() => {
-                                this.setState({ path: "/notifications/inbox" });
-                                history.push("/notifications/inbox");
-                            }}
-                            className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
+                            className="py-2 px-3 flex cursor-pointer hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
                             key={user_notification.notification?.nid}
                         >
                             {!user_notification.seen ? (
@@ -263,7 +256,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     ];
 
     render(): JSX.Element {
-    const { loaded, notifications, news } = this.state;
+    const { path, loaded, notifications, news } = this.state;
         return (
             <>
                 {loaded ? (
@@ -274,19 +267,14 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                     estela
                                 </Link>
                             </Col>
-                            <Col flex={0.06}>
+                            <Col className="mx-2">
                                 <Dropdown
                                     menu={{
                                         items: notifications.length ? this.notificationItems() : this.noNotifications(),
                                     }}
                                     trigger={["click"]}
                                 >
-                                    {/* {this.renderNotificationIcon(path === "/notifications/inbox", news)} */}
-                                    <a className="flex justify-center items-center rounded-lg w-14 h-14 stroke-estela-blue-full bg-estela-blue-low border border-estela-blue-full">
-                                        <Badge offset={[0, 2]} dot={news}>
-                                            <Message className="w-6 h-6" />
-                                        </Badge>
-                                    </a>
+                                    {this.renderNotificationIcon(path === "/notifications/inbox", news)}
                                 </Dropdown>
                             </Col>
                             <Col>

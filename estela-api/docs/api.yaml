@@ -2608,12 +2608,15 @@ definitions:
       project:
         $ref: '#/definitions/ProjectDetail'
   UserNotification:
+    required:
+      - id
+      - notification
     type: object
     properties:
       id:
-        title: ID
+        title: Id
+        description: Unique user notification ID.
         type: integer
-        readOnly: true
       notification:
         $ref: '#/definitions/Notification'
       seen:

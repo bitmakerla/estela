@@ -18,8 +18,11 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class UserNotificationSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(
+        required=True, help_text="Unique user notification ID."
+    )
     notification = NotificationSerializer(
-        read_only=True, help_text="Notification to which the user is subscribed."
+        required=True, help_text="Notification to which the user is subscribed."
     )
 
     class Meta:
