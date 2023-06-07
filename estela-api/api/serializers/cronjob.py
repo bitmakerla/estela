@@ -14,7 +14,6 @@ from core.models import (
     SpiderJobArg,
     SpiderJobEnvVar,
     SpiderJobTag,
-    DataStatus,
 )
 
 
