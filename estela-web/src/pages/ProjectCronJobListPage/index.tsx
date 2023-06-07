@@ -16,7 +16,13 @@ import {
     SpiderCronJob,
     Project,
 } from "../../services/api";
-import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
+import {
+    resourceNotAllowedNotification,
+    incorrectDataNotification,
+    Spin,
+    PaginationItem,
+    RouteParams,
+} from "../../shared";
 import CronjobCreateModal from "../CronjobCreateModal";
 import { convertDateToString } from "../../utils";
 
@@ -56,10 +62,6 @@ interface ProjectCronJobListPageState {
     count: number;
     current: number;
     loading: boolean;
-}
-
-interface RouteParams {
-    projectId: string;
 }
 
 export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteParams>, ProjectCronJobListPageState> {

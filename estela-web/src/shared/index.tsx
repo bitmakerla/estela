@@ -8,3 +8,4 @@ export { PaginationItem } from "./paginationItem";
 export * from "./notifications";
 export { PrivateRoute } from "./privateRoute";
 export * from "./layouts";
+export * from "./types";
