@@ -127,14 +127,9 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                         </Row>
                         <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4 justify-between">
                             <Col className="bg-metal col-span-5">
-                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5">
-                                    {/* {this.headSection()} */}
-                                    {/* {this.dataSection()} */}
-                                </Content>
+                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5"></Content>
                             </Col>
-                            <Col className="bg-metal grid justify-start col-span-2 gap-2">
-                                {/* {this.projectUsageSection()} */}
-                            </Col>
+                            <Col className="bg-metal grid justify-start col-span-2 gap-2"></Col>
                         </Row>
                         <Row className="bg-white rounded-lg">
                             <div className="m-4">
