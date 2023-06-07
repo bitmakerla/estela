@@ -332,11 +332,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                         <p className="text-xl font-medium text-silver float-left">SCHEDULED JOBS</p>
                                     </Col>
                                     <Col className="float-right">
-                                        <CronjobCreateModal
-                                            openModal={false}
-                                            projectId={this.projectId}
-                                            spider={null}
-                                        />
+                                        <CronjobCreateModal projectId={this.projectId} />
                                     </Col>
                                 </Row>
                                 <Content className="bg-white rounded-lg p-4">

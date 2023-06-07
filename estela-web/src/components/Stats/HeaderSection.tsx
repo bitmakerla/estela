@@ -103,17 +103,6 @@ export class HeaderSection extends Component<HeaderChartProps, unknown> {
                                 ),
                             },
                             {
-                                label: "Coverage",
-                                key: StatType.COVERAGE,
-                                children: (
-                                    <ChartsSection
-                                        stats={reversedStats}
-                                        loadedStats={loadedStats}
-                                        statOption={StatType.COVERAGE}
-                                    />
-                                ),
-                            },
-                            {
                                 label: "Job success rate",
                                 key: StatType.SUCCESS_RATE,
                                 children: (

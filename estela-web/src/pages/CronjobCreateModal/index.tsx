@@ -164,7 +164,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         envVars: [],
         tags: [],
         dataStatus: "",
-        dataExpiryDays: spider ? spider.dataExpiryDays : 1,
     });
     const [newCronjob, setNewCronjob] = useState<Cronjob>({
         newArgName: "",
