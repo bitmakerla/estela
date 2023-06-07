@@ -97,7 +97,13 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     state: SpiderDetailPageState = {
         name: "",
         jobs: [],
-        spider: { sid: 0, name: "", project: "", dataExpiryDays: 0, dataStatus: undefined },
+        spider: {
+            sid: 0,
+            name: "",
+            project: "",
+            dataExpiryDays: 0,
+            dataStatus: SpiderDataStatusEnum.Persistent,
+        },
         loaded: false,
         count: 0,
         current: 0,

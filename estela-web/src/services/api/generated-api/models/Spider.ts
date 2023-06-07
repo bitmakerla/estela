@@ -42,13 +42,13 @@ export interface Spider {
      * @type {string}
      * @memberof Spider
      */
-    dataStatus?: SpiderDataStatusEnum;
+    dataStatus: SpiderDataStatusEnum;
     /**
-     * Days before data is deleted.
+     * Days before data expires.
      * @type {number}
      * @memberof Spider
      */
-    dataExpiryDays?: number;
+    dataExpiryDays: number;
 }
 
 /**
@@ -73,8 +73,8 @@ export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sp
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
         'name': json['name'],
         'project': json['project'],
-        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
-        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'dataStatus': json['data_status'],
+        'dataExpiryDays': json['data_expiry_days'],
     };
 }
 

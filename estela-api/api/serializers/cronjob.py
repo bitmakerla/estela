@@ -14,6 +14,7 @@ from core.models import (
     SpiderJobArg,
     SpiderJobEnvVar,
     SpiderJobTag,
+    DataStatus,
 )
 
 
@@ -59,9 +60,11 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
     ctags = SpiderJobTagSerializer(
         many=True, required=False, help_text="Cron job tags."
     )
-    data_status = serializers.CharField(required=True, help_text="Data status.")
-    data_expiry_days = serializers.CharField(
-        required=False, help_text="Days before data expires."
+    data_status = serializers.ChoiceField(
+        choices=DataStatus.JOB_LEVEL_OPTIONS, required=True, help_text="Data status."
+    )
+    data_expiry_days = serializers.IntegerField(
+        required=True, help_text="Days before data expires."
     )
     name = serializers.CharField(
         required=False, read_only=True, help_text="Unique cron job name."

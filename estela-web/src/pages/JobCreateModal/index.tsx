@@ -11,7 +11,7 @@ import {
 import history from "../../history";
 import { ApiService } from "../../services";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
-import { checkExternalError } from "ExternalComponents/CardNotification";
+import { checkExternalError } from "../../defaultComponents";
 
 import Run from "../../assets/icons/play.svg";
 import Add from "../../assets/icons/add.svg";

@@ -1713,6 +1713,8 @@ definitions:
     required:
       - name
       - project
+      - data_status
+      - data_expiry_days
     type: object
     properties:
       sid:
@@ -1740,10 +1742,8 @@ definitions:
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data is deleted.
+        description: Days before data expires.
         type: integer
-        maximum: 65535
-        minimum: 0
   Deploy:
     required:
       - project
@@ -1970,6 +1970,7 @@ definitions:
         type: integer
   SpiderCronJobCreate:
     required:
+      - data_expiry_days
       - data_status
     type: object
     properties:
@@ -2011,13 +2012,15 @@ definitions:
       data_expiry_days:
         title: Data expiry days
         description: Days before data expires.
-        type: string
-        minLength: 1
+        type: integer
       data_status:
         title: Data status
         description: Data status.
         type: string
-        minLength: 1
+        enum:
+          - PERSISTENT
+          - PENDING
+          - DELETED
   SpiderCronJobUpdate:
     type: object
     properties:
@@ -2124,8 +2127,6 @@ definitions:
           - WAITING
           - RUNNING
           - STOPPED
-          - INCOMPLETE
-          - CANCELLED
           - COMPLETED
           - ERROR
       lifespan:

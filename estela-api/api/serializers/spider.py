@@ -4,6 +4,15 @@ from core.models import DataStatus, Spider
 
 
 class SpiderSerializer(serializers.ModelSerializer):
+    data_status = serializers.ChoiceField(
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        required=True,
+        help_text="Data status.",
+    )
+    data_expiry_days = serializers.IntegerField(
+        required=True, help_text="Days before data expires."
+    )
+
     class Meta:
         model = Spider
         fields = ("sid", "name", "project", "data_status", "data_expiry_days")

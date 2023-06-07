@@ -1,6 +1,6 @@
 import { invalidDataNotification } from "./shared";
 
-interface BytesMetric {
+export interface BytesMetric {
     quantity: number;
     type: string;
 }

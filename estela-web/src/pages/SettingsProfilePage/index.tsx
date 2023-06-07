@@ -4,7 +4,7 @@ import { Button, Layout, Space, Row, Col, Input, Form, Modal, Typography } from 
 import type { FormInstance } from "antd/es/form/Form";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
-import { ApiAuthProfileUpdateRequest, UserProfile, UserProfileUpdate } from "../../services/api";
+import { ApiAuthProfileUpdateRequest, UserProfile } from "../../services/api";
 import { invalidDataNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
@@ -67,7 +67,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
 
     onFinishPasswordFormHandler = ({ password }: { password: string }): void => {
         const { username, email } = this.state;
-        const newUserProfileData: UserProfileUpdate = { username: username, email: email, password: password };
+        const newUserProfileData: UserProfile = { username: username, email: email, password: password };
         const requestParams: ApiAuthProfileUpdateRequest = { username: this.getUsername(), data: newUserProfileData };
         this.apiService.apiAuthProfileUpdate(requestParams).then(
             (user: UserProfile) => {
