@@ -18,16 +18,7 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Help from "../../assets/icons/help.svg";
-import {
-    ApiProjectsReadRequest,
-    Project,
-    ProjectUsage,
-    GlobalStats,
-    ApiStatsListRequest,
-    JobsMetadata,
-    ApiStatsJobsStatsRequest,
-    GetJobsStats,
-} from "../../services/api";
+import { ApiProjectsReadRequest, Project, ProjectUsage, GlobalStats, ApiStatsListRequest } from "../../services/api";
 import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
@@ -40,17 +31,6 @@ ChartJS.register(CategoryScale, ArcElement, Title, Tooltip, Legend);
 const { Text } = Typography;
 const { Content } = Layout;
 
-enum StatType {
-    JOBS = "JOBS",
-    PAGES = "PAGES",
-    ITEMS = "ITEMS",
-    RUNTIME = "RUNTIME",
-    COVERAGE = "COVERAGE",
-    SUCCESS_RATE = "SUCCESS_RATE",
-    STATUS_CODE = "STATUS_CODE",
-    LOGS = "LOGS",
-}
-
 interface ProjectDashboardPageState {
     name: string;
     formattedNetwork: BytesMetric;
@@ -62,9 +42,6 @@ interface ProjectDashboardPageState {
     current: number;
     loadedStats: boolean;
     globalStats: GlobalStats[];
-    jobsDateStats: GetJobsStats[][];
-    loadedJobsDateStats: boolean[];
-    statOptionTab: StatType;
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
 }
@@ -86,9 +63,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         current: 0,
         loadedStats: false,
         globalStats: [],
-        jobsDateStats: [],
-        loadedJobsDateStats: [],
-        statOptionTab: StatType.JOBS,
         statsStartDate: moment().subtract(7, "days").startOf("day").utc(),
         statsEndDate: moment().utc(),
     };
@@ -151,12 +125,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
 
         await this.apiService.apiStatsList(params).then(
             (response: GlobalStats[]) => {
-                const newLoadedJobsStats = new Array(response.length).fill(false);
-                const newJobsDateStats = new Array<GetJobsStats[]>(response.length);
                 this.setState({
                     globalStats: response,
-                    jobsDateStats: [...newJobsDateStats],
-                    loadedJobsDateStats: [...newLoadedJobsStats],
                     loadedStats: true,
                 });
             },
@@ -170,24 +140,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         );
     };
 
-    retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
-        const params: ApiStatsJobsStatsRequest = {
-            pid: this.projectId,
-            data: jobsMetadata,
-        };
-        await this.apiService.apiStatsJobsStats(params).then((response: GetJobsStats[]) => {
-            const { jobsDateStats, loadedJobsDateStats } = this.state;
-            const newLoadedJobsDateStats = [...loadedJobsDateStats];
-            newLoadedJobsDateStats[index] = true;
-            const newJobsDateStats = [...jobsDateStats];
-            newJobsDateStats[index] = response;
-            this.setState({
-                jobsDateStats: [...newJobsDateStats],
-                loadedJobsDateStats: [...newLoadedJobsDateStats],
-            });
-        });
-    };
-
     calcAverageSuccessRate = (): number => {
         const { globalStats } = this.state;
         if (globalStats.length === 0) return 0;
@@ -196,39 +148,10 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         return sumSuccessRates / successRates.length;
     };
 
-    onStatsTabChange: (activeStat: string) => void = (activeStat: string) => {
-        switch (activeStat) {
-            case "JOBS":
-                this.setState({ statOptionTab: StatType.JOBS });
-                break;
-            case "PAGES":
-                this.setState({ statOptionTab: StatType.PAGES });
-                break;
-            case "ITEMS":
-                this.setState({ statOptionTab: StatType.ITEMS });
-                break;
-            case "RUNTIME":
-                this.setState({ statOptionTab: StatType.RUNTIME });
-                break;
-            case "COVERAGE":
-                this.setState({ statOptionTab: StatType.COVERAGE });
-                break;
-            case "SUCCESS_RATE":
-                this.setState({ statOptionTab: StatType.SUCCESS_RATE });
-                break;
-            case "STATUS_CODE":
-                this.setState({ statOptionTab: StatType.STATUS_CODE });
-                break;
-            default:
-                this.setState({ statOptionTab: StatType.LOGS });
-                break;
-        }
-    };
-
     onChangeDateRangeHandler: RangePickerProps["onChange"] = (_, dateStrings) => {
         this.setState({ loadedStats: false });
         const [startDateUTC, endDateUTC] = [
-            moment(dateStrings[0]).utc().format("YYYY-MM-DD"),
+            moment(dateStrings[0]).startOf("day").utc().format("YYYY-MM-DD"),
             moment(dateStrings[1]).endOf("day").utc().format("YYYY-MM-DD"),
         ];
         this.getProjectStatsAndUpdateDates(startDateUTC, endDateUTC);

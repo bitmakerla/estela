@@ -21,32 +21,20 @@ interface HeaderChartProps {
     onChangeDateRangeHandler: ((values: RangeValue, formatString: [string, string]) => void) | undefined;
 }
 
-interface HeaderSectionState {
-    statsStartDate: moment.Moment;
-    statsEndDate: moment.Moment;
-}
-
-export class HeaderSection extends Component<HeaderChartProps, HeaderSectionState> {
+export class HeaderSection extends Component<HeaderChartProps, unknown> {
     apiService = ApiService();
-
-    state: HeaderSectionState = {
-        statsStartDate: moment().subtract(7, "days").startOf("day").utc(),
-        statsEndDate: moment().utc(),
-    };
 
     render() {
         const { stats, loadedStats, onRefreshEventHandler, onChangeDateRangeHandler } = this.props;
-        const { statsStartDate, statsEndDate } = this.state;
+
+        const reversedStats = stats.slice().reverse();
 
         return (
             <>
                 <Row className="flow-root items-center justify-end space-x-4 space-x-reverse">
                     <RangePicker
                         onChange={onChangeDateRangeHandler}
-                        defaultValue={[
-                            moment.utc(statsStartDate.format()).local(),
-                            moment.utc(statsEndDate.format()).local(),
-                        ]}
+                        defaultValue={[moment().subtract(7, "days").startOf("day").utc().local(), moment.utc().local()]}
                         ranges={{
                             Today: [moment().startOf("day"), moment().endOf("day")],
                             "Last 72h": [moment().subtract(3, "days").startOf("day"), moment().endOf("day")],
@@ -69,13 +57,16 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                 <Content className="flow-root">
                     <Tabs
                         className="w-full float-right text-estela-black-medium text-xs md:text-sm"
-                        defaultActiveKey={"optionTab"}
                         items={[
                             {
                                 label: "Jobs",
                                 key: StatType.JOBS,
                                 children: (
-                                    <ChartsSection stats={stats} loadedStats={loadedStats} statOption={StatType.JOBS} />
+                                    <ChartsSection
+                                        stats={reversedStats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.JOBS}
+                                    />
                                 ),
                             },
                             {
@@ -83,7 +74,7 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 key: StatType.PAGES,
                                 children: (
                                     <ChartsSection
-                                        stats={stats}
+                                        stats={reversedStats}
                                         loadedStats={loadedStats}
                                         statOption={StatType.PAGES}
                                     />
@@ -94,7 +85,7 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 key: StatType.ITEMS,
                                 children: (
                                     <ChartsSection
-                                        stats={stats}
+                                        stats={reversedStats}
                                         loadedStats={loadedStats}
                                         statOption={StatType.ITEMS}
                                     />
@@ -105,7 +96,7 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 key: StatType.RUNTIME,
                                 children: (
                                     <ChartsSection
-                                        stats={stats}
+                                        stats={reversedStats}
                                         loadedStats={loadedStats}
                                         statOption={StatType.RUNTIME}
                                     />
@@ -116,7 +107,7 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 key: StatType.COVERAGE,
                                 children: (
                                     <ChartsSection
-                                        stats={stats}
+                                        stats={reversedStats}
                                         loadedStats={loadedStats}
                                         statOption={StatType.COVERAGE}
                                     />
@@ -127,7 +118,7 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 key: StatType.SUCCESS_RATE,
                                 children: (
                                     <ChartsSection
-                                        stats={stats}
+                                        stats={reversedStats}
                                         loadedStats={loadedStats}
                                         statOption={StatType.SUCCESS_RATE}
                                     />
@@ -138,7 +129,7 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 key: StatType.STATUS_CODE,
                                 children: (
                                     <ChartsSection
-                                        stats={stats}
+                                        stats={reversedStats}
                                         loadedStats={loadedStats}
                                         statOption={StatType.STATUS_CODE}
                                     />
@@ -148,7 +139,11 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                                 label: "Logs",
                                 key: StatType.LOGS,
                                 children: (
-                                    <ChartsSection stats={stats} loadedStats={loadedStats} statOption={StatType.LOGS} />
+                                    <ChartsSection
+                                        stats={reversedStats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.LOGS}
+                                    />
                                 ),
                             },
                         ]}
