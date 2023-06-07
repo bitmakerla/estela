@@ -18,7 +18,6 @@ import {
 } from "../../services/api";
 import {
     resourceNotAllowedNotification,
-    invalidDataNotification,
     incorrectDataNotification,
     Spin,
     PaginationItem,
@@ -333,7 +332,11 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                         <p className="text-xl font-medium text-silver float-left">SCHEDULED JOBS</p>
                                     </Col>
                                     <Col className="float-right">
-                                        <CronjobCreateModal projectId={this.projectId} />
+                                        <CronjobCreateModal
+                                            openModal={false}
+                                            projectId={this.projectId}
+                                            spider={null}
+                                        />
                                     </Col>
                                 </Row>
                                 <Content className="bg-white rounded-lg p-4">

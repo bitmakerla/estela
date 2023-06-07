@@ -1,12 +1,11 @@
 import React, { Component } from "react";
 import { DatePicker, Button, Divider, Layout, Tabs } from "antd";
-import type { RangePickerProps } from "antd/es/date-picker";
 import moment from "moment";
 import Run from "../../assets/icons/run.svg";
 import { ApiService, GlobalStats, SpidersJobsStats } from "../../services";
 import { StatType } from "../../shared";
 import { Row } from "antd";
-import { Chart } from "./ChartSection";
+import { ChartsSection } from "./ChartsSection";
 
 const { RangePicker } = DatePicker;
 const { Content } = Layout;
@@ -23,7 +22,6 @@ interface HeaderChartProps {
 }
 
 interface HeaderSectionState {
-    statOptionTab: StatType;
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
 }
@@ -32,59 +30,32 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
     apiService = ApiService();
 
     state: HeaderSectionState = {
-        statOptionTab: StatType.JOBS,
-        statsStartDate: moment().subtract(7, "days").startOf("day"),
-        statsEndDate: moment(),
-    };
-
-    onStatsTabChange: (activeStat: string) => void = (activeStat: string) => {
-        switch (activeStat) {
-            case "JOBS":
-                this.setState({ statOptionTab: StatType.JOBS });
-                break;
-            case "PAGES":
-                this.setState({ statOptionTab: StatType.PAGES });
-                break;
-            case "ITEMS":
-                this.setState({ statOptionTab: StatType.ITEMS });
-                break;
-            case "RUNTIME":
-                this.setState({ statOptionTab: StatType.RUNTIME });
-                break;
-            case "COVERAGE":
-                this.setState({ statOptionTab: StatType.COVERAGE });
-                break;
-            case "SUCCESS_RATE":
-                this.setState({ statOptionTab: StatType.SUCCESS_RATE });
-                break;
-            case "STATUS_CODE":
-                this.setState({ statOptionTab: StatType.STATUS_CODE });
-                break;
-            default:
-                this.setState({ statOptionTab: StatType.LOGS });
-                break;
-        }
+        statsStartDate: moment().subtract(7, "days").startOf("day").utc(),
+        statsEndDate: moment().utc(),
     };
 
     render() {
-        const { onRefreshEventHandler, onChangeDateRangeHandler } = this.props;
-        const { statsStartDate, statsEndDate, statOptionTab, stats } = this.state;
+        const { stats, loadedStats, onRefreshEventHandler, onChangeDateRangeHandler } = this.props;
+        const { statsStartDate, statsEndDate } = this.state;
 
         return (
             <>
                 <Row className="flow-root items-center justify-end space-x-4 space-x-reverse">
                     <RangePicker
                         onChange={onChangeDateRangeHandler}
-                        defaultValue={[statsStartDate, statsEndDate]}
+                        defaultValue={[
+                            moment.utc(statsStartDate.format()).local(),
+                            moment.utc(statsEndDate.format()).local(),
+                        ]}
                         ranges={{
-                            Today: [moment(), moment()],
-                            "Last 72h": [moment().subtract(3, "days").startOf("day"), moment()],
-                            "Last 7 Days": [moment().subtract(7, "days").startOf("day"), moment()],
-                            "Last 14 Days": [moment().subtract(14, "days").startOf("day"), moment()],
-                            "Last 30 Days": [moment().subtract(30, "days").startOf("day"), moment()],
+                            Today: [moment().startOf("day"), moment().endOf("day")],
+                            "Last 72h": [moment().subtract(3, "days").startOf("day"), moment().endOf("day")],
+                            "Last 7 Days": [moment().subtract(7, "days").startOf("day"), moment().endOf("day")],
+                            "Last 14 Days": [moment().subtract(14, "days").startOf("day"), moment().endOf("day")],
+                            "Last 30 Days": [moment().subtract(30, "days").startOf("day"), moment().endOf("day")],
                         }}
                         format="YYYY-MM-DD"
-                        className="statDateRangePicker flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela-blue-full hover:stroke-estela bg-estela-blue-low"
+                        className="flex float-right w-60 items-center rounded-lg font-medium stroke-white border-estela-blue-full hover:stroke-estela bg-estela-blue-low"
                     />
                     <Button
                         icon={<Run className="mr-2" width={19} />}
@@ -99,47 +70,86 @@ export class HeaderSection extends Component<HeaderChartProps, HeaderSectionStat
                     <Tabs
                         className="w-full float-right text-estela-black-medium text-xs md:text-sm"
                         defaultActiveKey={"optionTab"}
-                        onChange={this.onStatsTabChange}
                         items={[
                             {
                                 label: "Jobs",
                                 key: StatType.JOBS,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection stats={stats} loadedStats={loadedStats} statOption={StatType.JOBS} />
+                                ),
                             },
                             {
                                 label: "Pages",
                                 key: StatType.PAGES,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection
+                                        stats={stats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.PAGES}
+                                    />
+                                ),
                             },
                             {
                                 label: "Items",
                                 key: StatType.ITEMS,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection
+                                        stats={stats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.ITEMS}
+                                    />
+                                ),
                             },
                             {
                                 label: "Runtime",
                                 key: StatType.RUNTIME,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection
+                                        stats={stats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.RUNTIME}
+                                    />
+                                ),
                             },
                             {
                                 label: "Coverage",
                                 key: StatType.COVERAGE,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection
+                                        stats={stats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.COVERAGE}
+                                    />
+                                ),
                             },
                             {
-                                label: "Success rate",
+                                label: "Job success rate",
                                 key: StatType.SUCCESS_RATE,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection
+                                        stats={stats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.SUCCESS_RATE}
+                                    />
+                                ),
                             },
                             {
                                 label: "Status code",
                                 key: StatType.STATUS_CODE,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection
+                                        stats={stats}
+                                        loadedStats={loadedStats}
+                                        statOption={StatType.STATUS_CODE}
+                                    />
+                                ),
                             },
                             {
                                 label: "Logs",
                                 key: StatType.LOGS,
-                                children: <Chart data={stats} />,
+                                children: (
+                                    <ChartsSection stats={stats} loadedStats={loadedStats} statOption={StatType.LOGS} />
+                                ),
                             },
                         ]}
                     />

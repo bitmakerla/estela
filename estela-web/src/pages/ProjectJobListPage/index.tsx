@@ -14,14 +14,7 @@ import {
     SpiderJob,
     Project,
 } from "../../services/api";
-import {
-    resourceNotAllowedNotification,
-    incorrectDataNotification,
-    invalidDataNotification,
-    Spin,
-    PaginationItem,
-    RouteParams,
-} from "../../shared";
+import { resourceNotAllowedNotification, Spin, PaginationItem, RouteParams } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -243,7 +236,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                     </Text>
                                 </Col>
                                 <Col className="float-right">
-                                    <JobCreateModal projectId={this.projectId} />
+                                    <JobCreateModal projectId={this.projectId} openModal={false} spider={null} />
                                 </Col>
                             </Row>
                             <Row className="my-4 grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">

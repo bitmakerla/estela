@@ -11,13 +11,13 @@ import {
     ChartData,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { StatType } from "../../shared";
+import { StatType, Spin as Spinner } from "../../shared";
 import { GlobalStats, SpidersJobsStats } from "../../services";
-import { Empty, Spin } from "antd";
+import { Empty } from "antd";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export const getJobsDataset = (statsData: GlobalStats[]) => {
+const getJobsDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "Finished",
@@ -42,7 +42,7 @@ export const getJobsDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-export const getPagesDataset = (statsData: GlobalStats[]) => {
+const getPagesDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "Scraped",
@@ -57,7 +57,7 @@ export const getPagesDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-export const getItemsDataset = (statsData: GlobalStats[]) => {
+const getItemsDataset = (statsData: GlobalStats[]) => {
     const datasets = [
         {
             label: "Scraped",
@@ -68,7 +68,7 @@ export const getItemsDataset = (statsData: GlobalStats[]) => {
     return datasets;
 };
 
-export const getRuntimeDataset = (statsData: GlobalStats[]) => {
+const getRuntimeDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "Runtime (seconds)",
@@ -78,7 +78,7 @@ export const getRuntimeDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-export const getCoverageDataset = (statsData: GlobalStats[]) => {
+const getCoverageDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "Item coverage (percentage)",
@@ -88,7 +88,7 @@ export const getCoverageDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-export const getSuccessRateDataset = (statsData: GlobalStats[]) => {
+const getSuccessRateDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "Success rate (percentage)",
@@ -98,7 +98,7 @@ export const getSuccessRateDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-export const getStatusCodeDataset = (statsData: GlobalStats[]) => {
+const getStatusCodeDataset = (statsData: GlobalStats[]) => {
     return [
         {
             label: "200",
@@ -143,7 +143,7 @@ export const getStatusCodeDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-export const getLogsDataset = (statData: GlobalStats[]) => {
+const getLogsDataset = (statData: GlobalStats[]) => {
     return [
         {
             label: "INFO",
@@ -176,17 +176,10 @@ export const getLogsDataset = (statData: GlobalStats[]) => {
 interface ChartProps {
     loadedStats: boolean;
     stats: GlobalStats[] | SpidersJobsStats[];
-}
-
-interface ChartState {
     statOption: StatType;
 }
 
-export class Chart extends Component<ChartProps, ChartState> {
-    state: ChartState = {
-        statOption: StatType.JOBS,
-    };
-
+export class ChartsSection extends Component<ChartProps, unknown> {
     datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } = {
         [StatType.JOBS]: getJobsDataset,
         [StatType.PAGES]: getPagesDataset,
@@ -199,8 +192,7 @@ export class Chart extends Component<ChartProps, ChartState> {
     };
 
     render() {
-        const { statOption } = this.state;
-        const { loadedStats, stats } = this.props;
+        const { loadedStats, stats, statOption } = this.props;
 
         const labels: string[] = stats.map((stat) => stat.date.toLocaleDateString().slice(0, 10));
 
@@ -212,7 +204,7 @@ export class Chart extends Component<ChartProps, ChartState> {
         };
 
         if (!loadedStats) {
-            return <Spin />;
+            return <Spinner />;
         }
 
         return (
