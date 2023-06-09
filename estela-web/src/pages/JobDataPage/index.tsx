@@ -78,20 +78,96 @@ const getData = async (
     );
 };
 
+type ItemDictionary = { [key: string]: ItemDictionary } | ArrayLike<ItemDictionary>;
+
+type ItemProps = {
+    data: ItemDictionary;
+};
+
+function Item({ data }: ItemProps) {
+    return (
+        <Col>
+            {Object.entries(data).map(([itemPropKey, itemProp], index: number) => {
+                return (
+                    <Row
+                        align="middle"
+                        key={index}
+                        className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : ""}`}
+                    >
+                        <Col className="pr-10 pl-5">
+                            <Text className="font-bold">{itemPropKey}</Text>
+                        </Col>
+                        {typeof itemProp === "object" && itemProp !== null && !Array.isArray(itemProp) && (
+                            <Item data={itemProp} />
+                        )}
+                        {typeof itemProp === "string" && itemProp.length <= 300 && (
+                            <Col>
+                                <Text className="text-estela-black-medium">{itemProp}</Text>
+                            </Col>
+                        )}
+                        {typeof itemProp === "string" && itemProp.length > 300 && (
+                            <Col>
+                                <Paragraph
+                                    className="text-estela-black-medium"
+                                    ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                                >
+                                    {itemProp}
+                                </Paragraph>
+                            </Col>
+                        )}
+                        {typeof itemProp === "number" && (
+                            <Col>
+                                <Text className="text-estela-black-medium">{itemProp}</Text>
+                            </Col>
+                        )}
+                        {Array.isArray(itemProp) && typeof itemProp[0] === "object" && (
+                            <Col>
+                                {itemProp.map((itemPropItem, index) => (
+                                    <Item key={index} data={itemPropItem} />
+                                ))}
+                            </Col>
+                        )}
+                        {Array.isArray(itemProp) && typeof itemProp[0] === "string" && (
+                            <Col>
+                                {itemProp.map((entry, index) => {
+                                    return index === itemProp.length - 1 ? (
+                                        <Text className="text-estela-black-medium" key={index}>
+                                            {entry}
+                                        </Text>
+                                    ) : (
+                                        <Text className="text-estela-black-medium" key={index}>
+                                            {entry},{" "}
+                                        </Text>
+                                    );
+                                })}
+                            </Col>
+                        )}
+                        {itemProp === null && (
+                            <Col>
+                                <Text className="text-estela-black-medium">null</Text>
+                            </Col>
+                        )}
+                    </Row>
+                );
+            })}
+        </Col>
+    );
+}
+
 export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [openModal, setOpenModal] = useState(false);
     const [loadedButton, setLoadedButton] = useState(false);
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
-    const [items, setItems] = useState<Dictionary[]>([]);
+    const [items, setItems] = useState<ItemDictionary[]>([]);
 
     useEffect(() => {
         getData("items", 1, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setItems(data);
                 setCurrent(1);
                 setCount(response.count);
@@ -104,10 +180,10 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const onItemsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
         await getData("items", page, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setItems(data);
                 setCurrent(page);
                 setCount(response.count);
@@ -217,7 +293,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             </Button>
                         </Col>
                     </Row>
-                    {items.map((item: Dictionary, index: number) => {
+                    {items.map((item: ItemDictionary, index: number) => {
                         return (
                             <Card key={index} className="w-full mt-2" style={{ borderRadius: "8px" }} bordered={false}>
                                 <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
@@ -238,37 +314,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                     </Col>
                                 </Row>
                                 <>
-                                    {Object.entries(item).map(([itemPropKey, itemProp], index: number) => {
-                                        let itemContent = (
-                                            <Text className="text-estela-black-medium px-4">{itemProp}</Text>
-                                        );
-                                        if (itemProp === null) {
-                                            itemContent = <Text className="text-estela-black-medium px-4">null</Text>;
-                                        } else if (itemProp.length > 300) {
-                                            itemContent = (
-                                                <Paragraph
-                                                    className="text-estela-black-medium px-4"
-                                                    ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                                >
-                                                    {itemProp}
-                                                </Paragraph>
-                                            );
-                                        }
-                                        return (
-                                            <Row
-                                                key={index}
-                                                align="middle"
-                                                className={`grid grid-cols-8 py-1 px-2 ${
-                                                    index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                                }`}
-                                            >
-                                                <Col className="col-span-2">
-                                                    <Text className="font-bold">{itemPropKey}</Text>
-                                                </Col>
-                                                <Col className="col-span-6">{itemContent}</Col>
-                                            </Row>
-                                        );
-                                    })}
+                                    <Item data={item} />
                                 </>
                             </Card>
                         );
