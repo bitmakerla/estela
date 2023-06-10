@@ -13,7 +13,7 @@ import {
 import { Bar } from "react-chartjs-2";
 import { StatType, Spin as Spinner } from "../../shared";
 import { GlobalStats, SpidersJobsStats } from "../../services";
-import { Empty } from "antd";
+import { Empty, Tabs } from "antd";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -173,13 +173,12 @@ const getLogsDataset = (statData: GlobalStats[]) => {
     ];
 };
 
-interface ChartProps {
+interface ChartsSectionProps {
     loadedStats: boolean;
     stats: GlobalStats[] | SpidersJobsStats[];
-    statOption: StatType;
 }
 
-export class ChartsSection extends Component<ChartProps, unknown> {
+export class ChartsSection extends Component<ChartsSectionProps, unknown> {
     datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } = {
         [StatType.JOBS]: getJobsDataset,
         [StatType.PAGES]: getPagesDataset,
@@ -191,8 +190,8 @@ export class ChartsSection extends Component<ChartProps, unknown> {
         [StatType.LOGS]: getLogsDataset,
     };
 
-    render() {
-        const { loadedStats, stats, statOption } = this.props;
+    charts = (statOption: StatType): JSX.Element => {
+        const { stats } = this.props;
 
         const labels: string[] = stats.map((stat) => stat.date.toLocaleDateString().slice(0, 10));
 
@@ -202,10 +201,6 @@ export class ChartsSection extends Component<ChartProps, unknown> {
             labels: labels,
             datasets: datasets,
         };
-
-        if (!loadedStats) {
-            return <Spinner />;
-        }
 
         return (
             <>
@@ -244,6 +239,57 @@ export class ChartsSection extends Component<ChartProps, unknown> {
                     />
                 )}
             </>
+        );
+    };
+
+    render() {
+        const { loadedStats } = this.props;
+
+        if (!loadedStats) {
+            return <Spinner />;
+        }
+
+        return (
+            <Tabs
+                className="w-full float-right text-estela-black-medium text-xs md:text-sm"
+                items={[
+                    {
+                        label: "Jobs",
+                        key: StatType.JOBS,
+                        children: this.charts(StatType.JOBS),
+                    },
+                    {
+                        label: "Pages",
+                        key: StatType.PAGES,
+                        children: this.charts(StatType.PAGES),
+                    },
+                    {
+                        label: "Items",
+                        key: StatType.ITEMS,
+                        children: this.charts(StatType.ITEMS),
+                    },
+                    {
+                        label: "Runtime",
+                        key: StatType.RUNTIME,
+                        children: this.charts(StatType.RUNTIME),
+                    },
+                    {
+                        label: "Job success rate",
+                        key: StatType.SUCCESS_RATE,
+                        children: this.charts(StatType.SUCCESS_RATE),
+                    },
+                    {
+                        label: "Status code",
+                        key: StatType.STATUS_CODE,
+                        children: this.charts(StatType.STATUS_CODE),
+                    },
+                    {
+                        label: "Logs",
+                        key: StatType.LOGS,
+                        children: this.charts(StatType.LOGS),
+                    },
+                ]}
+            />
         );
     }
 }
