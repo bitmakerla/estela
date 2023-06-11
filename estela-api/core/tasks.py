@@ -1,18 +1,20 @@
 import json
+from collections import defaultdict
 from datetime import timedelta
 from typing import List
-from collections import defaultdict
 
 from celery import chain
 from celery.exceptions import TaskError
 from django.conf import settings
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from api.serializers.job import SpiderJobCreateSerializer
 from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
-from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
+from core.models import DataStatus, Permission, Project, Spider, SpiderJob, UsageRecord
 
 
 def get_default_token(job):
@@ -98,6 +100,37 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
     )
 
 
+@celery_app.task()
+def report_failed_job(job_id):
+    job = SpiderJob.objects.get(jid=job_id)
+    users = job.spider.project.users.filter(
+        permission__permission__in=[
+            Permission.DEVELOPER_PERMISSION,
+            Permission.ADMIN_PERMISSION,
+            Permission.OWNER_PERMISSION,
+        ]
+    )
+
+    estela_domain = settings.CORS_ORIGIN_WHITELIST[0]
+    for user in users:
+        mail_subject = f"Your estela SpiderJob {job.jid} has failed"
+        to_email = user.email
+        message = render_to_string(
+            "report_failed_job.html",
+            {
+                "user": user,
+                "job": job,
+                "sid": job.spider.sid,
+                "pid": job.spider.project.pid,
+                "domain": estela_domain,
+            },
+        )
+        mail = EmailMessage(
+            mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
+        )
+        mail.send()
+
+
 @celery_app.task(name="core.tasks.check_and_update_job_status_errors")
 def check_and_update_job_status_errors():
     jobs = SpiderJob.objects.filter(status=SpiderJob.WAITING_STATUS)[
@@ -110,6 +143,7 @@ def check_and_update_job_status_errors():
             job_status.active is None and job_status.succeeded is None
         ):
             job.status = SpiderJob.ERROR_STATUS
+            report_failed_job.s(job.jid).delay()
             job.save()
 
 

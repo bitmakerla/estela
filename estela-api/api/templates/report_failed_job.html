@@ -1,0 +1,7 @@
+{% autoescape off %}
+Hello {{ user.username }},
+
+The SpiderJob {{ job.jid }} in the project {{ job.spider.project.name }} ({{ job.spider.project.pid }}) has finished with an error status. You can check the job detail at:
+
+{{ domain }}/projects/{{ pid }}/spiders/{{ sid }}/jobs/{{ job.jid }}
+{% endautoescape %}
