@@ -317,7 +317,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
 
     const onRequestsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
-        await getData("requests", page, projectId, spiderId, jobId, page).then((response) => {
+        await getData("requests", page, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
@@ -532,7 +532,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
 
     const onLogsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
-        await getData("logs", page, projectId, spiderId, jobId, page).then((response) => {
+        await getData("logs", page, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
