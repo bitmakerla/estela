@@ -11,6 +11,7 @@ import { Spin, PaginationItem } from "../../shared";
 import Circle from "../../assets/icons/ellipse.svg";
 import FolderDotted from "../../assets/icons/folderDotted.svg";
 import "./styles.scss";
+import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 
@@ -103,6 +104,7 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                     )}
                                     <div className="text-estela-black-medium">
                                         <span className="font-semibold text-estela-black-full text-sm capitalize">
+                                            {convertDateToString(user_notification.created)}:&nbsp;
                                             {user_notification.notification.user.email == AuthService.getUserEmail()
                                                 ? "You"
                                                 : user_notification.notification.user.username}
