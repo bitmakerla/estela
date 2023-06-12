@@ -3,9 +3,9 @@ import { Layout, Badge, Pagination } from "antd";
 import {
     AuthService,
     ApiService,
-    ApiUserNotificationsListRequest,
+    ApiNotificationsListRequest,
     UserNotification,
-    ApiUserNotificationsUpdateRequest,
+    ApiNotificationsUpdateRequest,
 } from "../../services";
 import { Spin, PaginationItem } from "../../shared";
 import Circle from "../../assets/icons/ellipse.svg";
@@ -37,11 +37,11 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
     }
 
     getNotifications = async (page: number): Promise<void> => {
-        const requestParams: ApiUserNotificationsListRequest = {
+        const requestParams: ApiNotificationsListRequest = {
             pageSize: this.PAGE_SIZE,
             page: page,
         };
-        this.apiService.apiUserNotificationsList(requestParams).then((response) => {
+        this.apiService.apiNotificationsList(requestParams).then((response) => {
             this.setState({ notifications: response.results, loaded: true, count: response.count, current: page });
         });
     };
@@ -54,7 +54,7 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
         const requestData = {
             seen: true,
         };
-        const requestParams: ApiUserNotificationsUpdateRequest = {
+        const requestParams: ApiNotificationsUpdateRequest = {
             id: id,
             data: requestData,
         };
@@ -64,7 +64,7 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
 
         notifications[index].seen = true;
         this.setState({ notifications: notifications });
-        this.apiService.apiUserNotificationsUpdate(requestParams).then((response) => {
+        this.apiService.apiNotificationsUpdate(requestParams).then((response) => {
             notifications[index].seen = response.seen;
             this.setState({ notifications: notifications });
         });
@@ -108,11 +108,11 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                         {AuthService.getUserEmail() == user_notification.notification.user.email
                                             ? " have "
                                             : " has "}
-                                        {user_notification.notification.message}&nbsp;In&nbsp;
+                                        {user_notification.notification.message} Project:&nbsp;
                                         <span className="font-semibold text-estela-black-full">
-                                            {user_notification.notification.project.name}&nbsp;
+                                            {user_notification.notification.project.name} (
+                                            {user_notification.notification.project.pid})
                                         </span>
-                                        project.
                                         <p className="text-xs text-estela-black-low">
                                             {user_notification.createdAt?.toDateString()}
                                         </p>

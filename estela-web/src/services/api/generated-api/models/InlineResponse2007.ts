@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    UserNotification,
-    UserNotificationFromJSON,
-    UserNotificationFromJSONTyped,
-    UserNotificationToJSON,
-} from './';
-
 /**
  * 
  * @export
@@ -27,29 +20,29 @@ import {
  */
 export interface InlineResponse2007 {
     /**
-     * 
+     * Data items count.
      * @type {number}
      * @memberof InlineResponse2007
      */
     count: number;
     /**
-     * 
-     * @type {string}
-     * @memberof InlineResponse2007
-     */
-    next?: string | null;
-    /**
-     * 
+     * URI to the previous data chunk.
      * @type {string}
      * @memberof InlineResponse2007
      */
     previous?: string | null;
     /**
-     * 
-     * @type {Array<UserNotification>}
+     * URI to the next data chunk.
+     * @type {string}
      * @memberof InlineResponse2007
      */
-    results: Array<UserNotification>;
+    next?: string | null;
+    /**
+     * Data items.
+     * @type {Array<object>}
+     * @memberof InlineResponse2007
+     */
+    results?: Array<object>;
 }
 
 export function InlineResponse2007FromJSON(json: any): InlineResponse2007 {
@@ -63,9 +56,9 @@ export function InlineResponse2007FromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'count': json['count'],
-        'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(UserNotificationFromJSON)),
+        'next': !exists(json, 'next') ? undefined : json['next'],
+        'results': !exists(json, 'results') ? undefined : json['results'],
     };
 }
 
@@ -79,9 +72,9 @@ export function InlineResponse2007ToJSON(value?: InlineResponse2007 | null): any
     return {
         
         'count': value.count,
-        'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(UserNotificationToJSON)),
+        'next': value.next,
+        'results': value.results,
     };
 }
 

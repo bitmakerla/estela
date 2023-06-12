@@ -4,7 +4,7 @@ import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
-import { AuthService, ApiService, ApiUserNotificationsListRequest, UserNotification } from "../../services";
+import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
 import { UserContext, UserContextProps } from "../../context";
 
 import User from "../../assets/icons/user.svg";
@@ -20,7 +20,7 @@ const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 
 interface HeaderState {
-    notifications: UserNotification[];
+    notifications: Notification[];
     loaded: boolean;
     path: string;
     news: boolean;
@@ -68,10 +68,10 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     static contextType = UserContext;
 
     getNotifications = async (): Promise<void> => {
-        const requestParams: ApiUserNotificationsListRequest = {
+        const requestParams: ApiNotificationsListRequest = {
             pageSize: 3,
         };
-        this.apiService.apiUserNotificationsList(requestParams).then((response) => {
+        this.apiService.apiNotificationsList(requestParams).then((response) => {
             this.setState({ news: false });
             if (response.count === 0) {
                 this.setState({ loaded: true });

@@ -45,11 +45,11 @@ export interface UserNotification {
      */
     seen?: boolean;
     /**
-     * Subscription date.
+     * Date when the notification was sent.
      * @type {Date}
      * @memberof UserNotification
      */
-    readonly createdAt?: Date;
+    readonly created?: Date;
 }
 
 export function UserNotificationFromJSON(json: any): UserNotification {
@@ -65,7 +65,7 @@ export function UserNotificationFromJSONTyped(json: any, ignoreDiscriminator: bo
         'id': json['id'],
         'notification': NotificationFromJSON(json['notification']),
         'seen': !exists(json, 'seen') ? undefined : json['seen'],
-        'createdAt': !exists(json, 'created_at') ? undefined : (new Date(json['created_at'])),
+        'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
     };
 }
 
