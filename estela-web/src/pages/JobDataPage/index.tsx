@@ -205,7 +205,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 okButtonProps={{ className: "rounded-lg" }}
                                 cancelButtonProps={{ className: "rounded-lg" }}
                             >
-                                <Text>Are you sure you want to delete job items?</Text>
+                                <Text>Are you sure you want to delete items data?</Text>
                             </Modal>
                             <Button
                                 disabled
@@ -419,7 +419,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 okButtonProps={{ className: "rounded-lg" }}
                                 cancelButtonProps={{ className: "rounded-lg" }}
                             >
-                                <Text>Are you sure you want to delete job requests?</Text>
+                                <Text>Are you sure you want to delete requests data?</Text>
                             </Modal>
                             <Button
                                 disabled
@@ -601,7 +601,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 okButtonProps={{ className: "rounded-lg" }}
                                 cancelButtonProps={{ className: "rounded-lg" }}
                             >
-                                <Text>Are you sure you want to delete job logs?</Text>
+                                <Text>Are you sure you want to delete logs data?</Text>
                             </Modal>
                             <Button
                                 disabled
