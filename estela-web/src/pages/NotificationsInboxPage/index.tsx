@@ -51,6 +51,10 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
     };
 
     changeNotificationStatus(id: number): void {
+        const notifications = this.state.notifications;
+        const index = notifications.findIndex((user_notification) => user_notification.id == id);
+        if (notifications[index].seen) return;
+
         const requestData = {
             seen: true,
         };
@@ -58,9 +62,6 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
             id: id,
             data: requestData,
         };
-        const notifications = this.state.notifications;
-        const index = notifications.findIndex((user_notification) => user_notification.id == id);
-        if (notifications[index].seen) return;
 
         notifications[index].seen = true;
         this.setState({ notifications: notifications });
@@ -90,6 +91,7 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                 <div
                                     onClick={() => this.changeNotificationStatus(user_notification.id)}
                                     className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
+                                    style={{ cursor: "pointer" }}
                                     key={user_notification.id}
                                 >
                                     {!user_notification.seen ? (

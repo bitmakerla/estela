@@ -55,7 +55,6 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         this.getNotifications();
         this.setState({ path: document.location.pathname });
         this.timer = setInterval(() => {
-            console.log("refreshing header notifications");
             this.getNotifications();
         }, 15000);
     }
@@ -178,6 +177,27 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         },
     ];
 
+    changeNotificationStatus(id: number): void {
+        const notifications = this.state.notifications;
+        const index = notifications.findIndex((user_notification) => user_notification.id == id);
+        if (notifications[index].seen) return;
+
+        const requestData = {
+            seen: true,
+        };
+        const requestParams: ApiNotificationsUpdateRequest = {
+            id: id,
+            data: requestData,
+        };
+
+        notifications[index].seen = true;
+        this.setState({ notifications: notifications });
+        this.apiService.apiNotificationsUpdate(requestParams).then((response) => {
+            notifications[index].seen = response.seen;
+            this.setState({ notifications: notifications });
+        });
+    }
+
     notificationItems = (): MenuProps["items"] => [
         {
             key: "1",
@@ -185,6 +205,10 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                 <Content className="w-[360px] mt-1">
                     {this.state.notifications.map((user_notification) => (
                         <div
+                            onClick={(event) => {
+                                this.changeNotificationStatus(user_notification.id);
+                                event.stopPropagation();
+                            }}
                             className="py-2 px-3 flex cursor-pointer hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
                             key={user_notification.notification?.nid}
                         >
