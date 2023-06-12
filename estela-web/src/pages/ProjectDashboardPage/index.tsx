@@ -69,11 +69,13 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
     static contextType = UserContext;
+    mounted = true;
 
     async componentDidMount(): Promise<void> {
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {
+                if (!this.mounted) return;
                 this.setState({ name: response.name });
                 const { updateRole } = this.context as UserContextProps;
                 const userRole = AuthService.getUserRole();
@@ -90,8 +92,13 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         this.getProjectStatsAndUpdateDates();
     }
 
+    componentWillUnmount(): void {
+        this.mounted = false;
+    }
+
     getUsageRecords = async (): Promise<void> => {
         await this.apiService.apiProjectsCurrentUsage({ pid: this.projectId }).then((response: ProjectUsage) => {
+            if (!this.mounted) return;
             const time = parseFloat(response.processingTime ?? "0");
             this.setState({
                 projectUseLoaded: true,
@@ -138,6 +145,25 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                 this.setState({ loadedStats: true });
             },
         );
+    };
+
+    retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
+        const params: ApiStatsJobsStatsRequest = {
+            pid: this.projectId,
+            data: jobsMetadata,
+        };
+        await this.apiService.apiStatsJobsStats(params).then((response: GetJobsStats[]) => {
+            if (!this.mounted) return;
+            const { jobsDateStats, loadedJobsDateStats } = this.state;
+            const newLoadedJobsDateStats = [...loadedJobsDateStats];
+            newLoadedJobsDateStats[index] = true;
+            const newJobsDateStats = [...jobsDateStats];
+            newJobsDateStats[index] = response;
+            this.setState({
+                jobsDateStats: [...newJobsDateStats],
+                loadedJobsDateStats: [...newLoadedJobsDateStats],
+            });
+        });
     };
 
     calcAverageSuccessRate = (): number => {

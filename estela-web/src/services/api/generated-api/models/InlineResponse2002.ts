@@ -14,10 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    Deploy,
-    DeployFromJSON,
-    DeployFromJSONTyped,
-    DeployToJSON,
+    Project,
+    ProjectFromJSON,
+    ProjectFromJSONTyped,
+    ProjectToJSON,
 } from './';
 
 /**
@@ -46,10 +46,10 @@ export interface InlineResponse2002 {
     previous?: string | null;
     /**
      * 
-     * @type {Array<Deploy>}
+     * @type {Array<Project>}
      * @memberof InlineResponse2002
      */
-    results: Array<Deploy>;
+    results: Array<Project>;
 }
 
 export function InlineResponse2002FromJSON(json: any): InlineResponse2002 {
@@ -65,7 +65,7 @@ export function InlineResponse2002FromJSONTyped(json: any, ignoreDiscriminator: 
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(DeployFromJSON)),
+        'results': ((json['results'] as Array<any>).map(ProjectFromJSON)),
     };
 }
 
@@ -81,7 +81,7 @@ export function InlineResponse2002ToJSON(value?: InlineResponse2002 | null): any
         'count': value.count,
         'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(DeployToJSON)),
+        'results': ((value.results as Array<any>).map(ProjectToJSON)),
     };
 }
 

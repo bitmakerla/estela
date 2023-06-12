@@ -36,6 +36,7 @@ export const AuthService = {
         localStorage.removeItem(USERNAME_ROLE);
     },
     setUserRole(role: string): void {
+        role = role.toLowerCase();
         localStorage.setItem(USERNAME_ROLE, role);
     },
     getUserEmail(): string | null {
