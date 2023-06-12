@@ -28,12 +28,14 @@ import {
     ApiProjectsSpidersListRequest,
     ApiProjectsSpidersCronjobsCreateRequest,
     SpiderCronJobCreate,
+    SpiderCronJobCreateDataStatusEnum,
+    SpiderDataStatusEnum,
     Spider,
 } from "../../services/api";
 import history from "../../history";
 import { ApiService } from "../../services";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
-import { checkExternalError } from "ExternalComponents/CardNotification";
+import { checkExternalError } from "../../defaultComponents";
 
 import Add from "../../assets/icons/add.svg";
 
@@ -62,8 +64,8 @@ interface CronjobData {
     args: ArgsData[];
     envVars: EnvVarsData[];
     tags: TagsData[];
-    dataStatus: string;
-    dataExpiryDays: number | null | undefined;
+    dataStatus: SpiderCronJobCreateDataStatusEnum | SpiderDataStatusEnum;
+    dataExpiryDays: number;
     uniqueCollection: boolean;
 }
 
@@ -163,9 +165,9 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         args: [],
         envVars: [],
         tags: [],
-        dataStatus: "",
-        dataStatus: spider ? spider.dataStatus : undefined,
-        dataExpiryDays: spider ? spider.dataExpiryDays : 1,
+        dataStatus: SpiderCronJobCreateDataStatusEnum.Pending,
+        dataExpiryDays: spider ? Number(spider.dataExpiryDays) : 1,
+        uniqueCollection: false,
     });
     const [newCronjob, setNewCronjob] = useState<Cronjob>({
         newArgName: "",
@@ -247,7 +249,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
 
     const handlePersistenceChange = (value: number): void => {
         if (value == 720) {
-            setCronjobData({ ...cronjobData, dataStatus: "PERSISTENT" });
+            setCronjobData({ ...cronjobData, dataStatus: SpiderCronJobCreateDataStatusEnum.Persistent });
         } else {
             setCronjobData({ ...cronjobData, dataExpiryDays: value });
         }
@@ -432,14 +434,19 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             expression = getExpression();
         }
 
+        const data_status =
+            cronjobData.dataStatus == SpiderDataStatusEnum.Persistent
+                ? SpiderCronJobCreateDataStatusEnum.Persistent
+                : SpiderCronJobCreateDataStatusEnum.Pending;
+
         const requestData = {
             cargs: [...cronjobData.args],
             cenvVars: [...cronjobData.envVars],
             ctags: [...cronjobData.tags],
             schedule: expression,
             uniqueCollection: cronjobData.uniqueCollection,
-            dataStatus: cronjobData.dataStatus,
-            dataExpiryDays: `0/${cronjobData.dataExpiryDays}`,
+            dataStatus: data_status,
+            dataExpiryDays: cronjobData.dataExpiryDays,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,

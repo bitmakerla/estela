@@ -54,9 +54,15 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     PAGE_SIZE = 10;
     state: ProjectDashboardPageState = {
         name: "",
-        formattedNetwork: { quantity: 0, type: "" },
+        formattedNetwork: {
+            quantity: 0,
+            type: "",
+        },
         processingTime: 0,
-        formattedStorage: { quantity: 0, type: "" },
+        formattedStorage: {
+            quantity: 0,
+            type: "",
+        },
         loaded: false,
         projectUseLoaded: false,
         count: 0,

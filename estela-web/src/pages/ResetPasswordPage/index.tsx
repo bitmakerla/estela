@@ -19,7 +19,7 @@ interface ResetPasswordPageProps {
 
 interface ResetPasswordPageState {
     loaded: boolean;
-    succesfullyChanged: boolean;
+    successfullyChanged: boolean;
     token: string;
     pair: string;
     linkExpired: boolean;
@@ -31,7 +31,7 @@ interface ResetPasswordPageState {
 export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPasswordPageState> {
     state = {
         loaded: false,
-        succesfullyChanged: false,
+        successfullyChanged: false,
         linkExpired: false,
         token: "",
         pair: "",
@@ -75,7 +75,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
         this.apiService
             .apiAccountResetPasswordConfirm(requestParameters)
             .then(() => {
-                this.setState({ succesfullyChanged: true, sendingRequest: false });
+                this.setState({ successfullyChanged: true, sendingRequest: false });
             })
             .catch((error: unknown) => {
                 handleInvalidDataError(error);
@@ -97,11 +97,11 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
     };
 
     handleChangeEmail = (): void => {
-        this.setState({ succesfullyChanged: false });
+        this.setState({ successfullyChanged: false });
     };
 
     render(): JSX.Element {
-        const { loaded, succesfullyChanged, linkExpired, sendingRequest } = this.state;
+        const { loaded, successfullyChanged, linkExpired, sendingRequest } = this.state;
         return loaded ? (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
@@ -120,7 +120,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
                     </Content>
                 </Content>
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
-                    {succesfullyChanged ? (
+                    {successfullyChanged ? (
                         <Row justify="center" className="w-96">
                             <Text className="text-3xl font-bold">Successful password reset!</Text>
                             <Text className="text-center text-lg my-7 text-estela-black-medium">

@@ -123,11 +123,11 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     copy = () => {
         const node = document.getElementById("id_project");
         const value = node?.textContent;
-        let copytext = "";
+        let copy_text = "";
         if (value) {
-            copytext = value;
+            copy_text = value;
         }
-        navigator.clipboard.writeText(copytext);
+        navigator.clipboard.writeText(copy_text);
     };
 
     async getProjectDeploys(page: number): Promise<void> {
