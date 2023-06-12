@@ -68,7 +68,7 @@ class SpiderCronJobViewSet(
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
 
         if data_status == DataStatus.PENDING_STATUS:
-            data_expiry_days = request.data.pop("data_expiry_days", "0/1")
+            data_expiry_days = request.data.pop("data_expiry_days", 1)
             if data_expiry_days < 1:
                 raise ParseError({"error": "Invalid data expiry days value."})
         else:
