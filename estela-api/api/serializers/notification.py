@@ -27,17 +27,20 @@ class UserNotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserNotification
-        fields = ("id", "notification", "seen", "created_at")
+        fields = ("id", "notification", "seen", "created")
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        user_notification = instance.notification.user
-        if user_notification.is_superuser or user_notification.is_staff:
+        user = instance.notification.user
+
+        is_superuser = user.is_superuser or user.is_staff
+        user_in_project = instance.notification.project.users.filter(id=user.id)
+        if is_superuser and not user_in_project:
             ret["notification"]["user"]["username"] = "Bitmaker Cloud Admin"
         else:
             ret["notification"]["user"][
                 "username"
-            ] = instance.notification.user.username
+            ] = user.username
         return ret
 
 

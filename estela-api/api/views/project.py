@@ -102,21 +102,25 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
             instance.name = name
             message = f"renamed project {old_name} ({instance.pid}) to {name}."
 
-        if user_email and user_email != request.user.email:
-            if not (
-                request.user.permission_set.get(project=instance).permission
+        user = request.user
+        is_superuser = user.is_superuser or user.is_staff
+        if user_email and (is_superuser or user_email != user.email):
+            if not is_superuser and not (
+                user.permission_set.get(project=instance).permission
                 in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
             ):
                 raise PermissionDenied(
                     {"permission": "You do not have permission to do this."}
                 )
 
-            user = User.objects.filter(email=user_email)
-            if not user:
+            affected_user = User.objects.filter(email=user_email)
+            if not affected_user:
                 raise NotFound({"email": "User does not exist."})
 
-            user = user.get()
-            existing_permission = user.permission_set.filter(project=instance).first()
+            affected_user = affected_user.get()
+            existing_permission = affected_user.permission_set.filter(
+                project=instance
+            ).first()
             if (
                 existing_permission
                 and existing_permission.permission == Permission.OWNER_PERMISSION
@@ -126,14 +130,18 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
                 )
 
             if action == "add":
-                instance.users.add(user, through_defaults={"permission": permission})
+                instance.users.add(
+                    affected_user, through_defaults={"permission": permission}
+                )
                 message = f"added {user_email}."
             elif action == "remove":
-                instance.users.remove(user)
+                instance.users.remove(affected_user)
                 message = f"removed {user_email}."
             elif action == "update":
-                instance.users.remove(user)
-                instance.users.add(user, through_defaults={"permission": permission})
+                instance.users.remove(affected_user)
+                instance.users.add(
+                    affected_user, through_defaults={"permission": permission}
+                )
                 message = f"updated {user_email}'s permissions to {permission}."
             else:
                 raise ParseError({"error": "Action not supported."})

@@ -1,9 +1,9 @@
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
-from api.serializers.user_notification import (
+from api.serializers.notification import (
     UserNotificationSerializer,
     UserNotificationUpdateSerializer,
 )
