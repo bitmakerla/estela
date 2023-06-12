@@ -16,12 +16,39 @@ interface DataListSectionProps {
 }
 
 interface DataListSectionState {
+    loadedStatsDates: boolean[];
     focusedStatIndex: number;
 }
 
 export class StatsTableSection extends Component<DataListSectionProps, DataListSectionState> {
     state: DataListSectionState = {
+        loadedStatsDates: [],
         focusedStatIndex: 0,
+    };
+
+    componentDidMount() {
+        const { stats } = this.props;
+        const newLoadedJobsDateStats = Array(stats.length).fill(false);
+        this.setState({ loadedStatsDates: [...newLoadedJobsDateStats] });
+    }
+
+    retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
+        const params: ApiStatsJobsStatsRequest = {
+            pid: this.projectId,
+            data: jobsMetadata,
+        };
+        await this.apiService.apiStatsJobsStats(params).then((response: GetJobsStats[]) => {
+            if (!this.mounted) return;
+            const { jobsDateStats, loadedJobsDateStats } = this.state;
+            const newLoadedJobsDateStats = [...loadedJobsDateStats];
+            newLoadedJobsDateStats[index] = true;
+            const newJobsDateStats = [...jobsDateStats];
+            newJobsDateStats[index] = response;
+            this.setState({
+                jobsDateStats: [...newJobsDateStats],
+                loadedJobsDateStats: [...newLoadedJobsDateStats],
+            });
+        });
     };
 
     columns: ColumnsType<StatsTableDataType> = [
@@ -194,6 +221,9 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                 className="w-full"
                 columns={this.columns}
                 dataSource={data}
+                expandable={{
+                    expandedRowRender: (record) => <p>{record.statsDate.stats.runtime}</p>,
+                }}
                 scroll={{ x: "max-content" }}
                 pagination={false}
             />

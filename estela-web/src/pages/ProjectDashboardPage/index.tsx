@@ -147,25 +147,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         );
     };
 
-    retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
-        const params: ApiStatsJobsStatsRequest = {
-            pid: this.projectId,
-            data: jobsMetadata,
-        };
-        await this.apiService.apiStatsJobsStats(params).then((response: GetJobsStats[]) => {
-            if (!this.mounted) return;
-            const { jobsDateStats, loadedJobsDateStats } = this.state;
-            const newLoadedJobsDateStats = [...loadedJobsDateStats];
-            newLoadedJobsDateStats[index] = true;
-            const newJobsDateStats = [...jobsDateStats];
-            newJobsDateStats[index] = response;
-            this.setState({
-                jobsDateStats: [...newJobsDateStats],
-                loadedJobsDateStats: [...newLoadedJobsDateStats],
-            });
-        });
-    };
-
     calcAverageSuccessRate = (): number => {
         const { globalStats } = this.state;
         if (globalStats.length === 0) return 0;
