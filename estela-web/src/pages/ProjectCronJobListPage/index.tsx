@@ -328,7 +328,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                     <Layout className="bg-white">
                         <Content className="bg-metal rounded-2xl">
                             <div className="lg:m-10 m-6">
-                                <Row className="flow-root">
+                                <Row className="flow-root my-6">
                                     <Col className="float-left">
                                         <p className="text-xl font-medium text-silver float-left">SCHEDULED JOBS</p>
                                     </Col>
