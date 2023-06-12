@@ -1,11 +1,14 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Pagination, Row, Table, Button, Tag, Col, Typography, Modal } from "antd";
-import { Link, RouteComponentProps } from "react-router-dom";
+import { Layout, Pagination, Row, Table, Button, Tag, Col, Typography, Modal, Tooltip as TooltipAnt } from "antd";
+import { RouteComponentProps } from "react-router-dom";
 import Copy from "../../assets/icons/copy.svg";
 import Info from "../../assets/icons/info.svg";
+import Help from "../../assets/icons/help.svg";
+import SpiderIcon from "../../assets/icons/spider.svg";
 import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 
 import "./styles.scss";
+import { API_BASE_URL } from "../../constants";
 import { ApiService } from "../../services";
 import { ApiProjectsDeploysListRequest, Deploy, Spider, UserDetail } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
@@ -80,19 +83,27 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             ),
         },
         {
-            title: "STATUS",
+            title: (
+                <Row className="flex items-center gap-1">
+                    STATUS
+                    <TooltipAnt
+                        placement="left"
+                        title="Refresh the page to see the updated deployment status. After a successful deployment, you can see the list of spiders in the spiders overview page."
+                    >
+                        <Help className="w-5 h-5 stroke-estela-black-medium" />
+                    </TooltipAnt>
+                </Row>
+            ),
             key: "status",
             dataIndex: "status",
             render: (state: string): ReactElement => (
-                <Content>
+                <Content style={{ display: "flex", alignItems: "center" }}>
                     {state === "BUILDING" ? (
-                        <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-yellow">Waiting</Tag>
+                        <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-yellow">Waiting</Tag>
                     ) : state === "SUCCESS" ? (
-                        <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-green">
-                            Completed
-                        </Tag>
+                        <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-green">Completed</Tag>
                     ) : (
-                        <Tag className="border-0 text-xs bg-estela-blue-low rounded-md text-estela-red-full">
+                        <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-red-full">
                             Failure
                         </Tag>
                     )}
@@ -202,50 +213,66 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                             <p className="font-medium text-xl text-silver">SPIDER OVERVIEW</p>
                             <Row className="bg-white p-5 rounded-lg mt-6" justify="center">
                                 <Content>
-                                    <Row align="middle" className="gap-4 my-4">
-                                        <Col>
+                                    <Row className="flex items-center justify-between">
+                                        <Col className="flex gap-4 my-4">
                                             <Info className="w-9 h-9" />
+                                            <Col>
+                                                <p>
+                                                    <Text strong>Want to know more about estela?</Text> Access our
+                                                    <a
+                                                        target="_blank"
+                                                        href="https://estela.bitmaker.la/docs/"
+                                                        rel="noreferrer"
+                                                    >
+                                                        <Text strong className="text-estela underline mx-1">
+                                                            documentation
+                                                        </Text>
+                                                    </a>
+                                                    .
+                                                </p>
+                                                <p>
+                                                    Install the
+                                                    <a
+                                                        target="_blank"
+                                                        href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                                        rel="noreferrer"
+                                                    >
+                                                        <Text strong className="text-estela underline mx-1">
+                                                            estela CLI
+                                                        </Text>
+                                                    </a>
+                                                    to <Text strong>streamline spider deployment</Text>, unlock{" "}
+                                                    <Text strong>advanced developer features</Text>, and more.
+                                                </p>
+                                            </Col>
                                         </Col>
-                                        <Col className="flex flex-col">
-                                            <div>
-                                                <Text strong>Deploy spiders</Text> and <Text strong>jobs</Text>, access{" "}
-                                                <Text strong>developer features</Text> and more by installing
-                                                <a
-                                                    target="_blank"
-                                                    href="https://estela.bitmaker.la/docs/estela-cli/install.html"
-                                                    rel="noreferrer"
-                                                >
-                                                    <Text className="text-estela underline mx-1">estela CLI</Text>
-                                                </a>
-                                            </div>
-                                            <div>
-                                                Want to know more about estela, access our{" "}
-                                                <a
-                                                    target="_blank"
-                                                    href="https://estela.bitmaker.la/docs/"
-                                                    rel="noreferrer"
-                                                >
-                                                    <Text className="text-estela underline mx-1">documentation</Text>
-                                                </a>
-                                            </div>
-                                        </Col>
+                                        <Button
+                                            icon={<SpiderIcon className="mr-2 w-6 h-6" width={40} />}
+                                            size="large"
+                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                            onClick={() =>
+                                                this.props.history.push(`/projects/${this.projectId}/spiders`)
+                                            }
+                                        >
+                                            View spiders
+                                        </Button>
                                     </Row>
                                     <Row
                                         justify="space-between"
                                         align="middle"
                                         className="rounded-md p-4 bg-estela-blue-low text-base"
                                     >
-                                        <Row className="gap-4 px-5">
+                                        <Row className="gap-4 px-5" align="middle">
                                             <p className="text-estela-black-full text-sm font-normal">
                                                 Copy your project ID to deploy your spiders:
                                             </p>
-                                            <Link
+                                            <Button
                                                 id="id_project"
-                                                className="text-estela-blue-medium text-base font-normal"
-                                                to={`/projects/${this.projectId}/dashboard`}
+                                                className="border-0 text-estela-blue-medium text-base font-normal"
+                                                onClick={this.copy}
                                             >
                                                 {this.projectId}
-                                            </Link>
+                                            </Button>
                                         </Row>
                                         <Button
                                             icon={<Copy width={24} />}
@@ -263,8 +290,9 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             <p className="break-words text-white">
                                                 $ git clone https://github.com/scrapy/quotesbot.git
                                             </p>
+                                            <p className="text-white">$ cd quotesbot</p>
                                             <p className="text-white">$ estela login</p>
-                                            <p className="text-white">Host [http://localhost]:</p>
+                                            <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
                                             <p className="text-white">Username: admin</p>
                                             <p className="text-white">Password:</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
@@ -279,12 +307,9 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             Deploy your spider
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
-                                            <p className="break-words text-white">
-                                                $ estela create project &lt;project_name&gt;
-                                            </p>
                                             <p className="text-white">$ cd &lt;project_name&gt;</p>
                                             <p className="text-white">$ estela login</p>
-                                            <p className="text-white">Host [http://localhost]:</p>
+                                            <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
                                             <p className="text-white">Username: admin</p>
                                             <p className="text-white">Password:</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
@@ -292,7 +317,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         </div>
                                     </div>
                                 </Row>
-                                <Row>
+                                <Row className="flex ">
                                     <Table
                                         tableLayout="fixed"
                                         columns={this.columns}
