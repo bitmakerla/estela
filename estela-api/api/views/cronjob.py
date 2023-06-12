@@ -8,18 +8,19 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
-from api.mixins import BaseViewSet
+from api.mixins import BaseViewSet, NotificationsHandlerMixin
 from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobSerializer,
     SpiderCronJobUpdateSerializer,
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
-from core.models import DataStatus, Spider, SpiderCronJob
+from core.models import DataStatus, Spider, SpiderCronJob, Project
 
 
 class SpiderCronJobViewSet(
     BaseViewSet,
+    NotificationsHandlerMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -88,6 +89,15 @@ class SpiderCronJobViewSet(
             cronjob.schedule,
             data_expiry_days=data_expiry_days,
         )
+
+        # Send notification action
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        self.save_notification(
+            user=request.user,
+            message=f"scheduled a new Scheduled-job-{cronjob.cjid} for spider {spider.name}.",
+            project=project,
+        )
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -100,6 +110,7 @@ class SpiderCronJobViewSet(
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+        instance = {"object": self.get_object(), "user": request.user}
         serializer = SpiderCronJobUpdateSerializer(
             instance, data=request.data, partial=partial
         )

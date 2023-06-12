@@ -205,7 +205,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 okButtonProps={{ className: "rounded-lg" }}
                                 cancelButtonProps={{ className: "rounded-lg" }}
                             >
-                                <Text>Are you sure you want to delete job items?</Text>
+                                <Text>Are you sure you want to delete items data?</Text>
                             </Modal>
                             <Button
                                 disabled
@@ -317,7 +317,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
 
     const onRequestsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
-        await getData("requests", page, projectId, spiderId, jobId, page).then((response) => {
+        await getData("requests", page, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
@@ -419,7 +419,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 okButtonProps={{ className: "rounded-lg" }}
                                 cancelButtonProps={{ className: "rounded-lg" }}
                             >
-                                <Text>Are you sure you want to delete job requests?</Text>
+                                <Text>Are you sure you want to delete requests data?</Text>
                             </Modal>
                             <Button
                                 disabled
@@ -532,7 +532,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
 
     const onLogsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
-        await getData("logs", page, projectId, spiderId, jobId, page).then((response) => {
+        await getData("logs", page, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
@@ -601,7 +601,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 okButtonProps={{ className: "rounded-lg" }}
                                 cancelButtonProps={{ className: "rounded-lg" }}
                             >
-                                <Text>Are you sure you want to delete job logs?</Text>
+                                <Text>Are you sure you want to delete logs data?</Text>
                             </Modal>
                             <Button
                                 disabled

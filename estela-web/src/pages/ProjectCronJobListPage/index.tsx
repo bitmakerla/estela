@@ -16,7 +16,13 @@ import {
     SpiderCronJob,
     Project,
 } from "../../services/api";
-import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
+import {
+    resourceNotAllowedNotification,
+    incorrectDataNotification,
+    Spin,
+    PaginationItem,
+    RouteParams,
+} from "../../shared";
 import CronjobCreateModal from "../CronjobCreateModal";
 import { convertDateToString } from "../../utils";
 
@@ -56,10 +62,7 @@ interface ProjectCronJobListPageState {
     count: number;
     current: number;
     loading: boolean;
-}
-
-interface RouteParams {
-    projectId: string;
+    page: number;
 }
 
 export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteParams>, ProjectCronJobListPageState> {
@@ -72,6 +75,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         count: 0,
         current: 0,
         loading: false,
+        page: 1,
     };
 
     apiService = ApiService();
@@ -126,7 +130,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                     <Switch
                         size="small"
                         className="bg-estela-white-low"
-                        defaultChecked={status === SpiderCronJobStatusEnum.Active}
+                        checked={status === SpiderCronJobStatusEnum.Active}
                         onChange={() => this.updateStatus(cronjob)}
                     />
                 );
@@ -202,7 +206,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 resourceNotAllowedNotification();
             },
         );
-        this.getCronJobs(1);
+        this.getCronJobs(this.state.page);
     }
 
     getCronJobs = async (page: number): Promise<void> => {
@@ -245,7 +249,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         this.apiService.apiProjectsSpidersCronjobsUpdate(request).then(
             (response) => {
                 message.success(`ScheduledJob ${response.cjid} ${response.status}`);
-                this.getCronJobs(1);
+                this.getCronJobs(this.state.page);
             },
             (error: unknown) => {
                 error;
@@ -255,6 +259,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     onPageChange = async (page: number): Promise<void> => {
+        this.setState({ page: page });
         await this.getCronJobs(page);
     };
 
@@ -325,7 +330,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                     <Layout className="bg-white">
                         <Content className="bg-metal rounded-2xl">
                             <div className="lg:m-10 m-6">
-                                <Row className="flow-root">
+                                <Row className="flow-root my-6">
                                     <Col className="float-left">
                                         <p className="text-xl font-medium text-silver float-left">SCHEDULED JOBS</p>
                                     </Col>
