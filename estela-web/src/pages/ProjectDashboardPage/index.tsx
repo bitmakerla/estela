@@ -36,7 +36,6 @@ interface ProjectDashboardPageState {
     formattedNetwork: BytesMetric;
     processingTime: number;
     formattedStorage: BytesMetric;
-    projectUseLoaded: boolean;
     loaded: boolean;
     count: number;
     current: number;
@@ -64,7 +63,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             type: "",
         },
         loaded: false,
-        projectUseLoaded: false,
         count: 0,
         current: 0,
         loadedStats: false,
@@ -107,7 +105,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             if (!this.mounted) return;
             const time = parseFloat(response.processingTime ?? "0");
             this.setState({
-                projectUseLoaded: true,
                 formattedNetwork: formatBytes(response.networkUsage),
                 processingTime: Math.round(time * 100) / 100,
                 formattedStorage: formatBytes(
@@ -153,25 +150,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         );
     };
 
-    retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
-        const params: ApiStatsJobsStatsRequest = {
-            pid: this.projectId,
-            data: jobsMetadata,
-        };
-        await this.apiService.apiStatsJobsStats(params).then((response: GetJobsStats[]) => {
-            if (!this.mounted) return;
-            const { jobsDateStats, loadedJobsDateStats } = this.state;
-            const newLoadedJobsDateStats = [...loadedJobsDateStats];
-            newLoadedJobsDateStats[index] = true;
-            const newJobsDateStats = [...jobsDateStats];
-            newJobsDateStats[index] = response;
-            this.setState({
-                jobsDateStats: [...newJobsDateStats],
-                loadedJobsDateStats: [...newLoadedJobsDateStats],
-            });
-        });
-    };
-
     calcAverageSuccessRate = (): number => {
         const { globalStats } = this.state;
         if (globalStats.length === 0) return 0;
@@ -194,8 +172,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         this.getProjectStatsAndUpdateDates();
     };
 
-    projectUsageSection: () => JSX.Element = () => {
-        const { projectUseLoaded, formattedNetwork, processingTime, formattedStorage, loadedStats } = this.state;
+    projectUsageSection(): JSX.Element {
+        const { loaded, formattedNetwork, processingTime, formattedStorage, loadedStats } = this.state;
 
         const averageSuccessRates = this.calcAverageSuccessRate();
         const dataChart = {
@@ -214,7 +192,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         };
 
         return (
-            <Space direction="vertical">
+            <>
                 <Card bordered={false} className="bg-white rounded-lg">
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
@@ -227,7 +205,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                             </TooltipAnt>
                         </div>
                         {loadedStats ? (
-                            <div className="mx-auto w-40 static">
+                            <div className="mx-auto w-40">
                                 <Doughnut
                                     plugins={[
                                         {
@@ -256,7 +234,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 />
                             </div>
                         ) : (
-                            <Spin />
+                            <Spin className="w-full" />
                         )}
                     </Space>
                 </Card>
@@ -268,7 +246,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 <Help className="w-4 h-4 stroke-estela-black-medium" />
                             </TooltipAnt>
                         </div>
-                        {projectUseLoaded ? (
+                        {loaded ? (
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between space-x-4">
                                     <Text className="text-sm text-estela-black-medium break-words">
@@ -296,15 +274,15 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         )}
                     </Space>
                 </Card>
-            </Space>
+            </>
         );
-    };
+    }
 
     render(): JSX.Element {
         const { name, loaded, globalStats, loadedStats } = this.state;
 
         return (
-            <Layout className="bg-metal rounded-t-2xl h-screen">
+            <Layout className="bg-metal rounded-t-2xl">
                 {loaded ? (
                     <Fragment>
                         <Row className="flow-root lg:m-8 m-4">
@@ -324,7 +302,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 ></Button>
                             </Col>
                         </Row>
-                        <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4 justify-between">
+                        <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4">
                             <Col className="bg-metal col-span-5">
                                 <Content className="bg-white rounded-2xl py-5 pr-8 pl-5">
                                     <HeaderSection
@@ -334,10 +312,15 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                         onRefreshEventHandler={this.onRefreshEventHandler}
                                         onChangeDateRangeHandler={this.onChangeDateRangeHandler}
                                     />
-                                    <StatsTableSection stats={globalStats} loadedStats={loadedStats} />
+                                    <StatsTableSection
+                                        pid={this.projectId}
+                                        apiService={this.apiService}
+                                        stats={globalStats}
+                                        loadedStats={loadedStats}
+                                    />
                                 </Content>
                             </Col>
-                            <Col className="bg-metal grid justify-start col-span-2 gap-2">
+                            <Col className="bg-metal grid col-span-2 gap-2 content-start">
                                 {this.projectUsageSection()}
                             </Col>
                         </Row>
