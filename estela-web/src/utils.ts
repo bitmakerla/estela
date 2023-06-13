@@ -28,7 +28,7 @@ export function convertDateToString(date: Date | undefined): string {
 export function formatSecondsToHHMMSS(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = Math.round(seconds % 60);
+    const remainingSeconds = Math.round(seconds) % 60;
     const formattedTime = [
         hours.toString().padStart(2, "0"),
         minutes.toString().padStart(2, "0"),
