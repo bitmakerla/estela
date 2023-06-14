@@ -74,6 +74,30 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
         return stats.map((stat) => stat.stats.pages.totalPages ?? 0).reduce((acc, cur) => acc + cur, 0);
     };
 
+    getCompletedJobs = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.jobs?.finishedJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
+    getTotalJobs = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.jobs?.totalJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
+    getScrapedPages = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.pages.scrapedPages ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
+    getTotalPages = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.pages.totalPages ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
     getHealthColor = (health: number): string => {
         let color = "#E34A46";
         if (health > 0.2) color = "#A13764";
