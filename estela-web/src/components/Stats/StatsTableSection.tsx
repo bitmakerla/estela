@@ -77,7 +77,7 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
 
     colsStatsTable: ColumnsType<StatsTableDataType> = [
         {
-            title: <p className="text-estela-black-full font-medium text-xs">DAY</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">DAY</p>,
             dataIndex: "day",
             key: "day",
             render: (_, { statsDate }) => {
@@ -95,9 +95,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             },
         },
         {
-            title: <p className="text-estela-black-full font-medium text-xs">JOBS</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">JOBS</p>,
             dataIndex: "jobs",
             key: "jobs",
+            align: "center",
             render: (_, { statsDate }) => {
                 const totalJobs = statsDate.stats.jobs?.totalJobs ?? 0;
                 return <p className="text-black text-xs font-normal">{totalJobs}</p>;
@@ -109,9 +110,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             },
         },
         {
-            title: <p className="text-estela-black-full font-medium text-xs">PAGES</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">PAGES</p>,
             dataIndex: "scrapedPages",
             key: "scrapedPages",
+            align: "center",
             render: (_, { statsDate }) => {
                 const scrapedPages = statsDate.stats.pages.scrapedPages ?? 0;
                 return <p className="text-black text-xs font-normal">{scrapedPages}</p>;
@@ -123,9 +125,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             },
         },
         {
-            title: <p className="text-estela-black-full font-medium text-xs">M. PAGES</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">M. PAGES</p>,
             dataIndex: "missedPages",
             key: "missedPages",
+            align: "center",
             render: (_, { statsDate }) => {
                 const missedPages = statsDate.stats.pages.missedPages ?? 0;
                 return <p className="text-black text-xs font-normal">{missedPages}</p>;
@@ -137,9 +140,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             },
         },
         {
-            title: <p className="text-estela-black-full font-medium text-xs">ITEMS</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">ITEMS</p>,
             dataIndex: "items",
             key: "items",
+            align: "center",
             render: (_, { statsDate }) => {
                 const itemsCount = statsDate.stats.itemsCount ?? 0;
                 return <p className="text-black text-xs font-normal">{itemsCount}</p>;
@@ -151,9 +155,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             },
         },
         {
-            title: <p className="text-estela-black-full font-medium text-xs">RUN TIME</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">RUN TIME</p>,
             dataIndex: "runtime",
             key: "runtime",
+            align: "center",
             render: (_, { statsDate }) => {
                 const runtime = formatSecondsToHHMMSS(statsDate.stats.runtime ?? 0);
                 return <p className="text-black text-xs font-normal">{runtime}</p>;
@@ -165,9 +170,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             },
         },
         {
-            title: <p className="text-estela-black-full font-medium text-xs">JOB SUC. RATE</p>,
+            title: <p className="text-estela-black-full font-medium text-xs text-center">JOB SUC. RATE</p>,
             dataIndex: "jobSuccessRate",
             key: "jobSuccessRate",
+            align: "center",
             render: (_, { statsDate }) => {
                 const jobSuccessRate = `${Math.round(statsDate.stats.successRate ?? 0)}%`;
                 return <p className="text-black text-xs font-normal">{jobSuccessRate}</p>;
@@ -178,48 +184,6 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                 return successRateA - successRateB;
             },
         },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">ERROR</p>,
-            dataIndex: "errorLogs",
-            key: "errorLogs",
-            render: (_, { statsDate }) => {
-                const errorLogs = statsDate.stats.logs.errorLogs ?? 0;
-                return <p className="text-black text-xs font-normal">{errorLogs}</p>;
-            },
-            sorter: (statA, statB) => {
-                const errorLogsA = statA.statsDate.stats.logs.errorLogs ?? 0;
-                const errorLogsB = statB.statsDate.stats.logs.errorLogs ?? 0;
-                return errorLogsA - errorLogsB;
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">WARNING</p>,
-            dataIndex: "warningLogs",
-            key: "warningLogs",
-            render: (_, { statsDate }) => {
-                const warningLogs = statsDate.stats.logs.warningLogs ?? 0;
-                return <p className="text-black text-xs font-normal">{warningLogs}</p>;
-            },
-            sorter: (statA, statB) => {
-                const warningLogsA = statA.statsDate.stats.logs.warningLogs ?? 0;
-                const warningLogsB = statB.statsDate.stats.logs.warningLogs ?? 0;
-                return warningLogsA - warningLogsB;
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">CRITICAL</p>,
-            dataIndex: "criticalLogs",
-            key: "criticalLogs",
-            render: (_, { statsDate }) => {
-                const criticalLogs = statsDate.stats.logs.criticalLogs ?? 0;
-                return <p className="text-black text-xs font-normal">{criticalLogs}</p>;
-            },
-            sorter: (statA, statB) => {
-                const criticalLogsA = statA.statsDate.stats.logs.criticalLogs ?? 0;
-                const criticalLogsB = statB.statsDate.stats.logs.criticalLogs ?? 0;
-                return criticalLogsA - criticalLogsB;
-            },
-        },
     ];
 
     colsTraceabilityTable: ColumnsType<StatsTraceabilityDataType> = [
@@ -227,6 +191,7 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             title: <p className="text-estela-black-full font-medium text-xs">JOB</p>,
             dataIndex: "job_id",
             key: "job_id",
+            align: "center",
             render: (_, { statsDate }) => {
                 const { pid } = this.props;
                 const jobId = statsDate.jid;
@@ -249,6 +214,7 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             title: <p className="text-estela-black-full font-medium text-xs">SPIDER</p>,
             dataIndex: "spider_id",
             key: "spider_id",
+            align: "center",
             render: (_, { statsDate }) => {
                 const { pid } = this.props;
                 const spiderId = statsDate.spider;
@@ -386,7 +352,6 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                         );
                     },
                 }}
-                scroll={{ x: "max-content" }}
                 pagination={false}
             />
         );

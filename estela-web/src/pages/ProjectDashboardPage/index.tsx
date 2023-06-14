@@ -302,7 +302,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 ></Button>
                             </Col>
                         </Row>
-                        <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4">
+                        <Row className="grid grid-cols-7 mx-2 lg:mx-4 gap-1 lg:gap-2">
                             <Col className="bg-metal col-span-5">
                                 <Content className="bg-white rounded-2xl py-5 pr-8 pl-5">
                                     <HeaderSection
