@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Doughnut } from "react-chartjs-2";
-import { Card, Space, Typography, Tooltip as TooltipAntd } from "antd";
+import { Card, Space, Typography, Tooltip as TooltipAntd, Divider } from "antd";
 import { Spin } from "../../shared";
 import { BytesMetric, formatSecondsToHHMMSS } from "../../utils";
 import { Chart as ChartJS, CategoryScale, Title, Tooltip, Legend, ArcElement } from "chart.js";
@@ -16,9 +16,19 @@ interface ProjectHealthProps {
     formattedNetwork: BytesMetric;
     processingTime: number;
     formattedStorage: BytesMetric;
+    startDate: string;
+    endDate: string;
 }
 
-export class ProjectHealth extends Component<ProjectHealthProps, unknown> {
+interface ProjectHealthState {
+    showDetails: boolean;
+}
+
+export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthState> {
+    state: ProjectHealthState = {
+        showDetails: true,
+    };
+
     calculateHealth = (): number => {
         const { stats } = this.props;
         if (stats.length === 0) return 0;
@@ -36,6 +46,30 @@ export class ProjectHealth extends Component<ProjectHealthProps, unknown> {
                 .reduce((acc, cur) => acc + cur, 0) / stats.length;
 
         return (avgPages + avgSuccessRates) / 2;
+    };
+
+    getCompletedJobs = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.jobs?.finishedJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
+    getTotalJobs = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.jobs?.totalJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
+    getScrapedPages = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.pages.scrapedPages ?? 0).reduce((acc, cur) => acc + cur, 0);
+    };
+
+    getTotalPages = (): number => {
+        const { stats } = this.props;
+        if (stats.length === 0) return 0;
+        return stats.map((stat) => stat.stats.pages.totalPages ?? 0).reduce((acc, cur) => acc + cur, 0);
     };
 
     getHealthColor = (health: number): string => {
@@ -57,7 +91,8 @@ export class ProjectHealth extends Component<ProjectHealthProps, unknown> {
     };
 
     render(): JSX.Element {
-        const { formattedNetwork, formattedStorage, processingTime, loadedStats } = this.props;
+        const { formattedNetwork, formattedStorage, processingTime, loadedStats, startDate, endDate } = this.props;
+        const { showDetails } = this.state;
         const health = this.calculateHealth();
         const healthColor = this.getHealthColor(health);
         const healthText = this.getHealthText(health);
@@ -89,36 +124,77 @@ export class ProjectHealth extends Component<ProjectHealthProps, unknown> {
                             </TooltipAntd>
                         </div>
                         {loadedStats ? (
-                            <div className="mx-auto w-44 static">
-                                <Doughnut
-                                    plugins={[
-                                        {
-                                            id: "successRateNeedle",
-                                            afterDatasetDraw(chart: ChartJS) {
-                                                const { ctx } = chart;
-                                                ctx.save();
-                                                const x = chart.getDatasetMeta(0).data[0].x;
-                                                const y = chart.getDatasetMeta(0).data[0].y;
-                                                ctx.textAlign = "center";
-                                                ctx.textBaseline = "middle";
-                                                ctx.font = "bold 1rem/1.5rem sans-serif";
-                                                ctx.fillStyle = `${healthColor}`;
-                                                ctx.fillText(healthText, x, y - 20);
-                                                ctx.fillStyle = "#212529";
-                                                ctx.fillText(`${(100 * health).toFixed(2)}%`, x, y);
+                            <>
+                                <div className="mx-auto w-44 static">
+                                    <Doughnut
+                                        plugins={[
+                                            {
+                                                id: "successRateNeedle",
+                                                afterDatasetDraw(chart: ChartJS) {
+                                                    const { ctx } = chart;
+                                                    ctx.save();
+                                                    const x = chart.getDatasetMeta(0).data[0].x;
+                                                    const y = chart.getDatasetMeta(0).data[0].y;
+                                                    ctx.textAlign = "center";
+                                                    ctx.textBaseline = "middle";
+                                                    ctx.font = "bold 1rem/1.5rem sans-serif";
+                                                    ctx.fillStyle = `${healthColor}`;
+                                                    ctx.fillText(healthText, x, y - 20);
+                                                    ctx.fillStyle = "#212529";
+                                                    ctx.fillText(`${(100 * health).toFixed(2)}%`, x, y);
+                                                },
                                             },
-                                        },
-                                    ]}
-                                    options={{
-                                        responsive: true,
-                                        events: [],
-                                    }}
-                                    data={dataChart}
-                                />
-                            </div>
+                                        ]}
+                                        options={{
+                                            responsive: true,
+                                            events: [],
+                                        }}
+                                        data={dataChart}
+                                    />
+                                </div>
+
+                                <div className="mx-auto">
+                                    <p className="text-estela-black-full text-center font-semibold">
+                                        from <span className="font-extrabold">{startDate}</span> to{" "}
+                                        <span className="font-extrabold">{endDate}</span>
+                                    </p>
+                                </div>
+                            </>
                         ) : (
                             <Spin />
                         )}
+
+                        <div className="mx-auto">
+                            <p className="text-estela-black-medium text-center mb-4">
+                                the project health was maintained
+                            </p>
+
+                            {showDetails && loadedStats && (
+                                <>
+                                    <p className="text-black text-base font-medium mb-2">Influential Factors</p>
+                                    <p className="text-black text-sm font-medium">Jobs success rate percentage</p>
+                                    <p className="text-estela-black-medium text-sm">
+                                        rate of completed jobs over a range of time
+                                    </p>
+                                    <p className="mt-1 text-right text-xs text-estela-states-green-full">
+                                        Completed jobs: {this.getCompletedJobs()} / {this.getTotalJobs()}
+                                    </p>
+                                    <Divider className="mt-2" />
+                                    <p className="text-black text-sm font-medium">Pages Scraped</p>
+                                    <p className="text-estela-black-medium text-sm">Pages covered by all spiders</p>
+                                    <p className="mt-1 text-right text-xs text-estela-states-green-full">
+                                        Scraped pages: {this.getScrapedPages()} / {this.getTotalPages()}
+                                    </p>
+                                    <Divider className="mt-2" />
+                                </>
+                            )}
+                            <p
+                                className="mt-4 text-center text-xs font-medium text-estela-blue-full hover:underline hover:cursor-pointer"
+                                onClick={() => this.setState({ showDetails: !showDetails })}
+                            >
+                                {showDetails ? "Hide details" : "Show details"}
+                            </p>
+                        </div>
                     </Space>
                 </Card>
                 <Card bordered={false} className="bg-white rounded-lg">

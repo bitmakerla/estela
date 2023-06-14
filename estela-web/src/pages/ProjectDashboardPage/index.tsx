@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Layout, Button, Row, Col, Typography, notification, Modal } from "antd";
+import { Layout, Button, Row, Col, Typography, notification } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -10,7 +10,7 @@ import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
-import { HeaderSection, ChartsSection, StatsTableSection, ProjectHealth } from "../../components";
+import { HeaderSection, ChartsSection, StatsTableSection, ProjectHealth, RightSidedModal } from "../../components";
 
 const { Text } = Typography;
 const { Content } = Layout;
@@ -169,6 +169,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             formattedNetwork,
             formattedStorage,
             processingTime,
+            statsStartDate,
+            statsEndDate,
         } = this.state;
 
         return (
@@ -210,24 +212,21 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 <StatsTableSection stats={globalStats} loadedStats={loadedStats} />
                             </Content>
                         </div>
-                        <Modal
-                            title={null}
-                            destroyOnClose={true}
+
+                        <RightSidedModal
                             open={projectUsageModal}
-                            footer={null}
-                            width="35%"
-                            onCancel={() => this.setState({ projectUsageModal: false })}
+                            onClose={() => this.setState({ projectUsageModal: false })}
                         >
-                            <div className="bg-metal p-4 mt-5 rounded-lg">
-                                <ProjectHealth
-                                    formattedNetwork={formattedNetwork}
-                                    formattedStorage={formattedStorage}
-                                    processingTime={processingTime}
-                                    stats={globalStats}
-                                    loadedStats={loadedStats}
-                                />
-                            </div>
-                        </Modal>
+                            <ProjectHealth
+                                formattedNetwork={formattedNetwork}
+                                formattedStorage={formattedStorage}
+                                processingTime={processingTime}
+                                stats={globalStats}
+                                loadedStats={loadedStats}
+                                startDate={statsStartDate.local().format("ddd,DD MMM")}
+                                endDate={statsEndDate.local().format("ddd,DD MMM")}
+                            />
+                        </RightSidedModal>
                     </Fragment>
                 ) : (
                     <Spin />
