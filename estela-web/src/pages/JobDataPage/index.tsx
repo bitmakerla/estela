@@ -14,6 +14,8 @@ import {
 } from "../../services/api";
 import { ApiService } from "../../services";
 
+import "./styles.scss";
+
 const { Content } = Layout;
 const { Text, Paragraph } = Typography;
 
@@ -139,10 +141,10 @@ function Item({ data }: ItemProps) {
                 }
                 return (
                     <Row key={index} className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : ""}`}>
-                        <Col className="pr-10 pl-5">
+                        <Col className="flex flex-col w-2/12">
                             <Text className="font-bold">{itemPropKey}</Text>
                         </Col>
-                        <Col>{ItemContent}</Col>
+                        <Col className="flex flex-col w-10/12">{ItemContent}</Col>
                     </Row>
                 );
             })}
@@ -309,9 +311,9 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Button>
                                     </Col>
                                 </Row>
-                                <>
+                                <Col>
                                     <Item data={item} />
-                                </>
+                                </Col>
                             </Card>
                         );
                     })}
