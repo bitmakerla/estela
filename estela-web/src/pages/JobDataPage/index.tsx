@@ -88,65 +88,61 @@ function Item({ data }: ItemProps) {
     return (
         <Col>
             {Object.entries(data).map(([itemPropKey, itemProp], index: number) => {
+                let ItemContent: JSX.Element = <></>;
+                if (typeof itemProp === "object" && itemProp !== null && !Array.isArray(itemProp)) {
+                    ItemContent = <Item data={itemProp} />;
+                }
+                if (typeof itemProp === "string" && itemProp.length <= 300) {
+                    ItemContent = <Text className="text-estela-black-medium">{itemProp}</Text>;
+                }
+                if (typeof itemProp === "string" && itemProp.length > 300) {
+                    ItemContent = (
+                        <Paragraph
+                            className="text-estela-black-medium"
+                            ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                        >
+                            {itemProp}
+                        </Paragraph>
+                    );
+                }
+                if (typeof itemProp === "number") {
+                    ItemContent = <Text className="text-estela-black-medium">{itemProp}</Text>;
+                }
+                if (Array.isArray(itemProp) && typeof itemProp[0] === "object") {
+                    ItemContent = (
+                        <Col>
+                            {itemProp.map((itemPropItem, index) => (
+                                <Item key={index} data={itemPropItem} />
+                            ))}
+                        </Col>
+                    );
+                }
+                if (Array.isArray(itemProp) && typeof itemProp[0] === "string") {
+                    ItemContent = (
+                        <Col>
+                            {itemProp.map((entry, index) => {
+                                return index === itemProp.length - 1 ? (
+                                    <Text className="text-estela-black-medium" key={index}>
+                                        {entry}
+                                    </Text>
+                                ) : (
+                                    <Text className="text-estela-black-medium" key={index}>
+                                        {entry},{" "}
+                                    </Text>
+                                );
+                            })}
+                        </Col>
+                    );
+                }
+                if (itemProp === null) {
+                    ItemContent = <Text className="text-estela-black-medium">null</Text>;
+                }
                 return (
-                    <Row
-                        align="middle"
-                        key={index}
-                        className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : ""}`}
-                    >
+                    <Row key={index} className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : ""}`}>
                         <Col className="pr-10 pl-5">
                             <Text className="font-bold">{itemPropKey}</Text>
                         </Col>
-                        {typeof itemProp === "object" && itemProp !== null && !Array.isArray(itemProp) && (
-                            <Item data={itemProp} />
-                        )}
-                        {typeof itemProp === "string" && itemProp.length <= 300 && (
-                            <Col>
-                                <Text className="text-estela-black-medium">{itemProp}</Text>
-                            </Col>
-                        )}
-                        {typeof itemProp === "string" && itemProp.length > 300 && (
-                            <Col>
-                                <Paragraph
-                                    className="text-estela-black-medium"
-                                    ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                >
-                                    {itemProp}
-                                </Paragraph>
-                            </Col>
-                        )}
-                        {typeof itemProp === "number" && (
-                            <Col>
-                                <Text className="text-estela-black-medium">{itemProp}</Text>
-                            </Col>
-                        )}
-                        {Array.isArray(itemProp) && typeof itemProp[0] === "object" && (
-                            <Col>
-                                {itemProp.map((itemPropItem, index) => (
-                                    <Item key={index} data={itemPropItem} />
-                                ))}
-                            </Col>
-                        )}
-                        {Array.isArray(itemProp) && typeof itemProp[0] === "string" && (
-                            <Col>
-                                {itemProp.map((entry, index) => {
-                                    return index === itemProp.length - 1 ? (
-                                        <Text className="text-estela-black-medium" key={index}>
-                                            {entry}
-                                        </Text>
-                                    ) : (
-                                        <Text className="text-estela-black-medium" key={index}>
-                                            {entry},{" "}
-                                        </Text>
-                                    );
-                                })}
-                            </Col>
-                        )}
-                        {itemProp === null && (
-                            <Col>
-                                <Text className="text-estela-black-medium">null</Text>
-                            </Col>
-                        )}
+                        <Col>{ItemContent}</Col>
                     </Row>
                 );
             })}
