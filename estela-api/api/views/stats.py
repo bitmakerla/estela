@@ -320,6 +320,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         )
 
         global_stats_results = self.summarize_stats_results(stats_set, jobs_set)
+
         response_schema = []
         for stat_result in global_stats_results.values():
             date = stat_result.pop("min_date", None)

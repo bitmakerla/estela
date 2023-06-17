@@ -77,7 +77,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
     getCompletedJobs = (): number => {
         const { stats } = this.props;
         if (stats.length === 0) return 0;
-        return stats.map((stat) => stat.stats.jobs?.finishedJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
+        return stats.map((stat) => stat.stats.jobs?.completedJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
     };
 
     getTotalJobs = (): number => {

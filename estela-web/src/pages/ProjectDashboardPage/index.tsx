@@ -57,7 +57,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         loaded: false,
         count: 0,
         current: 0,
-        processingTime: 0,
         projectUsageModal: false,
         loadedStats: false,
         projectStats: [],
