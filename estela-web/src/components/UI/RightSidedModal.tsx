@@ -18,7 +18,7 @@ export class RightSidedModal extends Component<RightSidedModalProps, unknown> {
                     onClick={onClose}
                 ></div>
                 <div
-                    className={`w-5/12 h-full bg-white p-6 transition-transform duration-300 ease-in-out ${
+                    className={`w-5/12 h-full overflow-auto bg-white p-6 transition-transform duration-300 ease-in-out ${
                         open ? "translate-x-0" : "translate-x-full"
                     }`}
                 >

@@ -26,7 +26,7 @@ interface ProjectHealthState {
 
 export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthState> {
     state: ProjectHealthState = {
-        showDetails: true,
+        showDetails: false,
     };
 
     calculateHealth = (): number => {
@@ -51,7 +51,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
     getCompletedJobs = (): number => {
         const { stats } = this.props;
         if (stats.length === 0) return 0;
-        return stats.map((stat) => stat.stats.jobs?.finishedJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
+        return stats.map((stat) => stat.stats.jobs?.completedJobs ?? 0).reduce((acc, cur) => acc + cur, 0);
     };
 
     getTotalJobs = (): number => {
@@ -111,7 +111,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
             ],
         };
         return (
-            <Space direction="vertical" className="w-full">
+            <div className="w-full">
                 <Card bordered={false} className="bg-white rounded-lg w-full">
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
@@ -169,7 +169,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                                 the project health was maintained
                             </p>
 
-                            {showDetails && loadedStats && (
+                            {loadedStats && showDetails && (
                                 <>
                                     <p className="text-black text-base font-medium mb-2">Influential Factors</p>
                                     <p className="text-black text-sm font-medium">Jobs success rate percentage</p>
@@ -227,7 +227,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                         </div>
                     </Space>
                 </Card>
-            </Space>
+            </div>
         );
     }
 }

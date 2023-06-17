@@ -14,14 +14,15 @@ import { Bar } from "react-chartjs-2";
 import { StatType, Spin as Spinner } from "../../shared";
 import { GlobalStats, SpidersJobsStats } from "../../services";
 import { Empty, Tabs } from "antd";
+import moment from "moment";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const getJobsDataset = (statsData: GlobalStats[]) => {
     return [
         {
-            label: "Finished",
-            data: statsData.map((statData) => statData.stats.jobs?.finishedJobs ?? 0),
+            label: "Completed",
+            data: statsData.map((statData) => statData.stats.jobs?.completedJobs ?? 0),
             backgroundColor: "#32C3A4",
         },
         {
@@ -35,9 +36,19 @@ const getJobsDataset = (statsData: GlobalStats[]) => {
             backgroundColor: "#A13764",
         },
         {
-            label: "Unknown",
-            data: statsData.map((statData) => statData.stats.jobs?.unknownJobs ?? 0),
-            backgroundColor: "#6C757D",
+            label: "Waiting",
+            data: statsData.map((statData) => statData.stats.jobs?.waitingJobs ?? 0),
+            backgroundColor: "#3C7BC6",
+        },
+        {
+            label: "Stopped",
+            data: statsData.map((statData) => statData.stats.jobs?.stoppedJobs ?? 0),
+            backgroundColor: "#FE9F99",
+        },
+        {
+            label: "In Queue",
+            data: statsData.map((statData) => statData.stats.jobs?.inQueueJobs ?? 0),
+            backgroundColor: "#E7E255",
         },
     ];
 };
@@ -193,7 +204,9 @@ export class ChartsSection extends Component<ChartsSectionProps, unknown> {
     charts = (statOption: StatType): JSX.Element => {
         const { stats } = this.props;
 
-        const labels: string[] = stats.map((stat) => stat.date.toLocaleDateString().slice(0, 10));
+        const labels: string[] = stats.map((stat) => {
+            return moment(stat.date).format("ddd, DD MMM");
+        });
 
         const datasets: ChartDataset<"bar", number[]>[] = this.datasetsGenerators[statOption](stats);
 

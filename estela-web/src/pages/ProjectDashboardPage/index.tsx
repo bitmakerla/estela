@@ -50,7 +50,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         loaded: false,
         count: 0,
         current: 0,
-        processingTime: 0,
         projectUsageModal: false,
         loadedStats: false,
         globalStats: [],
@@ -109,14 +108,14 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         const { statsStartDate, statsEndDate } = this.state;
         const params: ApiStatsListRequest = {
             pid: this.projectId,
-            startDate: !startDate ? statsStartDate.format("YYYY-MM-DD") : startDate,
-            endDate: !endDate ? statsEndDate.format("YYYY-MM-DD") : endDate,
+            startDate: !startDate ? statsStartDate.toISOString() : startDate,
+            endDate: !endDate ? statsEndDate.toISOString() : endDate,
         };
 
         if (startDate && endDate) {
             this.setState({
-                statsStartDate: moment(startDate, "YYYY-MM-DD"),
-                statsEndDate: moment(endDate, "YYYY-MM-DD"),
+                statsStartDate: moment.utc(startDate),
+                statsEndDate: moment.utc(endDate),
             });
         }
 
@@ -148,8 +147,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     onChangeDateRangeHandler: RangePickerProps["onChange"] = (_, dateStrings) => {
         this.setState({ loadedStats: false });
         const [startDateUTC, endDateUTC] = [
-            moment(dateStrings[0]).startOf("day").utc().format("YYYY-MM-DD"),
-            moment(dateStrings[1]).endOf("day").utc().format("YYYY-MM-DD"),
+            moment(dateStrings[0]).startOf("day").utc().toISOString(),
+            moment(dateStrings[1]).endOf("day").utc().toISOString(),
         ];
         this.getProjectStatsAndUpdateDates(startDateUTC, endDateUTC);
     };
