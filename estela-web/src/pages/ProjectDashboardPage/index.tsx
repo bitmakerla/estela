@@ -208,7 +208,12 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     onChangeDateRangeHandler={this.onChangeDateRangeHandler}
                                 />
                                 <ChartsSection stats={globalStats.slice().reverse()} loadedStats={loadedStats} />
-                                <StatsTableSection stats={globalStats} loadedStats={loadedStats} />
+                                <StatsTableSection
+                                    pid={this.projectId}
+                                    apiService={this.apiService}
+                                    stats={globalStats}
+                                    loadedStats={loadedStats}
+                                />
                             </Content>
                         </div>
 
