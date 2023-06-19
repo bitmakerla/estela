@@ -329,14 +329,14 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
-    const [requests, setRequests] = useState<Dictionary[]>([]);
+    const [requests, setRequests] = useState<ItemDictionary[]>([]);
 
     useEffect(() => {
         getData("requests", 1, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setRequests(data);
                 setLoaded(true);
                 setCurrent(1);
@@ -349,10 +349,10 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const onRequestsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
         await getData("requests", page, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setRequests(data);
                 setLoaded(true);
                 setCurrent(page);
@@ -462,7 +462,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             </Button>
                         </Col>
                     </Row>
-                    {requests.map((request: Dictionary, index: number) => {
+                    {requests.map((request: ItemDictionary, index: number) => {
                         return (
                             <Card key={index} className="w-full mt-2" style={{ borderRadius: "8px" }} bordered={false}>
                                 <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
@@ -482,41 +482,9 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Button>
                                     </Col>
                                 </Row>
-                                <>
-                                    {Object.entries(request).map(([requestPropKey, requestProp], index: number) => {
-                                        let requestContent = (
-                                            <Text className="text-estela-black-medium px-4">{requestProp}</Text>
-                                        );
-                                        if (requestProp === null) {
-                                            requestContent = (
-                                                <Text className="text-estela-black-medium px-4">null</Text>
-                                            );
-                                        } else if (requestProp.length > 300) {
-                                            requestContent = (
-                                                <Paragraph
-                                                    className="text-estela-black-medium px-4"
-                                                    ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                                >
-                                                    {requestProp}
-                                                </Paragraph>
-                                            );
-                                        }
-                                        return (
-                                            <Row
-                                                key={index}
-                                                align="middle"
-                                                className={`grid grid-cols-8 py-1 px-2 ${
-                                                    index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                                }`}
-                                            >
-                                                <Col className="col-span-2">
-                                                    <Text className="font-bold">{requestPropKey}</Text>
-                                                </Col>
-                                                <Col className="col-span-6">{requestContent}</Col>
-                                            </Row>
-                                        );
-                                    })}
-                                </>
+                                <Col>
+                                    <Item data={request} />
+                                </Col>
                             </Card>
                         );
                     })}
