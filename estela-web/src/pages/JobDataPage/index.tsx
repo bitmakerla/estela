@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input } from "antd";
+import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input, Tooltip } from "antd";
 import { resourceNotAllowedNotification, dataDeletedNotification, Spin, PaginationItem } from "../../shared";
 
 import Export from "../../assets/icons/export.svg";
@@ -86,65 +86,52 @@ type ItemProps = {
     data: ItemDictionary;
 };
 
+function ItemHeaderWithTooltip(title: string, key: string) {
+    return (
+        <Tooltip title={title} showArrow={true} overlayClassName="tooltip">
+            <Text className="font-bold" style={{ cursor: "pointer" }}>
+                {key}
+            </Text>
+        </Tooltip>
+    );
+}
+
 function Item({ data }: ItemProps) {
     return (
         <Col>
             {Object.entries(data).map(([itemPropKey, itemProp], index: number) => {
-                let ItemContent: JSX.Element = <></>;
-                if (typeof itemProp === "object" && itemProp !== null && !Array.isArray(itemProp)) {
-                    ItemContent = <Item data={itemProp} />;
+                let itemHeader: JSX.Element = <></>;
+                let itemContent: JSX.Element = <></>;
+
+                if (typeof itemProp === "string") {
+                    itemHeader = ItemHeaderWithTooltip("string", itemPropKey);
+                    if (itemProp.length <= 300) {
+                        itemContent = <Text className="text-estela-black-medium">{itemProp}</Text>;
+                    } else if (itemProp.length > 300) {
+                        itemContent = (
+                            <Paragraph
+                                className="text-estela-black-medium"
+                                ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                            >
+                                {itemProp}
+                            </Paragraph>
+                        );
+                    }
+                } else if (typeof itemProp === "number" || typeof itemProp === "boolean") {
+                    itemHeader = ItemHeaderWithTooltip(typeof itemProp, itemPropKey);
+                    itemContent = <Text className="text-estela-black-medium">{itemProp.toString()}</Text>;
+                } else if (typeof itemProp === "object" && itemProp !== null) {
+                    itemHeader = ItemHeaderWithTooltip(Array.isArray(itemProp) ? "list" : "dict", itemPropKey);
+                    itemContent = <Item data={itemProp} />;
+                } else if (itemProp === null) {
+                    itemHeader = ItemHeaderWithTooltip("null", itemPropKey);
+                    itemContent = <Text className="text-estela-black-medium">null</Text>;
                 }
-                if (typeof itemProp === "string" && itemProp.length <= 300) {
-                    ItemContent = <Text className="text-estela-black-medium">{itemProp}</Text>;
-                }
-                if (typeof itemProp === "string" && itemProp.length > 300) {
-                    ItemContent = (
-                        <Paragraph
-                            className="text-estela-black-medium"
-                            ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                        >
-                            {itemProp}
-                        </Paragraph>
-                    );
-                }
-                if (typeof itemProp === "number") {
-                    ItemContent = <Text className="text-estela-black-medium">{itemProp}</Text>;
-                }
-                if (Array.isArray(itemProp) && typeof itemProp[0] === "object") {
-                    ItemContent = (
-                        <Col>
-                            {itemProp.map((itemPropItem, index) => (
-                                <Item key={index} data={itemPropItem} />
-                            ))}
-                        </Col>
-                    );
-                }
-                if (Array.isArray(itemProp) && typeof itemProp[0] === "string") {
-                    ItemContent = (
-                        <Col>
-                            {itemProp.map((entry, index) => {
-                                return index === itemProp.length - 1 ? (
-                                    <Text className="text-estela-black-medium" key={index}>
-                                        {entry}
-                                    </Text>
-                                ) : (
-                                    <Text className="text-estela-black-medium" key={index}>
-                                        {entry},{" "}
-                                    </Text>
-                                );
-                            })}
-                        </Col>
-                    );
-                }
-                if (itemProp === null) {
-                    ItemContent = <Text className="text-estela-black-medium">null</Text>;
-                }
+
                 return (
-                    <Row key={index} className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : ""}`}>
-                        <Col className="flex flex-col w-2/12">
-                            <Text className="font-bold">{itemPropKey}</Text>
-                        </Col>
-                        <Col className="flex flex-col w-10/12">{ItemContent}</Col>
+                    <Row key={index} className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : "bg-white"}`}>
+                        <Col className="flex flex-col w-2/12">{itemHeader}</Col>
+                        <Col className="flex flex-col w-10/12">{itemContent}</Col>
                     </Row>
                 );
             })}
