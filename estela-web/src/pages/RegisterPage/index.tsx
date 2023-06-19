@@ -15,7 +15,15 @@ import { handleInvalidDataError } from "../../utils";
 const { Content } = Layout;
 const { Text } = Typography;
 
-export class RegisterPage extends Component<unknown> {
+interface RegisterPageState {
+    successRegister: boolean;
+}
+
+export class RegisterPage extends Component<unknown, RegisterPageState> {
+    state: RegisterPageState = {
+        successRegister: false,
+    };
+
     apiService = ApiService();
 
     componentDidMount(): void {
@@ -69,7 +77,7 @@ export class RegisterPage extends Component<unknown> {
                     AuthService.setUserUsername(response.user.username);
                 }
                 emailConfirmationNotification();
-                history.push("/login");
+                this.setState({ successRegister: true });
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
@@ -96,55 +104,73 @@ export class RegisterPage extends Component<unknown> {
                     </Content>
                 </Content>
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
-                    <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
-                        <Row justify="center" className="w-96 my-7">
-                            <Text className="text-3xl font-bold">Sign up</Text>
+                    {!this.state.successRegister ? (
+                        <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
+                            <Row justify="center" className="w-96 my-7">
+                                <Text className="text-3xl font-bold">Sign up</Text>
+                            </Row>
+                            <Content className="">
+                                <Form.Item
+                                    label="Email"
+                                    name="email"
+                                    required
+                                    rules={[{ required: true, message: "Please input your email", type: "email" }]}
+                                >
+                                    <Input autoComplete="email" className="border-estela rounded-md py-2" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Username"
+                                    name="username"
+                                    required
+                                    rules={[{ required: true, message: "Please input your username" }]}
+                                >
+                                    <Input autoComplete="username" className="border-estela rounded-md py-2" />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Password"
+                                    name="password"
+                                    required
+                                    rules={[{ required: true, message: "Please input your password" }]}
+                                >
+                                    <Input.Password
+                                        autoComplete="current-password"
+                                        className="border-estela rounded-md py-2"
+                                    />
+                                </Form.Item>
+                            </Content>
+                            <Button
+                                block
+                                htmlType="submit"
+                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10"
+                            >
+                                Register
+                            </Button>
+                            <Content className="text-center text-base m-5">
+                                <p>If you already have an account. You can</p>
+                                <p>
+                                    <Link className="text-estela text-base font-bold underline" to="/login">
+                                        login here
+                                    </Link>
+                                </p>
+                            </Content>
+                        </Form>
+                    ) : (
+                        <Row justify="center" className="w-96">
+                            <Text className="text-3xl font-bold">Thanks for registering!</Text>
+                            <Text className="text-center text-lg my-7 text-estela-black-medium">
+                                We are thrilled to have you join us!
+                            </Text>
+                            <Button
+                                block
+                                className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10"
+                                onClick={() => {
+                                    history.push("/login");
+                                }}
+                            >
+                                Login
+                            </Button>
                         </Row>
-                        <Content className="">
-                            <Form.Item
-                                label="Email"
-                                name="email"
-                                required
-                                rules={[{ required: true, message: "Please input your email", type: "email" }]}
-                            >
-                                <Input autoComplete="email" className="border-estela rounded-md py-2" />
-                            </Form.Item>
-                            <Form.Item
-                                label="Username"
-                                name="username"
-                                required
-                                rules={[{ required: true, message: "Please input your username" }]}
-                            >
-                                <Input autoComplete="username" className="border-estela rounded-md py-2" />
-                            </Form.Item>
-                            <Form.Item
-                                label="Password"
-                                name="password"
-                                required
-                                rules={[{ required: true, message: "Please input your password" }]}
-                            >
-                                <Input.Password
-                                    autoComplete="current-password"
-                                    className="border-estela rounded-md py-2"
-                                />
-                            </Form.Item>
-                        </Content>
-                        <Button
-                            block
-                            htmlType="submit"
-                            className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10"
-                        >
-                            Register
-                        </Button>
-                        <Content className="text-center text-base m-5">
-                            <p>If you already have an account. You can</p>
-                            <p>
-                                <Link className="text-estela text-base font-bold underline" to="/login">
-                                    login here
-                                </Link>
-                            </p>
-                        </Content>
-                    </Form>
+                    )}
                 </Content>
             </Content>
         );

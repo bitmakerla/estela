@@ -10,6 +10,7 @@ import Bitmaker from "../../assets/logo/bitmaker.svg";
 import Estela from "../../assets/icons/estela.svg";
 import { handleInvalidDataError } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
+import { FormInstance } from "antd/es/form";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -24,6 +25,13 @@ export class LoginPage extends Component<unknown, LoginState> {
     };
     apiService = ApiService();
     static contextType = UserContext;
+
+    loginFormRef = React.createRef<
+        FormInstance<{
+            username: string;
+            password: string;
+        }>
+    >();
 
     componentDidMount(): void {
         if (AuthService.getAuthToken()) {
@@ -57,6 +65,8 @@ export class LoginPage extends Component<unknown, LoginState> {
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
+                this.loginFormRef.current?.resetFields();
+                this.setState({ loading: false });
             },
         );
     };
@@ -81,7 +91,7 @@ export class LoginPage extends Component<unknown, LoginState> {
                     </Content>
                 </Content>
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
-                    <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
+                    <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96" ref={this.loginFormRef}>
                         <Row justify="center" className="w-96 my-7">
                             <Text className="text-3xl font-bold">Log in</Text>
                         </Row>
