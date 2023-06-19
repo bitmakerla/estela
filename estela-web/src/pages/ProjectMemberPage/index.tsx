@@ -131,7 +131,6 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
             email: email,
             action: action,
             permission: this.state.permission,
-            name: this.state.name,
         };
         const request: ApiProjectsUpdateRequest = {
             data: requestData,

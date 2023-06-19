@@ -22,7 +22,7 @@ export const NotificationsSidenav: React.FC<NotificationsInboxPropsInterface> = 
                     key: "inbox",
                     label: (
                         <Content className="flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/notifications/inbox`} onClick={() => updatePath("inbox")} className="ml-2">
+                            <Link to={`/notifications/inbox`} onClick={() => updatePath("inbox")} className="mx-4">
                                 Inbox
                             </Link>
                         </Content>
@@ -35,7 +35,7 @@ export const NotificationsSidenav: React.FC<NotificationsInboxPropsInterface> = 
                             <Link
                                 to={`/notifications/settings`}
                                 onClick={() => updatePath("settings")}
-                                className="ml-2"
+                                className="mx-4"
                             >
                                 Settings
                             </Link>
@@ -48,8 +48,8 @@ export const NotificationsSidenav: React.FC<NotificationsInboxPropsInterface> = 
     ];
 
     return (
-        <Sider width={240} className="mr-5">
-            <Menu items={items} mode="inline" className="h-full" selectedKeys={[`${path}`]} />
+        <Sider width={240} className="rounded-l-2xl">
+            <Menu items={items} mode="inline" className="h-full rounded-l-2xl" selectedKeys={[`${path}`]} />
         </Sider>
     );
 };

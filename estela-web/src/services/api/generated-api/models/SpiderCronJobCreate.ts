@@ -78,16 +78,26 @@ export interface SpiderCronJobCreate {
     uniqueCollection?: boolean;
     /**
      * Days before data expires.
-     * @type {string}
+     * @type {number}
      * @memberof SpiderCronJobCreate
      */
-    dataExpiryDays?: string;
+    dataExpiryDays: number;
     /**
      * Data status.
      * @type {string}
      * @memberof SpiderCronJobCreate
      */
-    dataStatus: string;
+    dataStatus: SpiderCronJobCreateDataStatusEnum;
+}
+
+/**
+* @export
+* @enum {string}
+*/
+export enum SpiderCronJobCreateDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Pending = 'PENDING',
+    Deleted = 'DELETED'
 }
 
 export function SpiderCronJobCreateFromJSON(json: any): SpiderCronJobCreate {
@@ -107,7 +117,7 @@ export function SpiderCronJobCreateFromJSONTyped(json: any, ignoreDiscriminator:
         'ctags': !exists(json, 'ctags') ? undefined : ((json['ctags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'schedule': !exists(json, 'schedule') ? undefined : json['schedule'],
         'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
-        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'dataExpiryDays': json['data_expiry_days'],
         'dataStatus': json['data_status'],
     };
 }

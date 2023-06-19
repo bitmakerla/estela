@@ -410,3 +410,51 @@ class UsageRecord(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class Notification(models.Model):
+    nid = models.AutoField(
+        primary_key=True,
+        help_text="A unique integer value identifying each notification",
+    )
+    message = models.CharField(max_length=1000, help_text="Notification message.")
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        help_text="Project where the notification belongs",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="User who performed the action on this notification.",
+    )
+    users = models.ManyToManyField(
+        User,
+        through="UserNotification",
+        related_name="notifications",
+        help_text="Users that received this notification.",
+    )
+
+
+class UserNotification(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="Related user.",
+    )
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        help_text="Notification that the user received.",
+    )
+    seen = models.BooleanField(
+        default=False, help_text="Whether the notification was seen."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+        help_text="Date when the notification was sent.",
+    )
+
+    class Meta:
+        ordering = ["-created"]

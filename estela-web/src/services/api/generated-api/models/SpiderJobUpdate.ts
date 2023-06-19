@@ -78,8 +78,6 @@ export enum SpiderJobUpdateStatusEnum {
     Waiting = 'WAITING',
     Running = 'RUNNING',
     Stopped = 'STOPPED',
-    Incomplete = 'INCOMPLETE',
-    Cancelled = 'CANCELLED',
     Completed = 'COMPLETED',
     Error = 'ERROR'
 }/**

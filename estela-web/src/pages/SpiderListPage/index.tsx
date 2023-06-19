@@ -9,6 +9,7 @@ import { ApiService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { ColumnsType } from "antd/lib/table";
+import moment from "moment";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -24,6 +25,8 @@ interface SpiderListPageState {
     current: number;
     count: number;
     loaded: boolean;
+    statsStartDate: moment.Moment;
+    statsEndDate: moment.Moment;
 }
 
 interface RouteParams {
@@ -37,6 +40,8 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
         count: 0,
         current: 0,
         loaded: false,
+        statsStartDate: moment().subtract(7, "days").startOf("day"),
+        statsEndDate: moment(),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -107,7 +112,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                     <div className="lg:m-10 md:mx-6 mx-2">
                         <Row className="flow-root my-6">
                             <Col className="float-left">
-                                <p className="text-xl font-medium text-silver float-left">SPIDER OVERVIEW</p>
+                                <p className="text-xl font-medium text-silver float-left">SPIDERS</p>
                             </Col>
                             <Col className="float-right">
                                 <Button
@@ -119,6 +124,12 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                     Deploy new spider
                                 </Button>
                             </Col>
+                        </Row>
+                        <Row className="lg:mx-6 mx-4 grid grid-cols-7 gap-2 lg:gap-4 justify-between">
+                            <Col className="bg-metal col-span-5">
+                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5"></Content>
+                            </Col>
+                            <Col className="bg-metal grid justify-start col-span-2 gap-2"></Col>
                         </Row>
                         <Row className="bg-white rounded-lg">
                             <div className="m-4">
