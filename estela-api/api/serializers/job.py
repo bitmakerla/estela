@@ -137,6 +137,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         status = validated_data.get("status", instance.status)
         data_status = validated_data.get("data_status", "")
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
+
         if status != instance.status:
             if instance.status == SpiderJob.STOPPED_STATUS:
                 raise serializers.ValidationError({"error": "Job is stopped"})
@@ -153,7 +154,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                     )
                 else:
                     job_manager.delete_job(instance.name)
-            instance.status = status
+        instance.status = status
 
         for field in self.job_fields:
             if not getattr(instance, field):
