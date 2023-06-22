@@ -221,7 +221,7 @@ export class ChartsSection extends Component<ChartsSectionProps, unknown> {
                 {stats.length === 0 ? (
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 ) : (
-                    <div className="stats-charts">
+                    <div className="stats-charts mb-4">
                         <Bar
                             options={{
                                 responsive: true,
