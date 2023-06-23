@@ -1,7 +1,6 @@
 from croniter import croniter
 from rest_framework import serializers
 
-from api import errors
 from api.mixins import ActionHandlerMixin
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
@@ -176,8 +175,8 @@ class SpiderCronJobUpdateSerializer(
 
         self.save_action(
             user=user,
-            project=instance.spider.project,
             message=message,
+            project=instance.spider.project,
         )
         instance.save()
         return instance

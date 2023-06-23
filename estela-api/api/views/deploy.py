@@ -4,8 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError, APIException, PermissionDenied
 
-from api.mixins import BaseViewSet, NotificationsHandlerMixin
-from api.mixins import BaseViewSet, ActivityHandler
+from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.deploy import (
     DeploySerializer,
     DeployCreateSerializer,
@@ -20,9 +19,8 @@ from config.job_manager import credentials
 
 class DeployViewSet(
     BaseViewSet,
-    NotificationsHandlerMixin,
     viewsets.ModelViewSet,
-    ActivityHandler,
+    ActionHandlerMixin,
 ):
     model_class = Deploy
     serializer_class = DeploySerializer
@@ -69,12 +67,6 @@ class DeployViewSet(
             self.kwargs["pid"], serializer.data["did"], project.container_image
         )
 
-        self.save_activity(
-            user=user,
-            project=project,
-            description=f"New deploy Dep-{serializer.data['did']} have been created",
-        )
-
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -102,15 +94,10 @@ class DeployViewSet(
 
         # Send action notification
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notification(
+        self.save_action(
             user=instance.user,
             message=f"made a new Deploy #{serializer.data['did']}.",
             project=project,
-        )
-        self.save_activity(
-            user=instance.user,
-            project=instance.project,
-            description=f"Deploy Dep-{instance.did} have been updated.",
         )
 
         headers = self.get_success_headers(serializer.data)

@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet, NotificationsHandlerMixin, ActivityHandler
+from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.project import (
@@ -36,8 +36,7 @@ from core.models import (
 
 class ProjectViewSet(
     BaseViewSet,
-    NotificationsHandlerMixin,
-    ActivityHandler,
+    ActionHandlerMixin,
     viewsets.ModelViewSet
 ):
     model_class = Project
@@ -79,15 +78,10 @@ class ProjectViewSet(
             requests_data_size=0,
             logs_data_size=0,
         )
-        self.save_notification(
+        self.save_action(
             user=self.request.user,
             message=f"created project {instance.name}.",
             project=instance,
-        )
-        self.save_activity(
-            user=self.request.user,
-            project=instance,
-            description="Project created",
         )
 
     @swagger_auto_schema(
@@ -170,7 +164,7 @@ class ProjectViewSet(
             else:
                 raise ParseError({"error": errors.INVALID_DATA_STATUS})
 
-        self.save_notification(
+        self.save_action(
             user=self.request.user,
             message=message,
             project=instance,
@@ -186,7 +180,7 @@ class ProjectViewSet(
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notification(
+        self.save_action(
             user=self.request.user,
             message=f"deleted project {instance.name} ({instance.pid}).",
             project=project,

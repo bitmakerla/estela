@@ -8,8 +8,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
-from api.mixins import BaseViewSet, NotificationsHandlerMixin
-from api.mixins import BaseViewSet, ActivityHandler
+from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobSerializer,
@@ -21,8 +20,7 @@ from core.models import DataStatus, Spider, SpiderCronJob, Project
 
 class SpiderCronJobViewSet(
     BaseViewSet,
-    NotificationsHandlerMixin,
-    ActivityHandler,
+    ActionHandlerMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -92,19 +90,13 @@ class SpiderCronJobViewSet(
             data_expiry_days=data_expiry_days,
         )
 
-        # Send notification action
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notification(
+        self.save_action(
             user=request.user,
             message=f"scheduled a new Scheduled-job-{cronjob.cjid} for spider {spider.name}.",
             project=project,
         )
 
-        self.save_activity(
-            user=request.user,
-            project=spider.project,
-            description=f"Schedule-Job-{cronjob.cjid} for spider {spider.name} created",
-        )
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
@@ -135,10 +127,10 @@ class SpiderCronJobViewSet(
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        self.save_activity(
+        self.save_action(
             user=request.user,
+            message=f"deleted Scheduled-job-{instance.cjid} for spider {instance.spider.name}.",
             project=instance.spider.project,
-            description=f"Schedule-Job-{instance.cjid} deleted",
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
