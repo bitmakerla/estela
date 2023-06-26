@@ -39,7 +39,7 @@ export interface Activity {
      */
     description: string;
     /**
-     * Activity creation date.
+     * Date when the activity was performed.
      * @type {Date}
      * @memberof Activity
      */

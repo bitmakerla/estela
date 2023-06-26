@@ -213,6 +213,12 @@ export interface ApiNotificationsUpdateRequest {
     data: UserNotificationUpdate;
 }
 
+export interface ApiProjectsActivitiesRequest {
+    pid: string;
+    page?: number;
+    pageSize?: number;
+}
+
 export interface ApiProjectsCreateRequest {
     data: Project;
 }
@@ -1107,6 +1113,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiNotificationsUpdate(requestParameters: ApiNotificationsUpdateRequest): Promise<UserNotificationUpdate> {
         const response = await this.apiNotificationsUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsActivitiesRaw(requestParameters: ApiProjectsActivitiesRequest): Promise<runtime.ApiResponse<ProjectActivity>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsActivities.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/activities`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectActivityFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsActivities(requestParameters: ApiProjectsActivitiesRequest): Promise<ProjectActivity> {
+        const response = await this.apiProjectsActivitiesRaw(requestParameters);
         return await response.value();
     }
 

@@ -471,10 +471,12 @@ class Activity(models.Model):
         Project,
         on_delete=models.CASCADE,
         related_name="activities",
-        help_text="Project to which the activity corresponds.",
+        help_text="Project where the activity was performed.",
     )
     created = models.DateTimeField(
-        auto_now_add=True, editable=False, help_text="Activity creation date."
+        auto_now_add=True,
+        editable=False,
+        help_text="Date when the activity was performed.",
     )
     description = models.CharField(max_length=1000, help_text="Activity description.")
 

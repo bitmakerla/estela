@@ -38,9 +38,7 @@ class UserNotificationSerializer(serializers.ModelSerializer):
         if is_superuser and not user_in_project:
             ret["notification"]["user"]["username"] = "Bitmaker Cloud Admin"
         else:
-            ret["notification"]["user"][
-                "username"
-            ] = user.username
+            ret["notification"]["user"]["username"] = user.username
         return ret
 
 

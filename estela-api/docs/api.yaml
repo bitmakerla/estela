@@ -1740,7 +1740,7 @@ definitions:
         minLength: 1
       created:
         title: Created
-        description: Activity creation date.
+        description: Date when the activity was performed.
         type: string
         format: date-time
         readOnly: true
@@ -2403,7 +2403,7 @@ definitions:
         minimum: 0
       data_status:
         title: Data status
-        description: Data status.
+        description: Job data status.
         type: string
         enum:
           - PERSISTENT
@@ -2411,11 +2411,8 @@ definitions:
           - DELETED
       data_expiry_days:
         title: Data expiry days
-        description: Days before data is deleted.
+        description: Job data expiry days.
         type: integer
-        maximum: 65535
-        minimum: 0
-        x-nullable: true
   DeleteJobData:
     required:
       - count
