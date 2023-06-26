@@ -201,6 +201,7 @@ class JobDataViewSet(
             data = spiderdata_db_client.get_collection_data(
                 kwargs["pid"], job_collection_name, docs_limit
             )
+
         return Response({"results": data})
 
     @swagger_auto_schema(

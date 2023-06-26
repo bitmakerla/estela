@@ -205,7 +205,7 @@ STATIC_ROOT = "/static/"
 
 
 # API limit data download settings (bytes)
-MAX_CHUNK_SIZE = 512 * 1024
+MAX_CHUNK_SIZE = 2 * 1024 * 1024
 MAX_WEB_DOWNLOAD_SIZE = 100 * 1024 * 1024
 
 # Pagination settings used in api_app
