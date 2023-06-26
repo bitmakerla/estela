@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input } from "antd";
+import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input, Tooltip } from "antd";
 import { resourceNotAllowedNotification, dataDeletedNotification, Spin, PaginationItem } from "../../shared";
 
 import Export from "../../assets/icons/export.svg";
@@ -13,6 +13,8 @@ import {
     InlineResponse2006,
 } from "../../services/api";
 import { ApiService } from "../../services";
+
+import "./styles.scss";
 
 const { Content } = Layout;
 const { Text, Paragraph } = Typography;
@@ -78,20 +80,79 @@ const getData = async (
     );
 };
 
+type ItemDictionary = { [key: string]: ItemDictionary } | ArrayLike<ItemDictionary>;
+
+type ItemProps = {
+    data: ItemDictionary;
+};
+
+function ItemHeaderWithTooltip(title: string, key: string) {
+    return (
+        <Tooltip title={title} showArrow={true} overlayClassName="tooltip">
+            <Text className="font-bold" style={{ cursor: "pointer" }}>
+                {key}
+            </Text>
+        </Tooltip>
+    );
+}
+
+function Item({ data }: ItemProps) {
+    return (
+        <Col>
+            {Object.entries(data).map(([itemPropKey, itemProp], index: number) => {
+                let itemHeader: JSX.Element = <></>;
+                let itemContent: JSX.Element = <></>;
+
+                if (typeof itemProp === "string") {
+                    itemHeader = ItemHeaderWithTooltip("string", itemPropKey);
+                    if (itemProp.length <= 300) {
+                        itemContent = <Text className="text-estela-black-medium">{itemProp}</Text>;
+                    } else if (itemProp.length > 300) {
+                        itemContent = (
+                            <Paragraph
+                                className="text-estela-black-medium"
+                                ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
+                            >
+                                {itemProp}
+                            </Paragraph>
+                        );
+                    }
+                } else if (typeof itemProp === "number" || typeof itemProp === "boolean") {
+                    itemHeader = ItemHeaderWithTooltip(typeof itemProp, itemPropKey);
+                    itemContent = <Text className="text-estela-black-medium">{itemProp.toString()}</Text>;
+                } else if (typeof itemProp === "object" && itemProp !== null) {
+                    itemHeader = ItemHeaderWithTooltip(Array.isArray(itemProp) ? "list" : "dict", itemPropKey);
+                    itemContent = <Item data={itemProp} />;
+                } else if (itemProp === null) {
+                    itemHeader = ItemHeaderWithTooltip("null", itemPropKey);
+                    itemContent = <Text className="text-estela-black-medium">null</Text>;
+                }
+
+                return (
+                    <Row key={index} className={`py-1 ${index % 2 ? "rounded-lg bg-estela-blue-low" : "bg-white"}`}>
+                        <Col className="flex flex-col w-2/12">{itemHeader}</Col>
+                        <Col className="flex flex-col w-10/12">{itemContent}</Col>
+                    </Row>
+                );
+            })}
+        </Col>
+    );
+}
+
 export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [openModal, setOpenModal] = useState(false);
     const [loadedButton, setLoadedButton] = useState(false);
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
-    const [items, setItems] = useState<Dictionary[]>([]);
+    const [items, setItems] = useState<ItemDictionary[]>([]);
 
     useEffect(() => {
         getData("items", 1, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setItems(data);
                 setCurrent(1);
                 setCount(response.count);
@@ -104,10 +165,10 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const onItemsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
         await getData("items", page, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setItems(data);
                 setCurrent(page);
                 setCount(response.count);
@@ -217,7 +278,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             </Button>
                         </Col>
                     </Row>
-                    {items.map((item: Dictionary, index: number) => {
+                    {items.map((item: ItemDictionary, index: number) => {
                         return (
                             <Card key={index} className="w-full mt-2" style={{ borderRadius: "8px" }} bordered={false}>
                                 <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
@@ -237,39 +298,9 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Button>
                                     </Col>
                                 </Row>
-                                <>
-                                    {Object.entries(item).map(([itemPropKey, itemProp], index: number) => {
-                                        let itemContent = (
-                                            <Text className="text-estela-black-medium px-4">{itemProp}</Text>
-                                        );
-                                        if (itemProp === null) {
-                                            itemContent = <Text className="text-estela-black-medium px-4">null</Text>;
-                                        } else if (itemProp.length > 300) {
-                                            itemContent = (
-                                                <Paragraph
-                                                    className="text-estela-black-medium px-4"
-                                                    ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                                >
-                                                    {itemProp}
-                                                </Paragraph>
-                                            );
-                                        }
-                                        return (
-                                            <Row
-                                                key={index}
-                                                align="middle"
-                                                className={`grid grid-cols-8 py-1 px-2 ${
-                                                    index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                                }`}
-                                            >
-                                                <Col className="col-span-2">
-                                                    <Text className="font-bold">{itemPropKey}</Text>
-                                                </Col>
-                                                <Col className="col-span-6">{itemContent}</Col>
-                                            </Row>
-                                        );
-                                    })}
-                                </>
+                                <Col>
+                                    <Item data={item} />
+                                </Col>
                             </Card>
                         );
                     })}
@@ -298,14 +329,14 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
-    const [requests, setRequests] = useState<Dictionary[]>([]);
+    const [requests, setRequests] = useState<ItemDictionary[]>([]);
 
     useEffect(() => {
         getData("requests", 1, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setRequests(data);
                 setLoaded(true);
                 setCurrent(1);
@@ -318,10 +349,10 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const onRequestsPageChange = async (page: number): Promise<void> => {
         setLoaded(false);
         await getData("requests", page, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
+            let data: ItemDictionary[] = [];
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
+                data = safe_data as ItemDictionary[];
                 setRequests(data);
                 setLoaded(true);
                 setCurrent(page);
@@ -431,7 +462,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             </Button>
                         </Col>
                     </Row>
-                    {requests.map((request: Dictionary, index: number) => {
+                    {requests.map((request: ItemDictionary, index: number) => {
                         return (
                             <Card key={index} className="w-full mt-2" style={{ borderRadius: "8px" }} bordered={false}>
                                 <Row className="flow-root mx-1 my-2 w-full space-x-4" align="middle">
@@ -451,41 +482,9 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Button>
                                     </Col>
                                 </Row>
-                                <>
-                                    {Object.entries(request).map(([requestPropKey, requestProp], index: number) => {
-                                        let requestContent = (
-                                            <Text className="text-estela-black-medium px-4">{requestProp}</Text>
-                                        );
-                                        if (requestProp === null) {
-                                            requestContent = (
-                                                <Text className="text-estela-black-medium px-4">null</Text>
-                                            );
-                                        } else if (requestProp.length > 300) {
-                                            requestContent = (
-                                                <Paragraph
-                                                    className="text-estela-black-medium px-4"
-                                                    ellipsis={{ rows: 3, expandable: true, symbol: "more" }}
-                                                >
-                                                    {requestProp}
-                                                </Paragraph>
-                                            );
-                                        }
-                                        return (
-                                            <Row
-                                                key={index}
-                                                align="middle"
-                                                className={`grid grid-cols-8 py-1 px-2 ${
-                                                    index % 2 ? "rounded-lg bg-estela-blue-low" : ""
-                                                }`}
-                                            >
-                                                <Col className="col-span-2">
-                                                    <Text className="font-bold">{requestPropKey}</Text>
-                                                </Col>
-                                                <Col className="col-span-6">{requestContent}</Col>
-                                            </Row>
-                                        );
-                                    })}
-                                </>
+                                <Col>
+                                    <Item data={request} />
+                                </Col>
                             </Card>
                         );
                     })}
