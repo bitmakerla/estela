@@ -225,17 +225,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             title: "SCHEDULED JOB",
             key: "cronjob",
             dataIndex: "cronjob",
-            render: (cronjob: number): ReactElement =>
-                cronjob ? (
-                    <Link
-                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}
-                        className="text-estela-blue-medium"
-                    >
-                        Sche-Job-{cronjob}
-                    </Link>
-                ) : (
-                    <div></div>
-                ),
+            render: (cronjob: number): ReactElement => (cronjob ? <span>Sche-Job-{cronjob}</span> : <div></div>),
         },
         {
             title: "SPIDER",
@@ -303,7 +293,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRead(requestParams).then(
             async (response: SpiderCronJob) => {
-                console.log(response);
                 const args = response.cargs || [];
                 const envVars = response.cenvVars || [];
                 const tags = response.ctags || [];
@@ -442,7 +431,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         const data = await this.getJobs(page);
         const jobs: SpiderJobData[] = data.data;
 
-        const waitingJobs = jobs.filter((job: SpiderJobData) => job.status === "IN_waiting");
+        const waitingJobs = jobs.filter((job: SpiderJobData) => job.status === "WAITING");
         const queueJobs = jobs.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
         const runningJobs = jobs.filter((job: SpiderJobData) => job.status === "RUNNING");
         const completedJobs = jobs.filter((job: SpiderJobData) => job.status === "COMPLETED");
