@@ -286,7 +286,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             sid: this.spiderId,
             jid: this.jobId,
         };
-        console.log(this);
         this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
             async (response: SpiderJob) => {
                 const args = response.args || [];
@@ -649,6 +648,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
 
     overview = (): React.ReactNode => {
         const {
+            cronjob,
             tags,
             lifespan,
             loadedItems,
@@ -755,6 +755,23 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="font-bold">Creation date</Text>
                             </Col>
                             <Col className="col-span-2 px-2">{date}</Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-2">
+                            <Col className="col-span-1">
+                                <Text className="font-bold">Scheduled job</Text>
+                            </Col>
+                            <Col className="col-span-2 px-2">
+                                {cronjob ? (
+                                    <Link
+                                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}
+                                        className="text-estela-blue-medium"
+                                    >
+                                        Sche-Job-{cronjob}
+                                    </Link>
+                                ) : (
+                                    <Text className="text-estela-black-medium text-xs">Not associated</Text>
+                                )}
+                            </Col>
                         </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
