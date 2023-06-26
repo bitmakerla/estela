@@ -56,6 +56,12 @@ const { Option } = Select;
 const { Content } = Layout;
 const { Text } = Typography;
 
+const waiting = 0;
+const queued = 1;
+const running = 2;
+const completed = 3;
+const withError = 4;
+
 interface ArgsData {
     name: string;
     value: string;
@@ -65,9 +71,14 @@ interface TagsData {
     name: string;
 }
 
+interface SpiderData {
+    sid: number;
+    name: string;
+}
+
 interface SpiderJobData {
     id: number | undefined;
-    sid: number | undefined;
+    spider: SpiderData;
     key: number | undefined;
     date: string;
     status: string | undefined;
@@ -106,6 +117,7 @@ interface CronJobDetailPageState {
     recurrenceNum: number;
     schedulesFlag: boolean[];
     weekDays: boolean[];
+    waitingJobs: SpiderJobData[];
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
@@ -143,6 +155,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         expression: "",
         repeat: "hourly",
         created: "",
+        waitingJobs: [],
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
@@ -152,7 +165,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         schedulesFlag: [true, false],
         weekDays: new Array<boolean>(7).fill(false),
         modalVisible: false,
-        tableStatus: new Array<boolean>(4).fill(true),
+        tableStatus: new Array<boolean>(5).fill(true),
         status: "",
         schedule: "",
         unique_collection: false,
@@ -214,8 +227,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             dataIndex: "cronjob",
             render: (cronjob: number): ReactElement =>
                 cronjob ? (
-                    <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}>
-                        {cronjob}
+                    <Link
+                        to={`/projects/${this.projectId}/spiders/${this.spiderId}/cronjobs/${cronjob}`}
+                        className="text-estela-blue-medium"
+                    >
+                        Sche-Job-{cronjob}
                     </Link>
                 ) : (
                     <div></div>
@@ -223,10 +239,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         },
         {
             title: "SPIDER",
-            dataIndex: "sid",
-            key: "sid",
-            render: (spiderID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{spiderID}</Link>
+            dataIndex: "spider",
+            key: "spider",
+            render: (spider: SpiderData): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`} className="text-estela-blue-medium">
+                    {spider.name}
+                </Link>
             ),
         },
         {
@@ -234,7 +252,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             dataIndex: "id",
             key: "id",
             render: (jobID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}>{jobID}</Link>
+                <Link
+                    to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}
+                    className="text-estela-blue-medium"
+                >
+                    Job-{jobID}
+                </Link>
             ),
         },
         {
@@ -280,26 +303,34 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         };
         this.apiService.apiProjectsSpidersCronjobsRead(requestParams).then(
             async (response: SpiderCronJob) => {
+                console.log(response);
                 const args = response.cargs || [];
                 const envVars = response.cenvVars || [];
                 const tags = response.ctags || [];
                 this.initial_schedule = response.schedule || "";
+
                 const data = await this.getJobs(1);
-                const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
-                const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
-                const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
+                const waitingJobs = data.data.filter((job: SpiderJobData) => job.status === "WAITING");
                 const queueJobs = data.data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
+                const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
+                const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
+                const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
+
                 const tableStatus = [
+                    waitingJobs.length === 0 ? false : true,
                     queueJobs.length === 0 ? false : true,
                     runningJobs.length === 0 ? false : true,
                     completedJobs.length === 0 ? false : true,
                     errorJobs.length === 0 ? false : true,
                 ];
+
                 const weekDays = this.state.weekDays;
                 weekDays[moment().day() % 7] = true;
+
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({
                     name: response.name,
+                    spiderName: response.spider.name,
                     args: [...args],
                     envVars: [...envVars],
                     tags: [...tags],
@@ -316,6 +347,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     errorJobs: [...errorJobs],
                     completedJobs: [...completedJobs],
                     runningJobs: [...runningJobs],
+                    waitingJobs: [...waitingJobs],
                     queueJobs: [...queueJobs],
                     tableStatus: [...tableStatus],
                     currentDay: moment().day(),
@@ -396,7 +428,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         const data = response.results.map((job: SpiderJob, iterator: number) => ({
             key: iterator,
             id: job.jid,
-            sid: job.spider,
+            spider: job.spider,
             args: job.args,
             date: convertDateToString(job.created),
             status: job.jobStatus,
@@ -409,11 +441,15 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
     onPageChange = async (page: number): Promise<void> => {
         const data = await this.getJobs(page);
         const jobs: SpiderJobData[] = data.data;
-        const errorJobs = jobs.filter((job: SpiderJobData) => job.status === "ERROR");
-        const completedJobs = jobs.filter((job: SpiderJobData) => job.status === "COMPLETED");
-        const runningJobs = jobs.filter((job: SpiderJobData) => job.status === "RUNNING");
+
+        const waitingJobs = jobs.filter((job: SpiderJobData) => job.status === "IN_waiting");
         const queueJobs = jobs.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
+        const runningJobs = jobs.filter((job: SpiderJobData) => job.status === "RUNNING");
+        const completedJobs = jobs.filter((job: SpiderJobData) => job.status === "COMPLETED");
+        const errorJobs = jobs.filter((job: SpiderJobData) => job.status === "ERROR");
+
         const tableStatus = [
+            waitingJobs.length === 0 ? false : true,
             queueJobs.length === 0 ? false : true,
             runningJobs.length === 0 ? false : true,
             completedJobs.length === 0 ? false : true,
@@ -424,6 +460,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             errorJobs: [...errorJobs],
             completedJobs: [...completedJobs],
             runningJobs: [...runningJobs],
+            waitingJobs: [...waitingJobs],
             queueJobs: [...queueJobs],
             tableStatus: [...tableStatus],
             count: data.count,
@@ -583,6 +620,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
 
     overview = (): React.ReactNode => {
         const {
+            spiderName,
             args,
             date,
             envVars,
@@ -603,6 +641,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             errorJobs,
             completedJobs,
             runningJobs,
+            waitingJobs,
             queueJobs,
         } = this.state;
         return (
@@ -825,16 +864,18 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
                             <Col>Spider</Col>
                             <Col>
-                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>{this.spiderId}</Link>
+                                <Link
+                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
+                                    className="text-estela-blue-medium"
+                                >
+                                    {spiderName}
+                                </Link>
                             </Col>
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-4">
                             <Col className="col-span-1">Project ID</Col>
                             <Col className="col-span-2">
-                                <Link
-                                    to={`/projects/${this.projectId}/dashboard`}
-                                    className="hover:text-estela-blue-medium"
-                                >
+                                <Link to={`/projects/${this.projectId}/dashboard`} className="text-estela-blue-medium">
                                     {this.projectId}
                                 </Link>
                             </Col>
@@ -943,7 +984,63 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     </Row>
                     <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
                         <Col className="float-left col-span-4">
-                            {tableStatus[0] && (
+                            {tableStatus[waiting] && (
+                                <Row className="my-2 rounded-lg bg-white">
+                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                        <Col className="float-left py-1">
+                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                Waiting
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {waitingJobs.length}
+                                            </Tag>
+                                        </Col>
+                                        <Col className="flex float-right">
+                                            <Button
+                                                disabled={true}
+                                                icon={<Filter className="h-6 w-6 mr-2" />}
+                                                size="large"
+                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Filter
+                                            </Button>
+                                            <Button
+                                                icon={<Setting className="h-6 w-6" />}
+                                                size="large"
+                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                            ></Button>
+                                        </Col>
+                                    </Content>
+                                    <Content className="mx-4 my-1">
+                                        <Table
+                                            scroll={{}}
+                                            size="small"
+                                            rowSelection={{
+                                                type: "checkbox",
+                                            }}
+                                            columns={this.columns}
+                                            dataSource={waitingJobs}
+                                            pagination={false}
+                                        />
+                                    </Content>
+                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                    <Space direction="horizontal" className="my-2 mx-4">
+                                        <Button
+                                            disabled
+                                            className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            disabled
+                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                        >
+                                            Edit
+                                        </Button>
+                                    </Space>
+                                </Row>
+                            )}
+                            {tableStatus[queued] && (
                                 <Row className="my-2 rounded-lg bg-white">
                                     <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
                                         <Col className="float-left py-1">
@@ -999,7 +1096,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Space>
                                 </Row>
                             )}
-                            {tableStatus[1] && (
+                            {tableStatus[running] && (
                                 <Row className="my-2 rounded-lg bg-white">
                                     <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
                                         <Col className="float-left py-1">
@@ -1048,7 +1145,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Space>
                                 </Row>
                             )}
-                            {tableStatus[2] && (
+                            {tableStatus[completed] && (
                                 <Row className="my-2 rounded-lg bg-white">
                                     <Row className="flow-root lg:m-4 mx-4 my-2 w-full">
                                         <Col className="float-left py-1">
@@ -1097,7 +1194,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Space>
                                 </Row>
                             )}
-                            {tableStatus[3] && (
+                            {tableStatus[withError] && (
                                 <Row className="my-2 rounded-lg bg-white">
                                     <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
                                         <Col className="float-left py-1">
@@ -1164,8 +1261,22 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
                                 <Content className="my-2">
                                     <Checkbox
-                                        checked={queueJobs.length == 0 ? tableStatus[0] : true}
-                                        onChange={() => this.onChangeStatus(0, queueJobs.length)}
+                                        checked={waitingJobs.length == 0 ? tableStatus[waiting] : true}
+                                        onChange={() => this.onChangeStatus(waiting, waitingJobs.length)}
+                                    >
+                                        <Space direction="horizontal">
+                                            <Text className="text-estela-black-medium font-medium text-sm">
+                                                Waiting
+                                            </Text>
+                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                {waitingJobs.length}
+                                            </Tag>
+                                        </Space>
+                                    </Checkbox>
+                                    <br />
+                                    <Checkbox
+                                        checked={queueJobs.length == 0 ? tableStatus[queued] : true}
+                                        onChange={() => this.onChangeStatus(queued, queueJobs.length)}
                                     >
                                         <Space direction="horizontal">
                                             <Text className="text-estela-black-medium font-medium text-sm">Queue</Text>
@@ -1176,8 +1287,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Checkbox>
                                     <br />
                                     <Checkbox
-                                        checked={runningJobs.length == 0 ? tableStatus[1] : true}
-                                        onChange={() => this.onChangeStatus(1, runningJobs.length)}
+                                        checked={runningJobs.length == 0 ? tableStatus[running] : true}
+                                        onChange={() => this.onChangeStatus(running, runningJobs.length)}
                                     >
                                         <Space direction="horizontal">
                                             <Text className="text-estela-black-medium font-medium text-sm">
@@ -1190,8 +1301,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Checkbox>
                                     <br />
                                     <Checkbox
-                                        checked={completedJobs.length == 0 ? tableStatus[2] : true}
-                                        onChange={() => this.onChangeStatus(2, completedJobs.length)}
+                                        checked={completedJobs.length == 0 ? tableStatus[completed] : true}
+                                        onChange={() => this.onChangeStatus(completed, completedJobs.length)}
                                     >
                                         <Space direction="horizontal">
                                             <Text className="text-estela-black-medium font-medium text-sm">
@@ -1204,8 +1315,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                     </Checkbox>
                                     <br />
                                     <Checkbox
-                                        checked={errorJobs.length == 0 ? tableStatus[3] : true}
-                                        onChange={() => this.onChangeStatus(3, errorJobs.length)}
+                                        checked={errorJobs.length == 0 ? tableStatus[withError] : true}
+                                        onChange={() => this.onChangeStatus(withError, errorJobs.length)}
                                     >
                                         <Space direction="horizontal">
                                             <Text className="text-estela-black-medium font-medium text-sm">Error</Text>

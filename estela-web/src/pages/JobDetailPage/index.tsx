@@ -286,6 +286,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             sid: this.spiderId,
             jid: this.jobId,
         };
+        console.log(this);
         this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
             async (response: SpiderJob) => {
                 const args = response.args || [];
@@ -723,16 +724,16 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         bordered={false}
                     >
                         <Text className="py-2 text-estela-black-medium font-medium text-base">DETAILS</Text>
-                        <Row className="grid grid-cols-3 py-1 px-2 mt-4">
+                        <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
-                                <Text className="font-bold">Spider ID</Text>
+                                <Text className="font-bold">Spider</Text>
                             </Col>
                             <Col>
                                 <Link
                                     to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
                                     className="text-estela-blue-medium px-2"
                                 >
-                                    {this.spiderId}
+                                    {spiderName}
                                 </Link>
                             </Col>
                         </Row>
@@ -827,23 +828,24 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
-                            <Col>
-                                <Text className="font-bold">Spider</Text>
-                            </Col>
-                            <Col>
-                                <Link
-                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
-                                    className="text-estela-blue-medium px-2"
-                                >
-                                    {spiderName}
-                                </Link>
-                            </Col>
-                        </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Job Status</Text>
                             </Col>
+                            {status == "IN_QUEUE" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-yellow-low text-estela-blue-full border-estela-blue-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
+                            {status == "WAITING" && (
+                                <Col className="col-span-2 px-2">
+                                    <Tag className="bg-estela-yellow-low text-estela-blue-full border-estela-blue-full rounded-md">
+                                        {status}
+                                    </Tag>
+                                </Col>
+                            )}
                             {status == "COMPLETED" && (
                                 <Col className="col-span-2 px-2">
                                     <Tag className="bg-estela-blue-low text-estela-blue-full border-estela-blue-full rounded-md">

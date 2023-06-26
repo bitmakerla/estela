@@ -56,17 +56,17 @@ export interface SpiderJobUpdate {
      */
     requestCount?: number;
     /**
-     * Data status.
+     * Job data status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     dataStatus?: SpiderJobUpdateDataStatusEnum;
     /**
-     * Days before data is deleted.
+     * Job data expiry days.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
-    dataExpiryDays?: number | null;
+    dataExpiryDays?: number;
 }
 
 /**
