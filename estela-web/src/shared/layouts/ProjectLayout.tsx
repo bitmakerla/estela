@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { Layout } from "antd";
-import { Header, ProjectSidenav } from "..";
+import { Header, ProjectSideNav } from "..";
 import ExternalVerifier from "ExternalComponents/ExternalVerifier";
 
 interface RouteParams {
@@ -13,18 +13,33 @@ interface ProjectLayoutProps {
 }
 
 export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
-    const [path, setPath] = useState("dashboard");
+    const location = useLocation();
+    const pathSegments = location.pathname.split("/");
+    let lastSegment = pathSegments[pathSegments.length - 1];
+
+    if (lastSegment === "") {
+        pathSegments.pop();
+        lastSegment = pathSegments[pathSegments.length - 1];
+    }
+
+    if (!isNaN(lastSegment)) {
+        pathSegments.pop();
+        lastSegment = pathSegments[pathSegments.length - 1];
+    }
+
+    const [path, setPath] = useState(lastSegment);
     const { projectId } = useParams<RouteParams>();
 
     const updatePathHandler = (newPath: string) => {
         setPath(newPath);
     };
+
     return (
         <Layout>
             <ExternalVerifier />
             <Header />
             <Layout className="white-background">
-                <ProjectSidenav projectId={projectId} path={path} updatePath={updatePathHandler} />
+                <ProjectSideNav projectId={projectId} path={path} updatePath={updatePathHandler} />
                 {children}
             </Layout>
         </Layout>
