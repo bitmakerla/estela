@@ -1,14 +1,13 @@
 import React, { Component } from "react";
-import { Button, Form, Space, Typography, Input, Layout, Row } from "antd";
+import { Button, Form, Typography, Input, Layout, Row } from "antd";
 import { Link } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthRegisterRequest, Token } from "../../services/api";
-import Bitmaker from "../../assets/logo/bitmaker.svg";
-import Estela from "../../assets/icons/estela.svg";
 import { insecurePasswordNotification, emailConfirmationNotification } from "../../shared";
+import { EstelaBanner } from "../../components";
 
 import { handleInvalidDataError } from "../../utils";
 
@@ -16,11 +15,13 @@ const { Content } = Layout;
 const { Text } = Typography;
 
 interface RegisterPageState {
+    loading: boolean;
     successRegister: boolean;
 }
 
 export class RegisterPage extends Component<unknown, RegisterPageState> {
     state: RegisterPageState = {
+        loading: false,
         successRegister: false,
     };
 
@@ -66,6 +67,7 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
     }
 
     handleSubmit = (data: { email: string; username: string; password: string }): void => {
+        this.setState({ loading: true });
         if (!this.validatePassword(data.password)) {
             return;
         }
@@ -78,31 +80,20 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
                 }
                 emailConfirmationNotification();
                 this.setState({ successRegister: true });
+                this.setState({ loading: false });
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
+                this.setState({ loading: false });
             },
         );
     };
 
     render(): JSX.Element {
+        const { loading } = this.state;
         return (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
-                    <Content>
-                        <Estela className="w-48 h-24" />
-                        <p className="text-5xl font-bold mt-4">
-                            Stable, reliable and <span className="text-estela">open source</span>.
-                        </p>
-                        <p className="text-3xl font-normal py-6 sm:p-auto">
-                            Scrape <span className="text-estela">when you want it</span>.
-                        </p>
-                        <Space>
-                            <Text className="text-sm font-normal">Powered by&nbsp;</Text>
-                            <Bitmaker className="w-40 h-40" />
-                        </Space>
-                    </Content>
-                </Content>
+                <EstelaBanner />
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                     {!this.state.successRegister ? (
                         <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
@@ -139,6 +130,7 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
                                 </Form.Item>
                             </Content>
                             <Button
+                                loading={loading}
                                 block
                                 htmlType="submit"
                                 className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10"
@@ -149,7 +141,7 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
                                 <p>If you already have an account. You can</p>
                                 <p>
                                     <Link className="text-estela text-base font-bold underline" to="/login">
-                                        login here
+                                        log in here
                                     </Link>
                                 </p>
                             </Content>
@@ -158,7 +150,8 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
                         <Row justify="center" className="w-96">
                             <Text className="text-3xl font-bold">Thanks for registering!</Text>
                             <Text className="text-center text-lg my-7 text-estela-black-medium">
-                                We are thrilled to have you join us!
+                                We are thrilled to have you join us! <br />
+                                Check the email we just sent you to activate your account
                             </Text>
                             <Button
                                 block
@@ -167,7 +160,7 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
                                     history.push("/login");
                                 }}
                             >
-                                Login
+                                Log in
                             </Button>
                         </Row>
                     )}
