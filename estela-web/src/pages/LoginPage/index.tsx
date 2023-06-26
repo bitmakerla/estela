@@ -1,15 +1,14 @@
 import React, { Component } from "react";
-import { Button, Form, Input, Layout, Space, Typography, Row } from "antd";
+import { Button, Form, Input, Layout, Typography, Row } from "antd";
 import { Link } from "react-router-dom";
 
 import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
-import Bitmaker from "../../assets/logo/bitmaker.svg";
-import Estela from "../../assets/icons/estela.svg";
 import { handleInvalidDataError } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
+import { EstelaBanner } from "../../components";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -57,6 +56,7 @@ export class LoginPage extends Component<unknown, LoginState> {
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
+                this.setState({ loading: false });
             },
         );
     };
@@ -65,25 +65,11 @@ export class LoginPage extends Component<unknown, LoginState> {
         const { loading } = this.state;
         return (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
-                    <Content>
-                        <Estela className="w-48 h-24" />
-                        <p className="text-5xl font-bold mt-4">
-                            Stable, reliable and <span className="text-estela">open source</span>.
-                        </p>
-                        <p className="text-3xl font-normal py-6 sm:p-auto">
-                            Scrape <span className="text-estela">when you want it</span>.
-                        </p>
-                        <Space>
-                            <Text className="text-sm font-normal">Powered by&nbsp;</Text>
-                            <Bitmaker className="w-40 h-40" />
-                        </Space>
-                    </Content>
-                </Content>
+                <EstelaBanner />
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                     <Form onFinish={this.handleSubmit} layout="vertical" className="p-2 w-96">
                         <Row justify="center" className="w-96 my-7">
-                            <Text className="text-3xl font-bold">Log in</Text>
+                            <Text className="text-3xl font-bold">Login</Text>
                         </Row>
                         <Content>
                             <Form.Item
@@ -117,7 +103,7 @@ export class LoginPage extends Component<unknown, LoginState> {
                             htmlType="submit"
                             className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-sm h-10"
                         >
-                            Login
+                            Log in
                         </Button>
                         <Content className="text-center text-base m-5">
                             <p>If you don&apos;t have an account. You can</p>

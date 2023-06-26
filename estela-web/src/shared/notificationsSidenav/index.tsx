@@ -12,7 +12,7 @@ interface NotificationsInboxPropsInterface {
     updatePath: (newPath: string) => void;
 }
 
-export const NotificationsSidenav: React.FC<NotificationsInboxPropsInterface> = ({ path, updatePath }) => {
+export const NotificationsSideNav: React.FC<NotificationsInboxPropsInterface> = ({ path, updatePath }) => {
     const items: MenuProps["items"] = [
         {
             key: "1",

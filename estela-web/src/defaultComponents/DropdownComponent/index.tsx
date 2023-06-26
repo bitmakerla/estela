@@ -1,5 +1,5 @@
 import type { MenuProps } from "antd";
 
-const userDropdownSidenavItems: MenuProps["items"] = [];
+const userDropdownSideNavItems: MenuProps["items"] = [];
 
-export default userDropdownSidenavItems;
+export default userDropdownSideNavItems;

@@ -1750,8 +1750,6 @@ definitions:
         minLength: 1
   SpiderCronJob:
     description: Project Cronjobs.
-    required:
-      - spider
     type: object
     properties:
       cjid:
@@ -1761,8 +1759,8 @@ definitions:
         readOnly: true
       spider:
         title: Spider
-        description: Spider sid.
-        type: integer
+        type: string
+        readOnly: true
       created:
         title: Created
         description: Cron job creation date.
@@ -2022,8 +2020,6 @@ definitions:
           minLength: 1
   SpiderJob:
     description: Project jobs.
-    required:
-      - spider
     type: object
     properties:
       jid:
@@ -2033,8 +2029,8 @@ definitions:
         readOnly: true
       spider:
         title: Spider
-        description: Spider sid.
-        type: integer
+        type: string
+        readOnly: true
       created:
         title: Created
         description: Job creation date.
@@ -2338,7 +2334,7 @@ definitions:
         minimum: 0
       data_status:
         title: Data status
-        description: Data status.
+        description: Job data status.
         type: string
         enum:
           - PERSISTENT
@@ -2346,11 +2342,8 @@ definitions:
           - DELETED
       data_expiry_days:
         title: Data expiry days
-        description: Days before data is deleted.
+        description: Job data expiry days.
         type: integer
-        maximum: 65535
-        minimum: 0
-        x-nullable: true
   DeleteJobData:
     required:
       - count

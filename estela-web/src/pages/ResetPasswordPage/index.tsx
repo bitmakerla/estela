@@ -1,13 +1,14 @@
 import React, { Component } from "react";
-import { Button, Form, Input, Layout, Space, Typography, Row } from "antd";
+import { Button, Form, Input, Layout, Typography, Row } from "antd";
 import type { FormInstance } from "antd/es/form";
+
 import { ApiService } from "../../services";
 import { ApiAccountResetPasswordConfirmRequest, ApiAccountResetPasswordValidateRequest } from "../../services/api";
 import history from "../../history";
-import Bitmaker from "../../assets/logo/bitmaker.svg";
-import Estela from "../../assets/icons/estela.svg";
 import { Spin } from "../../shared";
 import { handleInvalidDataError } from "../../utils";
+import { EstelaBanner } from "../../components";
+
 const { Text } = Typography;
 const { Content } = Layout;
 
@@ -104,21 +105,7 @@ export class ResetPasswordPage extends Component<ResetPasswordPageProps, ResetPa
         const { loaded, successfullyChanged, linkExpired, sendingRequest } = this.state;
         return loaded ? (
             <Content className="h-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                <Content className="flex h-fit lg:ml-36 sm:h-fit md:h-full lg:h-full m-auto justify-center items-center p-14 sm:p-auto md:p-auto">
-                    <Content>
-                        <Estela className="w-48 h-24" />
-                        <p className="text-5xl font-bold mt-4">
-                            Stable, reliable and <span className="text-estela">open source</span>.
-                        </p>
-                        <p className="text-3xl font-normal py-6 sm:p-auto">
-                            Scrape <span className="text-estela">when you want it</span>.
-                        </p>
-                        <Space>
-                            <Text className="text-sm font-normal">Powered by&nbsp;</Text>
-                            <Bitmaker className="w-40 h-40" />
-                        </Space>
-                    </Content>
-                </Content>
+                <EstelaBanner />
                 <Content className="flex h-fit lg:mr-36 sm:h-fit md:h-full lg:h-full justify-center items-center p-6 sm:p-auto">
                     {successfullyChanged ? (
                         <Row justify="center" className="w-96">

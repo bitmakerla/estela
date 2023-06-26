@@ -32,6 +32,7 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
     name = serializers.CharField(
         required=False, read_only=True, help_text="Unique cron job name."
     )
+    spider = serializers.SerializerMethodField("get_spider")
 
     class Meta:
         model = SpiderCronJob
@@ -49,6 +50,9 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
             "data_status",
             "data_expiry_days",
         )
+
+    def get_spider(self, instance):
+        return {"sid": instance.spider.sid, "name": instance.spider.name}
 
 
 class SpiderCronJobCreateSerializer(serializers.ModelSerializer):

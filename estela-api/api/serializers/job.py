@@ -28,6 +28,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
     job_status = serializers.CharField(
         required=False, read_only=True, help_text="Current job status."
     )
+    spider = serializers.SerializerMethodField("get_spider")
 
     class Meta:
         model = SpiderJob
@@ -48,6 +49,9 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "data_expiry_days",
             "data_status",
         )
+
+    def get_spider(self, instance):
+        return {"sid": instance.spider.sid, "name": instance.spider.name}
 
 
 class SpiderJobCreateSerializer(serializers.ModelSerializer):
