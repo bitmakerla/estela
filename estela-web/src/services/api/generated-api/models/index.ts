@@ -16,6 +16,7 @@ export * from './InlineResponse2004';
 export * from './InlineResponse2005';
 export * from './InlineResponse2006';
 export * from './InlineResponse2007';
+export * from './InlineResponse2008';
 export * from './InlineResponse401';
 export * from './JobsMetadata';
 export * from './JobsStats';

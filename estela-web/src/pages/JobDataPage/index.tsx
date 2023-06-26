@@ -5,12 +5,15 @@ import { resourceNotAllowedNotification, dataDeletedNotification, Spin, Paginati
 import Export from "../../assets/icons/export.svg";
 import Delete from "../../assets/icons/trash.svg";
 import ArrowDown from "../../assets/icons/arrowDown.svg";
+import Info from "../../assets/icons/info.svg";
 
 import {
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersJobsDataDeleteRequest,
+    ApiProjectsSpidersJobsDataDownloadRequest,
     DeleteJobData,
     InlineResponse2006,
+    InlineResponse2008,
 } from "../../services/api";
 import { ApiService } from "../../services";
 
@@ -45,11 +48,53 @@ const deleteSpiderJobData = (type_: string, projectId: string, spiderId: string,
             return true;
         },
         (error: unknown) => {
-            error;
+            console.log(error);
             resourceNotAllowedNotification();
             return false;
         },
     );
+};
+
+const handleDownload = (jsonData: ItemDictionary, filename: string) => {
+    const data = JSON.stringify(jsonData);
+
+    const blob = new Blob([data], { type: "application/json" });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+};
+
+const handleDownloadData = (type_: string, projectId: string, spiderId: string, jobId: string): Promise<boolean> => {
+    const request: ApiProjectsSpidersJobsDataDownloadRequest = {
+        pid: projectId,
+        sid: spiderId,
+        jid: jobId,
+        type: type_,
+    };
+    return apiService.apiProjectsSpidersJobsDataDownload(request).then(
+        (response: Response) => {
+            handleDownload(response, `${jobId}-job_${type_}.json`);
+        },
+        (error: unknown) => {
+            console.log(error);
+            resourceNotAllowedNotification();
+            return {} as InlineResponse2008;
+        },
+    );
+};
+
+const handleDownloadItem = (type_: string, jobId: string, item: ItemDictionary, itemOrder: number) => {
+    if (itemOrder === 0) {
+        handleDownload(item, `${jobId}-job_${type_}.json`);
+    } else {
+        handleDownload(item, `${itemOrder}-${jobId}-job_${type_}.json`);
+    }
 };
 
 const getData = async (
@@ -73,7 +118,7 @@ const getData = async (
             return response;
         },
         (error: unknown) => {
-            error;
+            console.log(error);
             resourceNotAllowedNotification();
             return {} as InlineResponse2006;
         },
@@ -269,12 +314,21 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 <Text>Are you sure you want to delete items data?</Text>
                             </Modal>
                             <Button
-                                disabled
                                 size="large"
                                 icon={<Export className="h-3.5 w-4 mr-2" />}
                                 className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                onClick={() => {
+                                    handleDownloadData("items", projectId, spiderId, jobId);
+                                }}
                             >
                                 Download
+                                <Tooltip
+                                    className="flex items-center mx-2"
+                                    placement="left"
+                                    title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                                >
+                                    <Info className="w-5 h-5 stroke-estela-black-medium" />
+                                </Tooltip>
                             </Button>
                         </Col>
                     </Row>
@@ -289,10 +343,17 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                     </Col>
                                     <Col className="flex float-right">
                                         <Button
-                                            disabled
                                             size="large"
                                             icon={<Export className="h-3.5 w-4 mr-2" />}
                                             className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            onClick={() => {
+                                                handleDownloadItem(
+                                                    "items",
+                                                    jobId,
+                                                    item,
+                                                    PAGE_SIZE * (current - 1) + index + 1,
+                                                );
+                                            }}
                                         >
                                             Download
                                         </Button>
@@ -453,12 +514,21 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 <Text>Are you sure you want to delete requests data?</Text>
                             </Modal>
                             <Button
-                                disabled
                                 size="large"
                                 icon={<Export className="h-3.5 w-4 mr-2" />}
                                 className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                onClick={() => {
+                                    handleDownloadData("requests", projectId, spiderId, jobId);
+                                }}
                             >
                                 Download
+                                <Tooltip
+                                    className="flex items-center mx-2"
+                                    placement="left"
+                                    title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                                >
+                                    <Info className="w-5 h-5 stroke-estela-black-medium" />
+                                </Tooltip>
                             </Button>
                         </Col>
                     </Row>
@@ -473,10 +543,17 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                     </Col>
                                     <Col className="flex float-right">
                                         <Button
-                                            disabled
                                             size="large"
                                             icon={<Export className="h-3.5 w-4 mr-2" />}
                                             className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            onClick={() => {
+                                                handleDownloadItem(
+                                                    "requests",
+                                                    jobId,
+                                                    request,
+                                                    PAGE_SIZE * (current - 1) + index + 1,
+                                                );
+                                            }}
                                         >
                                             Download
                                         </Button>
@@ -603,12 +680,21 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 <Text>Are you sure you want to delete logs data?</Text>
                             </Modal>
                             <Button
-                                disabled
                                 size="large"
                                 icon={<Export className="h-3.5 w-4 mr-2" />}
                                 className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                onClick={() => {
+                                    handleDownloadData("logs", projectId, spiderId, jobId);
+                                }}
                             >
                                 Download
+                                <Tooltip
+                                    className="flex items-center mx-2"
+                                    placement="left"
+                                    title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                                >
+                                    <Info className="w-5 h-5 stroke-estela-black-medium" />
+                                </Tooltip>
                             </Button>
                         </Col>
                         <Col className="flex float-right">
@@ -713,21 +799,52 @@ export function JobStatsData({ projectId, spiderId, jobId }: JobsDataProps) {
     return (
         <Content className="bg-metal content-padding">
             {loaded ? (
-                <Row className="grid grid-cols-5 bg-white">
-                    <Col className="col-start-2 col-span-3">
-                        {Object.entries(stats).map(([statKey, stat], index: number) => {
-                            if (statKey === "coverage") {
-                                return null;
-                            }
-                            if (stat === null) {
-                                stat = "null";
-                            }
-                            if (index % 2) {
+                <Content>
+                    <Row className="flow-root my-2 w-full space-x-2" justify="end" align="middle">
+                        <Button
+                            size="large"
+                            icon={<Export className="h-3.5 w-4 mr-2" />}
+                            className="flex float-right items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            onClick={() => {
+                                handleDownloadItem("stats", jobId, stats, 0);
+                            }}
+                        >
+                            Download
+                            <Tooltip
+                                className="flex items-center mx-2"
+                                placement="left"
+                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                            >
+                                <Info className="w-5 h-5 stroke-estela-black-medium" />
+                            </Tooltip>
+                        </Button>
+                    </Row>
+                    <Row className="grid grid-cols-5 bg-white">
+                        <Col className="col-start-2 col-span-3">
+                            {Object.entries(stats).map(([statKey, stat], index: number) => {
+                                if (statKey === "coverage") {
+                                    return null;
+                                }
+                                if (stat === null) {
+                                    stat = "null";
+                                }
+                                if (index % 2) {
+                                    return (
+                                        <Row
+                                            key={index}
+                                            className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
+                                        >
+                                            <Col>
+                                                <Text className="font-bold">{statKey}</Text>
+                                            </Col>
+                                            <Col>
+                                                <Text className="text-estela-black-full px-4">{stat}</Text>
+                                            </Col>
+                                        </Row>
+                                    );
+                                }
                                 return (
-                                    <Row
-                                        key={index}
-                                        className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
-                                    >
+                                    <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
                                         <Col>
                                             <Text className="font-bold">{statKey}</Text>
                                         </Col>
@@ -736,20 +853,10 @@ export function JobStatsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Col>
                                     </Row>
                                 );
-                            }
-                            return (
-                                <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
-                                    <Col>
-                                        <Text className="font-bold">{statKey}</Text>
-                                    </Col>
-                                    <Col>
-                                        <Text className="text-estela-black-full px-4">{stat}</Text>
-                                    </Col>
-                                </Row>
-                            );
-                        })}
-                    </Col>
-                </Row>
+                            })}
+                        </Col>
+                    </Row>
+                </Content>
             ) : (
                 <Spin />
             )}

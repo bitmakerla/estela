@@ -1194,6 +1194,54 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/download:
+    get:
+      operationId: api_projects_spiders_jobs_data_download
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: type
+          in: query
+          description: Spider job data type.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - results
+            type: object
+            properties:
+              results:
+                description: Data items.
+                type: array
+                items:
+                  type: object
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/usage:
     get:
       operationId: api_projects_usage

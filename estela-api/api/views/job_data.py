@@ -1,10 +1,10 @@
 from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, mixins
-from rest_framework.response import Response
-from rest_framework.exceptions import ParseError
+from rest_framework import mixins, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 from rest_framework.utils.urls import replace_query_param
 
 from api import errors
@@ -93,18 +93,7 @@ class JobDataViewSet(
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-            and data_type == "items"
-        ):
-            job_collection_name = "{}-scj{}-job_{}".format(
-                kwargs["sid"], job.cronjob.cjid, data_type
-            )
-        else:
-            job_collection_name = "{}-{}-job_{}".format(
-                kwargs["sid"], kwargs["jid"], data_type
-            )
+        job_collection_name = self.get_collection_name(job, data_type, **kwargs)
 
         count = spiderdata_db_client.get_estimated_document_count(
             kwargs["pid"], job_collection_name
@@ -144,6 +133,75 @@ class JobDataViewSet(
                 "results": result,
             }
         )
+
+    def get_collection_name(self, job, data_type, **kwargs):
+        if (
+            job.cronjob is not None
+            and job.cronjob.unique_collection
+            and data_type == "items"
+        ):
+            job_collection_name = "{}-scj{}-job_{}".format(
+                kwargs["sid"], job.cronjob.cjid, data_type
+            )
+        else:
+            job_collection_name = "{}-{}-job_{}".format(
+                kwargs["sid"], kwargs["jid"], data_type
+            )
+
+        return job_collection_name
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    required=["results"],
+                    properties={
+                        "results": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Items(type=openapi.TYPE_OBJECT),
+                            description="Data items.",
+                        ),
+                    },
+                ),
+                description="",
+            ),
+        },
+        manual_parameters=[
+            openapi.Parameter(
+                "type",
+                openapi.IN_QUERY,
+                description="Spider job data type.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+        ],
+    )
+    @action(detail=False, methods=["GET"])
+    def download(self, request, *args, **kwargs):
+        data_type = request.query_params.get("type", "items")
+
+        job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+        job_collection_name = self.get_collection_name(job, data_type, **kwargs)
+
+        data = []
+        if data_type == "stats":
+            data = spiderdata_db_client.get_job_stats(
+                kwargs["pid"], job_collection_name
+            )
+        else:
+            docs_limit = max(
+                1,
+                (settings.MAX_WEB_DOWNLOAD_SIZE)
+                // spiderdata_db_client.get_estimated_document_size(
+                    kwargs["pid"], job_collection_name
+                ),
+            )
+            data = spiderdata_db_client.get_collection_data(
+                kwargs["pid"], job_collection_name, docs_limit
+            )
+        return Response({"results": data})
 
     @swagger_auto_schema(
         methods=["POST"],
