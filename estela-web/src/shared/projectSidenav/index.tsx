@@ -19,7 +19,7 @@ interface ProjectSideNavPropsInterface {
     updatePath: (newPath: string) => void;
 }
 
-export const ProjectSidenav: React.FC<ProjectSideNavPropsInterface> = ({ projectId, path, updatePath }) => {
+export const ProjectSideNav: React.FC<ProjectSideNavPropsInterface> = ({ projectId, path, updatePath }) => {
     const items: MenuProps["items"] = [
         {
             key: "1",

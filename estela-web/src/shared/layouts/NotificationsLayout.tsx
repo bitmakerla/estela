@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NotificationsSidenav } from "..";
+import { NotificationsSideNav } from "..";
 
 interface NotificationsLayoutProps {
     children?: JSX.Element | JSX.Element[];
@@ -13,7 +13,7 @@ export const NotificationsLayout: React.FC<NotificationsLayoutProps> = ({ childr
     };
     return (
         <>
-            <NotificationsSidenav path={path} updatePath={updatePathHandler} />
+            <NotificationsSideNav path={path} updatePath={updatePathHandler} />
             {children}
         </>
     );
