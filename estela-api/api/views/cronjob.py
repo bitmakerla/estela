@@ -94,6 +94,7 @@ class SpiderCronJobViewSet(
         self.save_action(
             user=request.user,
             message=f"scheduled a new Scheduled-job-{cronjob.cjid} for spider {spider.name}.",
+            description=f"Created Schedule-job-{cronjob.cjid} for spider {spider.name}.",
             project=project,
         )
 
@@ -130,6 +131,7 @@ class SpiderCronJobViewSet(
         self.save_action(
             user=request.user,
             message=f"deleted Scheduled-job-{instance.cjid} for spider {instance.spider.name}.",
+            description=f"Deleted schedule-job-{instance.cjid} for spider {instance.spider.name}.",
             project=instance.spider.project,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)

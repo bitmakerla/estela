@@ -34,11 +34,7 @@ from core.models import (
 )
 
 
-class ProjectViewSet(
-    BaseViewSet,
-    ActionHandlerMixin,
-    viewsets.ModelViewSet
-):
+class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -81,6 +77,7 @@ class ProjectViewSet(
         self.save_action(
             user=self.request.user,
             message=f"created project {instance.name}.",
+            description="Project created.",
             project=instance,
         )
 
@@ -103,12 +100,13 @@ class ProjectViewSet(
         data_status = serializer.validated_data.pop("data_status", "")
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
         message = ""
+        description = ""
 
         if name:
             old_name = instance.name
             instance.name = name
             message = f"renamed project {old_name} ({instance.pid}) to {name}."
-
+            description = f"Project name changed to {name}"
         user = request.user
         is_superuser = user.is_superuser or user.is_staff
         if user_email and (is_superuser or user_email != user.email):
@@ -141,15 +139,18 @@ class ProjectViewSet(
                     affected_user, through_defaults={"permission": permission}
                 )
                 message = f"added {user_email}."
+                description = f"User {user_email} have been added as {permission}."
             elif action == "remove":
                 instance.users.remove(affected_user)
                 message = f"removed {user_email}."
+                description = f"User {user_email} have been removed."
             elif action == "update":
                 instance.users.remove(affected_user)
                 instance.users.add(
                     affected_user, through_defaults={"permission": permission}
                 )
                 message = f"updated {user_email}'s permissions to {permission}."
+                description = f"USer {user_email} have been updated to {permission}."
             else:
                 raise ParseError({"error": "Action not supported."})
 
@@ -157,16 +158,19 @@ class ProjectViewSet(
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
                 message = "changed data persistence to persistent."
+                description = "Project set data status to persistent."
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
                 message = f"changed data persistence to {data_expiry_days} days."
+                description = f"Project set data persistence to {data_expiry_days} days."
             else:
                 raise ParseError({"error": errors.INVALID_DATA_STATUS})
 
         self.save_action(
             user=self.request.user,
             message=message,
+            description=description,
             project=instance,
         )
 

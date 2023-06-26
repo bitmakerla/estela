@@ -145,18 +145,22 @@ class SpiderCronJobUpdateSerializer(
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
         name = instance.name
         message = ""
+        description = ""
         if "schedule" in validated_data:
             instance.schedule = schedule
             update_schedule(name, schedule)
             message = f"changed the schedule of Scheduled-job-{instance.cjid}."
+            description = f"Updated schedule of Schedule-job-{instance.cjid}"
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
                 enable_cronjob(name)
                 message = f"enabled Scheduled-job-{instance.cjid}."
+                description = f"Enabled schedule-job-{instance.cjid}"
             elif status == SpiderCronJob.DISABLED_STATUS:
                 disable_cronjob(name)
                 message = f"disabled Scheduled-job-{instance.cjid}."
+                description = f"Disabled schedule-job-{instance.cjid}"
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
         if "data_status" in validated_data:
@@ -165,6 +169,9 @@ class SpiderCronJobUpdateSerializer(
                 message = (
                     f"changed data persistence of Scheduled-job-{instance.cjid} to persistent."
                 )
+                description = (
+                    f"Set data status of schedule-job {instance.cjid} to persistent."
+                )
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
@@ -172,10 +179,14 @@ class SpiderCronJobUpdateSerializer(
                 message = (
                     f"changed data persistence of Scheduled-job-{instance.cjid} to {days_} days."
                 )
+                description = (
+                    f"Set data status of schedule-job {instance.cjid} to {data_expiry_days} days."
+                )
 
         self.save_action(
             user=user,
             message=message,
+            description=description,
             project=instance.spider.project,
         )
         instance.save()

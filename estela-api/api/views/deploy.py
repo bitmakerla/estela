@@ -97,6 +97,7 @@ class DeployViewSet(
         self.save_action(
             user=instance.user,
             message=f"made a new Deploy #{serializer.data['did']}.",
+            description=f"Deploy {serializer.data['did']} created.",
             project=project,
         )
 
