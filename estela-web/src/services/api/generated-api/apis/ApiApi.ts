@@ -63,6 +63,9 @@ import {
     InlineResponse2007,
     InlineResponse2007FromJSON,
     InlineResponse2007ToJSON,
+    InlineResponse2008,
+    InlineResponse2008FromJSON,
+    InlineResponse2008ToJSON,
     InlineResponse401,
     InlineResponse401FromJSON,
     InlineResponse401ToJSON,
@@ -339,6 +342,15 @@ export interface ApiProjectsSpidersJobsDataDeleteRequest {
     pid: string;
     sid: string;
     type: string;
+}
+
+export interface ApiProjectsSpidersJobsDataDownloadRequest {
+    jid: string;
+    pid: string;
+    sid: string;
+    page?: number;
+    pageSize?: number;
+    type?: string;
 }
 
 export interface ApiProjectsSpidersJobsDataListRequest {
@@ -2001,6 +2013,57 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersJobsDataDelete(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<DeleteJobData> {
         const response = await this.apiProjectsSpidersJobsDataDeleteRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataDownloadRaw(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<runtime.ApiResponse<InlineResponse2008>> {
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataDownload.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsDataDownload.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsDataDownload.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.type !== undefined) {
+            queryParameters['type'] = requestParameters.type;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/download`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2008FromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsDataDownload(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<InlineResponse2008> {
+        const response = await this.apiProjectsSpidersJobsDataDownloadRaw(requestParameters);
         return await response.value();
     }
 
