@@ -10,6 +10,9 @@ import { GlobalStats } from "../../services";
 ChartJS.register(CategoryScale, ArcElement, Title, Tooltip, Legend);
 const { Text } = Typography;
 
+const influenceSuccessRate = 0.7;
+const influencePages = 0.3;
+
 interface ProjectHealthProps {
     loadedStats: boolean;
     stats: GlobalStats[];
@@ -44,8 +47,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                     return totalPages === 0 ? 0 : scrapedPages / totalPages;
                 })
                 .reduce((acc, cur) => acc + cur, 0) / stats.length;
-
-        return (avgPages + avgSuccessRates) / 2;
+        return influencePages * avgPages + influenceSuccessRate * avgSuccessRates;
     };
 
     getCompletedJobs = (): number => {
@@ -116,9 +118,6 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
                             <Text className="text-base text-estela-black-medium break-words">PROJECT HEALTH</Text>
-                            <TooltipAntd placement="left" title="Click 'Show details' for more information.">
-                                <Help className="w-4 h-4 stroke-estela-black-medium" />
-                            </TooltipAntd>
                         </div>
                         {loadedStats ? (
                             <>
@@ -173,15 +172,26 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                                     <p className="text-estela-black-medium text-sm">
                                         rate of completed jobs over a range of time
                                     </p>
-                                    <p className="mt-1 text-right text-xs text-estela-states-green-full">
-                                        Completed jobs: {this.getCompletedJobs()} / {this.getTotalJobs()}
-                                    </p>
+                                    <div className="mt-1 flex items-center justify-between">
+                                        <p className="text-estela-black-low text-xs">
+                                            {influenceSuccessRate * 100}% of influence
+                                        </p>
+                                        <p className="text-right text-xs text-estela-states-green-full">
+                                            Completed jobs: {this.getCompletedJobs()} / {this.getTotalJobs()}
+                                        </p>
+                                    </div>
+
                                     <Divider className="mt-2" />
                                     <p className="text-black text-sm font-medium">Pages Scraped</p>
                                     <p className="text-estela-black-medium text-sm">Pages covered by all spiders</p>
-                                    <p className="mt-1 text-right text-xs text-estela-states-green-full">
-                                        Scraped pages: {this.getScrapedPages()} / {this.getTotalPages()}
-                                    </p>
+                                    <div className="mt-1 flex items-center justify-between">
+                                        <p className="text-estela-black-low text-xs">
+                                            {influencePages * 100}% of influence
+                                        </p>
+                                        <p className="mt-1 text-right text-xs text-estela-states-green-full">
+                                            Scraped pages: {this.getScrapedPages()} / {this.getTotalPages()}
+                                        </p>
+                                    </div>
                                     <Divider className="mt-2" />
                                 </>
                             )}
