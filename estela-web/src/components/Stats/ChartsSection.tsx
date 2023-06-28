@@ -15,6 +15,7 @@ import { StatType, Spin as Spinner } from "../../shared";
 import { GlobalStats, SpidersJobsStats } from "../../services";
 import { Empty, Tabs } from "antd";
 import moment from "moment";
+import "./ChartsSection.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -220,36 +221,39 @@ export class ChartsSection extends Component<ChartsSectionProps, unknown> {
                 {stats.length === 0 ? (
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 ) : (
-                    <Bar
-                        options={{
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: "bottom" as const,
-                                },
-                            },
-                            scales: {
-                                x: {
-                                    stacked: true,
-                                    grid: {
-                                        display: false,
+                    <div className="stats-charts">
+                        <Bar
+                            options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: "bottom" as const,
                                     },
                                 },
-                                y: {
-                                    stacked: true,
-                                    min:
-                                        statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
-                                            ? 0
-                                            : undefined,
-                                    max:
-                                        statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
-                                            ? 100
-                                            : undefined,
+                                scales: {
+                                    x: {
+                                        stacked: true,
+                                        grid: {
+                                            display: false,
+                                        },
+                                    },
+                                    y: {
+                                        stacked: true,
+                                        min:
+                                            statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
+                                                ? 0
+                                                : undefined,
+                                        max:
+                                            statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
+                                                ? 100
+                                                : undefined,
+                                    },
                                 },
-                            },
-                        }}
-                        data={data}
-                    />
+                            }}
+                            data={data}
+                        />
+                    </div>
                 )}
             </>
         );

@@ -10,7 +10,7 @@ import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
-import { HeaderSection, ChartsSection, StatsTableSection, ProjectHealth, RightSidedModal } from "../../components";
+import { HeaderSection, ChartsSection, StatsTableSection } from "../../components";
 
 const { Text } = Typography;
 const { Content } = Layout;
@@ -23,7 +23,6 @@ interface ProjectDashboardPageState {
     formattedStorage: BytesMetric;
     count: number;
     current: number;
-    projectUsageModal: boolean;
     loadedStats: boolean;
     globalStats: GlobalStats[];
     statsStartDate: moment.Moment;
@@ -50,7 +49,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         loaded: false,
         count: 0,
         current: 0,
-        projectUsageModal: false,
         loadedStats: false,
         globalStats: [],
         statsStartDate: moment().subtract(7, "days").startOf("day").utc(),
@@ -164,7 +162,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             loaded,
             globalStats,
             loadedStats,
-            projectUsageModal,
             formattedNetwork,
             formattedStorage,
             processingTime,
@@ -179,13 +176,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                         <Row className="flow-root lg:m-8 m-4">
                             <Col className="float-left flex items-center gap-4 text-xl leading-6 text-estela-black-medium font-medium">
                                 {name}
-                                <Button
-                                    size="small"
-                                    className="flex items-center rounded-lg font-medium bg-estela-blue-full stroke-estela-white-full text-estela-white-full hover:bg-estela-blue-full hover:stroke-estela-white-full hover:text-estela-white-full"
-                                    onClick={() => this.setState({ projectUsageModal: true })}
-                                >
-                                    See Health &amp; Resources
-                                </Button>
                             </Col>
                             <Col className="flex justify-end float-right lg:mx-4 mx-2">
                                 <Text className="my-1 mr-2 text-base text-estela-black-medium">
@@ -206,6 +196,13 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 <HeaderSection
                                     onRefreshEventHandler={this.onRefreshEventHandler}
                                     onChangeDateRangeHandler={this.onChangeDateRangeHandler}
+                                    formattedNetwork={formattedNetwork}
+                                    formattedStorage={formattedStorage}
+                                    processingTime={processingTime}
+                                    stats={globalStats}
+                                    loadedStats={loadedStats}
+                                    startDate={statsStartDate.local().format("ddd, DD MMM")}
+                                    endDate={statsEndDate.local().format("ddd, DD MMM")}
                                 />
                                 <ChartsSection stats={globalStats.slice().reverse()} loadedStats={loadedStats} />
                                 <StatsTableSection
@@ -216,21 +213,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 />
                             </Content>
                         </div>
-
-                        <RightSidedModal
-                            open={projectUsageModal}
-                            onClose={() => this.setState({ projectUsageModal: false })}
-                        >
-                            <ProjectHealth
-                                formattedNetwork={formattedNetwork}
-                                formattedStorage={formattedStorage}
-                                processingTime={processingTime}
-                                stats={globalStats}
-                                loadedStats={loadedStats}
-                                startDate={statsStartDate.local().format("ddd,DD MMM")}
-                                endDate={statsEndDate.local().format("ddd,DD MMM")}
-                            />
-                        </RightSidedModal>
                     </Fragment>
                 ) : (
                     <Spin />

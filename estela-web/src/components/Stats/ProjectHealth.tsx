@@ -116,10 +116,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                     <Space direction="vertical" className="w-full">
                         <div className="flex items-center justify-between">
                             <Text className="text-base text-estela-black-medium break-words">PROJECT HEALTH</Text>
-                            <TooltipAntd
-                                placement="left"
-                                title="Average job success rate of all dates in the specified range."
-                            >
+                            <TooltipAntd placement="left" title="Click 'Show details' for more information.">
                                 <Help className="w-4 h-4 stroke-estela-black-medium" />
                             </TooltipAntd>
                         </div>
@@ -154,7 +151,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                                 </div>
 
                                 <div className="mx-auto">
-                                    <p className="text-estela-black-full text-center font-semibold">
+                                    <p className="text-estela-black-full text-center font-medium">
                                         from <span className="font-extrabold">{startDate}</span> to{" "}
                                         <span className="font-extrabold">{endDate}</span>
                                     </p>
