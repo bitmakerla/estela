@@ -30,25 +30,37 @@ export interface JobsStats {
      * @type {number}
      * @memberof JobsStats
      */
+    waitingJobs?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof JobsStats
+     */
     runningJobs?: number;
     /**
      * 
      * @type {number}
      * @memberof JobsStats
      */
+    stoppedJobs?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof JobsStats
+     */
+    completedJobs?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof JobsStats
+     */
+    inQueueJobs?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof JobsStats
+     */
     errorJobs?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof JobsStats
-     */
-    unknownJobs?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof JobsStats
-     */
-    finishedJobs?: number;
 }
 
 export function JobsStatsFromJSON(json: any): JobsStats {
@@ -62,10 +74,12 @@ export function JobsStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     return {
         
         'totalJobs': !exists(json, 'total_jobs') ? undefined : json['total_jobs'],
+        'waitingJobs': !exists(json, 'waiting_jobs') ? undefined : json['waiting_jobs'],
         'runningJobs': !exists(json, 'running_jobs') ? undefined : json['running_jobs'],
+        'stoppedJobs': !exists(json, 'stopped_jobs') ? undefined : json['stopped_jobs'],
+        'completedJobs': !exists(json, 'completed_jobs') ? undefined : json['completed_jobs'],
+        'inQueueJobs': !exists(json, 'in_queue_jobs') ? undefined : json['in_queue_jobs'],
         'errorJobs': !exists(json, 'error_jobs') ? undefined : json['error_jobs'],
-        'unknownJobs': !exists(json, 'unknown_jobs') ? undefined : json['unknown_jobs'],
-        'finishedJobs': !exists(json, 'finished_jobs') ? undefined : json['finished_jobs'],
     };
 }
 
@@ -79,10 +93,12 @@ export function JobsStatsToJSON(value?: JobsStats | null): any {
     return {
         
         'total_jobs': value.totalJobs,
+        'waiting_jobs': value.waitingJobs,
         'running_jobs': value.runningJobs,
+        'stopped_jobs': value.stoppedJobs,
+        'completed_jobs': value.completedJobs,
+        'in_queue_jobs': value.inQueueJobs,
         'error_jobs': value.errorJobs,
-        'unknown_jobs': value.unknownJobs,
-        'finished_jobs': value.finishedJobs,
     };
 }
 
