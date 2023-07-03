@@ -13,7 +13,7 @@ body {
 
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+        monospace;
 }
 
 .white-background {
@@ -38,23 +38,12 @@ code {
     justify-content: center;
 }
 
-.ant-btn-primary {
-    background-color: rgb(24, 144, 255) !important;
-    border-color: rgb(24, 144, 255);;
-}
-
-.ant-btn-primary:hover {
-    background-color: white !important;
-    border-color: rgb(24, 144, 255);;
-    color: rgb(24, 144, 255);;
-}
-
 .ant-pagination-item {
     font-weight: 400;
     border: none;
     color: $estela-black-medium !important;
 }
-  
+
 .ant-pagination-item-active {
     color: $estela-blue-full !important;
     background-color: $estela-blue-low !important;

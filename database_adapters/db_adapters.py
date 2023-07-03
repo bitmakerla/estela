@@ -94,6 +94,11 @@ class MongoAdapter(DatabaseInterface):
             print(ex)
         return count
 
+    def get_collection_data(self, database_name, collection_name, limit=10000):
+        collection = self.client[database_name][collection_name]
+        result = collection.find({}, {"_id": False}).limit(limit)
+        return list(result)
+
     def get_all_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
         result = collection.find({}, {"_id": False})

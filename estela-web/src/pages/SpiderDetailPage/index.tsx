@@ -44,15 +44,21 @@ import { convertDateToString, handleInvalidDataError } from "../../utils";
 const { Content } = Layout;
 const { Text } = Typography;
 
-const queued = 0;
-const running = 1;
-const completed = 2;
-const withError = 3;
+const waiting = 0;
+const queued = 1;
+const running = 2;
+const completed = 3;
+const withError = 4;
+
+interface SpiderData {
+    sid: number;
+    name: string;
+}
 
 interface SpiderJobData {
     id: number | null | undefined;
     key: number | null | undefined;
-    spider: number | null | undefined;
+    spider: SpiderData;
     jobStatus: string | null | undefined;
     cronjob: number | null | undefined;
     args: SpiderJobArg[] | undefined;
@@ -68,6 +74,7 @@ interface SpiderDetailPageState {
     optionTab: string;
     tableStatus: boolean[];
     jobs: SpiderJobData[];
+    waitingJobs: SpiderJobData[];
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
@@ -108,6 +115,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         count: 0,
         current: 0,
         optionTab: "overview",
+        waitingJobs: [],
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
@@ -118,7 +126,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         dataExpiryDays: 1,
         persistenceChanged: false,
         newDataStatus: undefined,
-        tableStatus: new Array<boolean>(4).fill(true),
+        tableStatus: new Array<boolean>(5).fill(true),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -139,14 +147,10 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             ),
         },
         {
-            title: "SPIDER ID",
+            title: "SPIDER",
             dataIndex: "spider",
             key: "spider",
-            render: (spiderID: number): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`} className="text-estela-blue-medium">
-                    {spiderID}
-                </Link>
-            ),
+            render: (spider: SpiderData): ReactElement => <span>{spider.name}</span>,
         },
         {
             title: "SCHEDULED JOB",
@@ -209,22 +213,28 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         this.apiService.apiProjectsSpidersRead(requestParams).then(
             async (response: Spider) => {
                 const data = await this.getSpiderJobs(1);
-                const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
-                const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
+
+                const waitingJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "WAITING");
                 const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
+                const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
+                const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
                 const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
+
                 const scheduledJobsCount = data.data
                     .filter((job: SpiderJobData) => job.cronjob !== null && job.cronjob !== undefined)
                     .map((job: SpiderJobData) => job.cronjob)
                     .filter((cronjob, index, self) => {
                         return self.indexOf(cronjob) === index;
                     }).length;
+
                 const tableStatus = [
+                    !(waitingJobs.length === 0),
                     !(queueJobs.length === 0),
                     !(runningJobs.length === 0),
                     !(completedJobs.length === 0),
                     !(errorJobs.length === 0),
                 ];
+
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({
                     spider: response,
@@ -236,6 +246,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     current: data.current,
                     loaded: true,
                     tableStatus: [...tableStatus],
+                    waitingJobs: [...waitingJobs],
                     queueJobs: [...queueJobs],
                     runningJobs: [...runningJobs],
                     completedJobs: [...completedJobs],
@@ -327,23 +338,29 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     onPageChange = async (page: number): Promise<void> => {
         this.setState({ loaded: false });
         const data = await this.getSpiderJobs(page);
-        const jobs: SpiderJobData[] = data.data;
-        const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
-        const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
+
+        const waitingJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "WAITING");
         const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
+        const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
+        const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
         const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
+
         const tableStatus = [
+            !(waitingJobs.length === 0),
             !(queueJobs.length === 0),
             !(runningJobs.length === 0),
             !(completedJobs.length === 0),
             !(errorJobs.length === 0),
         ];
+
+        const jobs: SpiderJobData[] = data.data;
         this.setState({
             jobs: [...jobs],
             count: data.count,
             current: data.current,
             loaded: true,
             tableStatus: [...tableStatus],
+            waitingJobs: [...waitingJobs],
             queueJobs: [...queueJobs],
             runningJobs: [...runningJobs],
             completedJobs: [...completedJobs],
@@ -374,6 +391,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             jobs,
             count,
             current,
+            waitingJobs,
             queueJobs,
             runningJobs,
             completedJobs,
@@ -412,7 +430,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                     <p className="text-sm font-bold">Project ID</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-sm text-silver">{this.projectId}</p>
+                                    <Link
+                                        to={`/projects/${this.projectId}/dashboard`}
+                                        className="text-estela-blue-medium text-sm"
+                                    >
+                                        {this.projectId}
+                                    </Link>
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 p-2 rounded-lg">
@@ -428,6 +451,63 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 </Row>
                 <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
                     <Col className="float-left col-span-4">
+                        {tableStatus[waiting] && (
+                            <Row className="my-2 rounded-lg bg-white">
+                                <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                    <Col className="float-left py-1">
+                                        <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                            Waiting
+                                        </Text>
+                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                            {waitingJobs.length}
+                                        </Tag>
+                                    </Col>
+                                    <Col className="flex float-right">
+                                        <Button
+                                            disabled
+                                            icon={<Filter className="h-6 w-6 mr-2" />}
+                                            size="large"
+                                            className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        >
+                                            Filter
+                                        </Button>
+                                        <Button
+                                            disabled
+                                            icon={<Setting className="h-6 w-6" />}
+                                            size="large"
+                                            className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                        ></Button>
+                                    </Col>
+                                </Content>
+                                <Content className="mx-4 my-1">
+                                    <Table
+                                        scroll={{}}
+                                        size="small"
+                                        rowSelection={{
+                                            type: "checkbox",
+                                        }}
+                                        columns={this.columns}
+                                        dataSource={waitingJobs}
+                                        pagination={false}
+                                    />
+                                </Content>
+                                <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                <Space direction="horizontal" className="my-2 mx-4">
+                                    <Button
+                                        disabled
+                                        className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        disabled
+                                        className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                    >
+                                        Edit
+                                    </Button>
+                                </Space>
+                            </Row>
+                        )}
                         {tableStatus[queued] && (
                             <Row className="my-2 rounded-lg bg-white">
                                 <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
@@ -651,6 +731,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                         <Content className="my-2 mx-3">
                             <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
                             <Content className="my-2">
+                                <Checkbox
+                                    checked={waitingJobs.length === 0 ? tableStatus[waiting] : true}
+                                    onChange={() => this.onChangeStatus(waiting, waitingJobs.length)}
+                                >
+                                    <Space direction="horizontal">
+                                        <Text className="text-estela-black-medium font-medium text-sm">Waiting</Text>
+                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                            {waitingJobs.length}
+                                        </Tag>
+                                    </Space>
+                                </Checkbox>
+                                <br />
                                 <Checkbox
                                     checked={queueJobs.length === 0 ? tableStatus[queued] : true}
                                     onChange={() => this.onChangeStatus(queued, queueJobs.length)}

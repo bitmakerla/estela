@@ -14,7 +14,7 @@ import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
 import Logout from "../../assets/icons/logout.svg";
 import Circle from "../../assets/icons/ellipse.svg";
-import userDropdownSidenavItems from "ExternalComponents/DropdownComponent";
+import userDropdownSideNavItems from "ExternalComponents/DropdownComponent";
 
 const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -36,7 +36,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     timer: NodeJS.Timeout | undefined;
 
     async componentDidMount() {
-        userDropdownSidenavItems.forEach((element: MenuItem) => {
+        userDropdownSideNavItems.forEach((element: MenuItem) => {
             this.itemsUser?.push(element);
         });
         const key_logout = this.itemsUser?.length;

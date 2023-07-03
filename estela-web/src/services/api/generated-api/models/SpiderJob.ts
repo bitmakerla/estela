@@ -41,11 +41,11 @@ export interface SpiderJob {
      */
     readonly jid?: number;
     /**
-     * Spider sid.
-     * @type {number}
+     * 
+     * @type {string}
      * @memberof SpiderJob
      */
-    spider: number;
+    readonly spider?: string;
     /**
      * Job creation date.
      * @type {Date}
@@ -147,7 +147,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
     return {
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
-        'spider': json['spider'],
+        'spider': !exists(json, 'spider') ? undefined : json['spider'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
         'name': !exists(json, 'name') ? undefined : json['name'],
         'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
@@ -173,7 +173,6 @@ export function SpiderJobToJSON(value?: SpiderJob | null): any {
     }
     return {
         
-        'spider': value.spider,
         'lifespan': value.lifespan,
         'total_response_bytes': value.totalResponseBytes,
         'item_count': value.itemCount,

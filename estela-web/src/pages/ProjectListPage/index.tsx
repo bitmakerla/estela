@@ -141,7 +141,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 if (response.users && response.users.length > 0) {
                     updateRole && updateRole(response.users[0].permission ?? "");
                 }
-                history.push(`/projects/${response.pid}/dashboard`);
+                history.push(`/projects/${response.pid}/deploys`);
             },
             (error: unknown) => {
                 error;

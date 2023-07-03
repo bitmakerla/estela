@@ -1,7 +1,7 @@
 export { CustomHeader as Header } from "./header";
-export { ProjectSidenav } from "./projectSidenav";
-export { ProfileSettingsSideNav } from "./profileSettingsSidenav";
-export { NotificationsSidenav } from "./notificationsSidenav";
+export { ProjectSideNav } from "./projectSideNav";
+export { ProfileSettingsSideNav } from "./profileSettingsSideNav";
+export { NotificationsSideNav } from "./notificationsSideNav";
 export { CustomSpin as Spin } from "./spin";
 export { PaginationItem } from "./paginationItem";
 export * from "./notifications";

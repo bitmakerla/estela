@@ -1,6 +1,7 @@
 import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
+import { ActivatedAccountPage } from "../pages/ActivatedAccountPage";
 import { LoginPage } from "../pages/LoginPage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { NotificationsInboxPage } from "../pages/NotificationsInboxPage";
@@ -33,12 +34,13 @@ export const MainRoutes: React.FC = () => {
                 <Redirect to="/login" />
             </Route>
 
-            <Route path={["/login", "/register", "/forgotPassword", "/resetPassword"]} exact>
+            <Route path={["/login", "/register", "/forgotPassword", "/resetPassword", "/activatedAccount"]} exact>
                 <AuthLayout>
                     <Route path="/login" component={LoginPage} exact />
                     <Route path="/register" component={RegisterPage} exact />
                     <Route path="/forgotPassword" component={ForgotPasswordPage} exact />
                     <Route path="/resetPassword" component={ResetPasswordPage} exact />
+                    <Route path="/activatedAccount" component={ActivatedAccountPage} exact />
                 </AuthLayout>
             </Route>
 

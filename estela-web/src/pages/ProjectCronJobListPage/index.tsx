@@ -28,8 +28,13 @@ import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 
-interface Ids {
+interface SpiderData {
     sid: number;
+    name: string;
+}
+
+interface BaseInfo {
+    spider: SpiderData;
     cid: number | undefined;
 }
 
@@ -43,7 +48,7 @@ interface Args {
 }
 
 interface SpiderCronJobData {
-    id: Ids;
+    id: BaseInfo;
     key: number | undefined;
     date: string;
     status: string | undefined;
@@ -138,18 +143,25 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         },
         {
             title: "SCHEDULED JOB",
-            dataIndex: "id",
-            key: "id",
-            render: (id: Ids): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${id.sid}/cronjobs/${id.cid}`}>{id.cid}</Link>
+            dataIndex: "info",
+            key: "info",
+            render: (info: BaseInfo): ReactElement => (
+                <Link
+                    to={`/projects/${this.projectId}/spiders/${info.spider.sid}/cronjobs/${info.cid}`}
+                    className="text-estela-blue-medium"
+                >
+                    Sche-Job-{info.cid}
+                </Link>
             ),
         },
         {
             title: "SPIDER",
-            dataIndex: "id",
-            key: "id",
-            render: (id: Ids): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${id.sid}`}>{id.sid}</Link>
+            dataIndex: "info",
+            key: "info",
+            render: (info: BaseInfo): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${info.spider.sid}`} className="text-estela-blue-medium">
+                    {info.spider.name}
+                </Link>
             ),
         },
         {
@@ -219,7 +231,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         await this.apiService.apiProjectsCronjobs(requestParams).then((response: ProjectCronJob) => {
             const data = response.results.map((cronjob: SpiderCronJob, iterator: number) => ({
                 key: iterator,
-                id: { sid: cronjob.spider, cid: cronjob.cjid },
+                info: { spider: cronjob.spider, cid: cronjob.cjid },
                 date: convertDateToString(cronjob.created),
                 status: cronjob.status,
                 schedule: cronjob.schedule,
@@ -239,8 +251,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 ? SpiderCronJobUpdateStatusEnum.Active
                 : SpiderCronJobUpdateStatusEnum.Disabled;
         const request: ApiProjectsSpidersCronjobsUpdateRequest = {
-            cjid: Number(cronjob.id.cid),
-            sid: String(cronjob.id.sid),
+            cjid: Number(cronjob.info.cid),
+            sid: String(cronjob.info.spider.sid),
             pid: this.projectId,
             data: {
                 status: _status,
@@ -281,14 +293,14 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     editCronjob = (cronjob: SpiderCronJobData): void => {
-        history.push(`/projects/${this.projectId}/spiders/${cronjob.id.sid}/cronjobs/${cronjob.id.cid}`);
+        history.push(`/projects/${this.projectId}/spiders/${cronjob.info.spider.sid}/cronjobs/${cronjob.info.cid}`);
     };
 
     runOnce = (cronjob: SpiderCronJobData): void => {
         const requestParams: ApiProjectsSpidersCronjobsRunOnceRequest = {
             pid: this.projectId,
-            sid: String(cronjob.id.sid),
-            cjid: Number(cronjob.id.cid),
+            sid: String(cronjob.info.spider.sid),
+            cjid: Number(cronjob.info.cid),
         };
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
@@ -303,8 +315,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     deleteCronjob = (cronjob: SpiderCronJobData): void => {
         const requestParams: ApiProjectsSpidersCronjobsDeleteRequest = {
             pid: this.projectId,
-            sid: String(cronjob.id.sid),
-            cjid: Number(cronjob.id.cid),
+            sid: String(cronjob.info.spider.sid),
+            cjid: Number(cronjob.info.cid),
         };
         this.apiService.apiProjectsSpidersCronjobsDelete(requestParams).then(
             () => {

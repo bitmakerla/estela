@@ -119,7 +119,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             )
             email.send()
             return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0],
+                "".join([settings.CORS_ORIGIN_WHITELIST[0], "/activatedAccount"]),
                 {
                     "message": "Thank you for your email confirmation. You can now log in to your account."
                 },

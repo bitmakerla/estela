@@ -14,10 +14,12 @@ class LogsStatsSerializer(serializers.Serializer):
 
 class JobsStatsSerializer(serializers.Serializer):
     total_jobs = serializers.IntegerField(default=0)
+    waiting_jobs = serializers.IntegerField(default=0)
     running_jobs = serializers.IntegerField(default=0)
+    stopped_jobs = serializers.IntegerField(default=0)
+    completed_jobs = serializers.IntegerField(default=0)
+    in_queue_jobs = serializers.IntegerField(default=0)
     error_jobs = serializers.IntegerField(default=0)
-    unknown_jobs = serializers.IntegerField(default=0)
-    finished_jobs = serializers.IntegerField(default=0)
 
 
 class PagesStatsSerializer(serializers.Serializer):
@@ -73,7 +75,7 @@ class GetJobsStatsSerializer(serializers.Serializer):
 
 
 class GlobalStatsSerializer(serializers.Serializer):
-    date = serializers.DateField(format="%Y-%m-%d")
+    date = serializers.DateField()
     stats = StatsSerializer()
     jobs_metadata = JobsMetadataSerializer(many=True)
 

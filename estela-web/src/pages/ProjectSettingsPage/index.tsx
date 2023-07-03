@@ -226,7 +226,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                 {loaded ? (
                     <div className="lg:m-10 md:mx-6 m-6">
                         <Row className="font-medium my-6">
-                            <p className="text-xl text-silver">PROJECT SETTING</p>
+                            <p className="text-xl text-silver">PROJECT SETTINGS</p>
                         </Row>
                         <Row className="bg-white rounded-lg">
                             <div className="lg:m-8 md:mx-6 m-4">

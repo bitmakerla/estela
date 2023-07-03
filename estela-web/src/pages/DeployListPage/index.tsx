@@ -170,7 +170,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                 <Col span={16}>
                                     <Text className="text-estela font-bold text-4xl">ONE STEP MISSING!</Text>
                                     <Paragraph className="text-xl my-6">
-                                        Install
+                                        Install the
                                         <a
                                             target="_blank"
                                             href="https://estela.bitmaker.la/docs/estela-cli/install.html"
@@ -178,12 +178,17 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         >
                                             <Text className="text-estela underline mx-1">estela CLI</Text>
                                         </a>
-                                        to be able to access all Estela tools and
-                                        <Text className="font-bold"> deploy </Text> your spiders.
+                                        to <Text strong>deploy</Text> your spiders, unlock{" "}
+                                        <Text strong>advanced developer features</Text>, and access all{" "}
+                                        <Text strong>estela tools</Text>.
                                     </Paragraph>
                                     <Paragraph className="font-bold text-lg">
                                         Check all our documentation&nbsp;
-                                        <a target="_blank" href="https://estela.bitmaker.la/docs/" rel="noreferrer">
+                                        <a
+                                            target="_blank"
+                                            href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                            rel="noreferrer"
+                                        >
                                             <Text className="text-estela underline">here!</Text>
                                         </a>
                                     </Paragraph>
@@ -197,7 +202,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                     className="w-96 h-14 px-10 bg-white border-estela text-estela rounded-lg"
                                     onClick={this.handleCloseModal}
                                 >
-                                    I have it installed
+                                    I already have it
                                 </Button>
                                 <Button
                                     target="_blank"
@@ -205,7 +210,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                     className="w-96 h-14 px-10 bg-estela-blue-full border-estela text-white rounded-lg flex flex-col justify-center"
                                     onClick={this.handleCloseModal}
                                 >
-                                    Install estela CLI
+                                    Install the estela CLI
                                 </Button>
                             </Row>
                         </Modal>
@@ -242,7 +247,8 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                         </Text>
                                                     </a>
                                                     to <Text strong>streamline spider deployment</Text>, unlock{" "}
-                                                    <Text strong>advanced developer features</Text>, and more.
+                                                    <Text strong>advanced developer features</Text>, and access all{" "}
+                                                    <Text strong>estela tools</Text>.
                                                 </p>
                                             </Col>
                                         </Col>
