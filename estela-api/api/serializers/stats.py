@@ -1,6 +1,5 @@
+from datetime import timedelta
 from rest_framework import serializers
-
-from core.models import SpiderJob
 
 
 class LogsStatsSerializer(serializers.Serializer):
@@ -55,17 +54,11 @@ class StatsSerializer(serializers.Serializer):
     jobs = JobsStatsSerializer(required=False)
     pages = PagesStatsSerializer()
     items_count = serializers.IntegerField(default=0)
-    runtime = serializers.FloatField(default=0.0)
+    runtime = serializers.DurationField(default=timedelta(hours=0, minutes=0))
     status_codes = StatusCodesStatsSerializer()
     success_rate = serializers.FloatField(default=0.0)
     logs = LogsStatsSerializer()
     coverage = CoverageStatsSerializer()
-
-
-class JobsMetadataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SpiderJob
-        fields = ("jid", "spider", "job_status")
 
 
 class GetJobsStatsSerializer(serializers.Serializer):
@@ -77,7 +70,6 @@ class GetJobsStatsSerializer(serializers.Serializer):
 class GlobalStatsSerializer(serializers.Serializer):
     date = serializers.DateField()
     stats = StatsSerializer()
-    jobs_metadata = JobsMetadataSerializer(many=True)
 
 
 class SpidersJobsStatsSerializer(GlobalStatsSerializer):
