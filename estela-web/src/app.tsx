@@ -5,6 +5,7 @@ import { UserProvider } from "./context";
 
 import history from "./history";
 import ComponentRoutes from "ExternalComponents/ComponentRoutes";
+import ExternalScripts from "ExternalComponents/ExternalScripts";
 
 export class App extends Component<unknown, unknown> {
     render(): JSX.Element {
@@ -19,6 +20,7 @@ export class App extends Component<unknown, unknown> {
                             <ComponentRoutes />
                         </Suspense>
                     </Switch>
+                    <ExternalScripts />
                 </Router>
             </Fragment>
         );
