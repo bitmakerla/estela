@@ -50,8 +50,8 @@ router.register(
 )
 router.register(
     prefix=r"stats/(?P<pid>[0-9a-z-]+)",
-    viewset=stats_views.GlobalStatsViewSet,
-    basename="global-stats",
+    viewset=stats_views.ProjectStatsViewSet,
+    basename="project-stats",
 )
 router.register(
     prefix=r"stats/(?P<pid>[0-9a-z-]+)/spider/(?P<sid>\d+)",

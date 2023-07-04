@@ -14,10 +14,6 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    JobsMetadata,
-    JobsMetadataFromJSON,
-    JobsMetadataFromJSONTyped,
-    JobsMetadataToJSON,
     Stats,
     StatsFromJSON,
     StatsFromJSONTyped,
@@ -42,12 +38,6 @@ export interface SpidersJobsStats {
      * @memberof SpidersJobsStats
      */
     stats: Stats;
-    /**
-     * 
-     * @type {Array<JobsMetadata>}
-     * @memberof SpidersJobsStats
-     */
-    jobsMetadata: Array<JobsMetadata>;
 }
 
 export function SpidersJobsStatsFromJSON(json: any): SpidersJobsStats {
@@ -62,7 +52,6 @@ export function SpidersJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'date': (new Date(json['date'])),
         'stats': StatsFromJSON(json['stats']),
-        'jobsMetadata': ((json['jobs_metadata'] as Array<any>).map(JobsMetadataFromJSON)),
     };
 }
 
@@ -77,7 +66,6 @@ export function SpidersJobsStatsToJSON(value?: SpidersJobsStats | null): any {
         
         'date': (value.date.toISOString().substr(0,10)),
         'stats': StatsToJSON(value.stats),
-        'jobs_metadata': ((value.jobsMetadata as Array<any>).map(JobsMetadataToJSON)),
     };
 }
 

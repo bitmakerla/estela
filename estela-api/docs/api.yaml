@@ -1305,7 +1305,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/GlobalStats'
+              $ref: '#/definitions/ProjectStats'
       tags:
         - api
     parameters:
@@ -1313,25 +1313,41 @@ paths:
         in: path
         required: true
         type: string
-  /api/stats/{pid}/jobs_stats:
-    post:
-      operationId: api_stats_jobs_stats
-      description: Retrieve stats of all jobs metadata.
+  /api/stats/{pid}/jobs:
+    get:
+      operationId: api_stats_jobs
+      description: Retrieve all the jobs of a spider executed in a range of dates.
       parameters:
-        - name: data
-          in: body
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
           required: true
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/GetJobsStats'
+          type: string
+        - name: end_date
+          in: query
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          required: true
+          type: string
+        - name: spider
+          in: query
+          description: The spider ID related to the jobs.
+          required: true
+          type: integer
       responses:
         '200':
-          description: Array with stats summary for each job
+          description: Paginated spiders belonging to an specific date
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/GetJobsStats'
+            $ref: '#/definitions/JobsPagination'
       tags:
         - api
     parameters:
@@ -1383,33 +1399,40 @@ paths:
         in: path
         required: true
         type: string
-  /api/stats/{pid}/spider/{sid}/jobs_stats:
-    post:
-      operationId: api_stats_spider_jobs_stats
-      description: Retrieve stats of all jobs metadata.
+  /api/stats/{pid}/spiders:
+    get:
+      operationId: api_stats_spiders
+      description: Retrieve all the spiders executed in a range of dates.
       parameters:
-        - name: data
-          in: body
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
           required: true
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/GetJobsStats'
+          type: string
+        - name: end_date
+          in: query
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          required: true
+          type: string
       responses:
         '200':
-          description: Array with stats summary for each job
+          description: Paginated spiders belonging to an specific date
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/GetJobsStats'
+            $ref: '#/definitions/SpiderPagination'
       tags:
         - api
     parameters:
       - name: pid
-        in: path
-        required: true
-        type: string
-      - name: sid
         in: path
         required: true
         type: string
@@ -2616,7 +2639,7 @@ definitions:
       runtime:
         title: Runtime
         type: number
-        default: 0.0
+        default: 00:00:00
       status_codes:
         $ref: '#/definitions/StatusCodesStats'
       success_rate:
@@ -2627,29 +2650,10 @@ definitions:
         $ref: '#/definitions/LogsStats'
       coverage:
         $ref: '#/definitions/CoverageStats'
-  JobsMetadata:
-    required:
-      - spider
-    type: object
-    properties:
-      jid:
-        title: Jid
-        description: A unique integer value identifying this job.
-        type: integer
-        readOnly: true
-      spider:
-        title: Spider
-        description: Spider sid.
-        type: integer
-      job_status:
-        title: Job status
-        type: string
-        readOnly: true
-  GlobalStats:
+  ProjectStats:
     required:
       - date
       - stats
-      - jobs_metadata
     type: object
     properties:
       date:
@@ -2658,28 +2662,35 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
-      jobs_metadata:
-        type: array
-        items:
-          $ref: '#/definitions/JobsMetadata'
-  GetJobsStats:
+  JobsPagination:
+    required:
+      - count
+      - results
     type: object
     properties:
-      jid:
-        title: Jid
+      count:
+        title: Count
         type: integer
-        default: 0
-      spider:
-        title: Spider
-        type: integer
-        default: 0
-      stats:
-        $ref: '#/definitions/Stats'
+      next:
+        title: Next
+        type: string
+        format: uri
+        readOnly: true
+        x-nullable: true
+      previous:
+        title: Previous
+        type: string
+        format: uri
+        readOnly: true
+        x-nullable: true
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJob'
   SpidersJobsStats:
     required:
       - date
       - stats
-      - jobs_metadata
     type: object
     properties:
       date:
@@ -2688,7 +2699,28 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
-      jobs_metadata:
+  SpiderPagination:
+    required:
+      - count
+      - results
+    type: object
+    properties:
+      count:
+        title: Count
+        type: integer
+      next:
+        title: Next
+        type: string
+        format: uri
+        readOnly: true
+        x-nullable: true
+      previous:
+        title: Previous
+        type: string
+        format: uri
+        readOnly: true
+        x-nullable: true
+      results:
         type: array
         items:
-          $ref: '#/definitions/JobsMetadata'
+          $ref: '#/definitions/Spider'

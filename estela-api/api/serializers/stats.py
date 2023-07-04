@@ -1,5 +1,19 @@
 from datetime import timedelta
 from rest_framework import serializers
+from api.serializers.spider import SpiderSerializer
+from api.serializers.job import SpiderJobSerializer
+
+class SpiderPaginationSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
+    previous = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
+    results = SpiderSerializer(many=True)
+
+class JobsPaginationSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
+    previous = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
+    results = SpiderJobSerializer(many=True)
 
 
 class LogsStatsSerializer(serializers.Serializer):
@@ -56,21 +70,17 @@ class StatsSerializer(serializers.Serializer):
     items_count = serializers.IntegerField(default=0)
     runtime = serializers.DurationField(default=timedelta(hours=0, minutes=0))
     status_codes = StatusCodesStatsSerializer()
-    success_rate = serializers.FloatField(default=0.0)
+    success_rate = serializers.FloatField(default=0.0, required=False)
     logs = LogsStatsSerializer()
-    coverage = CoverageStatsSerializer()
+    coverage = CoverageStatsSerializer(required=False)
 
+class SpiderJobStatsSerializer(SpiderJobSerializer):
+    stats = StatsSerializer()
 
-class GetJobsStatsSerializer(serializers.Serializer):
-    jid = serializers.IntegerField(default=0)
-    spider = serializers.IntegerField(default=0)
-    stats = StatsSerializer(required=False)
-
-
-class GlobalStatsSerializer(serializers.Serializer):
+class ProjectStatsSerializer(serializers.Serializer):
     date = serializers.DateField()
     stats = StatsSerializer()
 
 
-class SpidersJobsStatsSerializer(GlobalStatsSerializer):
+class SpidersJobsStatsSerializer(ProjectStatsSerializer):
     pass

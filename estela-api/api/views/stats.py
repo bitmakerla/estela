@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from re import findall
 from typing import List, Tuple, Union
@@ -8,9 +8,9 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.inspectors import PaginatorInspector
 from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -20,20 +20,16 @@ from api import errors
 from api.exceptions import DataBaseError, InvalidDateFormatException
 from api.mixins import BaseViewSet
 from api.serializers.spider import SpiderSerializer
+from api.serializers.job import SpiderJobSerializer
 from api.serializers.stats import (
-    GetJobsStatsSerializer,
-    GlobalStatsSerializer,
+    ProjectStatsSerializer,
     SpidersJobsStatsSerializer,
     StatsSerializer,
+    SpiderPaginationSerializer,
+    JobsPaginationSerializer,
 )
 from config.job_manager import spiderdata_db_client
 from core.models import Project, Spider, SpiderJob
-
-
-class StatsPagination(PageNumberPagination):
-    page_size = 10
-    max_page_size = 100
-
 
 class StatsForDashboardMixin:
     stats_mapping: dict = {
@@ -203,108 +199,64 @@ class StatsForDashboardMixin:
                 )
         return stats_results
 
-    def parse_jobs_stats(
-        self, stats_ids: List[str], stats_set: List[dict]
-    ) -> GetJobsStatsSerializer:
-        reformatted_stats_set: dict = {stat["_id"]: stat for stat in stats_set}
-        jobs_stats_results: List[dict] = []
+    # def parse_jobs_stats(
+    #     self, stats_ids: List[str], stats_set: List[dict]
+    # ) -> GetJobsStatsSerializer:
+    #     reformatted_stats_set: dict = {stat["_id"]: stat for stat in stats_set}
+    #     jobs_stats_results: List[dict] = []
 
-        for stat_id in stats_ids:
-            ids = findall(r"\d+", stat_id)
-            spider_id, job_id = int(ids[0]), int(ids[1])
-            job_stat_result: dict = {"jid": job_id, "spider": spider_id}
-            stats: Union[dict, None] = reformatted_stats_set.get(stat_id)
-            if isinstance(stats, dict):
-                job_stat_result["stats"] = {}
-                job_stat_result["stats"]["items_count"] = stats.get(
-                    self.stats_mapping["items_count"], 0
-                )
+    #     for stat_id in stats_ids:
+    #         ids = findall(r"\d+", stat_id)
+    #         spider_id, job_id = int(ids[0]), int(ids[1])
+    #         job_stat_result: dict = {"jid": job_id, "spider": spider_id}
+    #         stats: Union[dict, None] = reformatted_stats_set.get(stat_id)
+    #         if isinstance(stats, dict):
+    #             job_stat_result["stats"] = {}
+    #             job_stat_result["stats"]["items_count"] = stats.get(
+    #                 self.stats_mapping["items_count"], 0
+    #             )
 
-                job_stat_result["stats"]["runtime"] = stats.get(
-                    self.stats_mapping["runtime"], 0.0
-                )
+    #             job_stat_result["stats"]["runtime"] = stats.get(
+    #                 self.stats_mapping["runtime"], 0.0
+    #             )
 
-                job_stat_result["stats"]["pages"]: dict = {}
-                job_stat_result["stats"]["pages"]["scraped_pages"] = stats.get(
-                    self.stats_mapping["scraped_pages"], 0
-                )
-                job_stat_result["stats"]["pages"]["missed_pages"] = stats.get(
-                    self.stats_mapping["total_pages"], 0
-                ) - stats.get(self.stats_mapping["scraped_pages"], 0)
-                job_stat_result["stats"]["pages"]["total_pages"] = stats.get(
-                    self.stats_mapping["total_pages"], 0
-                )
+    #             job_stat_result["stats"]["pages"]: dict = {}
+    #             job_stat_result["stats"]["pages"]["scraped_pages"] = stats.get(
+    #                 self.stats_mapping["scraped_pages"], 0
+    #             )
+    #             job_stat_result["stats"]["pages"]["missed_pages"] = stats.get(
+    #                 self.stats_mapping["total_pages"], 0
+    #             ) - stats.get(self.stats_mapping["scraped_pages"], 0)
+    #             job_stat_result["stats"]["pages"]["total_pages"] = stats.get(
+    #                 self.stats_mapping["total_pages"], 0
+    #             )
 
-                job_stat_result["stats"]["status_codes"]: dict = {}
-                for status_code in self.stats_mapping["status_codes"]:
-                    job_stat_result["stats"]["status_codes"][status_code] = stats.get(
-                        self.stats_mapping["status_codes"][status_code], 0
-                    )
+    #             job_stat_result["stats"]["status_codes"]: dict = {}
+    #             for status_code in self.stats_mapping["status_codes"]:
+    #                 job_stat_result["stats"]["status_codes"][status_code] = stats.get(
+    #                     self.stats_mapping["status_codes"][status_code], 0
+    #                 )
 
-                job_stat_result["stats"]["logs"]: dict = {}
-                for log in self.stats_mapping["logs"]:
-                    log_count = stats.get(self.stats_mapping["logs"][log], 0)
-                    job_stat_result["stats"]["logs"][log] = log_count
-                    job_stat_result["stats"]["logs"]["total_logs"] = log_count
+    #             job_stat_result["stats"]["logs"]: dict = {}
+    #             for log in self.stats_mapping["logs"]:
+    #                 log_count = stats.get(self.stats_mapping["logs"][log], 0)
+    #                 job_stat_result["stats"]["logs"][log] = log_count
+    #                 job_stat_result["stats"]["logs"]["total_logs"] = log_count
 
-                job_stat_result["stats"]["coverage"]: dict = {}
-                coverage: Union[dict, None] = stats.get(
-                    self.stats_mapping["coverage"], None
-                )
-                if isinstance(coverage, dict):
-                    for coverage_field, coverage_value in coverage.items():
-                        job_stat_result["stats"]["coverage"][
-                            coverage_field
-                        ] = coverage_value
-            jobs_stats_results.append(job_stat_result)
-        return GetJobsStatsSerializer(data=jobs_stats_results, many=True)
-
-    @swagger_auto_schema(
-        operation_description="Retrieve stats of all jobs metadata.",
-        request_body=ListSerializer(child=GetJobsStatsSerializer()),
-        request_body_description="The list of jobs metadata to retrieve its stats.",
-        responses={
-            status.HTTP_200_OK: openapi.Response(
-                description="Array with stats summary for each job",
-                schema=ListSerializer(child=GetJobsStatsSerializer()),
-            ),
-        },
-    )
-    @action(methods=["POST"], detail=False)
-    def jobs_stats(self, request: Request, *args, **kwargs):
-        jobs_stats_ids: List[str] = []
-        try:
-            if not isinstance(request.data, list):
-                raise ValidationError(
-                    "Please provide a valid body schema [{jid:number, spider:number}]"
-                )
-            for job_metadata in request.data:
-                serializer = GetJobsStatsSerializer(data=job_metadata)
-                if serializer.is_valid():
-                    jobs_stats_ids.append(
-                        f"{serializer.validated_data.get('spider')}-{serializer.validated_data.get('jid')}-job_stats"
-                    )
-                else:
-                    raise ValidationError(serializer.error_messages)
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        if not spiderdata_db_client.get_connection():
-            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
-
-        stats_set: List[dict] = spiderdata_db_client.get_jobs_set_stats(
-            kwargs["pid"], jobs_stats_ids
-        )
-
-        serializer = self.parse_jobs_stats(jobs_stats_ids, stats_set)
-        if not serializer.is_valid():
-            return Response(
-                {"error": serializer.errors},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+    #             job_stat_result["stats"]["coverage"]: dict = {}
+    #             coverage: Union[dict, None] = stats.get(
+    #                 self.stats_mapping["coverage"], None
+    #             )
+    #             if isinstance(coverage, dict):
+    #                 for coverage_field, coverage_value in coverage.items():
+    #                     job_stat_result["stats"]["coverage"][
+    #                         coverage_field
+    #                     ] = coverage_value
+    #         jobs_stats_results.append(job_stat_result)
+    #     return GetJobsStatsSerializer(data=jobs_stats_results, many=True)
 
 
-class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
+class ProjectStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMixin):
     model_class = Project
     lookup_field = "pid"
     MAX_PAGINATION_SIZE = 100
@@ -332,7 +284,7 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         responses={
             status.HTTP_200_OK: openapi.Response(
                 description="Global stats array with stats summary for each date",
-                schema=ListSerializer(child=GlobalStatsSerializer()),
+                schema=ListSerializer(child=ProjectStatsSerializer()),
             ),
         },
     )
@@ -381,6 +333,7 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         )
 
     @swagger_auto_schema(
+        methods=["GET"],
         operation_description="Retrieve all the spiders executed in a range of dates.",
         manual_parameters=[
             openapi.Parameter(
@@ -400,8 +353,8 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="Array with all the spiders executed in an specific date",
-                schema=SpiderSerializer(),
+                description="Paginated spiders launched in a range of time",
+                schema=SpiderPaginationSerializer(),
             ),
         },
     )
@@ -412,13 +365,14 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
 
-        paginator = StatsPagination()
-        paginator.page_size = request.query_params.get(
+        paginator = PageNumberPagination()
+        paginator.page = request.query_params.get(
             "page", self.DEFAULT_PAGINATION_SIZE
         )
-        paginator.max_page_size = request.query_params.get(
-            "page_size", self.MAX_PAGINATION_SIZE
+        paginator.page_size = request.query_params.get(
+            "page_size", self.DEFAULT_PAGINATION_SIZE
         )
+        paginator.max_page_size = self.MAX_PAGINATION_SIZE
 
         spiders_set = Spider.objects.filter(
             jobs__created__range=[start_date, end_date]
@@ -429,7 +383,7 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         return paginator.get_paginated_response(serializer.data)
 
     @swagger_auto_schema(
-        operation_description="Retrieve all the spider jobs executed in a range of dates.",
+        operation_description="Retrieve all the jobs of a spider executed in a range of dates.",
         manual_parameters=[
             openapi.Parameter(
                 name="start_date",
@@ -445,11 +399,18 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
                 required=True,
                 description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
+            openapi.Parameter(
+                name="spider",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                required=True,
+                description="The spider ID related to the jobs.",
+            ),
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
-                description="Array with all the spiders executed in an specific date",
-                schema=SpiderSerializer(),
+                description="Paginated jobs belonging to a spider in a range of time",
+                schema=JobsPaginationSerializer(),
             ),
         },
     )
@@ -457,23 +418,30 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
     def jobs(self, request: Request, *args, **kwargs):
         try:
             start_date, end_date = self.get_parameters(request)
+            spider = int(request.query_params.get("spider"))
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid 'spider' parameter. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
 
-        paginator = StatsPagination()
-        paginator.page_size = request.query_params.get(
+        paginator = PageNumberPagination()
+        paginator.page = request.query_params.get(
             "page", self.DEFAULT_PAGINATION_SIZE
         )
-        paginator.max_page_size = request.query_params.get(
-            "page_size", self.MAX_PAGINATION_SIZE
+        paginator.page_size = request.query_params.get(
+            "page_size", self.DEFAULT_PAGINATION_SIZE
         )
+        paginator.max_page_size = self.MAX_PAGINATION_SIZE
 
-        spiders_set = Spider.objects.filter(
-            jobs__created__range=[start_date, end_date]
-        ).distinct()
-        paginated_spiders_set = paginator.paginate_queryset(spiders_set, request)
+        jobs_set = SpiderJob.objects.filter(
+            spider=spider, created__range=[start_date, end_date]
+        )
+        paginated_jobs_set = paginator.paginate_queryset(jobs_set, request)
 
-        serializer = SpiderSerializer(paginated_spiders_set, many=True)
+        serializer = SpiderJobSerializer(paginated_jobs_set, many=True)
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -543,7 +511,6 @@ class SpidersJobsStatsViewSet(
                     {
                         "date": date,
                         "stats": stat_serializer.data,
-                        "jobs_metadata": stat_result["jobs_metadata"],
                     }
                 )
 
