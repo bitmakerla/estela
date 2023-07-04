@@ -1,42 +1,26 @@
 import React, { Component, Fragment } from "react";
-import {
-    Layout,
-    Spin as Spinner,
-    Button,
-    Row,
-    Col,
-    Card,
-    Space,
-    Typography,
-    Tooltip as TooltipAnt,
-    notification,
-} from "antd";
-import { Chart as ChartJS, CategoryScale, Title, Tooltip, Legend, ArcElement } from "chart.js";
-import { Doughnut } from "react-chartjs-2";
+import { Layout, Button, Row, Col, Typography, notification } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
-import Help from "../../assets/icons/help.svg";
 import { ApiProjectsReadRequest, Project, ProjectUsage, GlobalStats, ApiStatsListRequest } from "../../services/api";
-import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
+import { BytesMetric, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
-import { HeaderSection, StatsTableSection } from "../../components";
-
-ChartJS.register(CategoryScale, ArcElement, Title, Tooltip, Legend);
+import { HeaderSection, ChartsSection, StatsTableSection } from "../../components";
 
 const { Text } = Typography;
 const { Content } = Layout;
 
 interface ProjectDashboardPageState {
     name: string;
+    loaded: boolean;
     formattedNetwork: BytesMetric;
     processingTime: number;
     formattedStorage: BytesMetric;
-    loaded: boolean;
     count: number;
     current: number;
     loadedStats: boolean;
@@ -122,14 +106,14 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         const { statsStartDate, statsEndDate } = this.state;
         const params: ApiStatsListRequest = {
             pid: this.projectId,
-            startDate: !startDate ? statsStartDate.format("YYYY-MM-DD") : startDate,
-            endDate: !endDate ? statsEndDate.format("YYYY-MM-DD") : endDate,
+            startDate: !startDate ? statsStartDate.toISOString() : startDate,
+            endDate: !endDate ? statsEndDate.toISOString() : endDate,
         };
 
         if (startDate && endDate) {
             this.setState({
-                statsStartDate: moment(startDate, "YYYY-MM-DD"),
-                statsEndDate: moment(endDate, "YYYY-MM-DD"),
+                statsStartDate: moment.utc(startDate),
+                statsEndDate: moment.utc(endDate),
             });
         }
 
@@ -161,8 +145,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     onChangeDateRangeHandler: RangePickerProps["onChange"] = (_, dateStrings) => {
         this.setState({ loadedStats: false });
         const [startDateUTC, endDateUTC] = [
-            moment(dateStrings[0]).startOf("day").utc().format("YYYY-MM-DD"),
-            moment(dateStrings[1]).endOf("day").utc().format("YYYY-MM-DD"),
+            moment(dateStrings[0]).startOf("day").utc().toISOString(),
+            moment(dateStrings[1]).endOf("day").utc().toISOString(),
         ];
         this.getProjectStatsAndUpdateDates(startDateUTC, endDateUTC);
     };
@@ -172,127 +156,32 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         this.getProjectStatsAndUpdateDates();
     };
 
-    projectUsageSection(): JSX.Element {
-        const { loaded, formattedNetwork, processingTime, formattedStorage, loadedStats } = this.state;
-
-        const averageSuccessRates = this.calcAverageSuccessRate();
-        const dataChart = {
-            datasets: [
-                {
-                    label: "GB",
-                    data: [averageSuccessRates, 1 - averageSuccessRates],
-                    backgroundColor: ["#D1A34F", "#F1F1F1"],
-                    borderWidth: 1,
-                    cutout: "90%",
-                    circumference: 180,
-                    rotation: 270,
-                    borderRadius: 4,
-                },
-            ],
-        };
-
-        return (
-            <>
-                <Card bordered={false} className="bg-white rounded-lg">
-                    <Space direction="vertical" className="w-full">
-                        <div className="flex items-center justify-between">
-                            <Text className="text-base text-estela-black-medium break-words">HEALTH</Text>
-                            <TooltipAnt
-                                placement="left"
-                                title="Average job success rate of all dates in the specified range."
-                            >
-                                <Help className="w-4 h-4 stroke-estela-black-medium" />
-                            </TooltipAnt>
-                        </div>
-                        {loadedStats ? (
-                            <div className="mx-auto w-40">
-                                <Doughnut
-                                    plugins={[
-                                        {
-                                            id: "successRateNeedle",
-                                            afterDatasetDraw(chart: ChartJS) {
-                                                const { ctx } = chart;
-                                                ctx.save();
-                                                const x = chart.getDatasetMeta(0).data[0].x;
-                                                const y = chart.getDatasetMeta(0).data[0].y;
-                                                ctx.textAlign = "center";
-                                                ctx.textBaseline = "middle";
-                                                ctx.font = "bold 1rem/1.5rem sans-serif";
-                                                ctx.fillStyle = "#D1A34F";
-                                                ctx.fillText(`${(100 * averageSuccessRates).toFixed(2)}%`, x, y - 20);
-                                                ctx.font = "0.75rem/1rem sans-serif";
-                                                ctx.fillStyle = "#6C757D";
-                                                ctx.fillText("avg. success rate", x, y);
-                                            },
-                                        },
-                                    ]}
-                                    options={{
-                                        responsive: true,
-                                        events: [],
-                                    }}
-                                    data={dataChart}
-                                />
-                            </div>
-                        ) : (
-                            <Spin className="w-full" />
-                        )}
-                    </Space>
-                </Card>
-                <Card bordered={false} className="bg-white rounded-lg">
-                    <Space direction="vertical" className={`${loadedStats && "w-full"}`}>
-                        <div className="flex items-center justify-between mb-4">
-                            <Text className="text-base text-estela-black-medium break-words">USAGE STATS</Text>
-                            <TooltipAnt placement="left" title="Usage of the project.">
-                                <Help className="w-4 h-4 stroke-estela-black-medium" />
-                            </TooltipAnt>
-                        </div>
-                        {loaded ? (
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between space-x-4">
-                                    <Text className="text-sm text-estela-black-medium break-words">
-                                        Processing time
-                                    </Text>
-                                    <Text className="text-base text-estela-black-full break-words">
-                                        {formatSecondsToHHMMSS(processingTime)}
-                                    </Text>
-                                </div>
-                                <div className="flex items-center justify-between space-x-4">
-                                    <Text className="text-sm text-estela-black-medium break-words">Bandwidth</Text>
-                                    <Text className="text-base text-estela-black-full break-words">
-                                        {formattedNetwork.quantity} {formattedNetwork.type}
-                                    </Text>
-                                </div>
-                                <div className="flex items-center justify-between space-x-4">
-                                    <Text className="text-sm text-estela-black-medium break-words">Storage</Text>
-                                    <Text className="text-base text-estela-black-full break-words">
-                                        {formattedStorage.quantity} {formattedStorage.type}
-                                    </Text>
-                                </div>
-                            </div>
-                        ) : (
-                            <Spinner className="my-4" />
-                        )}
-                    </Space>
-                </Card>
-            </>
-        );
-    }
-
     render(): JSX.Element {
-        const { name, loaded, globalStats, loadedStats } = this.state;
+        const {
+            name,
+            loaded,
+            globalStats,
+            loadedStats,
+            formattedNetwork,
+            formattedStorage,
+            processingTime,
+            statsStartDate,
+            statsEndDate,
+        } = this.state;
 
         return (
             <Layout className="bg-metal rounded-t-2xl">
                 {loaded ? (
                     <Fragment>
                         <Row className="flow-root lg:m-8 m-4">
-                            <Col className="text-xl leading-6 text-estela-black-medium font-medium float-left">
+                            <Col className="float-left flex items-center gap-4 text-xl leading-6 text-estela-black-medium font-medium">
                                 {name}
                             </Col>
-                            <Col className="flex float-right lg:mx-4 mx-2">
+                            <Col className="flex justify-end float-right lg:mx-4 mx-2">
                                 <Text className="my-1 mr-2 text-base text-estela-black-medium">
                                     ID : {this.projectId}
                                 </Text>
+
                                 <Button
                                     onClick={() => {
                                         navigator.clipboard.writeText(this.projectId);
@@ -302,28 +191,28 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                 ></Button>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-7 mx-2 lg:mx-4 gap-1 lg:gap-2">
-                            <Col className="bg-metal col-span-5">
-                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5">
-                                    <HeaderSection
-                                        projectId={this.projectId}
-                                        stats={globalStats}
-                                        loadedStats={loadedStats}
-                                        onRefreshEventHandler={this.onRefreshEventHandler}
-                                        onChangeDateRangeHandler={this.onChangeDateRangeHandler}
-                                    />
-                                    <StatsTableSection
-                                        pid={this.projectId}
-                                        apiService={this.apiService}
-                                        stats={globalStats}
-                                        loadedStats={loadedStats}
-                                    />
-                                </Content>
-                            </Col>
-                            <Col className="bg-metal grid col-span-2 gap-2 content-start">
-                                {this.projectUsageSection()}
-                            </Col>
-                        </Row>
+                        <div className="bg-metal m-4">
+                            <Content className="bg-white rounded-2xl py-5 pr-8 pl-5 w-full">
+                                <HeaderSection
+                                    onRefreshEventHandler={this.onRefreshEventHandler}
+                                    onChangeDateRangeHandler={this.onChangeDateRangeHandler}
+                                    formattedNetwork={formattedNetwork}
+                                    formattedStorage={formattedStorage}
+                                    processingTime={processingTime}
+                                    stats={globalStats}
+                                    loadedStats={loadedStats}
+                                    startDate={statsStartDate.local().format("ddd, DD MMM")}
+                                    endDate={statsEndDate.local().format("ddd, DD MMM")}
+                                />
+                                <ChartsSection stats={globalStats.slice().reverse()} loadedStats={loadedStats} />
+                                <StatsTableSection
+                                    pid={this.projectId}
+                                    apiService={this.apiService}
+                                    stats={globalStats}
+                                    loadedStats={loadedStats}
+                                />
+                            </Content>
+                        </div>
                     </Fragment>
                 ) : (
                     <Spin />

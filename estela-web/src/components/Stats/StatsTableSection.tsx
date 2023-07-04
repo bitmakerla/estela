@@ -250,8 +250,16 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                     value: "RUNNING",
                 },
                 {
-                    text: "UNKNOWN",
-                    value: "UNKNOWN",
+                    text: "WAITING",
+                    value: "WAITING",
+                },
+                {
+                    text: "STOPPED",
+                    value: "STOPPED",
+                },
+                {
+                    text: "IN_QUEUE",
+                    value: "IN_QUEUE",
                 },
             ],
             render: (_, { jobStatus }) => {
@@ -330,11 +338,9 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                         }
                         const dataDateTraceStats: StatsTraceabilityDataType[] = jobsDateStats[index].map(
                             (jobStat: GetJobsStats, jobIndex: number) => {
-                                let status =
+                                const status =
                                     record.statsDate.jobsMetadata.find((jobMeta) => jobMeta.jid === jobStat.jid)
                                         ?.jobStatus ?? "UNKNOWN";
-                                if (status !== "COMPLETED" && status !== "ERROR" && status !== "RUNNING")
-                                    status = "UNKNOWN";
                                 return {
                                     key: `${jobIndex}`,
                                     statsDate: jobStat,

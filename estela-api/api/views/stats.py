@@ -57,17 +57,13 @@ class StatsForDashboardMixin:
     def get_parameters(self, request: Request) -> Tuple[datetime, datetime]:
         start_date = request.query_params.get("start_date", timezone.now())
         end_date = request.query_params.get("end_date", timezone.now())
-
         try:
             if type(start_date) == str:
-                start_date = datetime.strptime(start_date, "%Y-%m-%d")
-            start_date = datetime.combine(start_date, time.min)
+                start_date = datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
             if type(end_date) == str:
-                end_date = datetime.strptime(end_date, "%Y-%m-%d")
-            end_date = datetime.combine(end_date, time.max)
+                end_date = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
         except ValueError:
             raise InvalidDateFormatException()
-
         return start_date, end_date
 
     def summarize_stats_results(
@@ -77,10 +73,12 @@ class StatsForDashboardMixin:
         stats_results.default_factory = lambda: {
             "jobs": {
                 "total_jobs": 0,
-                "error_jobs": 0,
-                "unknown_jobs": 0,
+                "waiting_jobs": 0,
                 "running_jobs": 0,
-                "finished_jobs": 0,
+                "stopped_jobs": 0,
+                "completed_jobs": 0,
+                "in_queue_jobs": 0,
+                "error_jobs": 0,
             },
             "pages": {
                 "total_pages": 0,
@@ -115,22 +113,38 @@ class StatsForDashboardMixin:
             "jobs_metadata": [],
         }
         jobs_ids = {job.jid: job.created.strftime("%Y-%m-%d") for job in jobs_set}
+
+        min_jobs_date: dict = {}
+        min_jobs_date = {
+            job.created.strftime("%Y-%m-%d"): job.created
+            if min_date is None or job.created < min_date
+            else min_date
+            for job in jobs_set
+            for min_date in [min_jobs_date.get(job.created.strftime("%Y-%m-%d"), None)]
+        }
+        min_jobs_date = {key: value.isoformat() for key, value in min_jobs_date.items()}
+
         for job in jobs_set:
             date_str = jobs_ids[job.jid]
+            stats_results[date_str]["min_date"] = min_jobs_date[date_str]
             stats_results[date_str]["jobs"]["total_jobs"] += 1
+            stats_results[date_str]["jobs"]["waiting_jobs"] += int(
+                job.status == SpiderJob.WAITING_STATUS
+            )
             stats_results[date_str]["jobs"]["running_jobs"] += int(
                 job.status == SpiderJob.RUNNING_STATUS
             )
-            stats_results[date_str]["jobs"]["unknown_jobs"] += int(
-                job.status != SpiderJob.ERROR_STATUS
-                and job.status != SpiderJob.RUNNING_STATUS
-                and job.status != SpiderJob.COMPLETED_STATUS
+            stats_results[date_str]["jobs"]["stopped_jobs"] += int(
+                job.status == SpiderJob.STOPPED_STATUS
+            )
+            stats_results[date_str]["jobs"]["completed_jobs"] += int(
+                job.status == SpiderJob.COMPLETED_STATUS
+            )
+            stats_results[date_str]["jobs"]["in_queue_jobs"] += int(
+                job.status == SpiderJob.IN_QUEUE_STATUS
             )
             stats_results[date_str]["jobs"]["error_jobs"] += int(
                 job.status == SpiderJob.ERROR_STATUS
-            )
-            stats_results[date_str]["jobs"]["finished_jobs"] += int(
-                job.status == SpiderJob.COMPLETED_STATUS
             )
             job_metadata_serializer = JobsMetadataSerializer(job)
             stats_results[date_str]["jobs_metadata"].append(
@@ -177,13 +191,13 @@ class StatsForDashboardMixin:
             )
 
         for stat in stats_results.values():
-            if stat["jobs"]["finished_jobs"] != 0:
+            if stat["jobs"]["completed_jobs"] != 0:
                 stat["coverage"]["total_items_coverage"] /= stat["jobs"][
-                    "finished_jobs"
+                    "completed_jobs"
                 ]
             if stat["jobs"]["total_jobs"] != 0:
                 stat["success_rate"] = 100 * (
-                    stat["jobs"]["finished_jobs"] / stat["jobs"]["total_jobs"]
+                    stat["jobs"]["completed_jobs"] / stat["jobs"]["total_jobs"]
                 )
         return stats_results
 
@@ -300,14 +314,14 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="Start of date range (e.g. 2023-04-01).",
+                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
             ),
             openapi.Parameter(
                 name="end_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="End of date range (e.g. 2023-04-30).",
+                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
         ],
         responses={
@@ -343,8 +357,10 @@ class GlobalStatsViewSet(BaseViewSet, StatsForDashboardMixin, mixins.ListModelMi
         )
 
         global_stats_results = self.summarize_stats_results(stats_set, jobs_set)
+
         response_schema = []
-        for date, stat_result in global_stats_results.items():
+        for stat_result in global_stats_results.values():
+            date = stat_result.pop("min_date", None)
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
                 response_schema.append(
@@ -375,14 +391,14 @@ class SpidersJobsStatsViewSet(
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="Start of date range (e.g. 2023-04-01).",
+                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
             ),
             openapi.Parameter(
                 name="end_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="End of date range (e.g. 2023-04-30).",
+                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
         ],
         responses={
@@ -419,7 +435,8 @@ class SpidersJobsStatsViewSet(
         )
 
         response_schema = []
-        for date, stat_result in spider_jobs_stats_results.items():
+        for stat_result in spider_jobs_stats_results.values():
+            date = stat_result.pop("min_date", None)
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
                 response_schema.append(

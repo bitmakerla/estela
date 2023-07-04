@@ -1194,6 +1194,54 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/download:
+    get:
+      operationId: api_projects_spiders_jobs_data_download
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: type
+          in: query
+          description: Spider job data type.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - results
+            type: object
+            properties:
+              results:
+                description: Data items.
+                type: array
+                items:
+                  type: object
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/usage:
     get:
       operationId: api_projects_usage
@@ -1243,12 +1291,12 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date range (e.g. 2023-04-01).
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date range (e.g. 2023-04-30).
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
           required: true
           type: string
       responses:
@@ -1309,12 +1357,12 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date range (e.g. 2023-04-01).
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date range (e.g. 2023-04-30).
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
           required: true
           type: string
       responses:
@@ -2417,20 +2465,28 @@ definitions:
         title: Total jobs
         type: integer
         default: 0
+      waiting_jobs:
+        title: Waiting jobs
+        type: integer
+        default: 0
       running_jobs:
         title: Running jobs
         type: integer
         default: 0
+      stopped_jobs:
+        title: Stopped jobs
+        type: integer
+        default: 0
+      completed_jobs:
+        title: Completed jobs
+        type: integer
+        default: 0
+      in_queue_jobs:
+        title: In queue jobs
+        type: integer
+        default: 0
       error_jobs:
         title: Error jobs
-        type: integer
-        default: 0
-      unknown_jobs:
-        title: Unknown jobs
-        type: integer
-        default: 0
-      finished_jobs:
-        title: Finished jobs
         type: integer
         default: 0
   PagesStats:

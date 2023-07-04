@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input, Tooltip } from "antd";
+import Papa from "papaparse";
+import { Layout, Row, Col, Typography, Button, Dropdown, Modal, Pagination, Card, Input, Tooltip, Menu } from "antd";
 import { resourceNotAllowedNotification, dataDeletedNotification, Spin, PaginationItem } from "../../shared";
 
 import Export from "../../assets/icons/export.svg";
@@ -9,8 +10,10 @@ import ArrowDown from "../../assets/icons/arrowDown.svg";
 import {
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersJobsDataDeleteRequest,
+    ApiProjectsSpidersJobsDataDownloadRequest,
     DeleteJobData,
     InlineResponse2006,
+    InlineResponse2008,
 } from "../../services/api";
 import { ApiService } from "../../services";
 
@@ -45,11 +48,86 @@ const deleteSpiderJobData = (type_: string, projectId: string, spiderId: string,
             return true;
         },
         (error: unknown) => {
-            error;
+            console.log(error);
             resourceNotAllowedNotification();
             return false;
         },
     );
+};
+
+const handleDownload = (jsonData: ItemDictionary, filename: string, format: string) => {
+    let data = {};
+
+    if (format === "json") {
+        data = JSON.stringify(jsonData);
+    } else if (format === "csv" || format === "tsv") {
+        const results = jsonData.results ? jsonData.results : [jsonData];
+        const delimiter = format === "csv" ? "," : "\t";
+        const keys = Object.keys(results[0]);
+
+        // Transform the results array. If an item is an object, stringify it.
+        results.forEach((item: Dictionary) => {
+            keys.forEach((key: string) => {
+                if (typeof item[key] === "object") {
+                    item[key] = JSON.stringify(item[key]);
+                }
+            });
+        });
+
+        data = Papa.unparse(results, { fields: keys, delimiter: delimiter });
+    }
+
+    const blob = new Blob([data], { type: "application/json" });
+    const downloadUrl = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = `${filename}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(downloadUrl);
+};
+
+const handleDownloadData = (
+    type_: string,
+    projectId: string,
+    spiderId: string,
+    jobId: string,
+    format: string,
+    setLoadedDownloadButton: React.Dispatch<React.SetStateAction<boolean>>,
+): Promise<boolean> => {
+    setLoadedDownloadButton(true);
+    const request: ApiProjectsSpidersJobsDataDownloadRequest = {
+        pid: projectId,
+        sid: spiderId,
+        jid: jobId,
+        type: type_,
+    };
+    return apiService.apiProjectsSpidersJobsDataDownload(request).then(
+        (response: Response) => {
+            handleDownload(response, `${jobId}-job_${type_}`, format);
+            setLoadedDownloadButton(false);
+        },
+        (error: unknown) => {
+            console.log(error);
+            resourceNotAllowedNotification();
+            setLoadedDownloadButton(false);
+            return {} as InlineResponse2008;
+        },
+    );
+};
+
+const handleDownloadItem = (type_: string, jobId: string, item: ItemDictionary, itemOrder: number, format: string) => {
+    if (type_ === "stats") {
+        delete item.coverage;
+    }
+
+    if (itemOrder === 0) {
+        handleDownload(item, `${jobId}-job_${type_}`, format);
+    } else {
+        handleDownload(item, `${itemOrder}-${jobId}-job_${type_}`, format);
+    }
 };
 
 const getData = async (
@@ -73,7 +151,7 @@ const getData = async (
             return response;
         },
         (error: unknown) => {
-            error;
+            console.log(error);
             resourceNotAllowedNotification();
             return {} as InlineResponse2006;
         },
@@ -139,9 +217,32 @@ function Item({ data }: ItemProps) {
     );
 }
 
+const menu = (
+    datatype: string,
+    projectId: string,
+    spiderId: string,
+    jobId: string,
+    setLoadedDownloadButton: React.Dispatch<React.SetStateAction<boolean>>,
+) => (
+    <Menu onClick={({ key }) => handleDownloadData(datatype, projectId, spiderId, jobId, key, setLoadedDownloadButton)}>
+        <Menu.Item key="json">json</Menu.Item>
+        <Menu.Item key="csv">csv</Menu.Item>
+        <Menu.Item key="tsv">tsv</Menu.Item>
+    </Menu>
+);
+
+const itemMenu = (datatype: string, jobId: string, item: ItemDictionary, itemOrder: number) => (
+    <Menu onClick={({ key }) => handleDownloadItem(datatype, jobId, item, itemOrder, key)}>
+        <Menu.Item key="json">json</Menu.Item>
+        <Menu.Item key="csv">csv</Menu.Item>
+        <Menu.Item key="tsv">tsv</Menu.Item>
+    </Menu>
+);
+
 export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [openModal, setOpenModal] = useState(false);
-    const [loadedButton, setLoadedButton] = useState(false);
+    const [loadedDeleteButton, setLoadedDeleteButton] = useState(false);
+    const [loadedDownloadButton, setLoadedDownloadButton] = useState(false);
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
@@ -231,7 +332,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                         </Col>
                         <Col className="flex float-right">
                             <Button
-                                loading={loadedButton}
+                                loading={loadedDeleteButton}
                                 disabled={items.length === 0}
                                 size="large"
                                 icon={<Delete className="h-3.5 w-4 mr-2" />}
@@ -246,14 +347,14 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 open={openModal}
                                 onOk={() => {
                                     setOpenModal(false);
-                                    setLoadedButton(true);
+                                    setLoadedDeleteButton(true);
                                     deleteSpiderJobData("items", projectId, spiderId, jobId).then((response) => {
                                         if (response) {
                                             setItems([]);
                                             setCurrent(0);
                                             setCount(0);
                                             setLoaded(true);
-                                            setLoadedButton(false);
+                                            setLoadedDeleteButton(false);
                                         }
                                     });
                                 }}
@@ -268,14 +369,25 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             >
                                 <Text>Are you sure you want to delete items data?</Text>
                             </Modal>
-                            <Button
-                                disabled
-                                size="large"
-                                icon={<Export className="h-3.5 w-4 mr-2" />}
-                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            <Tooltip
+                                className="flex items-center mx-2"
+                                placement="left"
+                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
                             >
-                                Download
-                            </Button>
+                                <Dropdown
+                                    disabled={items.length === 0}
+                                    overlay={() => menu("items", projectId, spiderId, jobId, setLoadedDownloadButton)}
+                                >
+                                    <Button
+                                        loading={loadedDownloadButton}
+                                        size="large"
+                                        icon={<Export className="h-3.5 w-4 mr-2" />}
+                                        className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        Download
+                                    </Button>
+                                </Dropdown>
+                            </Tooltip>
                         </Col>
                     </Row>
                     {items.map((item: ItemDictionary, index: number) => {
@@ -288,14 +400,19 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Text>
                                     </Col>
                                     <Col className="flex float-right">
-                                        <Button
-                                            disabled
-                                            size="large"
-                                            icon={<Export className="h-3.5 w-4 mr-2" />}
-                                            className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        <Dropdown
+                                            overlay={() =>
+                                                itemMenu("items", jobId, item, PAGE_SIZE * (current - 1) + index + 1)
+                                            }
                                         >
-                                            Download
-                                        </Button>
+                                            <Button
+                                                size="large"
+                                                icon={<Export className="h-3.5 w-4 mr-2" />}
+                                                className="flex float-right items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Download
+                                            </Button>
+                                        </Dropdown>
                                     </Col>
                                 </Row>
                                 <Col>
@@ -325,7 +442,8 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
 
 export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [openModal, setOpenModal] = useState(false);
-    const [loadedButton, setLoadedButton] = useState(false);
+    const [loadedDeleteButton, setLoadedDeleteButton] = useState(false);
+    const [loadedDownloadButton, setLoadedDownloadButton] = useState(false);
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
@@ -415,7 +533,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                         </Col>
                         <Col className="flex float-right">
                             <Button
-                                loading={loadedButton}
+                                loading={loadedDeleteButton}
                                 disabled={requests.length === 0}
                                 size="large"
                                 icon={<Delete className="h-3.5 w-4 mr-2" />}
@@ -430,14 +548,14 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 open={openModal}
                                 onOk={() => {
                                     setOpenModal(false);
-                                    setLoadedButton(true);
+                                    setLoadedDeleteButton(true);
                                     deleteSpiderJobData("requests", projectId, spiderId, jobId).then((response) => {
                                         if (response) {
                                             setRequests([]);
                                             setCurrent(0);
                                             setCount(0);
                                             setLoaded(true);
-                                            setLoadedButton(false);
+                                            setLoadedDeleteButton(false);
                                         }
                                     });
                                 }}
@@ -452,14 +570,27 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             >
                                 <Text>Are you sure you want to delete requests data?</Text>
                             </Modal>
-                            <Button
-                                disabled
-                                size="large"
-                                icon={<Export className="h-3.5 w-4 mr-2" />}
-                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            <Tooltip
+                                className="flex items-center mx-2"
+                                placement="left"
+                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
                             >
-                                Download
-                            </Button>
+                                <Dropdown
+                                    disabled={requests.length === 0}
+                                    overlay={() =>
+                                        menu("requests", projectId, spiderId, jobId, setLoadedDownloadButton)
+                                    }
+                                >
+                                    <Button
+                                        loading={loadedDownloadButton}
+                                        size="large"
+                                        icon={<Export className="h-3.5 w-4 mr-2" />}
+                                        className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        Download
+                                    </Button>
+                                </Dropdown>
+                            </Tooltip>
                         </Col>
                     </Row>
                     {requests.map((request: ItemDictionary, index: number) => {
@@ -472,14 +603,24 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Text>
                                     </Col>
                                     <Col className="flex float-right">
-                                        <Button
-                                            disabled
-                                            size="large"
-                                            icon={<Export className="h-3.5 w-4 mr-2" />}
-                                            className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        <Dropdown
+                                            overlay={() =>
+                                                itemMenu(
+                                                    "requests",
+                                                    jobId,
+                                                    request,
+                                                    PAGE_SIZE * (current - 1) + index + 1,
+                                                )
+                                            }
                                         >
-                                            Download
-                                        </Button>
+                                            <Button
+                                                size="large"
+                                                icon={<Export className="h-3.5 w-4 mr-2" />}
+                                                className="flex float-right items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                            >
+                                                Download
+                                            </Button>
+                                        </Dropdown>
                                     </Col>
                                 </Row>
                                 <Col>
@@ -509,7 +650,8 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
 
 export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [openModal, setOpenModal] = useState(false);
-    const [loadedButton, setLoadedButton] = useState(false);
+    const [loadedDeleteButton, setLoadedDeleteButton] = useState(false);
+    const [loadedDownloadButton, setLoadedDownloadButton] = useState(false);
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
@@ -565,7 +707,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                         </Col>
                         <Col className="flex float-right">
                             <Button
-                                loading={loadedButton}
+                                loading={loadedDeleteButton}
                                 disabled={logs.length === 0}
                                 size="large"
                                 icon={<Delete className="h-3.5 w-4 mr-2" />}
@@ -580,14 +722,14 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 open={openModal}
                                 onOk={() => {
                                     setOpenModal(false);
-                                    setLoadedButton(true);
+                                    setLoadedDeleteButton(true);
                                     deleteSpiderJobData("logs", projectId, spiderId, jobId).then((response) => {
                                         if (response) {
                                             setLogs([]);
                                             setCurrent(0);
                                             setCount(0);
                                             setLoaded(true);
-                                            setLoadedButton(false);
+                                            setLoadedDeleteButton(false);
                                         }
                                     });
                                 }}
@@ -602,14 +744,25 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             >
                                 <Text>Are you sure you want to delete logs data?</Text>
                             </Modal>
-                            <Button
-                                disabled
-                                size="large"
-                                icon={<Export className="h-3.5 w-4 mr-2" />}
-                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                            <Tooltip
+                                className="flex items-center mx-2"
+                                placement="left"
+                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
                             >
-                                Download
-                            </Button>
+                                <Dropdown
+                                    disabled={logs.length === 0}
+                                    overlay={() => menu("logs", projectId, spiderId, jobId, setLoadedDownloadButton)}
+                                >
+                                    <Button
+                                        loading={loadedDownloadButton}
+                                        size="large"
+                                        icon={<Export className="h-3.5 w-4 mr-2" />}
+                                        className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                    >
+                                        Download
+                                    </Button>
+                                </Dropdown>
+                            </Tooltip>
                         </Col>
                         <Col className="flex float-right">
                             <Button
@@ -713,21 +866,53 @@ export function JobStatsData({ projectId, spiderId, jobId }: JobsDataProps) {
     return (
         <Content className="bg-metal content-padding">
             {loaded ? (
-                <Row className="grid grid-cols-5 bg-white">
-                    <Col className="col-start-2 col-span-3">
-                        {Object.entries(stats).map(([statKey, stat], index: number) => {
-                            if (statKey === "coverage") {
-                                return null;
-                            }
-                            if (stat === null) {
-                                stat = "null";
-                            }
-                            if (index % 2) {
+                <Content>
+                    <Row className="flow-root my-2 w-full space-x-2" justify="end" align="middle">
+                        <Tooltip
+                            className="flex items-center mx-2"
+                            placement="left"
+                            title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                        >
+                            <Dropdown
+                                disabled={Object.keys(stats).length === 0}
+                                overlay={() => itemMenu("stats", jobId, stats, 0)}
+                            >
+                                <Button
+                                    size="large"
+                                    icon={<Export className="h-3.5 w-4 mr-2" />}
+                                    className="flex float-right items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    Download
+                                </Button>
+                            </Dropdown>
+                        </Tooltip>
+                    </Row>
+                    <Row className="grid grid-cols-5 bg-white">
+                        <Col className="col-start-2 col-span-3">
+                            {Object.entries(stats).map(([statKey, stat], index: number) => {
+                                if (statKey === "coverage") {
+                                    return null;
+                                }
+                                if (stat === null) {
+                                    stat = "null";
+                                }
+                                if (index % 2) {
+                                    return (
+                                        <Row
+                                            key={index}
+                                            className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
+                                        >
+                                            <Col>
+                                                <Text className="font-bold">{statKey}</Text>
+                                            </Col>
+                                            <Col>
+                                                <Text className="text-estela-black-full px-4">{stat}</Text>
+                                            </Col>
+                                        </Row>
+                                    );
+                                }
                                 return (
-                                    <Row
-                                        key={index}
-                                        className="grid grid-cols-2 bg-estela-blue-low py-1 px-2 rounded-lg"
-                                    >
+                                    <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
                                         <Col>
                                             <Text className="font-bold">{statKey}</Text>
                                         </Col>
@@ -736,20 +921,10 @@ export function JobStatsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Col>
                                     </Row>
                                 );
-                            }
-                            return (
-                                <Row key={index} className="grid grid-cols-2 py-1 px-2 mt-4">
-                                    <Col>
-                                        <Text className="font-bold">{statKey}</Text>
-                                    </Col>
-                                    <Col>
-                                        <Text className="text-estela-black-full px-4">{stat}</Text>
-                                    </Col>
-                                </Row>
-                            );
-                        })}
-                    </Col>
-                </Row>
+                            })}
+                        </Col>
+                    </Row>
+                </Content>
             ) : (
                 <Spin />
             )}

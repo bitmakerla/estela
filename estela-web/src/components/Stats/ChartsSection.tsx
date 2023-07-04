@@ -13,15 +13,17 @@ import {
 import { Bar } from "react-chartjs-2";
 import { StatType, Spin as Spinner } from "../../shared";
 import { GlobalStats, SpidersJobsStats } from "../../services";
-import { Empty } from "antd";
+import { Empty, Tabs } from "antd";
+import moment from "moment";
+import "./ChartsSection.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const getJobsDataset = (statsData: GlobalStats[]) => {
     return [
         {
-            label: "Finished",
-            data: statsData.map((statData) => statData.stats.jobs?.finishedJobs ?? 0),
+            label: "Completed",
+            data: statsData.map((statData) => statData.stats.jobs?.completedJobs ?? 0),
             backgroundColor: "#32C3A4",
         },
         {
@@ -35,9 +37,19 @@ const getJobsDataset = (statsData: GlobalStats[]) => {
             backgroundColor: "#A13764",
         },
         {
-            label: "Unknown",
-            data: statsData.map((statData) => statData.stats.jobs?.unknownJobs ?? 0),
-            backgroundColor: "#6C757D",
+            label: "Waiting",
+            data: statsData.map((statData) => statData.stats.jobs?.waitingJobs ?? 0),
+            backgroundColor: "#3C7BC6",
+        },
+        {
+            label: "Stopped",
+            data: statsData.map((statData) => statData.stats.jobs?.stoppedJobs ?? 0),
+            backgroundColor: "#FE9F99",
+        },
+        {
+            label: "In Queue",
+            data: statsData.map((statData) => statData.stats.jobs?.inQueueJobs ?? 0),
+            backgroundColor: "#E7E255",
         },
     ];
 };
@@ -173,13 +185,12 @@ const getLogsDataset = (statData: GlobalStats[]) => {
     ];
 };
 
-interface ChartProps {
+interface ChartsSectionProps {
     loadedStats: boolean;
     stats: GlobalStats[] | SpidersJobsStats[];
-    statOption: StatType;
 }
 
-export class ChartsSection extends Component<ChartProps, unknown> {
+export class ChartsSection extends Component<ChartsSectionProps, unknown> {
     datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } = {
         [StatType.JOBS]: getJobsDataset,
         [StatType.PAGES]: getPagesDataset,
@@ -191,10 +202,12 @@ export class ChartsSection extends Component<ChartProps, unknown> {
         [StatType.LOGS]: getLogsDataset,
     };
 
-    render() {
-        const { loadedStats, stats, statOption } = this.props;
+    charts = (statOption: StatType): JSX.Element => {
+        const { stats } = this.props;
 
-        const labels: string[] = stats.map((stat) => stat.date.toLocaleDateString().slice(0, 10));
+        const labels: string[] = stats.map((stat) => {
+            return moment(stat.date).format("ddd, DD MMM");
+        });
 
         const datasets: ChartDataset<"bar", number[]>[] = this.datasetsGenerators[statOption](stats);
 
@@ -203,47 +216,97 @@ export class ChartsSection extends Component<ChartProps, unknown> {
             datasets: datasets,
         };
 
-        if (!loadedStats) {
-            return <Spinner />;
-        }
-
         return (
             <>
                 {stats.length === 0 ? (
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 ) : (
-                    <Bar
-                        options={{
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: "bottom" as const,
-                                },
-                            },
-                            scales: {
-                                x: {
-                                    stacked: true,
-                                    grid: {
-                                        display: false,
+                    <div className="stats-charts">
+                        <Bar
+                            options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: "bottom" as const,
                                     },
                                 },
-                                y: {
-                                    stacked: true,
-                                    min:
-                                        statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
-                                            ? 0
-                                            : undefined,
-                                    max:
-                                        statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
-                                            ? 100
-                                            : undefined,
+                                scales: {
+                                    x: {
+                                        stacked: true,
+                                        grid: {
+                                            display: false,
+                                        },
+                                    },
+                                    y: {
+                                        stacked: true,
+                                        min:
+                                            statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
+                                                ? 0
+                                                : undefined,
+                                        max:
+                                            statOption === StatType.COVERAGE || statOption === StatType.SUCCESS_RATE
+                                                ? 100
+                                                : undefined,
+                                    },
                                 },
-                            },
-                        }}
-                        data={data}
-                    />
+                            }}
+                            data={data}
+                        />
+                    </div>
                 )}
             </>
+        );
+    };
+
+    render() {
+        const { loadedStats } = this.props;
+
+        if (!loadedStats) {
+            return <Spinner />;
+        }
+
+        return (
+            <Tabs
+                className="w-full float-right text-estela-black-medium text-xs md:text-sm"
+                items={[
+                    {
+                        label: "Jobs",
+                        key: StatType.JOBS,
+                        children: this.charts(StatType.JOBS),
+                    },
+                    {
+                        label: "Pages",
+                        key: StatType.PAGES,
+                        children: this.charts(StatType.PAGES),
+                    },
+                    {
+                        label: "Items",
+                        key: StatType.ITEMS,
+                        children: this.charts(StatType.ITEMS),
+                    },
+                    {
+                        label: "Runtime",
+                        key: StatType.RUNTIME,
+                        children: this.charts(StatType.RUNTIME),
+                    },
+                    {
+                        label: "Job success rate",
+                        key: StatType.SUCCESS_RATE,
+                        children: this.charts(StatType.SUCCESS_RATE),
+                    },
+                    {
+                        label: "Status code",
+                        key: StatType.STATUS_CODE,
+                        children: this.charts(StatType.STATUS_CODE),
+                    },
+                    {
+                        label: "Logs",
+                        key: StatType.LOGS,
+                        children: this.charts(StatType.LOGS),
+                    },
+                ]}
+            />
         );
     }
 }
