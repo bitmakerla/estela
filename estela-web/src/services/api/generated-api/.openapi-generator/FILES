@@ -49,6 +49,7 @@ models/SpiderJobEnvVar.ts
 models/SpiderJobStats.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
+models/SpiderPagination.ts
 models/SpiderUpdate.ts
 models/SpidersPagination.ts
 models/SpidersStats.ts

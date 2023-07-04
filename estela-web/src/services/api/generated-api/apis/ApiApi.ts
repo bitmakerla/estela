@@ -120,6 +120,9 @@ import {
     SpiderJobUpdate,
     SpiderJobUpdateFromJSON,
     SpiderJobUpdateToJSON,
+    SpiderPagination,
+    SpiderPaginationFromJSON,
+    SpiderPaginationToJSON,
     SpiderUpdate,
     SpiderUpdateFromJSON,
     SpiderUpdateToJSON,
@@ -455,6 +458,7 @@ export interface ApiStatsListRequest {
     pageSize?: number;
 }
 
+<<<<<<< HEAD
 export interface ApiStatsSpiderJobsRequest {
     pid: string;
     sid: string;
@@ -465,6 +469,8 @@ export interface ApiStatsSpiderJobsRequest {
     pageSize?: number;
 }
 
+=======
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
 export interface ApiStatsSpiderListRequest {
     pid: string;
     sid: string;
@@ -2729,6 +2735,7 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+<<<<<<< HEAD
      * Retrieve all the jobs of a spider executed in a range of dates.
      */
     async apiStatsSpiderJobsRaw(requestParameters: ApiStatsSpiderJobsRequest): Promise<runtime.ApiResponse<JobsPagination>> {
@@ -2798,6 +2805,8 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+=======
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
      * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
     async apiStatsSpiderListRaw(requestParameters: ApiStatsSpiderListRequest): Promise<runtime.ApiResponse<Array<SpidersStats>>> {
@@ -2861,7 +2870,11 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Retrieve all the spiders executed in a range of dates.
      */
+<<<<<<< HEAD
     async apiStatsSpidersRaw(requestParameters: ApiStatsSpidersRequest): Promise<runtime.ApiResponse<SpidersPagination>> {
+=======
+    async apiStatsSpidersRaw(requestParameters: ApiStatsSpidersRequest): Promise<runtime.ApiResponse<SpiderPagination>> {
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiders.');
         }
@@ -2904,13 +2917,21 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
+<<<<<<< HEAD
         return new runtime.JSONApiResponse(response, (jsonValue) => SpidersPaginationFromJSON(jsonValue));
+=======
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderPaginationFromJSON(jsonValue));
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
     }
 
     /**
      * Retrieve all the spiders executed in a range of dates.
      */
+<<<<<<< HEAD
     async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpidersPagination> {
+=======
+    async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpiderPagination> {
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
         const response = await this.apiStatsSpidersRaw(requestParameters);
         return await response.value();
     }

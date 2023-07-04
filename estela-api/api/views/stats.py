@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from re import findall
 from typing import List, Tuple
@@ -8,6 +8,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.inspectors import PaginatorInspector
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -443,6 +444,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         jobs_set = SpiderJob.objects.filter(
             spider=spider, created__range=[start_date, end_date]
         )
+        paginator.max_page_size = self.MAX_PAGINATION_SIZE
 
         paginated_jobs_set = paginator.paginate_queryset(jobs_set, request)
 

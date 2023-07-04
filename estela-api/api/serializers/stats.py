@@ -63,6 +63,8 @@ class StatsSerializer(serializers.Serializer):
     logs = LogsStatsSerializer()
     coverage = CoverageStatsSerializer(required=False)
 
+class SpiderJobStatsSerializer(SpiderJobSerializer):
+    stats = StatsSerializer()
 
 class SpiderJobStatsSerializer(SpiderJobSerializer):
     stats = StatsSerializer()

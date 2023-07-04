@@ -14,10 +14,17 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+<<<<<<< HEAD
     SpiderJobStats,
     SpiderJobStatsFromJSON,
     SpiderJobStatsFromJSONTyped,
     SpiderJobStatsToJSON,
+=======
+    SpiderJob,
+    SpiderJobFromJSON,
+    SpiderJobFromJSONTyped,
+    SpiderJobToJSON,
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
 } from './';
 
 /**
@@ -46,10 +53,17 @@ export interface JobsPagination {
     readonly previous?: string | null;
     /**
      * 
+<<<<<<< HEAD
      * @type {Array<SpiderJobStats>}
      * @memberof JobsPagination
      */
     results: Array<SpiderJobStats>;
+=======
+     * @type {Array<SpiderJob>}
+     * @memberof JobsPagination
+     */
+    results: Array<SpiderJob>;
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
 }
 
 export function JobsPaginationFromJSON(json: any): JobsPagination {
@@ -65,7 +79,11 @@ export function JobsPaginationFromJSONTyped(json: any, ignoreDiscriminator: bool
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
+<<<<<<< HEAD
         'results': ((json['results'] as Array<any>).map(SpiderJobStatsFromJSON)),
+=======
+        'results': ((json['results'] as Array<any>).map(SpiderJobFromJSON)),
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
     };
 }
 
@@ -79,7 +97,11 @@ export function JobsPaginationToJSON(value?: JobsPagination | null): any {
     return {
         
         'count': value.count,
+<<<<<<< HEAD
         'results': ((value.results as Array<any>).map(SpiderJobStatsToJSON)),
+=======
+        'results': ((value.results as Array<any>).map(SpiderJobToJSON)),
+>>>>>>> a0855c1 (Fixed issues with api generation, changed some schema responses and updated viewsets names)
     };
 }
 
