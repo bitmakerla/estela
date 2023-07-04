@@ -480,10 +480,11 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                 size="large"
                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                 onClick={() => {
-                    if (spiders.length > 0) {
-                        setOpen(true);
+                    if (spiders.length == 0) {
+                        message.error("No spiders found. Please make a new deploy.");
+                        history.push(`/projects/${projectId}/deploys`);
                     } else {
-                        message.error("You don't have any spider.");
+                        setOpen(true);
                     }
                 }}
             >
