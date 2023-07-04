@@ -142,8 +142,7 @@ class SpiderJobViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_action(
             user=request.user,
-            message=f"run a new job for spider {spider.name}.",
-            description=f"Created Job-{serializer.data['jid']} for spider {spider.name}.",
+            description=f"run Job-{serializer.data['jid']} for spider {spider.name}.",
             project=project,
         )
 

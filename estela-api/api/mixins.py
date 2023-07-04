@@ -23,15 +23,12 @@ class BaseViewSet(viewsets.GenericViewSet):
 
 
 class ActionHandlerMixin:
-    def save_action(self, user, message, description, project):
-        activity = Activity(user=user, project=project, description=description)
-        activity.save()
-        notification = Notification(
-            message=message,
-            user=user,
-            project=project,
+    def save_action(self, user, description, project):
+        activity = Activity.objects.create(
+            user=user, project=project, description=description
         )
-        notification.save()
+        notification = Notification.objects.create(activity=activity)
+
         for _user in project.users.all():
             notification.users.add(_user, through_defaults={"seen": False})
         notification.save()

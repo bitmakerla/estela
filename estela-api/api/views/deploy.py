@@ -96,8 +96,7 @@ class DeployViewSet(
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_action(
             user=instance.user,
-            message=f"made a new Deploy #{serializer.data['did']}.",
-            description=f"Deploy {serializer.data['did']} created.",
+            description=f"made a new Deploy #{serializer.data['did']}.",
             project=project,
         )
 

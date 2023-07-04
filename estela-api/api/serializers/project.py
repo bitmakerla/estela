@@ -180,6 +180,8 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 class ProjectActivitySerializer(serializers.Serializer):
     results = ActivitySerializer(
-        many=True, required=True, help_text="Project Activities."
+        many=True, required=True, help_text="Project activities."
     )
-    count = serializers.IntegerField(required=True, help_text="Project cronjobs count.")
+    count = serializers.IntegerField(
+        required=True, help_text="Project activities count."
+    )

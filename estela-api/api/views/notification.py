@@ -4,30 +4,30 @@ from rest_framework.response import Response
 
 from api.mixins import BaseViewSet
 from api.serializers.notification import (
-    UserNotificationSerializer,
-    UserNotificationUpdateSerializer,
+    NotificationSerializer,
+    NotificationUpdateSerializer,
 )
-from core.models import UserNotification
+from core.models import Notification
 
 
-class UserNotificationViewSet(BaseViewSet, viewsets.ModelViewSet):
-    model_class = UserNotification
-    serializer_class = UserNotificationSerializer
-    queryset = UserNotification.objects.all()
+class NotificationViewSet(BaseViewSet, viewsets.ModelViewSet):
+    model_class = Notification
+    serializer_class = NotificationSerializer
+    queryset = Notification.objects.all()
 
     def get_queryset(self):
         if self.request is None:
-            return UserNotification.objects.none()
-        return UserNotification.objects.filter(user=self.request.user)
+            return Notification.objects.none()
+        return Notification.objects.filter(user=self.request.user)
 
     @swagger_auto_schema(
-        request_body=UserNotificationUpdateSerializer,
-        responses={status.HTTP_200_OK: UserNotificationUpdateSerializer()},
+        request_body=NotificationUpdateSerializer,
+        responses={status.HTTP_200_OK: NotificationUpdateSerializer()},
     )
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
-        serializer = UserNotificationUpdateSerializer(
+        serializer = NotificationUpdateSerializer(
             instance, data=request.data, partial=partial
         )
         serializer.is_valid(raise_exception=True)
