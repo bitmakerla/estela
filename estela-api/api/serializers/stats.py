@@ -3,18 +3,6 @@ from rest_framework import serializers
 from api.serializers.spider import SpiderSerializer
 from api.serializers.job import SpiderJobSerializer
 
-class SpiderPaginationSerializer(serializers.Serializer):
-    count = serializers.IntegerField()
-    next = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
-    previous = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
-    results = SpiderSerializer(many=True)
-
-class JobsPaginationSerializer(serializers.Serializer):
-    count = serializers.IntegerField()
-    next = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
-    previous = serializers.HyperlinkedIdentityField(view_name='project-stats', allow_null=True)
-    results = SpiderJobSerializer(many=True)
-
 
 class LogsStatsSerializer(serializers.Serializer):
     total_logs = serializers.IntegerField(default=0)
@@ -74,8 +62,10 @@ class StatsSerializer(serializers.Serializer):
     logs = LogsStatsSerializer()
     coverage = CoverageStatsSerializer(required=False)
 
+
 class SpiderJobStatsSerializer(SpiderJobSerializer):
     stats = StatsSerializer()
+
 
 class ProjectStatsSerializer(serializers.Serializer):
     date = serializers.DateField()
@@ -84,3 +74,25 @@ class ProjectStatsSerializer(serializers.Serializer):
 
 class SpidersJobsStatsSerializer(ProjectStatsSerializer):
     pass
+
+
+class SpiderPaginationSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    previous = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    results = SpiderSerializer(many=True)
+
+
+class JobsPaginationSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    previous = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    results = SpiderJobStatsSerializer(many=True)
