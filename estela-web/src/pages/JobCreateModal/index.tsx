@@ -119,32 +119,36 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
         apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const spider_list = results.results;
+                const spiderList = results.results;
+                if (spiderList.length === 0) {
+                    return;
+                }
+
                 if (spider) {
                     let index = 0;
-                    index = spider_list.findIndex((listedSpider: Spider) => {
+                    index = spiderList.findIndex((listedSpider: Spider) => {
                         return listedSpider.sid == spider.sid;
                     });
 
                     if (index < 0) {
-                        spider_list.unshift(spider);
+                        spiderList.unshift(spider);
                         index = 0;
                     }
-                    setRequest({ ...request, sid: String(spider_list[index].sid) });
+                    setRequest({ ...request, sid: String(spiderList[index].sid) });
                     setJobData({
                         ...jobData,
-                        dataStatus: spider_list[index].dataStatus,
-                        dataExpiryDays: spider_list[index].dataExpiryDays,
+                        dataStatus: spiderList[index].dataStatus,
+                        dataExpiryDays: spiderList[index].dataExpiryDays,
                     });
                 } else {
-                    setRequest({ ...request, sid: String(spider_list[0].sid) });
+                    setRequest({ ...request, sid: String(spiderList[0].sid) });
                     setJobData({
                         ...jobData,
-                        dataStatus: spider_list[0].dataStatus,
-                        dataExpiryDays: spider_list[0].dataExpiryDays,
+                        dataStatus: spiderList[0].dataStatus,
+                        dataExpiryDays: spiderList[0].dataExpiryDays,
                     });
                 }
-                setSpiders(spider_list);
+                setSpiders(spiderList);
             },
             (error: unknown) => {
                 error;
@@ -290,7 +294,8 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                 className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                 onClick={() => {
                     if (spiders.length == 0) {
-                        message.error("Not implemented yet.");
+                        message.error("No spiders found. Please make a new deploy.");
+                        history.push(`/projects/${projectId}/deploys`);
                     } else {
                         setOpen(true);
                     }
