@@ -385,7 +385,6 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         serializer = SpiderSerializer(paginated_spiders_set, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-
     @swagger_auto_schema(
         operation_description="Retrieve all the jobs of a spider executed in a range of dates.",
         manual_parameters=[
