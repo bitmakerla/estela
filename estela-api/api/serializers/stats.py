@@ -2,6 +2,7 @@ from datetime import timedelta
 from rest_framework import serializers
 from api.serializers.spider import SpiderSerializer
 from api.serializers.job import SpiderJobSerializer
+from core.models import SpiderJob
 
 
 class LogsStatsSerializer(serializers.Serializer):
@@ -63,8 +64,29 @@ class StatsSerializer(serializers.Serializer):
     coverage = CoverageStatsSerializer(required=False)
 
 
-class SpiderJobStatsSerializer(SpiderJobSerializer):
+class SpidersJobsStatsSerializer(SpiderJobSerializer):
     stats = StatsSerializer()
+
+    class Meta:
+        model = SpiderJob
+        fields = (
+            "jid",
+            "spider",
+            "created",
+            "name",
+            "lifespan",
+            "total_response_bytes",
+            "item_count",
+            "request_count",
+            "args",
+            "env_vars",
+            "tags",
+            "job_status",
+            "cronjob",
+            "data_expiry_days",
+            "data_status",
+            "stats",
+        )
 
 
 class ProjectStatsSerializer(serializers.Serializer):
@@ -72,7 +94,7 @@ class ProjectStatsSerializer(serializers.Serializer):
     stats = StatsSerializer()
 
 
-class SpidersJobsStatsSerializer(ProjectStatsSerializer):
+class SpidersStatsSerializer(ProjectStatsSerializer):
     pass
 
 
@@ -95,4 +117,4 @@ class JobsPaginationSerializer(serializers.Serializer):
     previous = serializers.HyperlinkedIdentityField(
         view_name="project-stats", allow_null=True
     )
-    results = SpiderJobStatsSerializer(many=True)
+    results = SpidersJobsStatsSerializer(many=True)

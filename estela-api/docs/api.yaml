@@ -1345,7 +1345,7 @@ paths:
           type: integer
       responses:
         '200':
-          description: Paginated spiders belonging to an specific date
+          description: Paginated jobs belonging to a spider in a range of time
           schema:
             $ref: '#/definitions/JobsPagination'
       tags:
@@ -1387,7 +1387,53 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/SpidersJobsStats'
+              $ref: '#/definitions/SpidersStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/stats/{pid}/spider/{sid}/jobs:
+    get:
+      operationId: api_stats_spider_jobs
+      description: Retrieve all the jobs of a spider executed in a range of dates.
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          required: true
+          type: string
+        - name: end_date
+          in: query
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          required: true
+          type: string
+        - name: spider
+          in: query
+          description: The spider ID related to the jobs.
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Paginated jobs belonging to a spider in a range of time
+          schema:
+            $ref: '#/definitions/JobsPagination'
       tags:
         - api
     parameters:
@@ -1426,7 +1472,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Paginated spiders belonging to an specific date
+          description: Paginated spiders launched in a range of time
           schema:
             $ref: '#/definitions/SpiderPagination'
       tags:
@@ -2625,7 +2671,6 @@ definitions:
       - pages
       - status_codes
       - logs
-      - coverage
     type: object
     properties:
       jobs:
@@ -2662,6 +2707,97 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
+  SpidersJobsStats:
+    required:
+      - stats
+    type: object
+    properties:
+      jid:
+        title: Jid
+        description: A unique integer value identifying this job.
+        type: integer
+        readOnly: true
+      spider:
+        title: Spider
+        type: string
+        readOnly: true
+      created:
+        title: Created
+        description: Job creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      name:
+        title: Name
+        description: Unique job name.
+        type: string
+        readOnly: true
+        minLength: 1
+      lifespan:
+        title: Lifespan
+        description: The elapsed seconds the spider job was running.
+        type: number
+      total_response_bytes:
+        title: Total response bytes
+        description: The total bytes received in responses.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      item_count:
+        title: Item count
+        description: The number of items extracted in the job.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      request_count:
+        title: Request count
+        description: The number of requests made by the spider job.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
+      args:
+        description: Job arguments.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobArg'
+      env_vars:
+        description: Job env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
+      tags:
+        description: Job tags.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobTag'
+      job_status:
+        title: Job status
+        description: Current job status.
+        type: string
+        readOnly: true
+        minLength: 1
+      cronjob:
+        title: Cronjob
+        description: Related cron job.
+        type: integer
+        x-nullable: true
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data is deleted.
+        type: integer
+        maximum: 65535
+        minimum: 0
+        x-nullable: true
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+          - DELETED
+      stats:
+        $ref: '#/definitions/Stats'
   JobsPagination:
     required:
       - count
@@ -2686,8 +2822,8 @@ definitions:
       results:
         type: array
         items:
-          $ref: '#/definitions/SpiderJob'
-  SpidersJobsStats:
+          $ref: '#/definitions/SpidersJobsStats'
+  SpidersStats:
     required:
       - date
       - stats

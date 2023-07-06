@@ -48,6 +48,7 @@ models/SpiderJobUpdate.ts
 models/SpiderPagination.ts
 models/SpiderUpdate.ts
 models/SpidersJobsStats.ts
+models/SpidersStats.ts
 models/Stats.ts
 models/StatusCodesStats.ts
 models/Token.ts

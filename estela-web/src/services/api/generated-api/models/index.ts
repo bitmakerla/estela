@@ -44,6 +44,7 @@ export * from './SpiderJobUpdate';
 export * from './SpiderPagination';
 export * from './SpiderUpdate';
 export * from './SpidersJobsStats';
+export * from './SpidersStats';
 export * from './Stats';
 export * from './StatusCodesStats';
 export * from './Token';

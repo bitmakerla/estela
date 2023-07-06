@@ -22,7 +22,7 @@ from api.serializers.spider import SpiderSerializer
 from api.serializers.job import SpiderJobSerializer
 from api.serializers.stats import (
     ProjectStatsSerializer,
-    SpidersJobsStatsSerializer,
+    SpidersStatsSerializer,
     StatsSerializer,
     SpiderPaginationSerializer,
     JobsPaginationSerializer,
@@ -385,7 +385,6 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         serializer = SpiderSerializer(paginated_spiders_set, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-
     @swagger_auto_schema(
         operation_description="Retrieve all the jobs of a spider executed in a range of dates.",
         manual_parameters=[
@@ -492,7 +491,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         responses={
             status.HTTP_200_OK: openapi.Response(
                 description="Spiders/Jobs stats array with stats summary for each date",
-                schema=ListSerializer(child=SpidersJobsStatsSerializer()),
+                schema=ListSerializer(child=SpidersStatsSerializer()),
             ),
         },
     )
@@ -505,7 +504,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         if not spiderdata_db_client.get_connection():
             raise ConnectionError({"error": errors.UNABLE_CONNECT_DB})
 
-        spider: Spider = Spider.objects.get(sid=kwargs["sid"])
+        spider = Spider.objects.get(sid=kwargs["sid"])
         jobs_set: QuerySet[SpiderJob] = spider.jobs.filter(
             created__range=[start_date, end_date]
         )

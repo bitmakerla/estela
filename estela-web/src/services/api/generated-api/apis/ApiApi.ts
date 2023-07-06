@@ -117,9 +117,9 @@ import {
     SpiderUpdate,
     SpiderUpdateFromJSON,
     SpiderUpdateToJSON,
-    SpidersJobsStats,
-    SpidersJobsStatsFromJSON,
-    SpidersJobsStatsToJSON,
+    SpidersStats,
+    SpidersStatsFromJSON,
+    SpidersStatsToJSON,
     Token,
     TokenFromJSON,
     TokenToJSON,
@@ -442,6 +442,16 @@ export interface ApiStatsListRequest {
     pid: string;
     startDate: string;
     endDate: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiStatsSpiderJobsRequest {
+    pid: string;
+    sid: string;
+    startDate: string;
+    endDate: string;
+    spider: number;
     page?: number;
     pageSize?: number;
 }
@@ -2671,9 +2681,78 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Retrieve all the jobs of a spider executed in a range of dates.
+     */
+    async apiStatsSpiderJobsRaw(requestParameters: ApiStatsSpiderJobsRequest): Promise<runtime.ApiResponse<JobsPagination>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiderJobs.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiStatsSpiderJobs.');
+        }
+
+        if (requestParameters.startDate === null || requestParameters.startDate === undefined) {
+            throw new runtime.RequiredError('startDate','Required parameter requestParameters.startDate was null or undefined when calling apiStatsSpiderJobs.');
+        }
+
+        if (requestParameters.endDate === null || requestParameters.endDate === undefined) {
+            throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiStatsSpiderJobs.');
+        }
+
+        if (requestParameters.spider === null || requestParameters.spider === undefined) {
+            throw new runtime.RequiredError('spider','Required parameter requestParameters.spider was null or undefined when calling apiStatsSpiderJobs.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.startDate !== undefined) {
+            queryParameters['start_date'] = requestParameters.startDate;
+        }
+
+        if (requestParameters.endDate !== undefined) {
+            queryParameters['end_date'] = requestParameters.endDate;
+        }
+
+        if (requestParameters.spider !== undefined) {
+            queryParameters['spider'] = requestParameters.spider;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/stats/{pid}/spider/{sid}/jobs`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => JobsPaginationFromJSON(jsonValue));
+    }
+
+    /**
+     * Retrieve all the jobs of a spider executed in a range of dates.
+     */
+    async apiStatsSpiderJobs(requestParameters: ApiStatsSpiderJobsRequest): Promise<JobsPagination> {
+        const response = await this.apiStatsSpiderJobsRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
      * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiStatsSpiderListRaw(requestParameters: ApiStatsSpiderListRequest): Promise<runtime.ApiResponse<Array<SpidersJobsStats>>> {
+    async apiStatsSpiderListRaw(requestParameters: ApiStatsSpiderListRequest): Promise<runtime.ApiResponse<Array<SpidersStats>>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiderList.');
         }
@@ -2720,13 +2799,13 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SpidersJobsStatsFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(SpidersStatsFromJSON));
     }
 
     /**
      * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
      */
-    async apiStatsSpiderList(requestParameters: ApiStatsSpiderListRequest): Promise<Array<SpidersJobsStats>> {
+    async apiStatsSpiderList(requestParameters: ApiStatsSpiderListRequest): Promise<Array<SpidersStats>> {
         const response = await this.apiStatsSpiderListRaw(requestParameters);
         return await response.value();
     }
