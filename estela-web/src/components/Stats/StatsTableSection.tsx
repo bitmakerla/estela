@@ -12,7 +12,6 @@ import {
     SpidersJobsStats,
 } from "../../services";
 import { Link } from "react-router-dom";
-import { Spin } from "../../shared";
 
 interface StatsTableDataType {
     key: string;
@@ -329,35 +328,35 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                 className="w-full"
                 columns={this.colsStatsTable}
                 dataSource={dataDatesStats}
-                expandable={{
-                    expandedRowRender: (record, index) => {
-                        const { loadedDatesStats, jobsDateStats } = this.state;
-                        if (!loadedDatesStats[index]) {
-                            this.retrieveDateJobsStats(index, record.statsDate.jobsMetadata);
-                            return <Spin />;
-                        }
-                        const dataDateTraceStats: StatsTraceabilityDataType[] = jobsDateStats[index].map(
-                            (jobStat: GetJobsStats, jobIndex: number) => {
-                                const status =
-                                    record.statsDate.jobsMetadata.find((jobMeta) => jobMeta.jid === jobStat.jid)
-                                        ?.jobStatus ?? "UNKNOWN";
-                                return {
-                                    key: `${jobIndex}`,
-                                    statsDate: jobStat,
-                                    jobStatus: status,
-                                };
-                            },
-                        );
-                        return (
-                            <Table
-                                className="w-full"
-                                pagination={false}
-                                columns={this.colsTraceabilityTable}
-                                dataSource={dataDateTraceStats}
-                            />
-                        );
-                    },
-                }}
+                // expandable={{
+                //     expandedRowRender: (record, index) => {
+                //         const { loadedDatesStats, jobsDateStats } = this.state;
+                //         if (!loadedDatesStats[index]) {
+                //             this.retrieveDateJobsStats(index, record.statsDate.jobsMetadata);
+                //             return <Spin />;
+                //         }
+                //         const dataDateTraceStats: StatsTraceabilityDataType[] = jobsDateStats[index].map(
+                //             (jobStat: GetJobsStats, jobIndex: number) => {
+                //                 const status =
+                //                     record.statsDate.jobsMetadata.find((jobMeta) => jobMeta.jid === jobStat.jid)
+                //                         ?.jobStatus ?? "UNKNOWN";
+                //                 return {
+                //                     key: `${jobIndex}`,
+                //                     statsDate: jobStat,
+                //                     jobStatus: status,
+                //                 };
+                //             },
+                //         );
+                //         return (
+                //             <Table
+                //                 className="w-full"
+                //                 pagination={false}
+                //                 columns={this.colsTraceabilityTable}
+                //                 dataSource={dataDateTraceStats}
+                //             />
+                //         );
+                //     },
+                // }}
                 pagination={false}
             />
         );
