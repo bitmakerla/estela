@@ -45,6 +45,12 @@ export interface Project {
      */
     category?: ProjectCategoryEnum;
     /**
+     * Project's framework.
+     * @type {string}
+     * @memberof Project
+     */
+    framework?: ProjectFrameworkEnum;
+    /**
      * Path of the project's container image.
      * @type {string}
      * @memberof Project
@@ -86,6 +92,13 @@ export enum ProjectCategoryEnum {
 * @export
 * @enum {string}
 */
+export enum ProjectFrameworkEnum {
+    Scrapy = 'SCRAPY',
+    Requests = 'REQUESTS'
+}/**
+* @export
+* @enum {string}
+*/
 export enum ProjectDataStatusEnum {
     Persistent = 'PERSISTENT',
     Pending = 'PENDING'
@@ -104,6 +117,7 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'pid': !exists(json, 'pid') ? undefined : json['pid'],
         'name': json['name'],
         'category': !exists(json, 'category') ? undefined : json['category'],
+        'framework': !exists(json, 'framework') ? undefined : json['framework'],
         'containerImage': !exists(json, 'container_image') ? undefined : json['container_image'],
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(PermissionFromJSON)),
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
@@ -122,6 +136,7 @@ export function ProjectToJSON(value?: Project | null): any {
         
         'name': value.name,
         'category': value.category,
+        'framework': value.framework,
         'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(PermissionToJSON)),
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,

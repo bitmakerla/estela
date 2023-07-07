@@ -1691,6 +1691,13 @@ definitions:
           - EDUCATIONAL
           - TECHNOLOGY
           - OTHER_CATEGORY
+      framework:
+        title: Framework
+        description: Project's framework.
+        type: string
+        enum:
+          - SCRAPY
+          - REQUESTS
       container_image:
         title: Container image
         description: Path of the project's container image.
@@ -1748,6 +1755,13 @@ definitions:
           - remove
           - add
           - update
+      framework:
+        title: Framework
+        description: Set project framework.
+        type: string
+        enum:
+          - SCRAPY
+          - REQUESTS
       permission:
         title: Permission
         description: New permission.

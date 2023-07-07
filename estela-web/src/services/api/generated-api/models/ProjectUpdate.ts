@@ -57,6 +57,12 @@ export interface ProjectUpdate {
      */
     action?: ProjectUpdateActionEnum;
     /**
+     * Set project framework.
+     * @type {string}
+     * @memberof ProjectUpdate
+     */
+    framework?: ProjectUpdateFrameworkEnum;
+    /**
      * New permission.
      * @type {string}
      * @memberof ProjectUpdate
@@ -84,6 +90,13 @@ export enum ProjectUpdateActionEnum {
     Remove = 'remove',
     Add = 'add',
     Update = 'update'
+}/**
+* @export
+* @enum {string}
+*/
+export enum ProjectUpdateFrameworkEnum {
+    Scrapy = 'SCRAPY',
+    Requests = 'REQUESTS'
 }/**
 * @export
 * @enum {string}
@@ -116,6 +129,7 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
         'users': !exists(json, 'users') ? undefined : ((json['users'] as Array<any>).map(UserDetailFromJSON)),
         'email': !exists(json, 'email') ? undefined : json['email'],
         'action': !exists(json, 'action') ? undefined : json['action'],
+        'framework': !exists(json, 'framework') ? undefined : json['framework'],
         'permission': !exists(json, 'permission') ? undefined : json['permission'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
@@ -135,6 +149,7 @@ export function ProjectUpdateToJSON(value?: ProjectUpdate | null): any {
         'users': value.users === undefined ? undefined : ((value.users as Array<any>).map(UserDetailToJSON)),
         'email': value.email,
         'action': value.action,
+        'framework': value.framework,
         'permission': value.permission,
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,

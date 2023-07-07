@@ -54,6 +54,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "pid",
             "name",
             "category",
+            "framework",
             "container_image",
             "users",
             "data_status",
@@ -132,6 +133,12 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Performed action.",
     )
+    framework = serializers.ChoiceField(
+        write_only=True,
+        choices=Project.FRAMEWORK_CHOICES,
+        required=False,
+        help_text="Set project framework.",
+    )
     permission = serializers.ChoiceField(
         write_only=True,
         choices=PERMISSION_CHOICES,
@@ -158,6 +165,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "users",
             "email",
             "action",
+            "framework",
             "permission",
             "data_status",
             "data_expiry_days",

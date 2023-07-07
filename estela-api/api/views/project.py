@@ -61,6 +61,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save()
+        instance.framework = Project.SCRAPY
         instance.users.add(
             self.request.user,
             through_defaults={"permission": Permission.OWNER_PERMISSION},
@@ -100,11 +101,17 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         data_status = serializer.validated_data.pop("data_status", "")
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
         description = ""
+        framework = serializer.validated_data.pop("framework", "")
 
         if name:
             old_name = instance.name
             instance.name = name
             description = f"renamed project {old_name} ({instance.pid}) to {name}."
+
+        if framework and framework != instance.framework:
+            instance.framework = framework
+            description = f"changed framework to {framework}."
+
         user = request.user
         is_superuser = user.is_superuser or user.is_staff
         if user_email and (is_superuser or user_email != user.email):
