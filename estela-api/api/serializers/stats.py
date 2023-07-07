@@ -64,7 +64,7 @@ class StatsSerializer(serializers.Serializer):
     coverage = CoverageStatsSerializer(required=False)
 
 
-class SpidersJobsStatsSerializer(SpiderJobSerializer):
+class SpiderJobStatsSerializer(SpiderJobSerializer):
     stats = StatsSerializer()
 
 class SpiderJobStatsSerializer(SpiderJobSerializer):
@@ -120,4 +120,4 @@ class JobsPaginationSerializer(serializers.Serializer):
     previous = serializers.HyperlinkedIdentityField(
         view_name="project-stats", allow_null=True
     )
-    results = SpidersJobsStatsSerializer(many=True)
+    results = SpiderJobStatsSerializer(many=True)

@@ -45,7 +45,6 @@ export * from './SpiderJobEnvVar';
 export * from './SpiderJobStats';
 export * from './SpiderJobTag';
 export * from './SpiderJobUpdate';
-export * from './SpiderPagination';
 export * from './SpiderUpdate';
 export * from './SpidersPagination';
 export * from './SpidersStats';
