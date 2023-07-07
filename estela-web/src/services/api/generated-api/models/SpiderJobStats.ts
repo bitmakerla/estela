@@ -35,103 +35,103 @@ import {
 /**
  * 
  * @export
- * @interface SpidersJobsStats
+ * @interface SpiderJobStats
  */
-export interface SpidersJobsStats {
+export interface SpiderJobStats {
     /**
      * A unique integer value identifying this job.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     readonly jid?: number;
     /**
      * 
      * @type {string}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     readonly spider?: string;
     /**
      * Job creation date.
      * @type {Date}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     readonly created?: Date;
     /**
      * Unique job name.
      * @type {string}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     readonly name?: string;
     /**
      * The elapsed seconds the spider job was running.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     lifespan?: number;
     /**
      * The total bytes received in responses.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     totalResponseBytes?: number;
     /**
      * The number of items extracted in the job.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     itemCount?: number;
     /**
      * The number of requests made by the spider job.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     requestCount?: number;
     /**
      * Job arguments.
      * @type {Array<SpiderJobArg>}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     args?: Array<SpiderJobArg>;
     /**
      * Job env variables.
      * @type {Array<SpiderJobEnvVar>}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     envVars?: Array<SpiderJobEnvVar>;
     /**
      * Job tags.
      * @type {Array<SpiderJobTag>}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     tags?: Array<SpiderJobTag>;
     /**
      * Current job status.
      * @type {string}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     readonly jobStatus?: string;
     /**
      * Related cron job.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     cronjob?: number | null;
     /**
      * Days before data is deleted.
      * @type {number}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     dataExpiryDays?: number | null;
     /**
      * Data status.
      * @type {string}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
-    dataStatus?: SpidersJobsStatsDataStatusEnum;
+    dataStatus?: SpiderJobStatsDataStatusEnum;
     /**
      * 
      * @type {Stats}
-     * @memberof SpidersJobsStats
+     * @memberof SpiderJobStats
      */
     stats: Stats;
 }
@@ -140,17 +140,17 @@ export interface SpidersJobsStats {
 * @export
 * @enum {string}
 */
-export enum SpidersJobsStatsDataStatusEnum {
+export enum SpiderJobStatsDataStatusEnum {
     Persistent = 'PERSISTENT',
     Pending = 'PENDING',
     Deleted = 'DELETED'
 }
 
-export function SpidersJobsStatsFromJSON(json: any): SpidersJobsStats {
-    return SpidersJobsStatsFromJSONTyped(json, false);
+export function SpiderJobStatsFromJSON(json: any): SpiderJobStats {
+    return SpiderJobStatsFromJSONTyped(json, false);
 }
 
-export function SpidersJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpidersJobsStats {
+export function SpiderJobStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpiderJobStats {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -175,7 +175,7 @@ export function SpidersJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: bo
     };
 }
 
-export function SpidersJobsStatsToJSON(value?: SpidersJobsStats | null): any {
+export function SpiderJobStatsToJSON(value?: SpiderJobStats | null): any {
     if (value === undefined) {
         return undefined;
     }

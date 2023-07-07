@@ -43,11 +43,11 @@ models/SpiderJob.ts
 models/SpiderJobArg.ts
 models/SpiderJobCreate.ts
 models/SpiderJobEnvVar.ts
+models/SpiderJobStats.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
-models/SpiderPagination.ts
 models/SpiderUpdate.ts
-models/SpidersJobsStats.ts
+models/SpidersPagination.ts
 models/SpidersStats.ts
 models/Stats.ts
 models/StatusCodesStats.ts

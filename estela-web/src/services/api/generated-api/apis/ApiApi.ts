@@ -111,12 +111,12 @@ import {
     SpiderJobUpdate,
     SpiderJobUpdateFromJSON,
     SpiderJobUpdateToJSON,
-    SpiderPagination,
-    SpiderPaginationFromJSON,
-    SpiderPaginationToJSON,
     SpiderUpdate,
     SpiderUpdateFromJSON,
     SpiderUpdateToJSON,
+    SpidersPagination,
+    SpidersPaginationFromJSON,
+    SpidersPaginationToJSON,
     SpidersStats,
     SpidersStatsFromJSON,
     SpidersStatsToJSON,
@@ -2813,7 +2813,7 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Retrieve all the spiders executed in a range of dates.
      */
-    async apiStatsSpidersRaw(requestParameters: ApiStatsSpidersRequest): Promise<runtime.ApiResponse<SpiderPagination>> {
+    async apiStatsSpidersRaw(requestParameters: ApiStatsSpidersRequest): Promise<runtime.ApiResponse<SpidersPagination>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsSpiders.');
         }
@@ -2856,13 +2856,13 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderPaginationFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpidersPaginationFromJSON(jsonValue));
     }
 
     /**
      * Retrieve all the spiders executed in a range of dates.
      */
-    async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpiderPagination> {
+    async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpidersPagination> {
         const response = await this.apiStatsSpidersRaw(requestParameters);
         return await response.value();
     }

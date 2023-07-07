@@ -24,7 +24,7 @@ from api.serializers.stats import (
     ProjectStatsSerializer,
     SpidersStatsSerializer,
     StatsSerializer,
-    SpiderPaginationSerializer,
+    SpidersPaginationSerializer,
     JobsPaginationSerializer,
 )
 from config.job_manager import spiderdata_db_client
@@ -359,7 +359,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         responses={
             status.HTTP_200_OK: openapi.Response(
                 description="Paginated spiders launched in a range of time",
-                schema=SpiderPaginationSerializer(),
+                schema=SpidersPaginationSerializer(),
             ),
         },
     )

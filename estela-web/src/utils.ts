@@ -25,19 +25,16 @@ export function convertDateToString(date: Date | undefined): string {
     return "";
 }
 
-export function formatSecondsToHHMMSS(seconds: number | string): string {
-    if (typeof seconds === "number") {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = Math.round(seconds) % 60;
-        const formattedTime = [
-            hours.toString().padStart(2, "0"),
-            minutes.toString().padStart(2, "0"),
-            remainingSeconds.toString().padStart(2, "0"),
-        ].join(":");
-        return formattedTime;
-    }
-    return seconds;
+export function formatSecondsToHHMMSS(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.round(seconds) % 60;
+    const formattedTime = [
+        hours.toString().padStart(2, "0"),
+        minutes.toString().padStart(2, "0"),
+        remainingSeconds.toString().padStart(2, "0"),
+    ].join(":");
+    return formattedTime;
 }
 
 export function parseDurationToSeconds(durationString: string | undefined): number {

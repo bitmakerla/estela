@@ -14,10 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    SpidersJobsStats,
-    SpidersJobsStatsFromJSON,
-    SpidersJobsStatsFromJSONTyped,
-    SpidersJobsStatsToJSON,
+    SpiderJobStats,
+    SpiderJobStatsFromJSON,
+    SpiderJobStatsFromJSONTyped,
+    SpiderJobStatsToJSON,
 } from './';
 
 /**
@@ -46,10 +46,10 @@ export interface JobsPagination {
     readonly previous?: string | null;
     /**
      * 
-     * @type {Array<SpidersJobsStats>}
+     * @type {Array<SpiderJobStats>}
      * @memberof JobsPagination
      */
-    results: Array<SpidersJobsStats>;
+    results: Array<SpiderJobStats>;
 }
 
 export function JobsPaginationFromJSON(json: any): JobsPagination {
@@ -65,7 +65,7 @@ export function JobsPaginationFromJSONTyped(json: any, ignoreDiscriminator: bool
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(SpidersJobsStatsFromJSON)),
+        'results': ((json['results'] as Array<any>).map(SpiderJobStatsFromJSON)),
     };
 }
 
@@ -79,7 +79,7 @@ export function JobsPaginationToJSON(value?: JobsPagination | null): any {
     return {
         
         'count': value.count,
-        'results': ((value.results as Array<any>).map(SpidersJobsStatsToJSON)),
+        'results': ((value.results as Array<any>).map(SpiderJobStatsToJSON)),
     };
 }
 

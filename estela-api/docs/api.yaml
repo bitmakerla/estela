@@ -1474,7 +1474,7 @@ paths:
         '200':
           description: Paginated spiders launched in a range of time
           schema:
-            $ref: '#/definitions/SpiderPagination'
+            $ref: '#/definitions/SpidersPagination'
       tags:
         - api
     parameters:
@@ -2707,7 +2707,7 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
-  SpidersJobsStats:
+  SpiderJobStats:
     required:
       - stats
     type: object
@@ -2822,7 +2822,7 @@ definitions:
       results:
         type: array
         items:
-          $ref: '#/definitions/SpidersJobsStats'
+          $ref: '#/definitions/SpiderJobStats'
   SpidersStats:
     required:
       - date
@@ -2835,7 +2835,7 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
-  SpiderPagination:
+  SpidersPagination:
     required:
       - count
       - results

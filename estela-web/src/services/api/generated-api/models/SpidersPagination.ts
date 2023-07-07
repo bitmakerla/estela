@@ -23,40 +23,40 @@ import {
 /**
  * 
  * @export
- * @interface SpiderPagination
+ * @interface SpidersPagination
  */
-export interface SpiderPagination {
+export interface SpidersPagination {
     /**
      * 
      * @type {number}
-     * @memberof SpiderPagination
+     * @memberof SpidersPagination
      */
     count: number;
     /**
      * 
      * @type {string}
-     * @memberof SpiderPagination
+     * @memberof SpidersPagination
      */
     readonly next?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof SpiderPagination
+     * @memberof SpidersPagination
      */
     readonly previous?: string | null;
     /**
      * 
      * @type {Array<Spider>}
-     * @memberof SpiderPagination
+     * @memberof SpidersPagination
      */
     results: Array<Spider>;
 }
 
-export function SpiderPaginationFromJSON(json: any): SpiderPagination {
-    return SpiderPaginationFromJSONTyped(json, false);
+export function SpidersPaginationFromJSON(json: any): SpidersPagination {
+    return SpidersPaginationFromJSONTyped(json, false);
 }
 
-export function SpiderPaginationFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpiderPagination {
+export function SpidersPaginationFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpidersPagination {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -69,7 +69,7 @@ export function SpiderPaginationFromJSONTyped(json: any, ignoreDiscriminator: bo
     };
 }
 
-export function SpiderPaginationToJSON(value?: SpiderPagination | null): any {
+export function SpidersPaginationToJSON(value?: SpidersPagination | null): any {
     if (value === undefined) {
         return undefined;
     }
