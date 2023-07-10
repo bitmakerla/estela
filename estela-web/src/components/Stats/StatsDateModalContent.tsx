@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import { Spin as Spinner } from "../../shared";
-import { ApiApi, JobsPagination, SpidersPagination } from "../../services";
+import { ApiApi, JobsPagination, SpidersPagination, SpiderJobStats } from "../../services";
 import { Button, Row, Tabs } from "antd";
 import ArrowLeft from "../../assets/icons/arrowLeft.svg";
 import ArrowRight from "../../assets/icons/arrowRight.svg";
 import "./StatsDateModalContent.scss";
+import moment from "moment";
 // import { ChartsModalSection } from "./ChartsModalSection";
 
 interface StatsDateModalContentState {
@@ -13,6 +14,8 @@ interface StatsDateModalContentState {
     spiders: SpidersPagination;
     loadedJobs: boolean;
     jobs: JobsPagination;
+    overviewTabSelected: boolean;
+    jobSelected: SpiderJobStats;
 }
 
 interface StatsDateModalContentProps {
@@ -20,15 +23,21 @@ interface StatsDateModalContentProps {
     apiService: ApiApi;
     startDate: string;
     endDate: string;
+    nextDate: () => void;
+    prevDate: () => void;
 }
 
 export class StatsDateModalContent extends Component<StatsDateModalContentProps, StatsDateModalContentState> {
+    abortController = new AbortController();
+
     state: StatsDateModalContentState = {
-        activeSpider: null, // cambiar esto a null luego
+        activeSpider: null,
         loadedSpiders: false,
         spiders: {} as SpidersPagination,
         loadedJobs: false,
         jobs: {} as JobsPagination,
+        overviewTabSelected: true,
+        jobSelected: {} as SpiderJobStats,
     };
 
     async componentDidMount(): Promise<void> {
@@ -39,15 +48,59 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                 startDate: startDate,
                 endDate: endDate,
             });
-            if (spiders.results.length === 0) {
+            if (spiders.results.length === 0 && !this.abortController.signal.aborted) {
                 this.setState({ loadedSpiders: true, spiders: spiders });
                 return;
             }
-            this.setState({ loadedSpiders: true, spiders: spiders, activeSpider: spiders.results[0].sid || null });
-            this.retrieveJobsSpider();
+            if (!this.abortController.signal.aborted) {
+                this.setState({
+                    loadedSpiders: true,
+                    spiders: spiders,
+                    activeSpider: spiders.results[0].sid || null,
+                });
+                this.retrieveJobsSpider();
+            }
         } catch (error) {
             console.error(error);
         }
+    }
+
+    async componentDidUpdate(prevProps: Readonly<StatsDateModalContentProps>) {
+        const { pid, startDate, endDate, apiService } = this.props;
+        if (prevProps.startDate !== startDate && prevProps.endDate !== endDate) {
+            this.setState({ loadedSpiders: false });
+            try {
+                const spiders: SpidersPagination = await apiService.apiStatsSpiders({
+                    pid: pid,
+                    startDate: startDate,
+                    endDate: endDate,
+                });
+                if (spiders.results.length === 0) {
+                    if (!this.abortController.signal.aborted) {
+                        this.setState({
+                            loadedSpiders: true,
+                            spiders: spiders,
+                            activeSpider: spiders.results[0].sid || null,
+                        });
+                    }
+                    return;
+                }
+                if (!this.abortController.signal.aborted) {
+                    this.setState({
+                        loadedSpiders: true,
+                        spiders: spiders,
+                        activeSpider: spiders.results[0].sid || null,
+                    });
+                    this.retrieveJobsSpider();
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    }
+
+    componentWillUnmount(): void {
+        this.abortController.abort();
     }
 
     retrieveJobsSpider = async (spider?: number) => {
@@ -58,13 +111,22 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
 
             if (activeSpider === null) throw new Error("No active spider found");
 
-            const jobs = await apiService.apiStatsJobs({
+            const jobs = apiService.apiStatsJobs({
                 pid: pid,
                 spider: spider || activeSpider,
                 startDate: startDate,
                 endDate: endDate,
             });
-            this.setState({ loadedJobs: true, jobs: jobs, activeSpider: spider || activeSpider });
+            jobs.then((jobs) => {
+                if (!this.abortController.signal.aborted) {
+                    this.setState({ loadedJobs: true, jobs: jobs, activeSpider: spider || activeSpider });
+                }
+            }).catch((error) => {
+                if (error.name === "AbortError") {
+                    return;
+                }
+                console.error(error);
+            });
         } catch (error) {
             console.error(error);
         }
@@ -87,6 +149,9 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                     //     logs
                     // />
                 ),
+                onclick: () => {
+                    this.setState({ overviewTabSelected: true });
+                },
             },
         ];
         const jobsItems = jobs.results.map((job, index) => {
@@ -94,12 +159,16 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                 label: <p className="text-estela-black-full text-right">Job {job.jid}</p>,
                 key: `${index}`,
                 children: <p>job stats {job.jid}</p>,
+                onclick: () => {
+                    this.setState({ overviewTabSelected: false, jobSelected: { ...job } });
+                },
             };
         });
         return items.concat(jobsItems);
     };
 
     render() {
+        const { nextDate, prevDate, startDate } = this.props;
         const { activeSpider, loadedSpiders, spiders, loadedJobs } = this.state;
 
         return (
@@ -108,14 +177,22 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                     {loadedSpiders && activeSpider && (
                         <>
                             <Row className="flex justify-center items-center py-4 gap-32">
-                                <div className="stroke-estela-white-full hover:cursor-pointer">
+                                <div
+                                    className="stroke-estela-white-full hover:cursor-pointer"
+                                    onClick={() => prevDate()}
+                                >
                                     <ArrowLeft className="h-6 w-6 hover:drop-shadow-md hover:brightness-100" />
                                 </div>
                                 <div className="text-estela-white-full text-sm">
-                                    <p className="text-center">SATURDAY</p>
-                                    <p className="text-center">01 January, 2023</p>
+                                    <p className="text-center">{moment.utc(startDate).local().format("dddd")}</p>
+                                    <p className="text-center">
+                                        {moment.utc(startDate).local().format("DD MMMM, YYYY")}
+                                    </p>
                                 </div>
-                                <div className="stroke-estela-white-full hover:cursor-pointer">
+                                <div
+                                    className="stroke-estela-white-full hover:cursor-pointer"
+                                    onClick={() => nextDate()}
+                                >
                                     <ArrowRight className="h-6 w-6" />
                                 </div>
                             </Row>

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Modal, Row, Table } from "antd";
+import { Button, Modal, Row, Table } from "antd";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
 import { formatSecondsToHHMMSS } from "../../utils";
@@ -21,8 +21,6 @@ interface StatsTableSectionProps {
 }
 
 interface StatsTableSectionState {
-    loadedDatesStats: boolean[];
-    datesStats: ProjectStats[][];
     focusStatsDateIndex: number;
     openDateModal: boolean;
     startDateModal: string;
@@ -31,27 +29,11 @@ interface StatsTableSectionState {
 
 export class StatsTableSection extends Component<StatsTableSectionProps, StatsTableSectionState> {
     state: StatsTableSectionState = {
-        loadedDatesStats: [],
-        datesStats: [],
         focusStatsDateIndex: 0,
         openDateModal: false,
         startDateModal: "",
         endDateModal: "",
     };
-
-    componentDidUpdate(prevProps: StatsTableSectionProps, prevState: StatsTableSectionState) {
-        const { stats } = this.props;
-        if (
-            prevProps.stats.length === 0 &&
-            stats.length > 0 &&
-            prevState.loadedDatesStats.length === 0 &&
-            prevState.datesStats.length === 0
-        ) {
-            const newLoadedDatesStats = Array(stats.length).fill(false);
-            const newJobsDateStats = Array<ProjectStats[]>(stats.length);
-            this.setState({ loadedDatesStats: [...newLoadedDatesStats], datesStats: [...newJobsDateStats] });
-        }
-    }
 
     colsStatsTable: ColumnsType<StatsTableDataType> = [
         {
@@ -207,13 +189,39 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                 return criticalLogsA - criticalLogsB;
             },
         },
+        {
+            title: <p className="text-estela-black-full font-medium text-xs text-center">DETAILS</p>,
+            dataIndex: "details",
+            key: "details",
+            align: "center",
+            render: (_, { statsDate }, index) => {
+                return (
+                    <Button
+                        type="link"
+                        className="text-estela font-semibold hover:text-estela-blue-medium focus:text-estela-blue-medium"
+                        onClick={() => {
+                            const [startDate, endDate] = [
+                                moment(statsDate.date).startOf("day").utc().toISOString(),
+                                moment(statsDate.date).endOf("day").utc().toISOString(),
+                            ];
+                            this.setState({
+                                openDateModal: true,
+                                focusStatsDateIndex: index,
+                                startDateModal: startDate,
+                                endDateModal: endDate,
+                            });
+                        }}
+                    >
+                        See details
+                    </Button>
+                );
+            },
+        },
     ];
 
     render() {
-        const { openDateModal, loadedDatesStats, focusStatsDateIndex, startDateModal, endDateModal } = this.state;
+        const { openDateModal, focusStatsDateIndex, startDateModal, endDateModal } = this.state;
         const { loadedStats, stats, apiService, pid } = this.props;
-
-        focusStatsDateIndex;
 
         if (!loadedStats) {
             return <Row className="animate-pulse mt-6 h-12 w-full bg-estela-blue-low rounded-md" />;
@@ -239,7 +247,6 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                     dataSource={dataDatesStats}
                     pagination={false}
                     onRow={(record, rowIndex) => {
-                        rowIndex;
                         return {
                             onClick: () => {
                                 const [startDate, endDate] = [
@@ -248,6 +255,7 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                                 ];
                                 this.setState({
                                     openDateModal: true,
+                                    focusStatsDateIndex: rowIndex ?? 0,
                                     startDateModal: startDate,
                                     endDateModal: endDate,
                                 });
@@ -255,25 +263,62 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                         };
                     }}
                 />
-                {loadedDatesStats.length !== 0 && (
-                    <Modal
-                        open={openDateModal}
-                        onCancel={() => this.setState({ openDateModal: false })}
-                        title={null}
-                        className="stats-date-modal"
-                        width="90%"
-                        closeIcon={<Cross className="w-6 h-6 stroke-white mx-auto mt-3" />}
-                        footer={null}
-                        destroyOnClose
-                    >
-                        <StatsDateModalContent
-                            pid={pid}
-                            apiService={apiService}
-                            startDate={startDateModal}
-                            endDate={endDateModal}
-                        />
-                    </Modal>
-                )}
+
+                <Modal
+                    open={openDateModal}
+                    onCancel={() => this.setState({ openDateModal: false })}
+                    title={null}
+                    className="stats-date-modal"
+                    width="90%"
+                    closeIcon={<Cross className="w-6 h-6 stroke-white mx-auto mt-3" />}
+                    footer={null}
+                    destroyOnClose
+                >
+                    <StatsDateModalContent
+                        pid={pid}
+                        apiService={apiService}
+                        startDate={startDateModal}
+                        endDate={endDateModal}
+                        nextDate={() => {
+                            if (focusStatsDateIndex < stats.length - 1) {
+                                const [startDate, endDate] = [
+                                    moment(stats[focusStatsDateIndex + 1].date)
+                                        .startOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                    moment(stats[focusStatsDateIndex + 1].date)
+                                        .endOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                ];
+                                this.setState({
+                                    focusStatsDateIndex: focusStatsDateIndex + 1,
+                                    startDateModal: startDate,
+                                    endDateModal: endDate,
+                                });
+                            }
+                        }}
+                        prevDate={() => {
+                            if (focusStatsDateIndex > 0) {
+                                const [startDate, endDate] = [
+                                    moment(stats[focusStatsDateIndex - 1].date)
+                                        .startOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                    moment(stats[focusStatsDateIndex - 1].date)
+                                        .endOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                ];
+                                this.setState({
+                                    focusStatsDateIndex: focusStatsDateIndex - 1,
+                                    startDateModal: startDate,
+                                    endDateModal: endDate,
+                                });
+                            }
+                        }}
+                    />
+                </Modal>
             </>
         );
     }
