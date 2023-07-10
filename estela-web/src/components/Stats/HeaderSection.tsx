@@ -5,7 +5,7 @@ import Run from "../../assets/icons/run.svg";
 import { Row } from "antd";
 import { ProjectHealth, RightSidedModal } from "..";
 import { BytesMetric } from "../../utils";
-import { GlobalStats } from "../../services";
+import { ProjectStats } from "../../services";
 
 const { RangePicker } = DatePicker;
 
@@ -15,7 +15,7 @@ interface HeaderSectionProps {
     formattedNetwork: BytesMetric;
     formattedStorage: BytesMetric;
     processingTime: number;
-    stats: GlobalStats[];
+    stats: ProjectStats[];
     loadedStats: boolean;
     startDate: string;
     endDate: string;

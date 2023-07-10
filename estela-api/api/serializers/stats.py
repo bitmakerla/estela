@@ -1,5 +1,7 @@
+from datetime import timedelta
 from rest_framework import serializers
-
+from api.serializers.spider import SpiderSerializer
+from api.serializers.job import SpiderJobSerializer
 from core.models import SpiderJob
 
 
@@ -55,30 +57,64 @@ class StatsSerializer(serializers.Serializer):
     jobs = JobsStatsSerializer(required=False)
     pages = PagesStatsSerializer()
     items_count = serializers.IntegerField(default=0)
-    runtime = serializers.FloatField(default=0.0)
+    runtime = serializers.DurationField(default=timedelta(hours=0, minutes=0))
     status_codes = StatusCodesStatsSerializer()
-    success_rate = serializers.FloatField(default=0.0)
+    success_rate = serializers.FloatField(default=0.0, required=False)
     logs = LogsStatsSerializer()
-    coverage = CoverageStatsSerializer()
+    coverage = CoverageStatsSerializer(required=False)
 
 
-class JobsMetadataSerializer(serializers.ModelSerializer):
+class SpiderJobStatsSerializer(SpiderJobSerializer):
+    stats = StatsSerializer()
+
     class Meta:
         model = SpiderJob
-        fields = ("jid", "spider", "job_status")
+        fields = (
+            "jid",
+            "spider",
+            "created",
+            "name",
+            "lifespan",
+            "total_response_bytes",
+            "item_count",
+            "request_count",
+            "args",
+            "env_vars",
+            "tags",
+            "job_status",
+            "cronjob",
+            "data_expiry_days",
+            "data_status",
+            "stats",
+        )
 
 
-class GetJobsStatsSerializer(serializers.Serializer):
-    jid = serializers.IntegerField(default=0)
-    spider = serializers.IntegerField(default=0)
-    stats = StatsSerializer(required=False)
-
-
-class GlobalStatsSerializer(serializers.Serializer):
+class ProjectStatsSerializer(serializers.Serializer):
     date = serializers.DateField()
     stats = StatsSerializer()
-    jobs_metadata = JobsMetadataSerializer(many=True)
 
 
-class SpidersJobsStatsSerializer(GlobalStatsSerializer):
+class SpidersStatsSerializer(ProjectStatsSerializer):
     pass
+
+
+class SpidersPaginationSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    previous = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    results = SpiderSerializer(many=True)
+
+
+class JobsPaginationSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    previous = serializers.HyperlinkedIdentityField(
+        view_name="project-stats", allow_null=True
+    )
+    results = SpiderJobStatsSerializer(many=True)

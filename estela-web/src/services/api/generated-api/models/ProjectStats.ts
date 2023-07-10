@@ -23,46 +23,39 @@ import {
 /**
  * 
  * @export
- * @interface GetJobsStats
+ * @interface ProjectStats
  */
-export interface GetJobsStats {
+export interface ProjectStats {
     /**
      * 
-     * @type {number}
-     * @memberof GetJobsStats
+     * @type {Date}
+     * @memberof ProjectStats
      */
-    jid?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof GetJobsStats
-     */
-    spider?: number;
+    date: Date;
     /**
      * 
      * @type {Stats}
-     * @memberof GetJobsStats
+     * @memberof ProjectStats
      */
-    stats?: Stats;
+    stats: Stats;
 }
 
-export function GetJobsStatsFromJSON(json: any): GetJobsStats {
-    return GetJobsStatsFromJSONTyped(json, false);
+export function ProjectStatsFromJSON(json: any): ProjectStats {
+    return ProjectStatsFromJSONTyped(json, false);
 }
 
-export function GetJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): GetJobsStats {
+export function ProjectStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): ProjectStats {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'jid': !exists(json, 'jid') ? undefined : json['jid'],
-        'spider': !exists(json, 'spider') ? undefined : json['spider'],
-        'stats': !exists(json, 'stats') ? undefined : StatsFromJSON(json['stats']),
+        'date': (new Date(json['date'])),
+        'stats': StatsFromJSON(json['stats']),
     };
 }
 
-export function GetJobsStatsToJSON(value?: GetJobsStats | null): any {
+export function ProjectStatsToJSON(value?: ProjectStats | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -71,8 +64,7 @@ export function GetJobsStatsToJSON(value?: GetJobsStats | null): any {
     }
     return {
         
-        'jid': value.jid,
-        'spider': value.spider,
+        'date': (value.date.toISOString().substr(0,10)),
         'stats': StatsToJSON(value.stats),
     };
 }

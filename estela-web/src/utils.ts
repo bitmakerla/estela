@@ -37,6 +37,15 @@ export function formatSecondsToHHMMSS(seconds: number): string {
     return formattedTime;
 }
 
+export function parseDurationToSeconds(durationString: string | undefined): number {
+    if (durationString) {
+        const [hours, minutes, seconds] = durationString.split(":").map(Number);
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        return totalSeconds;
+    }
+    return 0;
+}
+
 export function formatBytes(bytes: number): BytesMetric {
     if (!+bytes) {
         return {

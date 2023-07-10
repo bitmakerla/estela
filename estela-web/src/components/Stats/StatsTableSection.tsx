@@ -3,38 +3,23 @@ import { Row, Table } from "antd";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
 import { formatSecondsToHHMMSS } from "../../utils";
-import {
-    ApiApi,
-    ApiStatsJobsStatsRequest,
-    GetJobsStats,
-    GlobalStats,
-    JobsMetadata,
-    SpidersJobsStats,
-} from "../../services";
-import { Link } from "react-router-dom";
-import { Spin } from "../../shared";
+import { ApiApi, ProjectStats, SpidersStats } from "../../services";
 
 interface StatsTableDataType {
     key: string;
-    statsDate: GlobalStats;
-}
-
-interface StatsTraceabilityDataType {
-    key: string;
-    statsDate: GetJobsStats;
-    jobStatus: string;
+    statsDate: ProjectStats;
 }
 
 interface DataListSectionProps {
     loadedStats: boolean;
-    stats: GlobalStats[] | SpidersJobsStats[];
+    stats: ProjectStats[] | SpidersStats[];
     pid: string;
     apiService: ApiApi;
 }
 
 interface DataListSectionState {
     loadedDatesStats: boolean[];
-    jobsDateStats: GetJobsStats[][];
+    jobsDateStats: ProjectStats[][];
     focusedStatIndex: number;
 }
 
@@ -50,30 +35,10 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
         const { loadedDatesStats, jobsDateStats } = this.state;
         if (loadedDatesStats.length === 0 && jobsDateStats.length === 0 && stats.length !== 0) {
             const newLoadedDatesStats = Array(stats.length).fill(false);
-            const newJobsDateStats = Array<GetJobsStats[]>(stats.length);
+            const newJobsDateStats = Array<ProjectStats[]>(stats.length);
             this.setState({ loadedDatesStats: [...newLoadedDatesStats], jobsDateStats: [...newJobsDateStats] });
         }
     }
-
-    retrieveDateJobsStats = async (index: number, jobsMetadata: JobsMetadata[]): Promise<void> => {
-        const { pid, apiService } = this.props;
-
-        const params: ApiStatsJobsStatsRequest = {
-            pid: pid,
-            data: jobsMetadata,
-        };
-        await apiService.apiStatsJobsStats(params).then((response: GetJobsStats[]) => {
-            const { loadedDatesStats, jobsDateStats } = this.state;
-            const newLoadedDatesStats = [...loadedDatesStats];
-            newLoadedDatesStats[index] = true;
-            const newJobsDateStats = [...jobsDateStats];
-            newJobsDateStats[index] = response;
-            this.setState({
-                jobsDateStats: [...newJobsDateStats],
-                loadedDatesStats: [...newLoadedDatesStats],
-            });
-        });
-    };
 
     colsStatsTable: ColumnsType<StatsTableDataType> = [
         {
@@ -186,126 +151,6 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
         },
     ];
 
-    colsTraceabilityTable: ColumnsType<StatsTraceabilityDataType> = [
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">JOB</p>,
-            dataIndex: "job_id",
-            key: "job_id",
-            align: "center",
-            render: (_, { statsDate }) => {
-                const { pid } = this.props;
-                const jobId = statsDate.jid;
-                const spiderId = statsDate.spider;
-                if (!jobId || !spiderId) {
-                    return <p className="text-black text-xs font-normal">no-data</p>;
-                }
-                return (
-                    <Link
-                        to={`/projects/${pid}/spiders/${spiderId}/jobs/${jobId}`}
-                        target="_blank"
-                        className="text-estela-blue-medium"
-                    >
-                        Job-{jobId}
-                    </Link>
-                );
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">SPIDER</p>,
-            dataIndex: "spider_id",
-            key: "spider_id",
-            align: "center",
-            render: (_, { statsDate }) => {
-                const { pid } = this.props;
-                const spiderId = statsDate.spider;
-                if (!spiderId) {
-                    return <p className="text-black text-xs font-normal">no-data</p>;
-                }
-                return (
-                    <Link
-                        to={`/projects/${pid}/spiders/${spiderId}`}
-                        target="_blank"
-                        className="text-estela-blue-medium"
-                    >
-                        Spider-{spiderId}
-                    </Link>
-                );
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">STATUS</p>,
-            dataIndex: "status",
-            key: "status",
-            filters: [
-                {
-                    text: "COMPLETED",
-                    value: "COMPLETED",
-                },
-                {
-                    text: "ERROR",
-                    value: "ERROR",
-                },
-                {
-                    text: "RUNNING",
-                    value: "RUNNING",
-                },
-                {
-                    text: "WAITING",
-                    value: "WAITING",
-                },
-                {
-                    text: "STOPPED",
-                    value: "STOPPED",
-                },
-                {
-                    text: "IN_QUEUE",
-                    value: "IN_QUEUE",
-                },
-            ],
-            render: (_, { jobStatus }) => {
-                return <p className="text-black text-xs font-normal">{jobStatus}</p>;
-            },
-            onFilter: (status, record) => String(status) === record.jobStatus,
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">ITEMS</p>,
-            dataIndex: "items",
-            key: "items",
-            render: (_, { statsDate }) => {
-                const itemsCount = statsDate.stats?.itemsCount || "no-data";
-                return <p className="text-black text-xs font-normal">{itemsCount}</p>;
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">RUN TIME</p>,
-            dataIndex: "runtime",
-            key: "runtime",
-            render: (_, { statsDate }) => {
-                let runtime = "no-data";
-                if (statsDate.stats) runtime = formatSecondsToHHMMSS(statsDate.stats.runtime ?? 0);
-                return <p className="text-black text-xs font-normal">{runtime}</p>;
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">SCRAPED PAGES</p>,
-            dataIndex: "scraped_pages",
-            key: "scraped_pages",
-            render: (_, { statsDate }) => {
-                const scrapedPages = statsDate.stats?.pages.scrapedPages ?? "no-data";
-                return <p className="text-black text-xs font-normal">{scrapedPages}</p>;
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs">MISSED PAGES</p>,
-            dataIndex: "missed_pages",
-            key: "missed_pages",
-            render: (_, { statsDate }) => {
-                const missedPages = statsDate.stats?.pages.missedPages ?? "no-data";
-                return <p className="text-black text-xs font-normal">{missedPages}</p>;
-            },
-        },
-    ];
-
     render() {
         const { loadedStats, stats } = this.props;
 
@@ -325,41 +170,7 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
         });
 
         return (
-            <Table
-                className="w-full"
-                columns={this.colsStatsTable}
-                dataSource={dataDatesStats}
-                expandable={{
-                    expandedRowRender: (record, index) => {
-                        const { loadedDatesStats, jobsDateStats } = this.state;
-                        if (!loadedDatesStats[index]) {
-                            this.retrieveDateJobsStats(index, record.statsDate.jobsMetadata);
-                            return <Spin />;
-                        }
-                        const dataDateTraceStats: StatsTraceabilityDataType[] = jobsDateStats[index].map(
-                            (jobStat: GetJobsStats, jobIndex: number) => {
-                                const status =
-                                    record.statsDate.jobsMetadata.find((jobMeta) => jobMeta.jid === jobStat.jid)
-                                        ?.jobStatus ?? "UNKNOWN";
-                                return {
-                                    key: `${jobIndex}`,
-                                    statsDate: jobStat,
-                                    jobStatus: status,
-                                };
-                            },
-                        );
-                        return (
-                            <Table
-                                className="w-full"
-                                pagination={false}
-                                columns={this.colsTraceabilityTable}
-                                dataSource={dataDateTraceStats}
-                            />
-                        );
-                    },
-                }}
-                pagination={false}
-            />
+            <Table className="w-full" columns={this.colsStatsTable} dataSource={dataDatesStats} pagination={false} />
         );
     }
 }

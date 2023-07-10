@@ -10,8 +10,6 @@ models/Deploy.ts
 models/DeployCreate.ts
 models/DeployUpdate.ts
 models/FieldCoverageStats.ts
-models/GetJobsStats.ts
-models/GlobalStats.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
 models/InlineResponse2002.ts
@@ -22,7 +20,7 @@ models/InlineResponse2006.ts
 models/InlineResponse2007.ts
 models/InlineResponse2008.ts
 models/InlineResponse401.ts
-models/JobsMetadata.ts
+models/JobsPagination.ts
 models/JobsStats.ts
 models/LogsStats.ts
 models/Notification.ts
@@ -32,6 +30,7 @@ models/Project.ts
 models/ProjectCronJob.ts
 models/ProjectDetail.ts
 models/ProjectJob.ts
+models/ProjectStats.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts
 models/ResetPasswordConfirm.ts
@@ -44,10 +43,12 @@ models/SpiderJob.ts
 models/SpiderJobArg.ts
 models/SpiderJobCreate.ts
 models/SpiderJobEnvVar.ts
+models/SpiderJobStats.ts
 models/SpiderJobTag.ts
 models/SpiderJobUpdate.ts
 models/SpiderUpdate.ts
-models/SpidersJobsStats.ts
+models/SpidersPagination.ts
+models/SpidersStats.ts
 models/Stats.ts
 models/StatusCodesStats.ts
 models/Token.ts
