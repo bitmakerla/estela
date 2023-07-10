@@ -69,11 +69,7 @@ class Project(models.Model):
         max_length=20,
         choices=FRAMEWORK_CHOICES,
         default=SCRAPY,
-        # editable=False,
         help_text="Project's framework.",
-    )
-    is_framework_set = models.BooleanField(
-        default=False, help_text="Whether the framework was set."
     )
     data_status = models.CharField(
         max_length=20,
