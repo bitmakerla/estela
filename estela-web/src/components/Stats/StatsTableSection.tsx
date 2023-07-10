@@ -4,38 +4,42 @@ import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
 import { formatSecondsToHHMMSS } from "../../utils";
 import { ApiApi, ProjectStats, SpidersStats } from "../../services";
-import { StatsDateModalContent } from "./StatsDateModalContent";
 import Cross from "../../assets/icons/cross.svg";
 import "./StatsTableSection.scss";
+import { StatsDateModalContent } from "./StatsDateModalContent";
 
 interface StatsTableDataType {
     key: string;
     statsDate: ProjectStats;
 }
 
-interface DataListSectionProps {
+interface StatsTableSectionProps {
     loadedStats: boolean;
     stats: ProjectStats[] | SpidersStats[];
     pid: string;
     apiService: ApiApi;
 }
 
-interface DataListSectionState {
+interface StatsTableSectionState {
     loadedDatesStats: boolean[];
     datesStats: ProjectStats[][];
     focusStatsDateIndex: number;
     openDateModal: boolean;
+    startDateModal: string;
+    endDateModal: string;
 }
 
-export class StatsTableSection extends Component<DataListSectionProps, DataListSectionState> {
-    state: DataListSectionState = {
+export class StatsTableSection extends Component<StatsTableSectionProps, StatsTableSectionState> {
+    state: StatsTableSectionState = {
         loadedDatesStats: [],
         datesStats: [],
         focusStatsDateIndex: 0,
-        openDateModal: true,
+        openDateModal: false,
+        startDateModal: "",
+        endDateModal: "",
     };
 
-    componentDidUpdate(prevProps: DataListSectionProps, prevState: DataListSectionState) {
+    componentDidUpdate(prevProps: StatsTableSectionProps, prevState: StatsTableSectionState) {
         const { stats } = this.props;
         if (
             prevProps.stats.length === 0 &&
@@ -45,7 +49,7 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
         ) {
             const newLoadedDatesStats = Array(stats.length).fill(false);
             const newJobsDateStats = Array<ProjectStats[]>(stats.length);
-            this.setState({ loadedDatesStats: [...newLoadedDatesStats], jobsDateStats: [...newJobsDateStats] });
+            this.setState({ loadedDatesStats: [...newLoadedDatesStats], datesStats: [...newJobsDateStats] });
         }
     }
 
@@ -206,8 +210,8 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
     ];
 
     render() {
-        const { openDateModal, loadedDatesStats, focusStatsDateIndex } = this.state;
-        const { loadedStats, stats } = this.props;
+        const { openDateModal, loadedDatesStats, focusStatsDateIndex, startDateModal, endDateModal } = this.state;
+        const { loadedStats, stats, apiService, pid } = this.props;
 
         focusStatsDateIndex;
 
@@ -226,130 +230,6 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
             };
         });
 
-        const testDateStats: Map<number, GetJobsStats[]> = new Map<number, GetJobsStats[]>();
-        testDateStats.set(16, [
-            {
-                jid: 80,
-                spider: 16,
-                stats: {
-                    pages: { totalPages: 1730, scrapedPages: 475, missedPages: 1255 },
-                    itemsCount: 21197,
-                    runtime: 262.838066,
-                    statusCodes: {
-                        status200: 475,
-                        status301: 10,
-                        status302: 107,
-                        status401: 0,
-                        status403: 0,
-                        status404: 48,
-                        status429: 3759,
-                        status500: 0,
-                    },
-                    successRate: 100,
-                    logs: {
-                        totalLogs: 0,
-                        debugLogs: 0,
-                        infoLogs: 1267,
-                        warningLogs: 0,
-                        errorLogs: 1207,
-                        criticalLogs: 0,
-                    },
-                    coverage: { totalItems: 21197, totalItemsCoverage: 100 },
-                },
-            },
-            {
-                jid: 81,
-                spider: 16,
-                stats: {
-                    pages: { totalPages: 1730, scrapedPages: 475, missedPages: 1255 },
-                    itemsCount: 21197,
-                    runtime: 262.838066,
-                    statusCodes: {
-                        status200: 475,
-                        status301: 10,
-                        status302: 107,
-                        status401: 0,
-                        status403: 0,
-                        status404: 48,
-                        status429: 3759,
-                        status500: 0,
-                    },
-                    successRate: 50,
-                    logs: {
-                        totalLogs: 0,
-                        debugLogs: 0,
-                        infoLogs: 1267,
-                        warningLogs: 0,
-                        errorLogs: 1207,
-                        criticalLogs: 0,
-                    },
-                    coverage: { totalItems: 21197, totalItemsCoverage: 100 },
-                },
-            },
-        ]);
-        testDateStats.set(6, [
-            {
-                jid: 79,
-                spider: 6,
-                stats: {
-                    pages: { totalPages: 394, scrapedPages: 394, missedPages: 0 },
-                    itemsCount: 3238,
-                    runtime: 58.529975,
-                    statusCodes: {
-                        status200: 394,
-                        status301: 0,
-                        status302: 0,
-                        status401: 0,
-                        status403: 0,
-                        status404: 0,
-                        status429: 0,
-                        status500: 0,
-                    },
-                    successRate: 100,
-                    logs: {
-                        totalLogs: 0,
-                        debugLogs: 0,
-                        infoLogs: 8,
-                        warningLogs: 0,
-                        errorLogs: 0,
-                        criticalLogs: 0,
-                    },
-                    coverage: { totalItems: 3238, totalItemsCoverage: 100 },
-                },
-            },
-        ]);
-        testDateStats.set(5, [
-            {
-                jid: 82,
-                spider: 5,
-                stats: {
-                    pages: { totalPages: 394, scrapedPages: 394, missedPages: 0 },
-                    itemsCount: 3238,
-                    runtime: 58.529975,
-                    statusCodes: {
-                        status200: 394,
-                        status301: 0,
-                        status302: 0,
-                        status401: 0,
-                        status403: 0,
-                        status404: 0,
-                        status429: 0,
-                        status500: 0,
-                    },
-                    successRate: 0,
-                    logs: {
-                        totalLogs: 0,
-                        debugLogs: 0,
-                        infoLogs: 8,
-                        warningLogs: 0,
-                        errorLogs: 0,
-                        criticalLogs: 0,
-                    },
-                    coverage: { totalItems: 3238, totalItemsCoverage: 100 },
-                },
-            },
-        ]);
-
         return (
             <>
                 <Table
@@ -359,10 +239,18 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                     dataSource={dataDatesStats}
                     pagination={false}
                     onRow={(record, rowIndex) => {
+                        rowIndex;
                         return {
                             onClick: () => {
-                                this.setState({ openDateModal: true });
-                                this.retrieveDateJobsStats(rowIndex ?? 0, record.statsDate.jobsMetadata);
+                                const [startDate, endDate] = [
+                                    moment(record.statsDate.date).startOf("day").utc().toISOString(),
+                                    moment(record.statsDate.date).endOf("day").utc().toISOString(),
+                                ];
+                                this.setState({
+                                    openDateModal: true,
+                                    startDateModal: startDate,
+                                    endDateModal: endDate,
+                                });
                             },
                         };
                     }}
@@ -376,11 +264,13 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                         width="90%"
                         closeIcon={<Cross className="w-6 h-6 stroke-white mx-auto mt-3" />}
                         footer={null}
+                        destroyOnClose
                     >
                         <StatsDateModalContent
-                            loadedStats={/*loadedDatesStats[focusStatsDateIndex]*/ true}
-                            groupedStats={testDateStats}
-                            //     /*datesStats[focusStatsDateIndex]*/
+                            pid={pid}
+                            apiService={apiService}
+                            startDate={startDateModal}
+                            endDate={endDateModal}
                         />
                     </Modal>
                 )}

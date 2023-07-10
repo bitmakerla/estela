@@ -228,18 +228,14 @@ export class ChartsModalSection extends Component<ChartsModalSectionProps, unkno
                     },
                 ];
         }
-        if(stats instanceof GetJobsStats){
-
+        if (stats instanceof GetJobsStats) {
         }
-        
+
         if (statOption === StatType.PAGES)
             return [
                 {
                     label: "scraped",
-                    data: [
-                        stats .s .pages.scrapedPages ?? 0).reduce((a, b) => a + b),
-                        0,
-                    ],
+                    data: [/*stats .s .pages.scrapedPages ?? 0).reduce((a, b) => a + b)*/ 0, 0],
                     backgroundColor: "#32C3A4",
                 },
                 {

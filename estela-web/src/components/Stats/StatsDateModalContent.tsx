@@ -1,74 +1,111 @@
 import React, { Component } from "react";
 import { Spin as Spinner } from "../../shared";
-import { GetJobsStats } from "../../services";
+import { ApiApi, JobsPagination, SpidersPagination } from "../../services";
 import { Button, Row, Tabs } from "antd";
 import ArrowLeft from "../../assets/icons/arrowLeft.svg";
 import ArrowRight from "../../assets/icons/arrowRight.svg";
 import "./StatsDateModalContent.scss";
-import { ChartsModalSection } from "./ChartsModalSection";
+// import { ChartsModalSection } from "./ChartsModalSection";
 
 interface StatsDateModalContentState {
     activeSpider: number | null;
+    loadedSpiders: boolean;
+    spiders: SpidersPagination;
+    loadedJobs: boolean;
+    jobs: JobsPagination;
 }
 
 interface StatsDateModalContentProps {
-    loadedStats: boolean;
-    groupedStats: Map<number, GetJobsStats[]>;
+    pid: string;
+    apiService: ApiApi;
+    startDate: string;
+    endDate: string;
 }
 
 export class StatsDateModalContent extends Component<StatsDateModalContentProps, StatsDateModalContentState> {
     state: StatsDateModalContentState = {
-        activeSpider: 16, // cambiar esto a null luego
+        activeSpider: null, // cambiar esto a null luego
+        loadedSpiders: false,
+        spiders: {} as SpidersPagination,
+        loadedJobs: false,
+        jobs: {} as JobsPagination,
     };
 
-    componentDidUpdate(prevProps: StatsDateModalContentProps) {
-        const { loadedStats, groupedStats } = this.props;
-        if (loadedStats === true && loadedStats !== prevProps.loadedStats) {
-            this.setState({ activeSpider: Array.from(groupedStats.keys())[0] });
+    async componentDidMount(): Promise<void> {
+        try {
+            const { pid, startDate, endDate, apiService } = this.props;
+            const spiders: SpidersPagination = await apiService.apiStatsSpiders({
+                pid: pid,
+                startDate: startDate,
+                endDate: endDate,
+            });
+            if (spiders.results.length === 0) {
+                this.setState({ loadedSpiders: true, spiders: spiders });
+                return;
+            }
+            this.setState({ loadedSpiders: true, spiders: spiders, activeSpider: spiders.results[0].sid || null });
+            this.retrieveJobsSpider();
+        } catch (error) {
+            console.error(error);
         }
     }
 
-    generateTabsItems = () => {
-        const { activeSpider } = this.state;
-        const { groupedStats } = this.props;
-        if (activeSpider) {
-            const items = [
-                {
-                    label: <p className="text-estela-black-full text-right">Overview</p>,
-                    key: "overview",
-                    children: (
-                        <ChartsModalSection
-                            stats={groupedStats.get(activeSpider) || []}
-                            pages
-                            items
-                            runtime
-                            statusCodes
-                            logs
-                        />
-                    ),
-                },
-            ];
-            const jobsData = groupedStats.get(activeSpider) || [];
-            const jobsItems = jobsData.map((jobsStats, index) => {
-                return {
-                    label: <p className="text-estela-black-full text-right">Job {jobsStats.jid}</p>,
-                    key: `${index}`,
-                    children: <p>job stats {jobsStats.jid}</p>,
-                };
+    retrieveJobsSpider = async (spider?: number) => {
+        this.setState({ loadedJobs: false });
+        try {
+            const { pid, startDate, endDate, apiService } = this.props;
+            const { activeSpider } = this.state;
+
+            if (activeSpider === null) throw new Error("No active spider found");
+
+            const jobs = await apiService.apiStatsJobs({
+                pid: pid,
+                spider: spider || activeSpider,
+                startDate: startDate,
+                endDate: endDate,
             });
-            return items.concat(jobsItems);
+            this.setState({ loadedJobs: true, jobs: jobs, activeSpider: spider || activeSpider });
+        } catch (error) {
+            console.error(error);
         }
-        return [];
+    };
+
+    generateTabsItems = () => {
+        const { jobs } = this.state;
+        const items = [
+            {
+                label: <p className="text-estela-black-full text-right">Overview</p>,
+                key: "overview",
+                children: (
+                    <></>
+                    // <ChartsModalSection
+                    //     stats={groupedStats.get(activeSpider) || []}
+                    //     pages
+                    //     items
+                    //     runtime
+                    //     statusCodes
+                    //     logs
+                    // />
+                ),
+            },
+        ];
+        const jobsItems = jobs.results.map((job, index) => {
+            return {
+                label: <p className="text-estela-black-full text-right">Job {job.jid}</p>,
+                key: `${index}`,
+                children: <p>job stats {job.jid}</p>,
+            };
+        });
+        return items.concat(jobsItems);
     };
 
     render() {
-        const { activeSpider } = this.state;
-        const { loadedStats, groupedStats } = this.props;
+        const { activeSpider, loadedSpiders, spiders, loadedJobs } = this.state;
 
         return (
             <div className="rounded-lg">
-                <div className={`bg-estela mt-6 rounded-t-lg ${!loadedStats && "animate-pulse h-28"}`}>
-                    {loadedStats && activeSpider && (
+                <div className={`bg-estela mt-6 rounded-t-lg ${!loadedSpiders && "animate-pulse h-28"}`}>
+                    {loadedSpiders && activeSpider && (
                         <>
                             <Row className="flex justify-center items-center py-4 gap-32">
                                 <div className="stroke-estela-white-full hover:cursor-pointer">
@@ -84,19 +121,21 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                             </Row>
                             <Row className="flex items-center ml-20 gap-2">
                                 <p className="text-sm text-white">Spiders</p>
-                                {Array.from(groupedStats).map(([spider]) => {
-                                    const { activeSpider } = this.state;
+                                {spiders.results.map((spider, index) => {
                                     const style =
-                                        spider === activeSpider
+                                        spider.sid === activeSpider
                                             ? "rounded-t-lg border-0 bg-estela-white-full text-estela-blue-full hover:bg-estela-white-full hover:text-estela-blue-full focus:bg-estela-white-full focus:text-estela-blue-full"
                                             : "rounded-t-lg border-0 bg-estela-blue-medium text-estela-white-full hover:bg-estela-white-full hover:text-estela-blue-full focus:bg-estela-white-full focus:text-estela-blue-full";
                                     return (
                                         <Button
-                                            key={spider}
+                                            key={index}
                                             className={style}
-                                            onClick={() => this.setState({ activeSpider: spider })}
+                                            onClick={() => {
+                                                this.retrieveJobsSpider(spider.sid);
+                                            }}
+                                            title={`${spider.name}`}
                                         >
-                                            Spider {spider}
+                                            Spider {spider.sid}
                                         </Button>
                                     );
                                 })}
@@ -105,7 +144,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                     )}
                 </div>
                 <div className="bg-white rounded-lg">
-                    {loadedStats && activeSpider ? (
+                    {loadedSpiders && activeSpider && loadedJobs ? (
                         <div className="ml-5 mr-7 py-7 pr-5 flex divide-x">
                             <div className="w-8/12 pr-6">
                                 <Tabs tabPosition="left" items={this.generateTabsItems()} className="w-full" />
