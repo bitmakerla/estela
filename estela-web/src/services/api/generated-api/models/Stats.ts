@@ -89,7 +89,7 @@ export interface Stats {
      * @type {CoverageStats}
      * @memberof Stats
      */
-    coverage: CoverageStats;
+    coverage?: CoverageStats;
 }
 
 export function StatsFromJSON(json: any): Stats {
@@ -109,7 +109,7 @@ export function StatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
         'statusCodes': StatusCodesStatsFromJSON(json['status_codes']),
         'successRate': !exists(json, 'success_rate') ? undefined : json['success_rate'],
         'logs': LogsStatsFromJSON(json['logs']),
-        'coverage': CoverageStatsFromJSON(json['coverage']),
+        'coverage': !exists(json, 'coverage') ? undefined : CoverageStatsFromJSON(json['coverage']),
     };
 }
 
