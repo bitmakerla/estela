@@ -10,6 +10,18 @@ from django.utils import timezone
 from config.job_manager import job_manager
 
 
+class DataStatus:
+    PERSISTENT_STATUS = "PERSISTENT"
+    DELETED_STATUS = "DELETED"
+    PENDING_STATUS = "PENDING"
+
+    HIGH_LEVEL_OPTIONS = [
+        (PERSISTENT_STATUS, "Persistent"),
+        (PENDING_STATUS, "Pending"),
+    ]
+    JOB_LEVEL_OPTIONS = HIGH_LEVEL_OPTIONS + [(DELETED_STATUS, "Deleted")]
+
+
 class Project(models.Model):
     NOT_ESPECIFIED = "NOT ESPECIFIED"
     E_COMMERCE = "E-COMMERCE"
@@ -27,9 +39,10 @@ class Project(models.Model):
         (TECHNOLOGY, "Technology"),
         (OTHER_CATEGORY, "Other category"),
     ]
+    PERSISTENT_STATUS = "PERSISTENT"
+    PENDING_STATUS = "PENDING"
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000)
-    users = models.ManyToManyField(User, through="Permission")
     pid = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -45,6 +58,15 @@ class Project(models.Model):
     )
     users = models.ManyToManyField(
         User, through="Permission", help_text="Users with permissions on this project."
+    )
+    data_status = models.CharField(
+        max_length=20,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
+        help_text="Data status.",
+    )
+    data_expiry_days = models.PositiveSmallIntegerField(
+        default=1, help_text="Days before data is deleted."
     )
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
@@ -95,6 +117,15 @@ class Spider(models.Model):
         related_name="spiders",
         help_text="Project UUID.",
     )
+    data_status = models.CharField(
+        max_length=20,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
+        help_text="Data status.",
+    )
+    data_expiry_days = models.PositiveSmallIntegerField(
+        default=1, help_text="Days before data is deleted."
+    )
     deleted = models.BooleanField(
         default=False, help_text="True if the spider has been deleted."
     )
@@ -143,16 +174,6 @@ class SpiderCronJob(models.Model):
         (DISABLED_STATUS, "Disabled"),
     ]
 
-    PERSISTENT_STATUS = "PERSISTENT"
-    DELETED_STATUS = "DELETED"
-    PENDING_STATUS = "PENDING"
-
-    DATA_STATUS_OPTIONS = [
-        (PERSISTENT_STATUS, "Persistent"),
-        (DELETED_STATUS, "Deleted"),
-        (PENDING_STATUS, "Pending"),
-    ]
-
     cjid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this cron job."
     )
@@ -180,12 +201,12 @@ class SpiderCronJob(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DATA_STATUS_OPTIONS,
-        default=PERSISTENT_STATUS,
+        choices=DataStatus.HIGH_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )
     data_expiry_days = models.PositiveSmallIntegerField(
-        null=True, help_text="Days before data expires."
+        null=True, help_text="Days before data is deleted."
     )
     deleted = models.BooleanField(
         default=False, help_text="Whether the Cronjob has been deleted."
@@ -209,8 +230,6 @@ class SpiderJob(models.Model):
     WAITING_STATUS = "WAITING"
     RUNNING_STATUS = "RUNNING"
     STOPPED_STATUS = "STOPPED"
-    INCOMPLETE_STATUS = "INCOMPLETE"
-    CANCELLED_STATUS = "CANCELLED"
     COMPLETED_STATUS = "COMPLETED"
     IN_QUEUE_STATUS = "IN_QUEUE"
     ERROR_STATUS = "ERROR"
@@ -219,20 +238,8 @@ class SpiderJob(models.Model):
         (WAITING_STATUS, "Waiting"),
         (RUNNING_STATUS, "Running"),
         (STOPPED_STATUS, "Stopped"),
-        (INCOMPLETE_STATUS, "Incomplete"),
-        (CANCELLED_STATUS, "Cancelled"),
         (COMPLETED_STATUS, "Completed"),
         (ERROR_STATUS, "Error"),
-    ]
-
-    PERSISTENT_STATUS = "PERSISTENT"
-    DELETED_STATUS = "DELETED"
-    PENDING_STATUS = "PENDING"
-
-    DATA_STATUS_OPTIONS = [
-        (PERSISTENT_STATUS, "Persistent"),
-        (DELETED_STATUS, "Deleted"),
-        (PENDING_STATUS, "Pending"),
     ]
 
     jid = models.AutoField(
@@ -256,12 +263,12 @@ class SpiderJob(models.Model):
     )
     data_status = models.CharField(
         max_length=20,
-        choices=DATA_STATUS_OPTIONS,
-        default=PERSISTENT_STATUS,
+        choices=DataStatus.JOB_LEVEL_OPTIONS,
+        default=DataStatus.PERSISTENT_STATUS,
         help_text="Data status.",
     )
     data_expiry_days = models.PositiveSmallIntegerField(
-        null=True, help_text="Days before data expires."
+        null=True, help_text="Days before data is deleted."
     )
     created = models.DateTimeField(
         auto_now_add=True, editable=False, help_text="Job creation date."
@@ -353,6 +360,9 @@ class SpiderJobEnvVar(models.Model):
     )
     name = models.CharField(max_length=1000, help_text="Env variable name.")
     value = models.CharField(max_length=1000, help_text="Env variable value.")
+    masked = models.BooleanField(
+        default=False, help_text="Whether the env variable value is masked."
+    )
 
 
 class SpiderJobTag(models.Model):
@@ -401,3 +411,51 @@ class UsageRecord(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class Notification(models.Model):
+    nid = models.AutoField(
+        primary_key=True,
+        help_text="A unique integer value identifying each notification",
+    )
+    message = models.CharField(max_length=1000, help_text="Notification message.")
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        help_text="Project where the notification belongs",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="User who performed the action on this notification.",
+    )
+    users = models.ManyToManyField(
+        User,
+        through="UserNotification",
+        related_name="notifications",
+        help_text="Users that received this notification.",
+    )
+
+
+class UserNotification(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="Related user.",
+    )
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        help_text="Notification that the user received.",
+    )
+    seen = models.BooleanField(
+        default=False, help_text="Whether the notification was seen."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+        help_text="Date when the notification was sent.",
+    )
+
+    class Meta:
+        ordering = ["-created"]

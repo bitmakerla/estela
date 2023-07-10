@@ -1,0 +1,45 @@
+$estela-blue-full: #4D47C3;
+$estela-white-medium: #F9F9F9;
+$estela-black-medium: #6C757D;
+
+.ant-btn-default:disabled {
+    background-color: $estela-white-medium !important;
+    color: $estela-black-medium !important;
+    border: none;
+    stroke: $estela-black-medium;
+}
+
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: $estela-blue-full !important;
+    
+}
+
+.ant-tabs-tab-btn:hover, .ant-tabs-tab:hover {
+    color: $estela-blue-full !important;
+}
+
+.ant-tabs-ink-bar, .ant-tabs-ink-bar-animated {
+    background-color: $estela-blue-full !important;
+}
+
+.ant-tabs-nav::before {
+    border-bottom: none !important;
+}
+
+.environment-variables {
+    border: 1px solid $estela-blue-full;
+    border-radius: 6px;
+    background-color: white;
+    color: #4D47C3 !important;
+    padding: 1px 4px;
+}
+
+.tooltip {
+    padding: 0px;
+  }
+  
+  .ant-tooltip-inner {
+    color: white;
+    border-radius: 8px;
+  }
+  

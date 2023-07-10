@@ -1,5 +1,9 @@
 # estela Documentation
 
+### Requirements
+
+You should have installed Ruby with the specified version inside the `.ruby_version` file.
+
 ### Build and run locally
 
 Install Bundler and Jekyll (if you haven't)

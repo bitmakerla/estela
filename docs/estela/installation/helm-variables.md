@@ -1,19 +1,11 @@
 ---
 layout: page
-title: Variables Guide
-parent: Installation
+title: Variables Appendix
+parent: Getting started
 grand_parent: estela
 ---
 
-# estela Helm Chart variables guide
-
-First, make a copy (in the _helm-chart_ directory) of 
-[`values.yaml.example`](https://github.com/bitmakerla/estela/tree/main/installation/helm-chart/values.yaml.example){:target="_blank"}
-and rename it to `values.yaml`. If you do not need to define an optional 
-variable, fill its value with an empty string `""`. Now, complete the following fields:
-
-_Note_: The values that should be used if the resources have been deployed locally are
-commented in the `values.yaml.example` file.
+# estela Helm Chart variables Appendix
 
 ## Chart variables
 
@@ -23,7 +15,7 @@ of estela.
 * _local_ (Required): Set this variable to `true` if estela is being deployed on local
   resources. Otherwise, set it to `false`.
 
-* _hostIp_ (Optional): This variable is required only if the above variable _local_ has 
+* _hostIp_ (Required/Optional): This variable is required only if the above variable _local_ has 
   been set to `true`, this address is a reference to the host machine from minikube. 
   Find it by running:
   ```bash
@@ -32,7 +24,7 @@ of estela.
 
 * _registryHost_ (Required): The registry host where the images of the estela modules are 
   located. If a local registry is being used, this host is equal to the above variable
-  _hostIp_, remember to add the port if you are using a local registry host: `<hostIp>:5000`.
+  _hostIp_, remember to add the port if you are using a local registry host: `<hostIp>:5001`.
 
 * _nodeSelector_ (Optional): The name of the node on which estela will be installed in case
   the Kubernetes cluster has multiple nodes. Use the format `{ roles: NODE_ROLE_NAME }`.
@@ -61,8 +53,8 @@ If you are not using AWS, skip this section.
 
 These variables define the estela behavior.
 
-_Note_: The variables that already have an assigned value should not be modified, unless
-you have a deep understanding of estela.
+{: .highlight }
+> The variables that already have an assigned value should not be modified, unless you have a deep understanding of estela.
 
 ### Global variables
 
@@ -71,8 +63,8 @@ you have a deep understanding of estela.
 * _<SPIDERDATA\_DB\_ENGINE>_ (Required): Document oriented database where the data produced 
   by the spiders is stored. Currently, estela supports the _mongodb_ engine.
 
-  > **NOTE:**
-  >  For dev a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can be used to set a database, as mentioned on [Estela Resources Guide](./resources.md).
+  {: .note }
+  >  For dev a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can be used to set a database, as mentioned on [Estela Resources Guide](./resources.html).
   >  Or a mongodb can be setup on a local cluster on a docker image.
 
 * _<SPIDERDATA\_DB\_CONNECTION>_ (Required): The connection URL to your database instance.
@@ -80,11 +72,18 @@ you have a deep understanding of estela.
 * _<SPIDERDATA\_DB\_CERTIFICATE\_PATH>_ (Required): Path where the database certificate is
   located. This value will be taken into account if your connection requires a certificate.
   
-#### Kafka
+#### Queue Platform
 
-* _<KAFKA\_HOSTS>_ (Required): Host of the Kafka service.
+All the queue platform variables should be written as children of the _<QUEUE\_PARAMETERS>_ object.
 
-* _<KAFKA\_PORT>_ (Required): Port of the Kafka service.
+* _<QUEUE\_PLATFORM>_ (Required): The queue platform used by estela.
+
+* _<QUEUE\_PLATFORM\_LISTENERS>_ (Required): List of the queuing advertised hosts in a comma-separated style.
+
+* _<QUEUE\_PLATFORM\_PORT>_ (Required): The port number of the aforementioned listeners.
+
+{: .highlight }
+> Refer to the [estela Queue Adapter](./../queueing.html#estela-queue-adapter) documentation to fill in any additional variables needed for the selected queue platform.
 
 #### Redis Stats
 * _<REDIS\_URL>_ (Required): The connection URL to the Redis instance.
@@ -147,13 +146,13 @@ you have a deep understanding of estela.
 
 #### Celery
 
-* _<CELERY\_BROKER\_URL>_ (Required): Url of the celery broker.
+* _<CELERY\_BROKER\_URL>_ (Required): URL of the celery broker.
 
-* _<CELERY\_RESULT\_BACKEND>_ (Required): Url to send the results from the API module tasks.
+* _<CELERY\_RESULT\_BACKEND>_ (Required): URL to send the results from the API module tasks.
+
+* _<CELERY\_EXTERNAL\_IMPORTS>_ (Optional): List of apps that contain Celery apps with their own configurations. The beat schedules from these apps will be imported to estela's main Celery app. E.g., you may set `app1,app2` as a value for this variable. Then, estela will look for Celery apps named `app` inside `app1.celery` and `app2.celery`.
 
 #### Mailing
-
-  > **Note:** The mailing configuration is used to send email regarding users creation on the estela system.
 
 * _<EMAIL\_HOST>_ (Required): Host of the SMTP email server.
 
@@ -171,9 +170,12 @@ you have a deep understanding of estela.
 
 * _\<REGISTER\>_ (Required): Set this value to `"False"` to disable the user registration.
 
+{: .note }
+> The mailing configuration is used to send email regarding users creation on the estela system.
+
 ### estela queueing variables
 
-* _<KAFKA\_CONSUMER\_PRODUCTION>_ (Required): Set this value to `"False"` if the database
+* _<CONSUMER\_PRODUCTION>_ (Required): Set this value to `"False"` if the database
   used by the consumers does not require a certificate for the connection. Otherwise, set it
   to `"True"`.
   

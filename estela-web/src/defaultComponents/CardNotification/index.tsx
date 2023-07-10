@@ -1,8 +1,8 @@
 import React from "react";
 
-export const checkExternalError = (error: unknown): boolean => {
+export const checkExternalError = (error: unknown): [JSX.Element, boolean] => {
     error;
-    return false;
+    return [<></>, false];
 };
 
 export const CardNotification: React.FC = (props) => {

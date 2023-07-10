@@ -1,15 +1,16 @@
 from datetime import datetime, timedelta
 
 from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ParseError
+from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet
+from api.mixins import BaseViewSet, NotificationsHandlerMixin
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
@@ -19,6 +20,7 @@ from api.serializers.project import (
     UsageRecordSerializer,
 )
 from core.models import (
+    DataStatus,
     Permission,
     Project,
     Spider,
@@ -29,7 +31,7 @@ from core.models import (
 )
 
 
-class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
+class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewSet):
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -47,7 +49,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
         return page, page_size
 
     def get_queryset(self):
-        return self.request.user.project_set.filter(deleted=False)
+        return (
+            Project.objects.filter(deleted=False)
+            if self.request.user.is_superuser or self.request.user.is_staff
+            else self.request.user.project_set.filter(deleted=False)
+        )
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -65,6 +71,11 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
             requests_data_size=0,
             logs_data_size=0,
         )
+        self.save_notification(
+            user=self.request.user,
+            message=f"created project {instance.name}.",
+            project=instance,
+        )
 
     @swagger_auto_schema(
         request_body=ProjectUpdateSerializer,
@@ -80,44 +91,79 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
 
         name = serializer.validated_data.get("name", "")
         user_email = serializer.validated_data.pop("email", "")
-        user_permision = serializer.validated_data.pop("user", "")
         action = serializer.validated_data.pop("action", "")
         permission = serializer.validated_data.pop("permission", "")
+        data_status = serializer.validated_data.pop("data_status", "")
+        data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
+        message = ""
 
         if name:
+            old_name = instance.name
             instance.name = name
-        if user_email and user_email != user_permision:
-            user = User.objects.filter(email=user_email)
-            user_instance = User.objects.filter(email=user_permision)
-            if user:
-                user = user.get()
-                user_instance = user_instance.get()
-                if (
-                    user_instance.permission_set.get(project=instance).permission
-                    in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
-                ) and permission != Permission.OWNER_PERMISSION:
-                    if action == "add":
-                        instance.users.add(
-                            user, through_defaults={"permission": permission}
-                        )
-                    elif action == "remove" and (
-                        user.permission_set.get(project=instance).permission
-                        != Permission.OWNER_PERMISSION
-                    ):
-                        instance.users.remove(user)
-                    elif action == "update":
-                        instance.users.remove(user)
-                        instance.users.add(
-                            user, through_defaults={"permission": permission}
-                        )
-                    else:
-                        raise ParseError({"error": "Action not supported."})
-                else:
-                    raise ParseError({"error": "Action not supported."})
-            else:
-                raise NotFound({"email": "User does not exist."})
-        serializer.save()
+            message = f"renamed project {old_name} ({instance.pid}) to {name}."
 
+        user = request.user
+        is_superuser = user.is_superuser or user.is_staff
+        if user_email and (is_superuser or user_email != user.email):
+            if not is_superuser and not (
+                user.permission_set.get(project=instance).permission
+                in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
+            ):
+                raise PermissionDenied(
+                    {"permission": "You do not have permission to do this."}
+                )
+
+            affected_user = User.objects.filter(email=user_email)
+            if not affected_user:
+                raise NotFound({"email": "User does not exist."})
+
+            affected_user = affected_user.get()
+            existing_permission = affected_user.permission_set.filter(
+                project=instance
+            ).first()
+            if (
+                existing_permission
+                and existing_permission.permission == Permission.OWNER_PERMISSION
+            ):
+                raise ParseError(
+                    {"error": "You cannot modify the permissions of an owner user."}
+                )
+
+            if action == "add":
+                instance.users.add(
+                    affected_user, through_defaults={"permission": permission}
+                )
+                message = f"added {user_email}."
+            elif action == "remove":
+                instance.users.remove(affected_user)
+                message = f"removed {user_email}."
+            elif action == "update":
+                instance.users.remove(affected_user)
+                instance.users.add(
+                    affected_user, through_defaults={"permission": permission}
+                )
+                message = f"updated {user_email}'s permissions to {permission}."
+            else:
+                raise ParseError({"error": "Action not supported."})
+
+        if data_status:
+            if data_status == DataStatus.PERSISTENT_STATUS:
+                instance.data_status = DataStatus.PERSISTENT_STATUS
+                message = "changed data persistence to persistent."
+            elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
+                instance.data_status = DataStatus.PENDING_STATUS
+                instance.data_expiry_days = data_expiry_days
+                message = f"changed data persistence to {data_expiry_days} days."
+            else:
+                raise ParseError({"error": errors.INVALID_DATA_STATUS})
+
+        self.save_notification(
+            user=self.request.user,
+            message=message,
+            project=instance,
+        )
+
+        serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
@@ -126,6 +172,12 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        self.save_notification(
+            user=self.request.user,
+            message=f"deleted project {instance.name} ({instance.pid}).",
+            project=project,
+        )
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -216,9 +268,10 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     @action(methods=["GET"], detail=True)
     def current_usage(self, request, *args, **kwargs):
-        instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
-        serializer = ProjectUsageSerializer(project)
+        serializer = ProjectUsageSerializer(
+            UsageRecord.objects.filter(project=project).first()
+        )
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
@@ -246,7 +299,6 @@ class ProjectViewSet(BaseViewSet, viewsets.ModelViewSet):
     )
     @action(methods=["GET"], detail=True)
     def usage(self, request, *args, **kwargs):
-        instance = self.get_object()
         project = Project.objects.get(pid=kwargs["pid"])
         start_date = request.query_params.get(
             "start_date", datetime.today().replace(day=1)

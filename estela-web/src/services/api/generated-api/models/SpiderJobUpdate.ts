@@ -56,17 +56,17 @@ export interface SpiderJobUpdate {
      */
     requestCount?: number;
     /**
-     * Data status.
+     * Job data status.
      * @type {string}
      * @memberof SpiderJobUpdate
      */
     dataStatus?: SpiderJobUpdateDataStatusEnum;
     /**
-     * Days before data expires.
+     * Job data expiry days.
      * @type {number}
      * @memberof SpiderJobUpdate
      */
-    dataExpiryDays?: number | null;
+    dataExpiryDays?: number;
 }
 
 /**
@@ -78,8 +78,6 @@ export enum SpiderJobUpdateStatusEnum {
     Waiting = 'WAITING',
     Running = 'RUNNING',
     Stopped = 'STOPPED',
-    Incomplete = 'INCOMPLETE',
-    Cancelled = 'CANCELLED',
     Completed = 'COMPLETED',
     Error = 'ERROR'
 }/**
@@ -88,8 +86,8 @@ export enum SpiderJobUpdateStatusEnum {
 */
 export enum SpiderJobUpdateDataStatusEnum {
     Persistent = 'PERSISTENT',
-    Deleted = 'DELETED',
-    Pending = 'PENDING'
+    Pending = 'PENDING',
+    Deleted = 'DELETED'
 }
 
 export function SpiderJobUpdateFromJSON(json: any): SpiderJobUpdate {

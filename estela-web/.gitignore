@@ -10,6 +10,7 @@
 
 # Production
 /build
+/dist
 
 # Yarn-npm stuff
 npm-debug.log*

@@ -37,6 +37,27 @@ export interface Spider {
      * @memberof Spider
      */
     project: string;
+    /**
+     * Data status.
+     * @type {string}
+     * @memberof Spider
+     */
+    dataStatus: SpiderDataStatusEnum;
+    /**
+     * Days before data expires.
+     * @type {number}
+     * @memberof Spider
+     */
+    dataExpiryDays: number;
+}
+
+/**
+* @export
+* @enum {string}
+*/
+export enum SpiderDataStatusEnum {
+    Persistent = 'PERSISTENT',
+    Pending = 'PENDING'
 }
 
 export function SpiderFromJSON(json: any): Spider {
@@ -52,6 +73,8 @@ export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sp
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
         'name': json['name'],
         'project': json['project'],
+        'dataStatus': json['data_status'],
+        'dataExpiryDays': json['data_expiry_days'],
     };
 }
 
@@ -66,6 +89,8 @@ export function SpiderToJSON(value?: Spider | null): any {
         
         'name': value.name,
         'project': value.project,
+        'data_status': value.dataStatus,
+        'data_expiry_days': value.dataExpiryDays,
     };
 }
 

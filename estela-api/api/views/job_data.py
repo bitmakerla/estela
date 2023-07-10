@@ -15,10 +15,9 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
-from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
-from core.tasks import record_project_usage_after_data_delete
+from core.tasks import get_chain_to_process_usage_data
 
 
 class JobDataViewSet(
@@ -37,11 +36,10 @@ class JobDataViewSet(
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
         data_type = request.query_params.get("type", "items")
-        mode = request.query_params.get("mode", "paged")
         page_size = int(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
-        return page, data_type, mode, page_size
+        return page, data_type, page_size
 
     def get_paginated_link(self, page_number):
         if page_number < 1:
@@ -92,7 +90,7 @@ class JobDataViewSet(
         ],
     )
     def list(self, request, *args, **kwargs):
-        page, data_type, mode, page_size = self.get_parameters(request)
+        page, data_type, page_size = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page_size < 1:
@@ -103,77 +101,124 @@ class JobDataViewSet(
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+        job_collection_name = self.get_collection_name(job, data_type, **kwargs)
 
-        if job.status == SpiderJob.RUNNING_STATUS and data_type == "stats":
-            job_stats = self.redis_conn.hgetall(f"scrapy_stats_{job.key}")
-            parsed_job_stats = {
-                key.decode(): value.decode() for key, value in job_stats.items()
-            }
-            if mode == "paged":
-                return Response(
-                    {
-                        "count": 1,
-                        "previous": None,
-                        "next": None,
-                        "results": [parsed_job_stats],
-                    }
-                )
-            else:
-                return self.get_formatted_response(result, mode, job_collection_name)
-
-        job_collection_name = self.get_collection_name(
-            job, data_type, kwargs["sid"], kwargs["jid"]
+        count = spiderdata_db_client.get_estimated_document_count(
+            kwargs["pid"], job_collection_name
         )
 
-        if mode != "paged":
-            collection_size = spiderdata_db_client.get_collection_size(
-                kwargs["pid"], job_collection_name
-            )
-            if collection_size > settings.MAX_DOWNLOADED_SIZE:
-                return Response(
-                    {"detail": errors.MAX_RESPONSE_SIZE_EXCEEDED},
-                    status=status.HTTP_400_BAD_REQUEST,
+        if data_type == "stats":
+            if job.status == SpiderJob.RUNNING_STATUS:
+                job_stats = self.redis_conn.hgetall(f"scrapy_stats_{job.key}")
+                parsed_job_stats = {
+                    key.decode(): value.decode() for key, value in job_stats.items()
+                }
+                result = [parsed_job_stats]
+            else:
+                result = spiderdata_db_client.get_job_stats(
+                    kwargs["pid"], job_collection_name
                 )
-
-            result = spiderdata_db_client.get_all_collection_data(
-                kwargs["pid"], job_collection_name
+        elif request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
+            chunk_size = max(
+                1,
+                settings.MAX_CHUNK_SIZE
+                // spiderdata_db_client.get_estimated_document_size(
+                    kwargs["pid"], job_collection_name
+                ),
             )
-
-            return self.get_formatted_response(result, mode, job_collection_name)
+            current_chunk = request.query_params.get("current_chunk", None)
+            result, next_chunk = spiderdata_db_client.get_chunked_collection_data(
+                kwargs["pid"], job_collection_name, chunk_size, current_chunk
+            )
+            response = {"count": count, "results": result}
+            if next_chunk:
+                response["next_chunk"] = next_chunk
+            return Response(response)
         else:
-            count = spiderdata_db_client.get_estimated_document_count(
-                kwargs["pid"], job_collection_name
-            )
-            if request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
-                chunk_size = max(
-                    1,
-                    settings.MAX_CHUNK_SIZE
-                    // spiderdata_db_client.get_estimated_document_size(
-                        kwargs["pid"], job_collection_name
-                    ),
-                )
-                current_chunk = request.query_params.get("current_chunk", None)
-                result, next_chunk = spiderdata_db_client.get_chunked_collection_data(
-                    kwargs["pid"], job_collection_name, chunk_size, current_chunk
-                )
-                response = {"count": count, "results": result}
-                if next_chunk:
-                    response["next_chunk"] = next_chunk
-                return Response(response)
-
             result = spiderdata_db_client.get_paginated_collection_data(
                 kwargs["pid"], job_collection_name, page, page_size
             )
-            return Response(
-                {
-                    "count": count,
-                    "previous": self.get_paginated_link(page - 1),
-                    "next": self.get_paginated_link(page + 1)
-                    if page * page_size < count
-                    else None,
-                    "results": result,
-                }
+
+        return Response(
+            {
+                "count": count,
+                "previous": self.get_paginated_link(page - 1),
+                "next": self.get_paginated_link(page + 1)
+                if page * page_size < count
+                else None,
+                "results": result,
+            }
+        )
+
+    def get_collection_name(self, job, data_type, **kwargs):
+        if (
+            job.cronjob is not None
+            and job.cronjob.unique_collection
+            and data_type == "items"
+        ):
+            job_collection_name = "{}-scj{}-job_{}".format(
+                kwargs["sid"], job.cronjob.cjid, data_type
             )
+        else:
+            job_collection_name = "{}-{}-job_{}".format(
+                kwargs["sid"], kwargs["jid"], data_type
+            )
+
+        return job_collection_name
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        responses={
+            status.HTTP_200_OK: openapi.Response(
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    required=["results"],
+                    properties={
+                        "results": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Items(type=openapi.TYPE_OBJECT),
+                            description="Data items.",
+                        ),
+                    },
+                ),
+                description="",
+            ),
+        },
+        manual_parameters=[
+            openapi.Parameter(
+                "type",
+                openapi.IN_QUERY,
+                description="Spider job data type.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+        ],
+    )
+    @action(detail=False, methods=["GET"])
+    def download(self, request, *args, **kwargs):
+        data_type = request.query_params.get("type", "items")
+
+        job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
+        job_collection_name = self.get_collection_name(job, data_type, **kwargs)
+
+        data = []
+        if data_type == "stats":
+            data = spiderdata_db_client.get_job_stats(
+                kwargs["pid"], job_collection_name
+            )
+        else:
+            docs_limit = max(
+                1,
+                (settings.MAX_WEB_DOWNLOAD_SIZE)
+                // spiderdata_db_client.get_estimated_document_size(
+                    kwargs["pid"], job_collection_name
+                ),
+            )
+            data = spiderdata_db_client.get_collection_data(
+                kwargs["pid"], job_collection_name, docs_limit
+            )
+
+        return Response({"results": data})
 
     @swagger_auto_schema(
         methods=["POST"],
@@ -201,9 +246,10 @@ class JobDataViewSet(
         count = spiderdata_db_client.delete_collection_data(
             kwargs["pid"], job_collection_name
         )
-        record_project_usage_after_data_delete.s(
-            job.spider.project.pid, job.jid
-        ).apply_async()
+        chain_of_usage_process = get_chain_to_process_usage_data(
+            after_delete=True, project_id=job.spider.project.pid, job_id=job.jid
+        )
+        chain_of_usage_process.apply_async()
 
         return Response(
             {
@@ -211,31 +257,3 @@ class JobDataViewSet(
             },
             status=status.HTTP_200_OK,
         )
-
-    def get_formatted_response(self, result, mode, job_collection_name):
-        if mode == "json":
-            response = JsonResponse(result, safe=False)
-            return response
-
-        if mode == "csv":
-            response = HttpResponse(content_type="text/csv; charset=utf-8")
-            response["Content-Disposition"] = "attachment; {}.csv".format(
-                job_collection_name
-            )
-            # Force response to be UTF-8 - This is where the magic happens
-            response.write(codecs.BOM_UTF8)
-            csv_writer = csv.DictWriter(response, fieldnames=result[0].keys())
-            csv_writer.writeheader()
-            for item in result:
-                csv_writer.writerow(item)
-            return response
-
-    def get_collection_name(self, job, data_type, sid, jid):
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-            and data_type == "items"
-        ):
-            return "{}-scj{}-job_{}".format(sid, job.cronjob.cjid, data_type)
-        else:
-            return "{}-{}-job_{}".format(sid, jid, data_type)

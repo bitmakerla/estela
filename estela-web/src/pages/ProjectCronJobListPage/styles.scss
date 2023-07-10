@@ -1,0 +1,44 @@
+$estela-green-full: #489019;
+$estela-blue-full: #4D47C3;
+$estela-white-medium: #F9F9F9;
+$estela-black-medium: #6C757D;
+
+.ant-checkbox-checked .ant-checkbox-inner {
+    background-color: $estela-blue-full;
+    border-color: $estela-blue-full;
+}
+
+.ant-btn-default:disabled {
+    background-color: $estela-white-medium !important;
+    color: $estela-black-medium !important;
+    border: none;
+}
+.ant-table-tbody > tr > td {
+    border: none
+}
+
+.ant-switch-checked {
+    background-color: $estela-green-full;
+}
+
+.schedule {
+    .ant-switch-checked {
+        background-color: $estela-blue-full;
+    }
+}
+
+.ant-select-selector {
+    border-radius: 8px !important;
+}
+
+.ant-radio-checked .ant-radio-inner{
+    border-color: $estela-blue-full;
+}
+  
+.ant-radio-checked .ant-radio-inner:after{
+    background-color: $estela-blue-full;
+}
+  
+.ant-radio:hover .ant-radio-inner {
+    border-color: $estela-blue-full;
+}

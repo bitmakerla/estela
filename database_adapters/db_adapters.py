@@ -87,7 +87,17 @@ class MongoAdapter(DatabaseInterface):
 
     def delete_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
-        return collection.delete_many({}).deleted_count
+        count = collection.delete_many({}).deleted_count
+        try:
+            collection.drop()
+        except PyMongoError as ex:
+            print(ex)
+        return count
+
+    def get_collection_data(self, database_name, collection_name, limit=10000):
+        collection = self.client[database_name][collection_name]
+        result = collection.find({}, {"_id": False}).limit(limit)
+        return list(result)
 
     def get_all_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
@@ -109,6 +119,18 @@ class MongoAdapter(DatabaseInterface):
             del item["_id"]
         return data, next_chunk
 
+    def get_job_stats(self, database_name, collection_name):
+        result = self.client[database_name]["job_stats"].find(
+            {"_id": collection_name}, {"_id": False}
+        )
+        return list(result)
+
+    def get_jobs_set_stats(self, database_name, jobs_ids):
+        result = self.client[database_name]["job_stats"].find(
+            {"_id": {"$in": jobs_ids}}
+        )
+        return list(result)
+
     def get_paginated_collection_data(
         self, database_name, collection_name, page, page_size
     ):
@@ -119,6 +141,11 @@ class MongoAdapter(DatabaseInterface):
             .limit(page_size)
         )
         return list(result)
+
+    def update_document(self, database_name, collection_name, document_id, new_field):
+        collection = self.client[database_name][collection_name]
+        result = collection.update_one({"_id": document_id}, {"$set": new_field})
+        return result.acknowledged
 
     def get_estimated_document_count(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]

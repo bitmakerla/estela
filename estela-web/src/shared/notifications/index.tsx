@@ -8,7 +8,6 @@ export const authNotification = (): void => {
         message: "Authenticated Resource",
         description: "You need to be logged to enter to this resource.",
     });
-    history.push("/login");
 };
 
 export const resourceNotAllowedNotification = (): void => {
@@ -22,7 +21,7 @@ export const resourceNotAllowedNotification = (): void => {
 export const dataDeletedNotification = (n: number): void => {
     notification.open({
         message: "Data Successfully Deleted",
-        description: `${n} Item have been deleted`,
+        description: `${n} Items have been deleted`,
     });
 };
 
@@ -65,5 +64,19 @@ export const emailConfirmationNotification = (): void => {
     notification.success({
         message: "Confirmation email sent",
         description: `The confirmation email was sent to the email you provided.`,
+    });
+};
+
+export const passwordChangedNotification = (): void => {
+    notification.success({
+        message: "Password changed",
+        description: `Your password has been changed.`,
+    });
+};
+
+export const wrongPasswordNotification = (): void => {
+    notification.error({
+        message: "Wrong Password",
+        description: `The password you provided is wrong.`,
     });
 };

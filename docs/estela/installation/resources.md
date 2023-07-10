@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Resources Guide
-parent: Installation
+title: Resources Appendix
+parent: Getting started
 grand_parent: estela
 ---
 
-# estela Resources Guide
+# estela Resources Appendix
 
 estela needs the following resources to run:
 
@@ -60,42 +60,6 @@ estela needs the following resources to run:
   web interface. The SMTP server can be dedicated, e.g.,
   [SES](https://aws.amazon.com/ses/){:target="_blank"}; or public, e.g.,
   [Google SMTP server](https://kinsta.com/blog/gmail-smtp-server/){:target="_blank"}.
-
-## Local Deployment of Resources
-
-All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
-can be started locally by running this command in the  _installation_ folder:
-
-```bash
-$ make resources
-```
-
-If you want to start only some of the resources, modify the `RESOURCES` variable of the 
-Makefile.
-
-To allow the use of images stored in the local container registry, you need to
-add the following line to the Docker daemon 
-[config file](https://docs.docker.com/config/daemon){:target="_blank"}.
-Then, restart Docker.
-
-```json
-{
-	...
-	"insecure-registries" : [ "<HOST_IP>:5000" ]
-	...
-}
-```
-Where _<HOST\_IP>_ is equal to the output of:
-
-```bash
-$ minikube ssh 'grep host.minikube.internal /etc/hosts | cut -f1'
-```
-
-The MongoDB database can be deployed on MongoDB Atlas for
-[free](https://www.mongodb.com/free-cloud-database){:target="_blank"}, please refer to this [guide](https://www.mongodb.com/basics/mongodb-atlas-tutorial) to create one.
-To use a public SMTP server, please read the following
-[guide](https://kinsta.com/blog/gmail-smtp-server/){:target="_blank"}, nothing needs 
-to be configured, just use the Google services and your Gmail account credentials.  
 
 ## Issues during the process
 

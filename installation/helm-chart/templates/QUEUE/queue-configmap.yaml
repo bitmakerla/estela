@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: queue-config
+  namespace: {{ .Release.Namespace }}
+data:
+  {{- range $key, $val := .Values.QUEUE_PARAMETERS }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+  DB_ENGINE: {{ .Values.SPIDERDATA_DB_ENGINE }}
+  DB_CERTIFICATE_PATH: {{ .Values.SPIDERDATA_DB_CERTIFICATE_PATH }}
+  PRODUCTION: {{ .Values.CONSUMER_PRODUCTION | quote }}
+  {{- if .Values.WORKER_POOL }}
+  WORKER_POOL: {{ .Values.WORKER_POOL | quote }}
+  {{- end }}
+  {{- if .Values.HEARTBEAT_TICK }}
+  HEARTBEAT_TICK: {{ .Values.HEARTBEAT_TICK | quote }}
+  {{- end }}
+  {{- if .Values.QUEUE_BASE_TIMEOUT }}
+  QUEUE_BASE_TIMEOUT: {{ .Values.QUEUE_BASE_TIMEOUT | quote }}
+  {{- end }}
+  {{- if .Values.QUEUE_MAX_TIMEOUT }}
+  QUEUE_MAX_TIMEOUT: {{ .Values.QUEUE_MAX_TIMEOUT | quote }}
+  {{- end }}
+  {{- if .Values.BATCH_SIZE_THRESHOLD }}
+  BATCH_SIZE_THRESHOLD: {{ .Values.BATCH_SIZE_THRESHOLD | quote }}
+  {{- end }}
+  {{- if .Values.INSERT_TIME_THRESHOLD }}
+  INSERT_TIME_THRESHOLD: {{ .Values.INSERT_TIME_THRESHOLD | quote }}
+  {{- end }}
+  {{- if .Values.ACTIVITY_TIME_THRESHOLD }}
+  ACTIVITY_TIME_THRESHOLD: {{ .Values.ACTIVITY_TIME_THRESHOLD | quote }}
+  {{- end }}

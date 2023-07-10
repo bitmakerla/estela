@@ -41,11 +41,11 @@ export interface SpiderCronJob {
      */
     readonly cjid?: number;
     /**
-     * Spider sid.
-     * @type {number}
+     * 
+     * @type {string}
      * @memberof SpiderCronJob
      */
-    spider: number;
+    readonly spider?: string;
     /**
      * Cron job creation date.
      * @type {Date}
@@ -101,7 +101,7 @@ export interface SpiderCronJob {
      */
     dataStatus?: SpiderCronJobDataStatusEnum;
     /**
-     * Days before data expires.
+     * Days before data is deleted.
      * @type {number}
      * @memberof SpiderCronJob
      */
@@ -121,7 +121,6 @@ export enum SpiderCronJobStatusEnum {
 */
 export enum SpiderCronJobDataStatusEnum {
     Persistent = 'PERSISTENT',
-    Deleted = 'DELETED',
     Pending = 'PENDING'
 }
 
@@ -136,7 +135,7 @@ export function SpiderCronJobFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'cjid': !exists(json, 'cjid') ? undefined : json['cjid'],
-        'spider': json['spider'],
+        'spider': !exists(json, 'spider') ? undefined : json['spider'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
         'name': !exists(json, 'name') ? undefined : json['name'],
         'cargs': !exists(json, 'cargs') ? undefined : ((json['cargs'] as Array<any>).map(SpiderJobArgFromJSON)),
@@ -159,7 +158,6 @@ export function SpiderCronJobToJSON(value?: SpiderCronJob | null): any {
     }
     return {
         
-        'spider': value.spider,
         'cargs': value.cargs === undefined ? undefined : ((value.cargs as Array<any>).map(SpiderJobArgToJSON)),
         'cenv_vars': value.cenvVars === undefined ? undefined : ((value.cenvVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'ctags': value.ctags === undefined ? undefined : ((value.ctags as Array<any>).map(SpiderJobTagToJSON)),

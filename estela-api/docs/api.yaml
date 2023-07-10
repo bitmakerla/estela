@@ -17,6 +17,110 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
+  /api/account/changePassword/change:
+    patch:
+      operationId: api_account_changePassword_change
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ChangePassword'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Token'
+      tags:
+        - api
+    parameters: []
+  /api/account/resetPassword/confirm:
+    patch:
+      operationId: api_account_resetPassword_confirm
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ResetPasswordConfirm'
+        - name: token
+          in: query
+          description: Token
+          required: true
+          type: string
+        - name: pair
+          in: query
+          description: Pair
+          required: true
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Token'
+        '401':
+          description: ''
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+      tags:
+        - api
+    parameters: []
+  /api/account/resetPassword/request:
+    post:
+      operationId: api_account_resetPassword_request
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ResetPasswordRequest'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/ResetPasswordRequest'
+      tags:
+        - api
+    parameters: []
+  /api/account/resetPassword/validate:
+    get:
+      operationId: api_account_resetPassword_validate
+      description: ''
+      parameters:
+        - name: token
+          in: query
+          description: Token
+          required: true
+          type: string
+        - name: pair
+          in: query
+          description: Pair
+          required: true
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+        '400':
+          description: ''
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+      tags:
+        - api
+    parameters: []
   /api/auth/activate:
     get:
       operationId: api_auth_activate
@@ -50,6 +154,98 @@ paths:
       tags:
         - api
     parameters: []
+  /api/auth/profile:
+    get:
+      operationId: api_auth_profile_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    post:
+      operationId: api_auth_profile_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserProfile'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    parameters: []
+  /api/auth/profile/{username}:
+    get:
+      operationId: api_auth_profile_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    put:
+      operationId: api_auth_profile_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserProfile'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    patch:
+      operationId: api_auth_profile_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserProfile'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserProfile'
+      tags:
+        - api
+    delete:
+      operationId: api_auth_profile_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - api
+    parameters:
+      - name: username
+        in: path
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        required: true
+        type: string
+        pattern: ^[\w.@+-]+$
   /api/auth/register:
     post:
       operationId: api_auth_register
@@ -68,6 +264,122 @@ paths:
       tags:
         - api
     parameters: []
+  /api/notifications:
+    get:
+      operationId: api_notifications_list
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - count
+              - results
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                format: uri
+                x-nullable: true
+              previous:
+                type: string
+                format: uri
+                x-nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    post:
+      operationId: api_notifications_create
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserNotification'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    parameters: []
+  /api/notifications/{id}:
+    get:
+      operationId: api_notifications_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    put:
+      operationId: api_notifications_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserNotificationUpdate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotificationUpdate'
+      tags:
+        - api
+    patch:
+      operationId: api_notifications_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserNotification'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserNotification'
+      tags:
+        - api
+    delete:
+      operationId: api_notifications_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - api
+    parameters:
+      - name: id
+        in: path
+        description: A unique integer value identifying this user notification.
+        required: true
+        type: integer
   /api/projects:
     get:
       operationId: api_projects_list
@@ -436,6 +748,38 @@ paths:
       operationId: api_projects_spiders_read
       description: ''
       parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Spider'
+      tags:
+        - api
+    put:
+      operationId: api_projects_spiders_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/SpiderUpdate'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderUpdate'
+      tags:
+        - api
+    patch:
+      operationId: api_projects_spiders_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Spider'
       responses:
         '200':
           description: ''
@@ -850,6 +1194,54 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/data/download:
+    get:
+      operationId: api_projects_spiders_jobs_data_download
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: type
+          in: query
+          description: Spider job data type.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            required:
+              - results
+            type: object
+            properties:
+              results:
+                description: Data items.
+                type: array
+                items:
+                  type: object
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/usage:
     get:
       operationId: api_projects_usage
@@ -881,7 +1273,222 @@ paths:
         required: true
         type: string
         format: uuid
+  /api/stats/{pid}:
+    get:
+      operationId: api_stats_list
+      description: Retrieve stats of all jobs in a range of time, dates must have
+        the format YYYY-mm-dd.
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          required: true
+          type: string
+        - name: end_date
+          in: query
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Global stats array with stats summary for each date
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GlobalStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/stats/{pid}/jobs_stats:
+    post:
+      operationId: api_stats_jobs_stats
+      description: Retrieve stats of all jobs metadata.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GetJobsStats'
+      responses:
+        '200':
+          description: Array with stats summary for each job
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GetJobsStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/stats/{pid}/spider/{sid}:
+    get:
+      operationId: api_stats_spider_list
+      description: Retrieve stats of all jobs of a spider in a range of time, dates
+        must have the format YYYY-mm-dd.
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+        - name: start_date
+          in: query
+          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          required: true
+          type: string
+        - name: end_date
+          in: query
+          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Spiders/Jobs stats array with stats summary for each date
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SpidersJobsStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/stats/{pid}/spider/{sid}/jobs_stats:
+    post:
+      operationId: api_stats_spider_jobs_stats
+      description: Retrieve stats of all jobs metadata.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GetJobsStats'
+      responses:
+        '200':
+          description: Array with stats summary for each job
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/GetJobsStats'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
 definitions:
+  ChangePassword:
+    required:
+      - new_password
+      - confirm_new_password
+      - old_password
+    type: object
+    properties:
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+      confirm_new_password:
+        title: Confirm new password
+        type: string
+        minLength: 1
+      old_password:
+        title: Old password
+        type: string
+        minLength: 1
+  UserDetail:
+    description: User details.
+    required:
+      - username
+    type: object
+    properties:
+      username:
+        title: Username
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        type: string
+        pattern: ^[\w.@+-]+$
+        maxLength: 150
+        minLength: 1
+      email:
+        title: Email address
+        type: string
+        format: email
+        maxLength: 254
+  Token:
+    required:
+      - key
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/UserDetail'
+      key:
+        title: Key
+        description: User's auth token key.
+        type: string
+        maxLength: 40
+        minLength: 1
+  ResetPasswordConfirm:
+    required:
+      - new_password
+      - confirm_new_password
+    type: object
+    properties:
+      new_password:
+        title: New password
+        type: string
+        minLength: 1
+      confirm_new_password:
+        title: Confirm new password
+        type: string
+        minLength: 1
+  ResetPasswordRequest:
+    required:
+      - email
+    type: object
+    properties:
+      email:
+        title: Email
+        type: string
+        format: email
+        minLength: 1
   AuthToken:
     required:
       - username
@@ -896,22 +1503,24 @@ definitions:
         title: Password
         type: string
         minLength: 1
-  Token:
+  UserProfile:
     required:
-      - key
+      - username
+      - email
+      - password
     type: object
     properties:
-      user:
-        title: User
-        description: Username.
+      username:
+        title: Username
         type: string
-        pattern: ^[\w.@+-]+$
-        readOnly: true
-      key:
-        title: Key
-        description: User's auth token key.
+        minLength: 1
+      email:
+        title: Email
         type: string
-        maxLength: 40
+        minLength: 1
+      password:
+        title: Password
+        type: string
         minLength: 1
   User:
     required:
@@ -941,25 +1550,78 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
-  UserDetail:
-    description: Username.
-    required:
-      - username
+  ProjectDetail:
+    description: Project where the action was performed.
     type: object
     properties:
-      username:
-        title: Username
-        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-          only.
+      pid:
+        title: Pid
+        description: A UUID identifying this project.
         type: string
-        pattern: ^[\w.@+-]+$
-        maxLength: 150
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Project name.
+        type: string
+        readOnly: true
         minLength: 1
-      email:
-        title: Email address
+  Notification:
+    description: Notification to which the user is subscribed.
+    required:
+      - message
+      - user
+      - project
+    type: object
+    properties:
+      nid:
+        title: Nid
+        description: A unique integer value identifying each notification
+        type: integer
+        readOnly: true
+      message:
+        title: Message
+        description: Notification message.
         type: string
-        format: email
-        maxLength: 254
+        maxLength: 1000
+        minLength: 1
+      user:
+        $ref: '#/definitions/UserDetail'
+      project:
+        $ref: '#/definitions/ProjectDetail'
+  UserNotification:
+    required:
+      - id
+      - notification
+    type: object
+    properties:
+      id:
+        title: Id
+        description: Unique user notification ID.
+        type: integer
+      notification:
+        $ref: '#/definitions/Notification'
+      seen:
+        title: Seen
+        description: Whether the notification was seen.
+        type: boolean
+      created:
+        title: Created
+        description: Date when the notification was sent.
+        type: string
+        format: date-time
+        readOnly: true
+  UserNotificationUpdate:
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      seen:
+        title: Seen
+        description: Whether the user has seen the notification.
+        type: boolean
   Permission:
     description: Users with permissions on this project.
     type: object
@@ -1015,9 +1677,20 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Permission'
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data is deleted.
+        type: integer
+        maximum: 65535
+        minimum: 0
   ProjectUpdate:
-    required:
-      - name
     type: object
     properties:
       pid:
@@ -1028,21 +1701,14 @@ definitions:
         readOnly: true
       name:
         title: Name
-        description: Project's name.
+        description: Project name.
         type: string
-        maxLength: 1000
         minLength: 1
       users:
-        description: Afected users.
+        description: Affected users.
         type: array
         items:
           $ref: '#/definitions/UserDetail'
-      user:
-        title: User
-        description: User email address.
-        type: string
-        format: email
-        minLength: 1
       email:
         title: Email
         description: Email address.
@@ -1065,6 +1731,17 @@ definitions:
           - ADMIN
           - DEVELOPER
           - VIEWER
+      data_status:
+        title: Data status
+        description: New data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: New data expiry days.
+        type: integer
   SpiderJobArg:
     description: Cron job arguments.
     required:
@@ -1103,6 +1780,10 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
+      masked:
+        title: Masked
+        description: Whether the env variable value is masked.
+        type: boolean
   SpiderJobTag:
     description: Cron job tags.
     required:
@@ -1117,8 +1798,6 @@ definitions:
         minLength: 1
   SpiderCronJob:
     description: Project Cronjobs.
-    required:
-      - spider
     type: object
     properties:
       cjid:
@@ -1128,8 +1807,8 @@ definitions:
         readOnly: true
       spider:
         title: Spider
-        description: Spider sid.
-        type: integer
+        type: string
+        readOnly: true
       created:
         title: Created
         description: Cron job creation date.
@@ -1179,11 +1858,10 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1205,54 +1883,69 @@ definitions:
         type: integer
   ProjectUsage:
     required:
-      - name
+      - network_usage
+      - item_count
+      - request_count
+      - items_data_size
+      - requests_data_size
+      - logs_data_size
     type: object
     properties:
       pid:
         title: Pid
-        description: A UUID identifying this project.
         type: string
-        format: uuid
         readOnly: true
       name:
         title: Name
-        description: Project's name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      network_usage:
-        title: Network usage
         type: string
         readOnly: true
+      network_usage:
+        title: Network usage
+        description: Amount of network bytes used.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       processing_time:
         title: Processing time
         type: string
         readOnly: true
       item_count:
         title: Item count
-        type: string
-        readOnly: true
+        description: Amount of items extracted.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       request_count:
         title: Request count
-        type: string
-        readOnly: true
+        description: Amount of requests made.
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       items_data_size:
         title: Items data size
-        type: string
-        readOnly: true
+        description: Amount in bytes occupied by items in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       requests_data_size:
         title: Requests data size
-        type: string
-        readOnly: true
+        description: Amount in bytes occupied by requests in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
       logs_data_size:
         title: Logs data size
-        type: string
-        readOnly: true
+        description: Amount in bytes occupied by logs in the database
+        type: integer
+        maximum: 18446744073709551615
+        minimum: 0
   Spider:
     description: Spiders in this deploy.
     required:
       - name
       - project
+      - data_status
+      - data_expiry_days
     type: object
     properties:
       sid:
@@ -1271,6 +1964,17 @@ definitions:
         description: Project UUID.
         type: string
         format: uuid
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data expires.
+        type: integer
   Deploy:
     required:
       - project
@@ -1364,8 +2068,6 @@ definitions:
           minLength: 1
   SpiderJob:
     description: Project jobs.
-    required:
-      - spider
     type: object
     properties:
       jid:
@@ -1375,8 +2077,8 @@ definitions:
         readOnly: true
       spider:
         title: Spider
-        description: Spider sid.
-        type: integer
+        type: string
+        readOnly: true
       created:
         title: Created
         description: Job creation date.
@@ -1439,7 +2141,7 @@ definitions:
         x-nullable: true
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1450,8 +2152,8 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
+          - DELETED
   ProjectJob:
     required:
       - results
@@ -1467,8 +2169,37 @@ definitions:
         title: Count
         description: Project jobs count.
         type: integer
+  SpiderUpdate:
+    required:
+      - name
+    type: object
+    properties:
+      sid:
+        title: Sid
+        description: A UUID identifying this spider.
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Spider's name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      data_status:
+        title: Data status
+        description: New data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: New data expiry days.
+        type: integer
   SpiderCronJobCreate:
     required:
+      - data_expiry_days
       - data_status
     type: object
     properties:
@@ -1510,13 +2241,15 @@ definitions:
       data_expiry_days:
         title: Data expiry days
         description: Days before data expires.
-        type: string
-        minLength: 1
+        type: integer
       data_status:
         title: Data status
         description: Data status.
         type: string
-        minLength: 1
+        enum:
+          - PERSISTENT
+          - PENDING
+          - DELETED
   SpiderCronJobUpdate:
     type: object
     properties:
@@ -1547,11 +2280,10 @@ definitions:
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Days before data is deleted.
         type: integer
         maximum: 65535
         minimum: 0
@@ -1624,8 +2356,6 @@ definitions:
           - WAITING
           - RUNNING
           - STOPPED
-          - INCOMPLETE
-          - CANCELLED
           - COMPLETED
           - ERROR
       lifespan:
@@ -1652,19 +2382,16 @@ definitions:
         minimum: 0
       data_status:
         title: Data status
-        description: Data status.
+        description: Job data status.
         type: string
         enum:
           - PERSISTENT
-          - DELETED
           - PENDING
+          - DELETED
       data_expiry_days:
         title: Data expiry days
-        description: Days before data expires.
+        description: Job data expiry days.
         type: integer
-        maximum: 65535
-        minimum: 0
-        x-nullable: true
   DeleteJobData:
     required:
       - count
@@ -1731,3 +2458,237 @@ definitions:
         type: integer
         maximum: 18446744073709551615
         minimum: 0
+  JobsStats:
+    type: object
+    properties:
+      total_jobs:
+        title: Total jobs
+        type: integer
+        default: 0
+      waiting_jobs:
+        title: Waiting jobs
+        type: integer
+        default: 0
+      running_jobs:
+        title: Running jobs
+        type: integer
+        default: 0
+      stopped_jobs:
+        title: Stopped jobs
+        type: integer
+        default: 0
+      completed_jobs:
+        title: Completed jobs
+        type: integer
+        default: 0
+      in_queue_jobs:
+        title: In queue jobs
+        type: integer
+        default: 0
+      error_jobs:
+        title: Error jobs
+        type: integer
+        default: 0
+  PagesStats:
+    type: object
+    properties:
+      total_pages:
+        title: Total pages
+        type: integer
+        default: 0
+      scraped_pages:
+        title: Scraped pages
+        type: integer
+        default: 0
+      missed_pages:
+        title: Missed pages
+        type: integer
+        default: 0
+  StatusCodesStats:
+    type: object
+    properties:
+      status_200:
+        title: Status 200
+        type: integer
+        default: 0
+      status_301:
+        title: Status 301
+        type: integer
+        default: 0
+      status_302:
+        title: Status 302
+        type: integer
+        default: 0
+      status_401:
+        title: Status 401
+        type: integer
+        default: 0
+      status_403:
+        title: Status 403
+        type: integer
+        default: 0
+      status_404:
+        title: Status 404
+        type: integer
+        default: 0
+      status_429:
+        title: Status 429
+        type: integer
+        default: 0
+      status_500:
+        title: Status 500
+        type: integer
+        default: 0
+  LogsStats:
+    type: object
+    properties:
+      total_logs:
+        title: Total logs
+        type: integer
+        default: 0
+      debug_logs:
+        title: Debug logs
+        type: integer
+        default: 0
+      info_logs:
+        title: Info logs
+        type: integer
+        default: 0
+      warning_logs:
+        title: Warning logs
+        type: integer
+        default: 0
+      error_logs:
+        title: Error logs
+        type: integer
+        default: 0
+      critical_logs:
+        title: Critical logs
+        type: integer
+        default: 0
+  FieldCoverageStats:
+    type: object
+    properties:
+      field_name:
+        title: Field name
+        type: string
+        default: ''
+        minLength: 1
+      field_count:
+        title: Field count
+        type: integer
+        default: 0
+      field_coverage:
+        title: Field coverage
+        type: number
+        default: 0.0
+  CoverageStats:
+    type: object
+    properties:
+      total_items:
+        title: Total items
+        type: integer
+        default: 0
+      total_items_coverage:
+        title: Total items coverage
+        type: number
+        default: 0.0
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/FieldCoverageStats'
+  Stats:
+    required:
+      - pages
+      - status_codes
+      - logs
+      - coverage
+    type: object
+    properties:
+      jobs:
+        $ref: '#/definitions/JobsStats'
+      pages:
+        $ref: '#/definitions/PagesStats'
+      items_count:
+        title: Items count
+        type: integer
+        default: 0
+      runtime:
+        title: Runtime
+        type: number
+        default: 0.0
+      status_codes:
+        $ref: '#/definitions/StatusCodesStats'
+      success_rate:
+        title: Success rate
+        type: number
+        default: 0.0
+      logs:
+        $ref: '#/definitions/LogsStats'
+      coverage:
+        $ref: '#/definitions/CoverageStats'
+  JobsMetadata:
+    required:
+      - spider
+    type: object
+    properties:
+      jid:
+        title: Jid
+        description: A unique integer value identifying this job.
+        type: integer
+        readOnly: true
+      spider:
+        title: Spider
+        description: Spider sid.
+        type: integer
+      job_status:
+        title: Job status
+        type: string
+        readOnly: true
+  GlobalStats:
+    required:
+      - date
+      - stats
+      - jobs_metadata
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
+      jobs_metadata:
+        type: array
+        items:
+          $ref: '#/definitions/JobsMetadata'
+  GetJobsStats:
+    type: object
+    properties:
+      jid:
+        title: Jid
+        type: integer
+        default: 0
+      spider:
+        title: Spider
+        type: integer
+        default: 0
+      stats:
+        $ref: '#/definitions/Stats'
+  SpidersJobsStats:
+    required:
+      - date
+      - stats
+      - jobs_metadata
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
+      jobs_metadata:
+        type: array
+        items:
+          $ref: '#/definitions/JobsMetadata'

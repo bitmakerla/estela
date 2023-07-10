@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
@@ -10,7 +9,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderJobFilter
-from api.mixins import BaseViewSet
+from api.mixins import BaseViewSet, NotificationsHandlerMixin
 from api.serializers.job import (
     SpiderJobCreateSerializer,
     SpiderJobSerializer,
@@ -18,11 +17,12 @@ from api.serializers.job import (
 )
 from api.utils import update_stats_from_redis
 from config.job_manager import job_manager
-from core.models import Spider, SpiderJob
+from core.models import DataStatus, Project, Spider, SpiderJob
 
 
 class SpiderJobViewSet(
     BaseViewSet,
+    NotificationsHandlerMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -104,8 +104,8 @@ class SpiderJobViewSet(
         async_param = request.query_params.get("async", False)
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data_status = request.data.pop("data_status", SpiderJob.PERSISTENT_STATUS)
-        if data_status == SpiderJob.PENDING_STATUS:
+        data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
+        if data_status == DataStatus.PENDING_STATUS:
             data_expiry_days = request.data.pop("data_expiry_days", 1)
             if data_expiry_days < 1:
                 raise ParseError({"error": "Invalid data expiry days value."})
@@ -140,6 +140,14 @@ class SpiderJobViewSet(
                 data_status=data_status,
                 data_expiry_days=data_expiry_days,
             )
+
+        # Send action notification
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        self.save_notification(
+            user=request.user,
+            message=f"run a new job for spider {spider.name}.",
+            project=project,
+        )
 
         headers = self.get_success_headers(serializer.data)
         return Response(

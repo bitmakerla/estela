@@ -1,0 +1,53 @@
+$estela-blue-full: #4D47C3;
+$estela-blue-low: #F6FAFD;
+
+.ant-menu-inline > .ant-menu-submenu:hover {
+    div {
+        color: $estela-blue-full;
+    }
+    svg {
+        stroke: $estela-blue-full;
+    }
+}
+
+.ant-menu-inline .ant-menu-item-group-list > .ant-menu-item:hover {
+    a {
+        color: $estela-blue-full;
+    }
+}
+
+.ant-menu-inline > .ant-menu-item-selected {
+    background-color: $estela-blue-low !important;
+}
+
+.ant-menu-inline .ant-menu-item-group-list > .ant-menu-item-selected {
+    div {
+        background-color: $estela-blue-low !important;
+    }
+    a {
+        color: $estela-blue-full;
+        font-weight: 700;
+    }
+    svg {
+        stroke: $estela-blue-full;
+    }
+    background-color: white !important;
+}
+
+.ant-menu-inline .ant-menu-item-group-list > .ant-menu-item::after,
+.ant-menu-inline .ant-menu-item-group-list > .ant-menu-item::before {
+    border: none;
+}
+
+.ant-menu-sub.ant-menu-inline {
+    background: white;
+}
+
+.ant-layout-sider {
+    background-color: white;
+}
+
+.ant-menu-inline .ant-menu-item-group-list {
+    box-shadow: none;
+    border-right: none;
+}

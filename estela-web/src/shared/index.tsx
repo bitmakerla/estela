@@ -1,16 +1,10 @@
 export { CustomHeader as Header } from "./header";
-export { ProjectSidenav } from "./projectSidenav";
-export { ProfileSettingsSideNav } from "./profileSettingsSidenav";
-export { NotificationsSidenav } from "./notificationsSidenav";
-export { NotificationsList } from "./notificationsList";
+export { ProjectSideNav } from "./projectSideNav";
+export { ProfileSettingsSideNav } from "./profileSettingsSideNav";
+export { NotificationsSideNav } from "./notificationsSideNav";
 export { CustomSpin as Spin } from "./spin";
-export {
-    authNotification,
-    resourceNotAllowedNotification,
-    incorrectDataNotification,
-    insecurePasswordNotification,
-    invalidDataNotification,
-    nonExistentUserNotification,
-    emailConfirmationNotification,
-    dataDeletedNotification,
-} from "./notifications";
+export { PaginationItem } from "./paginationItem";
+export * from "./notifications";
+export { PrivateRoute } from "./privateRoute";
+export * from "./layouts";
+export * from "./types";

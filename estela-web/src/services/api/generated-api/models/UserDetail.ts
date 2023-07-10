@@ -14,7 +14,7 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * Username.
+ * User details.
  * @export
  * @interface UserDetail
  */

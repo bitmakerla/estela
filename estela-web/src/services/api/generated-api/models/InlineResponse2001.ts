@@ -14,10 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    Deploy,
-    DeployFromJSON,
-    DeployFromJSONTyped,
-    DeployToJSON,
+    UserNotification,
+    UserNotificationFromJSON,
+    UserNotificationFromJSONTyped,
+    UserNotificationToJSON,
 } from './';
 
 /**
@@ -46,10 +46,10 @@ export interface InlineResponse2001 {
     previous?: string | null;
     /**
      * 
-     * @type {Array<Deploy>}
+     * @type {Array<UserNotification>}
      * @memberof InlineResponse2001
      */
-    results: Array<Deploy>;
+    results: Array<UserNotification>;
 }
 
 export function InlineResponse2001FromJSON(json: any): InlineResponse2001 {
@@ -65,7 +65,7 @@ export function InlineResponse2001FromJSONTyped(json: any, ignoreDiscriminator: 
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(DeployFromJSON)),
+        'results': ((json['results'] as Array<any>).map(UserNotificationFromJSON)),
     };
 }
 
@@ -81,7 +81,7 @@ export function InlineResponse2001ToJSON(value?: InlineResponse2001 | null): any
         'count': value.count,
         'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(DeployToJSON)),
+        'results': ((value.results as Array<any>).map(UserNotificationToJSON)),
     };
 }
 

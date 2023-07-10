@@ -7,9 +7,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
 
-from api.tokens import account_activation_token
+from api.tokens import account_reset_token
 from config.job_manager import job_manager
-
 
 def launch_deploy_job(pid, did, container_image):
     deploy_user = User.objects.get(username="deploy_manager")
@@ -49,7 +48,41 @@ def send_verification_email(user, request):
             "user": user,
             "domain": current_site.domain,
             "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "token": account_activation_token.make_token(user),
+            "token": account_reset_token.make_token(user),
+        },
+    )
+    email = EmailMessage(
+        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
+    )
+    email.send()
+
+
+def send_change_password_email(user):
+    mail_subject = "Change your estela password."
+    to_email = user.email
+    estela_domain = settings.CORS_ORIGIN_WHITELIST[0]
+    message = render_to_string(
+        "change_password_email.html",
+        {
+            "user": user,
+            "domain": estela_domain,
+            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+            "token": account_reset_token.make_token(user),
+        },
+    )
+    email = EmailMessage(
+        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
+    )
+    email.send()
+
+
+def send_alert_password_changed(user):
+    mail_subject = "Your estela password has been changed."
+    to_email = user.email
+    message = render_to_string(
+        "alert_password_changed.html",
+        {
+            "user": user,
         },
     )
     email = EmailMessage(

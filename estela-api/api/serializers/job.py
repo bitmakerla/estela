@@ -11,7 +11,13 @@ from api.serializers.job_specific import (
 )
 from api.utils import update_stats_from_redis, delete_stats_from_redis
 from config.job_manager import job_manager
-from core.models import SpiderJob, SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
+from core.models import (
+    DataStatus,
+    SpiderJob,
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    SpiderJobTag,
+)
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -26,6 +32,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
     job_status = serializers.CharField(
         required=False, read_only=True, help_text="Current job status."
     )
+    spider = serializers.SerializerMethodField("get_spider")
 
     class Meta:
         model = SpiderJob
@@ -46,6 +53,9 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "data_expiry_days",
             "data_status",
         )
+
+    def get_spider(self, instance):
+        return {"sid": instance.spider.sid, "name": instance.spider.name}
 
 
 class SpiderJobCreateSerializer(serializers.ModelSerializer):
@@ -101,10 +111,22 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
 
 
 class SpiderJobUpdateSerializer(serializers.ModelSerializer):
+    data_status = serializers.ChoiceField(
+        choices=DataStatus.JOB_LEVEL_OPTIONS,
+        required=False,
+        help_text="Job data status.",
+    )
+    data_expiry_days = serializers.IntegerField(
+        required=False,
+        help_text="Job data expiry days.",
+    )
+
     allowed_status_to_stop = [
         SpiderJob.WAITING_STATUS,
         SpiderJob.RUNNING_STATUS,
     ]
+
+    job_fields = ["lifespan", "total_response_bytes", "item_count", "request_count"]
 
     class Meta:
         model = SpiderJob
@@ -123,13 +145,14 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         status = validated_data.get("status", instance.status)
         data_status = validated_data.get("data_status", "")
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
+
         if status != instance.status:
             if instance.status == SpiderJob.STOPPED_STATUS:
                 raise serializers.ValidationError({"error": "Job is stopped"})
             if status == SpiderJob.WAITING_STATUS:
                 raise serializers.ValidationError({"error": "Invalid status"})
             if status == SpiderJob.STOPPED_STATUS:
-                if not instance.status in self.allowed_status_to_stop:
+                if instance.status not in self.allowed_status_to_stop:
                     raise serializers.ValidationError(
                         {
                             "error": errors.JOB_NOT_STOPPED.format(
@@ -146,32 +169,20 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                             pass
                         instance.save()
                     job_manager.delete_job(instance.name)
-            instance.status = status
+        instance.status = status
 
-        for field in [
-            "lifespan",
-            "total_response_bytes",
-            "item_count",
-            "request_count",
-        ]:
+        for field in self.job_fields:
             if not getattr(instance, field):
                 new_value = validated_data.get(field, getattr(instance, field))
                 setattr(instance, field, new_value)
 
         if (
             "data_status" in validated_data
-            and instance.data_status != SpiderJob.DELETED_STATUS
+            and instance.data_status != DataStatus.DELETED_STATUS
         ):
-            if data_status == SpiderJob.PERSISTENT_STATUS:
-                instance.data_status = SpiderJob.PERSISTENT_STATUS
-            elif data_status == SpiderJob.PENDING_STATUS:
-                instance.data_status = SpiderJob.PENDING_STATUS
-                if data_expiry_days < 1:
-                    raise serializers.ValidationError(
-                        {"error": errors.POSITIVE_SMALL_INTEGER_FIELD}
-                    )
-                else:
-                    instance.data_expiry_days = data_expiry_days
+            instance.data_status = data_status
+            if data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
+                instance.data_expiry_days = data_expiry_days
             else:
                 raise serializers.ValidationError({"error": errors.INVALID_DATA_STATUS})
 
