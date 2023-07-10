@@ -74,7 +74,6 @@ services:
     - zookeeper
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
 
 volumes:
   estela_dbdata:
