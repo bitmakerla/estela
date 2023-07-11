@@ -27,8 +27,8 @@ class ActionHandlerMixin:
         activity = Activity.objects.create(
             user=user, project=project, description=description
         )
-        notification = Notification.objects.create(activity=activity)
 
+        notifications = []
         for _user in project.users.all():
-            notification.users.add(_user, through_defaults={"seen": False})
-        notification.save()
+            notifications.append(Notification(user=_user, activity=activity))
+        Notification.objects.bulk_create(notifications)

@@ -71,6 +71,9 @@ class Project(models.Model):
         default=False, help_text="Whether the project was deleted."
     )
 
+    class Meta:
+        ordering = ["name"]
+
     @property
     def container_image(self):
         parsed_container_host = urlparse(settings.REGISTRY_HOST)
@@ -430,7 +433,6 @@ class Activity(models.Model):
     )
     created = models.DateTimeField(
         auto_now_add=True,
-        editable=False,
         help_text="Date when the activity was performed.",
     )
     description = models.CharField(max_length=1000, help_text="Activity description.")
@@ -449,8 +451,6 @@ class Notification(models.Model):
         on_delete=models.CASCADE,
         related_name="notifications",
         help_text="Activity that originated the notification.",
-        null=True,
-        default=None,
     )
     user = models.ForeignKey(
         User,

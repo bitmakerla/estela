@@ -301,7 +301,7 @@ paths:
               results:
                 type: array
                 items:
-                  $ref: '#/definitions/UserNotification'
+                  $ref: '#/definitions/Notification'
       tags:
         - api
     post:
@@ -312,16 +312,16 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       tags:
         - api
     parameters: []
-  /api/notifications/{id}:
+  /api/notifications/{nid}:
     get:
       operationId: api_notifications_read
       description: ''
@@ -330,7 +330,7 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       tags:
         - api
     put:
@@ -341,12 +341,12 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserNotificationUpdate'
+            $ref: '#/definitions/NotificationUpdate'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotificationUpdate'
+            $ref: '#/definitions/NotificationUpdate'
       tags:
         - api
     patch:
@@ -357,12 +357,12 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       tags:
         - api
     delete:
@@ -375,9 +375,9 @@ paths:
       tags:
         - api
     parameters:
-      - name: id
+      - name: nid
         in: path
-        description: A unique integer value identifying this user notification.
+        description: A unique integer value identifying each notification
         required: true
         type: integer
   /api/projects:
@@ -1579,28 +1579,30 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
-  ProjectDetail:
-    description: Project where the action was performed.
+  Activity:
+    description: Activity being notified.
+    required:
+      - user
+      - description
     type: object
     properties:
-      pid:
-        title: Pid
-        description: A UUID identifying this project.
+      user:
+        $ref: '#/definitions/UserDetail'
+      description:
+        title: Description
+        description: Activity description.
         type: string
-        format: uuid
-        readOnly: true
-      name:
-        title: Name
-        description: Project name.
-        type: string
-        readOnly: true
+        maxLength: 1000
         minLength: 1
+      created:
+        title: Created
+        description: Date when the activity was performed.
+        type: string
+        format: date-time
+        readOnly: true
   Notification:
-    description: Notification to which the user is subscribed.
     required:
-      - message
-      - user
-      - project
+      - activity
     type: object
     properties:
       nid:
@@ -1608,48 +1610,23 @@ definitions:
         description: A unique integer value identifying each notification
         type: integer
         readOnly: true
-      message:
-        title: Message
-        description: Notification message.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      user:
-        $ref: '#/definitions/UserDetail'
-      project:
-        $ref: '#/definitions/ProjectDetail'
-  UserNotification:
-    required:
-      - id
-      - notification
-    type: object
-    properties:
-      id:
-        title: Id
-        description: Unique user notification ID.
-        type: integer
-      notification:
-        $ref: '#/definitions/Notification'
+      activity:
+        $ref: '#/definitions/Activity'
       seen:
         title: Seen
         description: Whether the notification was seen.
         type: boolean
-      created:
-        title: Created
-        description: Date when the notification was sent.
-        type: string
-        format: date-time
-        readOnly: true
-  UserNotificationUpdate:
+  NotificationUpdate:
     type: object
     properties:
-      id:
-        title: ID
+      nid:
+        title: Nid
+        description: A unique integer value identifying each notification
         type: integer
         readOnly: true
       seen:
         title: Seen
-        description: Whether the user has seen the notification.
+        description: Whether the notification was seen.
         type: boolean
   Permission:
     description: Users with permissions on this project.
@@ -1771,27 +1748,6 @@ definitions:
         title: Data expiry days
         description: New data expiry days.
         type: integer
-  Activity:
-    description: Project Activities.
-    required:
-      - user
-      - description
-    type: object
-    properties:
-      user:
-        $ref: '#/definitions/UserDetail'
-      description:
-        title: Description
-        description: Activity description.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      created:
-        title: Created
-        description: Date when the activity was performed.
-        type: string
-        format: date-time
-        readOnly: true
   ProjectActivity:
     required:
       - results
@@ -1799,13 +1755,13 @@ definitions:
     type: object
     properties:
       results:
-        description: Project Activities.
+        description: Project activities.
         type: array
         items:
           $ref: '#/definitions/Activity'
       count:
         title: Count
-        description: Project cronjobs count.
+        description: Project activities count.
         type: integer
   SpiderJobArg:
     description: Cron job arguments.
