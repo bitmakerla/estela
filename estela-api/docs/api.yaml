@@ -1579,15 +1579,34 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
+  ProjectDetail:
+    description: Project where the activity was performed.
+    type: object
+    properties:
+      pid:
+        title: Pid
+        description: A UUID identifying this project.
+        type: string
+        format: uuid
+        readOnly: true
+      name:
+        title: Name
+        description: Project name.
+        type: string
+        readOnly: true
+        minLength: 1
   Activity:
     description: Activity being notified.
     required:
       - user
+      - project
       - description
     type: object
     properties:
       user:
         $ref: '#/definitions/UserDetail'
+      project:
+        $ref: '#/definitions/ProjectDetail'
       description:
         title: Description
         description: Activity description.

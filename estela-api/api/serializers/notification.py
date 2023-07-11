@@ -11,18 +11,6 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ("nid", "activity", "seen")
 
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        user = instance.activity.user
-
-        is_superuser = user.is_superuser or user.is_staff
-        user_in_project = instance.activity.project.users.filter(id=user.id)
-        if is_superuser and not user_in_project:
-            ret["activity"]["user"]["username"] = "An admin"
-        else:
-            ret["activity"]["user"]["username"] = user.username
-        return ret
-
 
 class NotificationUpdateSerializer(serializers.ModelSerializer):
     class Meta:

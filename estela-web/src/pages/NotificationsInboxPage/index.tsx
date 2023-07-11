@@ -4,7 +4,7 @@ import {
     AuthService,
     ApiService,
     ApiNotificationsListRequest,
-    UserNotification,
+    Notification,
     ApiNotificationsUpdateRequest,
 } from "../../services";
 import { Spin, PaginationItem } from "../../shared";
@@ -16,7 +16,7 @@ import { convertDateToString } from "../../utils";
 const { Content } = Layout;
 
 interface NotificationInboxState {
-    notifications: UserNotification[];
+    notifications: Notification[];
     loaded: boolean;
     count: number;
     current: number;
@@ -51,16 +51,16 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
         await this.getNotifications(page);
     };
 
-    changeNotificationStatus(id: number): void {
+    changeNotificationStatus(nid: number): void {
         const notifications = this.state.notifications;
-        const index = notifications.findIndex((user_notification) => user_notification.id == id);
+        const index = notifications.findIndex((notification) => notification.nid == nid);
         if (notifications[index].seen) return;
 
         const requestData = {
             seen: true,
         };
         const requestParams: ApiNotificationsUpdateRequest = {
-            id: id,
+            nid: nid,
             data: requestData,
         };
 
@@ -88,14 +88,14 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                     {loaded ? (
                         <Content>
                             {notifications.length == 0 && this.emptyNotification()}
-                            {notifications.map((user_notification) => (
+                            {notifications.map((notification) => (
                                 <div
-                                    onClick={() => this.changeNotificationStatus(user_notification.id)}
+                                    onClick={() => this.changeNotificationStatus(notification.nid)}
                                     className="py-2 px-3 flex hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
                                     style={{ cursor: "pointer" }}
-                                    key={user_notification.id}
+                                    key={notification.nid}
                                 >
-                                    {!user_notification.seen ? (
+                                    {!notification.seen ? (
                                         <Badge
                                             count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}
                                         ></Badge>
@@ -103,23 +103,19 @@ export class NotificationsInboxPage extends Component<unknown, NotificationInbox
                                         <div className="mr-[22px]"></div>
                                     )}
                                     <div className="text-estela-black-medium">
-                                        <span className="font-semibold text-estela-black-full text-sm capitalize">
-                                            {convertDateToString(user_notification.created)}:&nbsp;
-                                            {user_notification.notification.user.email == AuthService.getUserEmail()
+                                        <span className="font-semibold text-estela-black-full text-sm">
+                                            {convertDateToString(notification.activity.created)}:&nbsp;
+                                            {notification.activity.user.username == AuthService.getUserUsername()
                                                 ? "You"
-                                                : user_notification.notification.user.username}
+                                                : notification.activity.user.username}
                                         </span>
-                                        {AuthService.getUserEmail() == user_notification.notification.user.email
+                                        {AuthService.getUserEmail() == notification.activity.user.email
                                             ? " have "
                                             : " has "}
-                                        {user_notification.notification.message} Project:&nbsp;
+                                        {notification.activity.description} Project:&nbsp;
                                         <span className="font-semibold text-estela-black-full">
-                                            {user_notification.notification.project.name} (
-                                            {user_notification.notification.project.pid})
+                                            {notification.activity.project.name} ({notification.activity.project.pid})
                                         </span>
-                                        <p className="text-xs text-estela-black-low">
-                                            {user_notification.createdAt?.toDateString()}
-                                        </p>
                                     </div>
                                 </div>
                             ))}

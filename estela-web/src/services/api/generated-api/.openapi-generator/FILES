@@ -33,6 +33,7 @@ models/Permission.ts
 models/Project.ts
 models/ProjectActivity.ts
 models/ProjectCronJob.ts
+models/ProjectDetail.ts
 models/ProjectJob.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts

@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    ProjectDetail,
+    ProjectDetailFromJSON,
+    ProjectDetailFromJSONTyped,
+    ProjectDetailToJSON,
     UserDetail,
     UserDetailFromJSON,
     UserDetailFromJSONTyped,
@@ -32,6 +36,12 @@ export interface Activity {
      * @memberof Activity
      */
     user: UserDetail;
+    /**
+     * 
+     * @type {ProjectDetail}
+     * @memberof Activity
+     */
+    project: ProjectDetail;
     /**
      * Activity description.
      * @type {string}
@@ -57,6 +67,7 @@ export function ActivityFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     return {
         
         'user': UserDetailFromJSON(json['user']),
+        'project': ProjectDetailFromJSON(json['project']),
         'description': json['description'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
     };
@@ -72,6 +83,7 @@ export function ActivityToJSON(value?: Activity | null): any {
     return {
         
         'user': UserDetailToJSON(value.user),
+        'project': ProjectDetailToJSON(value.project),
         'description': value.description,
     };
 }

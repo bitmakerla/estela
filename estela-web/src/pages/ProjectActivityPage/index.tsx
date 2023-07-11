@@ -48,17 +48,12 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
 
     columns: ColumnsType<ActivityState> = [
         {
-            title: "RUN DATE",
+            title: "DATE",
             dataIndex: "created",
             key: "created",
             render: (created: Date, activity: ActivityState): ReactElement => (
                 <Content key={activity.key}>{convertDateToString(created)}</Content>
             ),
-        },
-        {
-            title: "TOPIC",
-            dataIndex: "description",
-            key: "description",
         },
         {
             title: "MEMBER",
@@ -67,6 +62,11 @@ export class ProjectActivityPage extends Component<RouteComponentProps<RoutePara
             render: (user: UserDetail): ReactElement => (
                 <p className="">{this.getUserDetails() === user.email ? "You" : user.username}</p>
             ),
+        },
+        {
+            title: "ACTIVITY",
+            dataIndex: "description",
+            key: "description",
         },
     ];
 

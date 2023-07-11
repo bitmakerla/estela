@@ -29,6 +29,7 @@ export * from './Permission';
 export * from './Project';
 export * from './ProjectActivity';
 export * from './ProjectCronJob';
+export * from './ProjectDetail';
 export * from './ProjectJob';
 export * from './ProjectUpdate';
 export * from './ProjectUsage';

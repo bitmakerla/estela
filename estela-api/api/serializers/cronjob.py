@@ -149,10 +149,12 @@ class SpiderCronJobUpdateSerializer(
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
         name = instance.name
         description = ""
+
         if "schedule" in validated_data:
             instance.schedule = schedule
             update_schedule(name, schedule)
             description = f"changed the schedule of Sche-Job-{instance.cjid}."
+
         if "status" in validated_data:
             instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
@@ -161,8 +163,10 @@ class SpiderCronJobUpdateSerializer(
             elif status == SpiderCronJob.DISABLED_STATUS:
                 disable_cronjob(name)
                 description = f"disabled Sche-Job-{instance.cjid}."
+
         if "unique_collection" in validated_data:
             instance.unique_collection = unique_collection
+
         if "data_status" in validated_data:
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
