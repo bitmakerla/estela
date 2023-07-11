@@ -14,18 +14,14 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    ProjectDetail,
-    ProjectDetailFromJSON,
-    ProjectDetailFromJSONTyped,
-    ProjectDetailToJSON,
-    UserDetail,
-    UserDetailFromJSON,
-    UserDetailFromJSONTyped,
-    UserDetailToJSON,
+    Activity,
+    ActivityFromJSON,
+    ActivityFromJSONTyped,
+    ActivityToJSON,
 } from './';
 
 /**
- * Notification to which the user is subscribed.
+ * 
  * @export
  * @interface Notification
  */
@@ -37,23 +33,17 @@ export interface Notification {
      */
     readonly nid?: number;
     /**
-     * Notification message.
-     * @type {string}
-     * @memberof Notification
-     */
-    message: string;
-    /**
      * 
-     * @type {UserDetail}
+     * @type {Activity}
      * @memberof Notification
      */
-    user: UserDetail;
+    activity: Activity;
     /**
-     * 
-     * @type {ProjectDetail}
+     * Whether the notification was seen.
+     * @type {boolean}
      * @memberof Notification
      */
-    project: ProjectDetail;
+    seen?: boolean;
 }
 
 export function NotificationFromJSON(json: any): Notification {
@@ -67,9 +57,8 @@ export function NotificationFromJSONTyped(json: any, ignoreDiscriminator: boolea
     return {
         
         'nid': !exists(json, 'nid') ? undefined : json['nid'],
-        'message': json['message'],
-        'user': UserDetailFromJSON(json['user']),
-        'project': ProjectDetailFromJSON(json['project']),
+        'activity': ActivityFromJSON(json['activity']),
+        'seen': !exists(json, 'seen') ? undefined : json['seen'],
     };
 }
 
@@ -82,9 +71,8 @@ export function NotificationToJSON(value?: Notification | null): any {
     }
     return {
         
-        'message': value.message,
-        'user': UserDetailToJSON(value.user),
-        'project': ProjectDetailToJSON(value.project),
+        'activity': ActivityToJSON(value.activity),
+        'seen': value.seen,
     };
 }
 

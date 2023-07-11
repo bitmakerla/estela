@@ -23,7 +23,7 @@ class DataStatus:
 
 
 class Project(models.Model):
-    NOT_ESPECIFIED = "NOT ESPECIFIED"
+    NOT_SPECIFIED = "NOT SPECIFIED"
     E_COMMERCE = "E-COMMERCE"
     LOGISTICS = "LOGISTICS"
     FINANCE = "FINANCE"
@@ -31,7 +31,7 @@ class Project(models.Model):
     TECHNOLOGY = "TECHNOLOGY"
     OTHER_CATEGORY = "OTHER_CATEGORY"
     CATEGORY_OPTIONS = [
-        (NOT_ESPECIFIED, "Not specified"),
+        (NOT_SPECIFIED, "Not specified"),
         (E_COMMERCE, "E-commerce"),
         (LOGISTICS, "Logistics"),
         (FINANCE, "Finance"),
@@ -71,6 +71,9 @@ class Project(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
     )
+
+    class Meta:
+        ordering = ["name"]
 
     @property
     def container_image(self):
@@ -413,49 +416,48 @@ class UsageRecord(models.Model):
         ordering = ["-created_at"]
 
 
+class Activity(models.Model):
+    aid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this activity."
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        help_text="User who performed the activity.",
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="activities",
+        help_text="Project where the activity was performed.",
+    )
+    created = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Date when the activity was performed.",
+    )
+    description = models.CharField(max_length=1000, help_text="Activity description.")
+
+    class Meta:
+        ordering = ["-created"]
+
+
 class Notification(models.Model):
     nid = models.AutoField(
         primary_key=True,
         help_text="A unique integer value identifying each notification",
     )
-    message = models.CharField(max_length=1000, help_text="Notification message.")
-    project = models.ForeignKey(
-        Project,
+    activity = models.ForeignKey(
+        Activity,
         on_delete=models.CASCADE,
-        help_text="Project where the notification belongs",
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        help_text="User who performed the action on this notification.",
-    )
-    users = models.ManyToManyField(
-        User,
-        through="UserNotification",
         related_name="notifications",
-        help_text="Users that received this notification.",
+        help_text="Activity that originated the notification.",
     )
-
-
-class UserNotification(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        help_text="Related user.",
-    )
-    notification = models.ForeignKey(
-        Notification,
-        on_delete=models.CASCADE,
-        help_text="Notification that the user received.",
+        help_text="User that received the notification.",
     )
     seen = models.BooleanField(
         default=False, help_text="Whether the notification was seen."
     )
-    created = models.DateTimeField(
-        auto_now_add=True,
-        editable=False,
-        help_text="Date when the notification was sent.",
-    )
-
-    class Meta:
-        ordering = ["-created"]

@@ -32,7 +32,7 @@ def run_cronjob_once(data):
         "env_vars": data.get("cenv_vars"),
         "tags": data.get("ctags"),
     }
-    launch_job(data.get("spider"), _data)
+    launch_job(data.get("spider", {}).get("sid"), _data)
 
 
 def disable_cronjob(key):

@@ -20,7 +20,7 @@ router.register(
 )
 router.register(
     prefix=r"notifications",
-    viewset=notification_views.UserNotificationViewSet,
+    viewset=notification_views.NotificationViewSet,
     basename="notification",
 )
 router.register(

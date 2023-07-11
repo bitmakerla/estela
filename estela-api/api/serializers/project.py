@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from core.models import DataStatus, Permission, Project, UsageRecord
+from core.models import DataStatus, Permission, Project, UsageRecord, Activity
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -162,3 +162,41 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "data_status",
             "data_expiry_days",
         )
+
+
+class ActivitySerializer(serializers.ModelSerializer):
+    user = UserDetailSerializer(
+        required=True, help_text="User who performed the deploy."
+    )
+    project = ProjectDetailSerializer(
+        required=True, help_text="Project where the activity was performed."
+    )
+
+    class Meta:
+        model = Activity
+        fields = (
+            "user",
+            "project",
+            "description",
+            "created",
+        )
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        user = instance.user
+
+        is_superuser = user.is_superuser or user.is_staff
+        user_in_project = instance.project.users.filter(id=user.id)
+        if is_superuser and not user_in_project:
+            ret["user"]["username"] = user.username + " (admin)"
+
+        return ret
+
+
+class ProjectActivitySerializer(serializers.Serializer):
+    results = ActivitySerializer(
+        many=True, required=True, help_text="Project activities."
+    )
+    count = serializers.IntegerField(
+        required=True, help_text="Project activities count."
+    )

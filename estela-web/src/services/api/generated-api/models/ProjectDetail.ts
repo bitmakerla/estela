@@ -14,7 +14,7 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * Project where the action was performed.
+ * Project where the activity was performed.
  * @export
  * @interface ProjectDetail
  */
