@@ -21,7 +21,7 @@ import {
 } from './';
 
 /**
- * Project Activities.
+ * Activity being notified.
  * @export
  * @interface Activity
  */

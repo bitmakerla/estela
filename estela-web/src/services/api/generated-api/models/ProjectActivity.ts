@@ -27,13 +27,13 @@ import {
  */
 export interface ProjectActivity {
     /**
-     * Project Activities.
+     * Project activities.
      * @type {Array<Activity>}
      * @memberof ProjectActivity
      */
     results: Array<Activity>;
     /**
-     * Project cronjobs count.
+     * Project activities count.
      * @type {number}
      * @memberof ProjectActivity
      */

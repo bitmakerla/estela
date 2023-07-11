@@ -27,12 +27,12 @@ models/JobsMetadata.ts
 models/JobsStats.ts
 models/LogsStats.ts
 models/Notification.ts
+models/NotificationUpdate.ts
 models/PagesStats.ts
 models/Permission.ts
 models/Project.ts
 models/ProjectActivity.ts
 models/ProjectCronJob.ts
-models/ProjectDetail.ts
 models/ProjectJob.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts
@@ -56,8 +56,6 @@ models/Token.ts
 models/UsageRecord.ts
 models/User.ts
 models/UserDetail.ts
-models/UserNotification.ts
-models/UserNotificationUpdate.ts
 models/UserProfile.ts
 models/index.ts
 runtime.ts
