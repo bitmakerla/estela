@@ -61,7 +61,6 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        instance.framework = Project.SCRAPY
         instance.users.add(
             self.request.user,
             through_defaults={"permission": Permission.OWNER_PERMISSION},
