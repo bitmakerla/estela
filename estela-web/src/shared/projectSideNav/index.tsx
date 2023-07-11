@@ -106,15 +106,13 @@ export const ProjectSideNav: React.FC<ProjectSideNavPropsInterface> = ({ project
                 {
                     key: "activity",
                     label: (
-                        <Content
-                            className="flex items-center stroke-estela-black-low rounded"
-                            onClick={() => updatePath("activity")}
-                        >
+                        <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela hover:text-estela rounded">
                             <Activity className="mr-2 w-8 h-8" />
-                            Activity
+                            <Link to={`/projects/${projectId}/activity`} onClick={() => updatePath("activity")}>
+                                Activity
+                            </Link>
                         </Content>
                     ),
-                    disabled: true,
                 },
                 {
                     key: "members",

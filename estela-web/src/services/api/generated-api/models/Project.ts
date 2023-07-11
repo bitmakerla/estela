@@ -75,7 +75,7 @@ export interface Project {
 * @enum {string}
 */
 export enum ProjectCategoryEnum {
-    NotEspecified = 'NOT ESPECIFIED',
+    NotSpecified = 'NOT SPECIFIED',
     ECommerce = 'E-COMMERCE',
     Logistics = 'LOGISTICS',
     Finance = 'FINANCE',

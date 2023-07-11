@@ -16,39 +16,39 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface UserNotificationUpdate
+ * @interface NotificationUpdate
  */
-export interface UserNotificationUpdate {
+export interface NotificationUpdate {
     /**
-     * 
+     * A unique integer value identifying each notification
      * @type {number}
-     * @memberof UserNotificationUpdate
+     * @memberof NotificationUpdate
      */
-    readonly id?: number;
+    readonly nid?: number;
     /**
-     * Whether the user has seen the notification.
+     * Whether the notification was seen.
      * @type {boolean}
-     * @memberof UserNotificationUpdate
+     * @memberof NotificationUpdate
      */
     seen?: boolean;
 }
 
-export function UserNotificationUpdateFromJSON(json: any): UserNotificationUpdate {
-    return UserNotificationUpdateFromJSONTyped(json, false);
+export function NotificationUpdateFromJSON(json: any): NotificationUpdate {
+    return NotificationUpdateFromJSONTyped(json, false);
 }
 
-export function UserNotificationUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolean): UserNotificationUpdate {
+export function NotificationUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolean): NotificationUpdate {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'id': !exists(json, 'id') ? undefined : json['id'],
+        'nid': !exists(json, 'nid') ? undefined : json['nid'],
         'seen': !exists(json, 'seen') ? undefined : json['seen'],
     };
 }
 
-export function UserNotificationUpdateToJSON(value?: UserNotificationUpdate | null): any {
+export function NotificationUpdateToJSON(value?: NotificationUpdate | null): any {
     if (value === undefined) {
         return undefined;
     }

@@ -177,16 +177,16 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         },
     ];
 
-    changeNotificationStatus(id: number): void {
+    changeNotificationStatus(nid: number): void {
         const notifications = this.state.notifications;
-        const index = notifications.findIndex((user_notification) => user_notification.id == id);
+        const index = notifications.findIndex((notification) => notification.nid == nid);
         if (notifications[index].seen) return;
 
         const requestData = {
             seen: true,
         };
         const requestParams: ApiNotificationsUpdateRequest = {
-            id: id,
+            nid: nid,
             data: requestData,
         };
 
@@ -203,32 +203,32 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             key: "1",
             label: (
                 <Content className="w-[360px] mt-1">
-                    {this.state.notifications.map((user_notification) => (
+                    {this.state.notifications.map((notification) => (
                         <div
                             onClick={(event) => {
-                                this.changeNotificationStatus(user_notification.id);
+                                this.changeNotificationStatus(notification.nid);
                                 event.stopPropagation();
                             }}
                             className="py-2 px-3 flex cursor-pointer hover:bg-estela-blue-low hover:text-estela-blue-full rounded-md"
-                            key={user_notification.notification?.nid}
+                            key={notification.nid}
                         >
-                            {!user_notification.seen ? (
+                            {!notification.seen ? (
                                 <Badge count={<Circle className="fill-estela-blue-full h-2 mr-2 my-1" />}></Badge>
                             ) : (
                                 <div className="mr-[22px]"></div>
                             )}
                             <div>
                                 <span className="font-semibold text-sm capitalize">
-                                    {user_notification.notification?.user.email == AuthService.getUserEmail()
+                                    {notification.activity?.user.username == AuthService.getUserUsername()
                                         ? "You"
-                                        : user_notification.notification?.user.username}
+                                        : notification.activity?.user.username}
                                 </span>
-                                {AuthService.getUserEmail() == user_notification.notification?.user.email
+                                {AuthService.getUserUsername() == notification.activity.user.username
                                     ? " have "
                                     : " has "}
-                                {user_notification.notification?.message}
+                                {notification.activity.description}
                                 <p className="text-xs text-estela-black-low">
-                                    {user_notification.createdAt?.toDateString()}
+                                    {notification.createdAt?.toDateString()}
                                 </p>
                             </div>
                         </div>

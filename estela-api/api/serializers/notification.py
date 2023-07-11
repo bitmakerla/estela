@@ -1,31 +1,20 @@
 from rest_framework import serializers
 
-from api.serializers.project import ProjectDetailSerializer, UserDetailSerializer
-from core.models import Notification, UserNotification
+from api.serializers.project import ActivitySerializer
+from core.models import Notification
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    user = UserDetailSerializer(
-        required=True, help_text="User who performed the action."
-    )
-    project = ProjectDetailSerializer(
-        required=True, help_text="Project where the action was performed."
-    )
+    activity = ActivitySerializer(required=True, help_text="Activity being notified.")
 
     class Meta:
         model = Notification
-        fields = ("nid", "message", "user", "project")
+        fields = ("nid", "activity", "seen")
 
 
-class UserNotificationSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(
-        required=True, help_text="Unique user notification ID."
-    )
-    notification = NotificationSerializer(
-        required=True, help_text="Notification to which the user is subscribed."
-    )
-
+class NotificationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
+<<<<<<< HEAD
         model = UserNotification
         fields = ("id", "notification", "seen", "created")
 
@@ -51,6 +40,10 @@ class UserNotificationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserNotification
         fields = ("id", "seen")
+=======
+        model = Notification
+        fields = ("nid", "seen")
+>>>>>>> 5d4c8dc (BITMAKER-2625 estela: Propose Model and implementation for Activity Menu (#160))
 
     def update(self, instance, validated_data):
         instance.seen = validated_data.get("seen", instance.seen)
