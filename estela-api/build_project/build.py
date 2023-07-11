@@ -1,15 +1,13 @@
+import base64
+import json
+import logging
 import os
 import sys
-import json
-import docker
-import base64
-import requests
-import logging
-
 from zipfile import ZipFile
 
+import docker
+import requests
 from django.conf import settings
-
 
 sys.path.append("/home/estela/estela-api")
 os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.base"

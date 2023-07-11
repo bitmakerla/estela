@@ -13,6 +13,8 @@ data:
   {{- range $key, $val := .Values.QUEUE_PARAMETERS }}
   {{ $key }}: {{ $val | quote }}
   {{- end }}
+  REDIS_URL: {{ .Values.REDIS_URL }}
+  REDIS_STATS_INTERVAL: {{ .Values.REDIS_STATS_INTERVAL | quote }}
   DJANGO_SETTINGS_MODULE: {{ .Values.DJANGO_SETTINGS_MODULE }}
   CELERY_BROKER_URL: {{ .Values.CELERY_BROKER_URL }}
   CELERY_RESULT_BACKEND: {{ .Values.CELERY_RESULT_BACKEND }}

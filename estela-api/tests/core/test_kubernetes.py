@@ -1,5 +1,5 @@
 from config.job_manager import job_manager
-from tests.base import BaseTestCase, TEST_DOCKER_IMAGE, TEST_SPIDER
+from tests.base import TEST_DOCKER_IMAGE, TEST_SPIDER, BaseTestCase
 
 
 class TestKubernetes(BaseTestCase):

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from django.shortcuts import get_object_or_404
 
 from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -13,6 +13,7 @@ from api import errors
 from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ProjectSerializer,
     ProjectUpdateSerializer,

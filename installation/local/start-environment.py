@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-
 with open("tmp") as f:
     host_ip = f.read().strip()
 

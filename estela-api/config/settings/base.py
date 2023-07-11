@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-from urllib.parse import urlparse
-import environ
 from pathlib import Path
+from urllib.parse import urlparse
+
+import environ
 
 from estela_queue_adapter import get_queue_env_vars
 
@@ -38,6 +39,8 @@ env = environ.Env(
     DJANGO_EXTERNAL_APPS=(str, ""),
     EXTERNAL_APP_KEYS=(str, "dummy"),
     EXTERNAL_MIDDLEWARES=(str, ""),
+    REDIS_URL=(str, "redis://redis"),
+    REDIS_STATS_INTERVAL=(str, "5.0"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
@@ -231,6 +234,11 @@ CELERY_IMPORTS = ["config.celery"] + CELERY_EXTERNAL_IMPORTS
 
 # Queue settings
 QUEUE_PARAMS = get_queue_env_vars()
+
+# Redis settings for job stats
+
+REDIS_URL = env("REDIS_URL")
+REDIS_STATS_INTERVAL = env("REDIS_STATS_INTERVAL")
 
 
 # Cluster settings
