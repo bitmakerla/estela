@@ -1,7 +1,7 @@
-from core.tasks import run_spider_jobs
-from core.models import Project, Spider, SpiderJob
 from config.job_manager import job_manager
 from core.cronjob import create_cronjob, delete_cronjob
+from core.models import Project, Spider, SpiderJob
+from core.tasks import run_spider_jobs
 from tests.base import BaseTestCase
 
 

@@ -4,7 +4,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
-from api.permissions import IsProjectUser, IsAdminOrReadOnly
+from api.permissions import IsAdminOrReadOnly, IsProjectUser
 from core.models import Notification, Activity
 
 

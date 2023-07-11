@@ -85,6 +85,10 @@ All the queue platform variables should be written as children of the _<QUEUE\_P
 {: .highlight }
 > Refer to the [estela Queue Adapter](./../queueing.html#estela-queue-adapter) documentation to fill in any additional variables needed for the selected queue platform.
 
+#### Redis Stats
+* _<REDIS\_URL>_ (Required): The connection URL to the Redis instance.
+* _<REDIS\_STATS\_INTERVAL>_ (Required): The interval, in seconds, of how often the job stats should be updated.
+
 ### estela API variables
 
 #### Database
@@ -176,26 +180,26 @@ All the queue platform variables should be written as children of the _<QUEUE\_P
   to `"True"`.
   
 * _<WORKER\_POOL>_ (Optional): Number of worker threads per consumer, it must be an integer.
-  If the variable is left blank, the default value is 10.
+  If the variable is left blank, the default value is `10`.
 
 * _<HEARTBEAT\_TICK>_ (Optional): Number of seconds between heartbeat inspections, it must
-  be an integer. If the variable is left blank, the default value is 300.
+  be an integer. If the variable is left blank, the default value is `300`.
 
 * _<QUEUE\_BASE\_TIMEOUT>_ (Optional): Minimum number of seconds a worker thread can wait 
   for an item to be available in the internal item queue, it must be an integer. If the 
-  variable is left blank, the default value is 5.
+  variable is left blank, the default value is `5`.
 
 * _<QUEUE\_MAX\_TIMEOUT>_ (Optional): Maximum number of seconds a worker thread can wait 
   for an item to be available in the internal item queue, it must be an integer. If the 
-  variable is left blank, the default value is 300.
+  variable is left blank, the default value is `300`.
 
 * _<BATCH\_SIZE\_THRESHOLD>_ (Optional): Size threshold in bytes of the data batch to be
-  inserted, it must be an integer. If the variable is left blank, the default value is 4096.
+  inserted, it must be an integer. If the variable is left blank, the default value is `4096`.
 
 * _<INSERT\_TIME\_THRESHOLD>_ (Optional): Time threshold in seconds of the insertion of 
   consecutive items belonging to the same batch of data, it must be an integer. If the 
-  variable is left blank, the default value is 5.
+  variable is left blank, the default value is `5`.
 
 * _<ACTIVITY\_TIME\_THRESHOLD>_ (Optional): Time threshold in seconds of the activity time 
   of an Inserter object before being cleaned up, it must be an integer. If the variable is 
-  left blank, the default value is 600.
+  left blank, the default value is `600`.

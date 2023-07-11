@@ -1,20 +1,23 @@
+from datetime import timedelta
+
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
-from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 
 from api.filters import SpiderJobFilter
 from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.job import (
-    SpiderJobSerializer,
     SpiderJobCreateSerializer,
+    SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
+from api.utils import update_stats_from_redis
 from config.job_manager import job_manager
-from core.models import DataStatus, Spider, SpiderJob, Project
+from core.models import DataStatus, Project, Spider, SpiderJob
 
 
 class SpiderJobViewSet(
@@ -166,6 +169,16 @@ class SpiderJobViewSet(
 
         if getattr(instance, "_prefetched_objects_cache", None):
             instance._prefetched_objects_cache = {}
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def retrieve(self, request, *args, jid=None, **kwargs):
+        job = get_object_or_404(self.queryset, jid=jid)
+        if job.status == SpiderJob.RUNNING_STATUS:
+            update_stats_from_redis(job)
+
+        serializer = SpiderJobSerializer(job)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)

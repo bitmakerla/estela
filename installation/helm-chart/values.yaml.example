@@ -35,6 +35,10 @@ QUEUE_PARAMETERS:
   QUEUE_PLATFORM_PORT: "" # 9092
   # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/docs/estela/queueing.html#estela-queue-adapter
 
+# Redis scrapy stats
+REDIS_URL: redis://estela-redis-service
+REDIS_STATS_INTERVAL: "" # 5.0
+
 ############ API ############
 
 # Database

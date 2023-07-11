@@ -1,8 +1,9 @@
 from distutils.command.build import build
+from json import dumps
+
 from django.conf import settings
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
-from json import dumps
 
 
 class KubernetesEngine:
@@ -127,6 +128,9 @@ class KubernetesEngine:
         job_env_vars.update(list(settings.QUEUE_PARAMS.items()))
         job_env_vars.update(
             [
+                ("REDIS_URL", settings.REDIS_URL),
+                ("REDIS_STATS_KEY", f"scrapy_stats_{key}"),
+                ("REDIS_STATS_INTERVAL", settings.REDIS_STATS_INTERVAL),
                 (
                     "JOB_INFO",
                     dumps(

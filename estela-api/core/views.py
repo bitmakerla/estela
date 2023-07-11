@@ -1,15 +1,14 @@
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from config.job_manager import job_manager
-from django.core.mail import EmailMessage
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
-from api.tokens import account_reset_token
-from django.utils.encoding import force_bytes
-
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from rest_framework.authtoken.models import Token
 
+from api.tokens import account_reset_token
+from config.job_manager import job_manager
 
 def launch_deploy_job(pid, did, container_image):
     deploy_user = User.objects.get(username="deploy_manager")

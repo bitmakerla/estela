@@ -1,3 +1,5 @@
+import redis
+
 from django.conf import settings
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -24,6 +26,10 @@ class JobDataViewSet(
     MIN_PAGINATION_SIZE = 1
     DEFAULT_PAGINATION_SIZE = 50
     JOB_DATA_TYPES = ["items", "requests", "logs", "stats"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.redis_conn = redis.from_url(settings.REDIS_URL)
 
     def get_parameters(self, request):
         page = int(request.query_params.get("page", 1))
@@ -98,10 +104,18 @@ class JobDataViewSet(
         count = spiderdata_db_client.get_estimated_document_count(
             kwargs["pid"], job_collection_name
         )
+
         if data_type == "stats":
-            result = spiderdata_db_client.get_job_stats(
-                kwargs["pid"], job_collection_name
-            )
+            if job.status == SpiderJob.RUNNING_STATUS:
+                job_stats = self.redis_conn.hgetall(f"scrapy_stats_{job.key}")
+                parsed_job_stats = {
+                    key.decode(): value.decode() for key, value in job_stats.items()
+                }
+                result = [parsed_job_stats]
+            else:
+                result = spiderdata_db_client.get_job_stats(
+                    kwargs["pid"], job_collection_name
+                )
         elif request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
             chunk_size = max(
                 1,
@@ -223,19 +237,10 @@ class JobDataViewSet(
         data_type = request.query_params.get("type")
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-            and data_type == "items"
-        ):
-            job_collection_name = "{}-scj{}-job_{}".format(
-                kwargs["sid"], job.cronjob.cjid, data_type
-            )
-        else:
-            job_collection_name = "{}-{}-job_{}".format(
-                kwargs["sid"], kwargs["jid"], data_type
-            )
 
+        job_collection_name = self.get_collection_name(
+            job, data_type, kwargs["sid"], kwargs["jid"]
+        )
         count = spiderdata_db_client.delete_collection_data(
             kwargs["pid"], job_collection_name
         )

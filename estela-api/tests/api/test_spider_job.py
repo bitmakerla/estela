@@ -1,6 +1,6 @@
 from api import errors
-from core.models import Spider, SpiderJob
 from config.job_manager import job_manager
+from core.models import Spider, SpiderJob
 from tests.base import BaseTestCase
 
 
