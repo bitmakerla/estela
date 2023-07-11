@@ -301,7 +301,7 @@ paths:
               results:
                 type: array
                 items:
-                  $ref: '#/definitions/UserNotification'
+                  $ref: '#/definitions/Notification'
       tags:
         - api
     post:
@@ -312,16 +312,16 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       responses:
         '201':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       tags:
         - api
     parameters: []
-  /api/notifications/{id}:
+  /api/notifications/{nid}:
     get:
       operationId: api_notifications_read
       description: ''
@@ -330,7 +330,7 @@ paths:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       tags:
         - api
     put:
@@ -341,12 +341,12 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserNotificationUpdate'
+            $ref: '#/definitions/NotificationUpdate'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotificationUpdate'
+            $ref: '#/definitions/NotificationUpdate'
       tags:
         - api
     patch:
@@ -357,12 +357,12 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       responses:
         '200':
           description: ''
           schema:
-            $ref: '#/definitions/UserNotification'
+            $ref: '#/definitions/Notification'
       tags:
         - api
     delete:
@@ -375,9 +375,9 @@ paths:
       tags:
         - api
     parameters:
-      - name: id
+      - name: nid
         in: path
-        description: A unique integer value identifying this user notification.
+        description: A unique integer value identifying each notification
         required: true
         type: integer
   /api/projects:
@@ -488,6 +488,35 @@ paths:
       responses:
         '204':
           description: Project deleted
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
+  /api/projects/{pid}/activities:
+    get:
+      operationId: api_projects_activities
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: number
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: number
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectActivity'
       tags:
         - api
     parameters:
@@ -1551,7 +1580,7 @@ definitions:
         maxLength: 128
         minLength: 1
   ProjectDetail:
-    description: Project where the action was performed.
+    description: Project where the activity was performed.
     type: object
     properties:
       pid:
@@ -1566,12 +1595,33 @@ definitions:
         type: string
         readOnly: true
         minLength: 1
-  Notification:
-    description: Notification to which the user is subscribed.
+  Activity:
+    description: Activity being notified.
     required:
-      - message
       - user
       - project
+      - description
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/UserDetail'
+      project:
+        $ref: '#/definitions/ProjectDetail'
+      description:
+        title: Description
+        description: Activity description.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      created:
+        title: Created
+        description: Date when the activity was performed.
+        type: string
+        format: date-time
+        readOnly: true
+  Notification:
+    required:
+      - activity
     type: object
     properties:
       nid:
@@ -1579,48 +1629,23 @@ definitions:
         description: A unique integer value identifying each notification
         type: integer
         readOnly: true
-      message:
-        title: Message
-        description: Notification message.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      user:
-        $ref: '#/definitions/UserDetail'
-      project:
-        $ref: '#/definitions/ProjectDetail'
-  UserNotification:
-    required:
-      - id
-      - notification
-    type: object
-    properties:
-      id:
-        title: Id
-        description: Unique user notification ID.
-        type: integer
-      notification:
-        $ref: '#/definitions/Notification'
+      activity:
+        $ref: '#/definitions/Activity'
       seen:
         title: Seen
         description: Whether the notification was seen.
         type: boolean
-      created:
-        title: Created
-        description: Date when the notification was sent.
-        type: string
-        format: date-time
-        readOnly: true
-  UserNotificationUpdate:
+  NotificationUpdate:
     type: object
     properties:
-      id:
-        title: ID
+      nid:
+        title: Nid
+        description: A unique integer value identifying each notification
         type: integer
         readOnly: true
       seen:
         title: Seen
-        description: Whether the user has seen the notification.
+        description: Whether the notification was seen.
         type: boolean
   Permission:
     description: Users with permissions on this project.
@@ -1659,7 +1684,7 @@ definitions:
         description: Project's category.
         type: string
         enum:
-          - NOT ESPECIFIED
+          - NOT SPECIFIED
           - E-COMMERCE
           - LOGISTICS
           - FINANCE
@@ -1741,6 +1766,21 @@ definitions:
       data_expiry_days:
         title: Data expiry days
         description: New data expiry days.
+        type: integer
+  ProjectActivity:
+    required:
+      - results
+      - count
+    type: object
+    properties:
+      results:
+        description: Project activities.
+        type: array
+        items:
+          $ref: '#/definitions/Activity'
+      count:
+        title: Count
+        description: Project activities count.
         type: integer
   SpiderJobArg:
     description: Cron job arguments.

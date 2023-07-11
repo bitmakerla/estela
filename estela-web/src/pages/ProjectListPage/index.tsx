@@ -50,7 +50,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         modalNewProject: false,
         modalWelcome: false,
         newProjectName: "",
-        newProjectCategory: ProjectCategoryEnum.NotEspecified,
+        newProjectCategory: ProjectCategoryEnum.NotSpecified,
     };
 
     apiService = ApiService();
@@ -325,13 +325,13 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                     <Select
                                                         className="w-full"
                                                         size="large"
-                                                        defaultValue={ProjectCategoryEnum.NotEspecified}
+                                                        defaultValue={ProjectCategoryEnum.NotSpecified}
                                                         onChange={this.handleSelectChange}
                                                     >
                                                         <Option
                                                             key={1}
                                                             className="hover:bg-button-hover hover:text-estela"
-                                                            value={ProjectCategoryEnum.NotEspecified}
+                                                            value={ProjectCategoryEnum.NotSpecified}
                                                         >
                                                             Not Specified
                                                         </Option>

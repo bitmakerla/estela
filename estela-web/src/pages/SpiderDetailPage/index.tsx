@@ -147,12 +147,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             ),
         },
         {
-            title: "SPIDER",
-            dataIndex: "spider",
-            key: "spider",
-            render: (spider: SpiderData): ReactElement => <span>{spider.name}</span>,
-        },
-        {
             title: "SCHEDULED JOB",
             dataIndex: "cronjob",
             key: "cronjob",

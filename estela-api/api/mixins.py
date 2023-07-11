@@ -5,7 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from api.permissions import IsProjectUser, IsAdminOrReadOnly
-from core.models import Notification
+from core.models import Notification, Activity
 
 
 class APIPageNumberPagination(PageNumberPagination):
@@ -22,14 +22,13 @@ class BaseViewSet(viewsets.GenericViewSet):
     pagination_class = APIPageNumberPagination
 
 
-class NotificationsHandlerMixin:
-    def save_notification(self, user, message, project):
-        notification = Notification(
-            message=message,
-            user=user,
-            project=project,
+class ActionHandlerMixin:
+    def save_action(self, user, description, project):
+        activity = Activity.objects.create(
+            user=user, project=project, description=description
         )
-        notification.save()
+
+        notifications = []
         for _user in project.users.all():
-            notification.users.add(_user, through_defaults={"seen": False})
-        notification.save()
+            notifications.append(Notification(user=_user, activity=activity))
+        Notification.objects.bulk_create(notifications)

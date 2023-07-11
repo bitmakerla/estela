@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet, NotificationsHandlerMixin
+from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.project import (
@@ -18,6 +18,8 @@ from api.serializers.project import (
     ProjectUpdateSerializer,
     ProjectUsageSerializer,
     UsageRecordSerializer,
+    ProjectActivitySerializer,
+    ActivitySerializer,
 )
 from core.models import (
     DataStatus,
@@ -28,10 +30,11 @@ from core.models import (
     SpiderJob,
     UsageRecord,
     User,
+    Activity,
 )
 
 
-class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewSet):
+class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -71,9 +74,9 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
             requests_data_size=0,
             logs_data_size=0,
         )
-        self.save_notification(
+        self.save_action(
             user=self.request.user,
-            message=f"created project {instance.name}.",
+            description=f"created project {instance.name} ({instance.pid}).",
             project=instance,
         )
 
@@ -95,13 +98,12 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
         permission = serializer.validated_data.pop("permission", "")
         data_status = serializer.validated_data.pop("data_status", "")
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
-        message = ""
+        description = ""
 
         if name:
             old_name = instance.name
             instance.name = name
-            message = f"renamed project {old_name} ({instance.pid}) to {name}."
-
+            description = f"renamed project {old_name} ({instance.pid}) to {name}."
         user = request.user
         is_superuser = user.is_superuser or user.is_staff
         if user_email and (is_superuser or user_email != user.email):
@@ -133,33 +135,33 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
                 instance.users.add(
                     affected_user, through_defaults={"permission": permission}
                 )
-                message = f"added {user_email}."
+                description = f"added user {user_email} with role {permission}."
             elif action == "remove":
                 instance.users.remove(affected_user)
-                message = f"removed {user_email}."
+                description = f"removed user {user_email}."
             elif action == "update":
                 instance.users.remove(affected_user)
                 instance.users.add(
                     affected_user, through_defaults={"permission": permission}
                 )
-                message = f"updated {user_email}'s permissions to {permission}."
+                description = f"updated {user_email}'s permissions to {permission}."
             else:
                 raise ParseError({"error": "Action not supported."})
 
         if data_status:
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
-                message = "changed data persistence to persistent."
+                description = "changed data persistence to persistent."
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
-                message = f"changed data persistence to {data_expiry_days} days."
+                description = f"changed data persistence to {data_expiry_days} days."
             else:
                 raise ParseError({"error": errors.INVALID_DATA_STATUS})
 
-        self.save_notification(
+        self.save_action(
             user=self.request.user,
-            message=message,
+            description=description,
             project=instance,
         )
 
@@ -173,9 +175,9 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notification(
+        self.save_action(
             user=self.request.user,
-            message=f"deleted project {instance.name} ({instance.pid}).",
+            description=f"deleted project {instance.name} ({instance.pid}).",
             project=project,
         )
         self.perform_destroy(instance)
@@ -312,5 +314,42 @@ class ProjectViewSet(BaseViewSet, NotificationsHandlerMixin, viewsets.ModelViewS
         )
         return Response(
             serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="A page number within the paginated result set.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="Number of results to return per page.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+        ],
+        responses={status.HTTP_200_OK: ProjectActivitySerializer()},
+    )
+    @action(methods=["GET"], detail=True)
+    def activities(self, request, *args, **kwargs):
+        page, page_size = self.get_parameters(request)
+        if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        if page < 1:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        project = Project.objects.get(pid=kwargs["pid"])
+        activities_set = Activity.objects.filter(project=project)
+        paginator_result = Paginator(activities_set, page_size)
+        page_result = paginator_result.page(page)
+        serializer = ActivitySerializer(page_result, many=True)
+        return Response(
+            {"results": serializer.data, "count": activities_set.count()},
             status=status.HTTP_200_OK,
         )

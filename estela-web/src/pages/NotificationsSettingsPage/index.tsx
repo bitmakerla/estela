@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Layout, Space, Row } from "antd";
+import { AuthService } from "../../services";
 
 import "./styles.scss";
 
@@ -15,7 +16,7 @@ export class NotificationsSettingsPage extends Component<unknown, unknown> {
                         <Row className="pb-8">
                             <Space>
                                 <label className="inline-flex relative items-center mr-5 cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" />
+                                    <input disabled type="checkbox" className="sr-only peer" />
                                     <div className="w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-green-300  peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                                 </label>
                                 <div>
@@ -29,13 +30,13 @@ export class NotificationsSettingsPage extends Component<unknown, unknown> {
                         <Row>
                             <Space>
                                 <label className="inline-flex relative items-center mr-5 cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" />
+                                    <input disabled type="checkbox" className="sr-only peer" />
                                     <div className="w-11 h-6 bg-gray-200 rounded-full peer  peer-focus:ring-green-300  peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                                 </label>
                                 <div>
                                     <p className="text-estela-black-medium">Reply to Personal Email</p>
                                     <p className="text-xs text-estela-black-low">
-                                        Reply Estela notifications to my personal email scraper202122@domain.com.
+                                        Reply Estela notifications to my personal email {AuthService.getUserEmail()}.
                                     </p>
                                 </div>
                             </Space>

@@ -222,12 +222,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
 
     columns = [
         {
-            title: "SCHEDULED JOB",
-            key: "cronjob",
-            dataIndex: "cronjob",
-            render: (cronjob: number): ReactElement => (cronjob ? <span>Sche-Job-{cronjob}</span> : <div></div>),
-        },
-        {
             title: "SPIDER",
             dataIndex: "spider",
             key: "spider",

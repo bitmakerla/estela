@@ -8,7 +8,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderCronJobFilter
-from api.mixins import BaseViewSet, NotificationsHandlerMixin
+from api.mixins import BaseViewSet, ActionHandlerMixin
 from api.serializers.cronjob import (
     SpiderCronJobCreateSerializer,
     SpiderCronJobSerializer,
@@ -20,7 +20,7 @@ from core.models import DataStatus, Spider, SpiderCronJob, Project
 
 class SpiderCronJobViewSet(
     BaseViewSet,
-    NotificationsHandlerMixin,
+    ActionHandlerMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
@@ -90,11 +90,10 @@ class SpiderCronJobViewSet(
             data_expiry_days=data_expiry_days,
         )
 
-        # Send notification action
         project = get_object_or_404(Project, pid=self.kwargs["pid"])
-        self.save_notification(
+        self.save_action(
             user=request.user,
-            message=f"scheduled a new Scheduled-job-{cronjob.cjid} for spider {spider.name}.",
+            description=f"scheduled a new Sche-Job-{cronjob.cjid} for spider {spider.name}.",
             project=project,
         )
 
@@ -128,6 +127,11 @@ class SpiderCronJobViewSet(
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
+        self.save_action(
+            user=request.user,
+            description=f"deleted Sche-Job-{instance.cjid} for spider {instance.spider.name}.",
+            project=instance.spider.project,
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
