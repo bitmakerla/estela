@@ -110,6 +110,9 @@ If you are using a Requests project instead of a Scrapy project, you can link it
    ```
 
    This command links your Requests project to the corresponding Estela project, allowing you to utilize Estela's features for managing and running your project.
+   
+   {:% .highlight}
+   In order to be discoverable, **spiders should reside in the project's root directory**. However, please note that this will be enhanced in the future to provide greater flexibility.
 
 
 This will create the files `.estela/Dockerfile-estela.yaml` and `estela.yaml`
