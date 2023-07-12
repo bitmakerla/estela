@@ -22,6 +22,7 @@ interface ProjectList {
     category?: string;
     pid: string | undefined;
     role: string;
+    framework: string | undefined;
     key: number;
 }
 
@@ -65,7 +66,10 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 <Link
                     className="text-sm font-medium hover:text-estela"
                     to={`/projects/${project.pid}/dashboard`}
-                    onClick={() => this.setUserRole(project.role)}
+                    onClick={() => {
+                        this.setUserRole(project.role);
+                        AuthService.setFramework(String(project.framework));
+                    }}
                 >
                     {name}
                 </Link>
@@ -76,6 +80,14 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             dataIndex: "pid",
             key: "pid",
             render: (pid: string): ReactElement => <p className="font-courier">{pid}</p>,
+        },
+        {
+            title: "FRAMEWORK",
+            dataIndex: "framework",
+            key: "framework",
+            render: (framework: string): ReactElement => (
+                <Tag className="border-estela-blue-full rounded-md text-estela-blue-full p-1">{framework}</Tag>
+            ),
         },
         {
             title: "ROLE",
@@ -99,11 +111,13 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     async componentDidMount(): Promise<void> {
         const { updateRole } = this.context as UserContextProps;
         updateRole && updateRole("");
+        AuthService.removeFramework();
         const data = await this.getProjects(1);
         const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
             return {
                 name: project.name,
                 category: project.category,
+                framework: project.framework,
                 pid: project.pid,
                 role:
                     project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
@@ -142,6 +156,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                     updateRole && updateRole(response.users[0].permission ?? "");
                 }
                 history.push(`/projects/${response.pid}/deploys`);
+                AuthService.setFramework(String(response.framework));
             },
             (error: unknown) => {
                 error;
@@ -174,6 +189,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             return {
                 name: project.name,
                 pid: project.pid,
+                framework: project.framework,
                 role:
                     project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
                     "Admin",
@@ -196,7 +212,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             <>
                 {loaded ? (
                     <Fragment>
-                        <Content className="mx-4">
+                        <Content className="mx-auto w-full lg:px-10">
                             <Modal
                                 open={modalWelcome}
                                 footer={false}
@@ -237,7 +253,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                     </Col>
                                 </Row>
                             </Modal>
-                            <Space direction="vertical" className="mx-8">
+                            <Space direction="vertical" className="w-full">
                                 <Content className="float-left">
                                     <Text className="text-3xl">
                                         Welcome home&nbsp;
@@ -250,7 +266,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             <Text className="text-silver text-base font-medium">RECENT PROJECTS</Text>
                                         </Col>
                                     </Row>
-                                    <Row className="grid grid-cols-3 gap-3 mt-4">
+                                    <Row className="flex-row gap-3 mt-4">
                                         {projects.map((project: ProjectList, index) => {
                                             return index < 3 ? (
                                                 <Button
@@ -258,12 +274,13 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                     onClick={() => {
                                                         const { updateRole } = this.context as UserContextProps;
                                                         AuthService.setUserRole(project.role);
+                                                        AuthService.setFramework(String(project.framework));
                                                         updateRole && updateRole(project.role);
                                                         history.push(`/projects/${project.pid}/dashboard`);
                                                     }}
-                                                    className="bg-white rounded-md p-3 h-20 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
+                                                    className="bg-white rounded-md w-fit h-fit px-4 py-3 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
                                                 >
-                                                    <Row className="gap-3 m-1">
+                                                    <Row className="gap-4">
                                                         <Text className="text-sm font-bold">{project.name}</Text>
                                                         {index === 0 && (
                                                             <Tag className="text-estela bg-estela-blue-low border-none font-medium rounded-md">
@@ -271,12 +288,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                             </Tag>
                                                         )}
                                                     </Row>
-                                                    <Row className="flow-root rounded-md m-2">
-                                                        <Text className="float-left text-xs font-courier">
-                                                            {project.pid}
-                                                        </Text>
-                                                        <Tag className="float-right bg-white border-white rounded-md">
+                                                    <Row className="rounded-md my-3">
+                                                        <Text className="text-xs font-courier">{project.pid}</Text>
+                                                    </Row>
+                                                    <Row className="w-full justify-between">
+                                                        <Tag className="bg-white border-white rounded-md">
                                                             {project.role}
+                                                        </Tag>
+                                                        <Tag className="border-estela-blue-full text-estela-blue-full rounded-md">
+                                                            {project.framework}
                                                         </Tag>
                                                     </Row>
                                                 </Button>
@@ -412,10 +432,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             </Modal>
                                         </Col>
                                     </Row>
-                                    <Row>
+                                    <Row className="flex flex-col w-full">
                                         <Table
                                             showHeader={false}
-                                            tableLayout="fixed"
                                             className="rounded-2xl"
                                             columns={this.columns}
                                             dataSource={projects}
