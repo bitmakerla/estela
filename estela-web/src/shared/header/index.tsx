@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import history from "../../history";
 import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
 import { UserContext, UserContextProps } from "../../context";
+import { RequestTag, ScrapyTag } from "../../components/FrameworkTag";
 
 import User from "../../assets/icons/user.svg";
 import Message from "../../assets/icons/notification.svg";
@@ -96,6 +97,17 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         return username;
     };
 
+    getFramework = (): React.ReactElement => {
+        const framework = AuthService.getFramework();
+        // return framework;
+        if (framework === "REQUESTS") {
+            return <RequestTag />;
+        } else if (framework === "SCRAPY") {
+            return <ScrapyTag />;
+        }
+        return <></>;
+    };
+
     getUserRole = (): string => {
         const { role } = this.context as UserContextProps;
         return role ?? "";
@@ -115,21 +127,12 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     };
 
     renderNotificationIcon = (inbox: boolean, news: boolean): React.ReactNode => {
-        // const { news } = this.state;
         const color = inbox
             ? "stroke-estela-blue-full bg-estela-blue-low border border-estela-blue-full"
             : "hover:stroke-estela-blue-full stroke-estela-black-full hover:bg-estela-blue-low";
-        // const circleStyle = "fill-estela-red-full stroke-estela-red-full h-2";
         return (
             <a className={`flex justify-center items-center rounded-lg w-14 h-14 ${color}`}>
-                <Badge
-                    offset={[0, 2]}
-                    // count={news
-                    //     ? <Circle className="fill-estela-red-full stroke-estela-red-full h-2" />
-                    //     : <Circle className="fill-white stroke-white h-2" />
-                    // }
-                    dot={news}
-                >
+                <Badge offset={[0, 2]} dot={news}>
                     <Message className="w-6 h-6" />
                 </Badge>
             </a>
@@ -284,14 +287,15 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         return (
             <>
                 {loaded ? (
-                    <Header className="bg-white h-[72px]">
-                        <Row justify="center" align="middle" className="flex justify-center">
-                            <Col flex={1} className="my-1">
-                                <Link to="/" className="text-xl hover:text-estela">
+                    <Header className="h-[72px] bg-white py-1">
+                        <Row justify="center" align="middle" className="flex justify-between">
+                            <Col className="flex gap-4 justify-center items-center">
+                                <Link to="/" className=" text-xl hover:text-estela">
                                     estela
                                 </Link>
+                                {this.getFramework()}
                             </Col>
-                            <Col className="mx-2">
+                            <Col className="flex">
                                 <Dropdown
                                     menu={{
                                         items: notifications.length ? this.notificationItems() : this.noNotifications(),
@@ -300,8 +304,6 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                 >
                                     {this.renderNotificationIcon(path === "/notifications/inbox", news)}
                                 </Dropdown>
-                            </Col>
-                            <Col>
                                 <Dropdown menu={{ items: this.itemsUser }} trigger={["click"]}>
                                     <a className="flex hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full h-14 px-5 rounded-lg">
                                         <div className="flex gap-5">

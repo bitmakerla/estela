@@ -2,6 +2,7 @@ const TOKEN_ITEM_NAME = "authToken";
 const USERNAME_ITEM_NAME = "user_username";
 const USERNAME_ROLE = "user_role";
 const USERNAME_EMAIL = "user_email";
+const FRAMEWORK = "framework";
 
 export const AuthService = {
     getAuthToken(): string | null {
@@ -38,6 +39,15 @@ export const AuthService = {
     setUserRole(role: string): void {
         role = role.toLowerCase();
         localStorage.setItem(USERNAME_ROLE, role);
+    },
+    getFramework(): string | null {
+        return localStorage.getItem(FRAMEWORK) ?? "";
+    },
+    removeFramework(): void {
+        localStorage.removeItem(FRAMEWORK);
+    },
+    setFramework(framework: string): void {
+        localStorage.setItem(FRAMEWORK, framework);
     },
     getUserEmail(): string | null {
         return localStorage.getItem(USERNAME_EMAIL) ?? "";
