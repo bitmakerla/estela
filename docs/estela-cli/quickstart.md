@@ -73,7 +73,7 @@ UUID format.
 
 A project cannot run spiders if it is not linked to the Docker image of a Scrapy Project.
 
-### Linking an scrapy project
+### Linking an Scrapy project
 
 To link a project, navigate to a Scrapy project with the following structure:
 
