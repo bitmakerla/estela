@@ -109,7 +109,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
 
         if framework and framework != instance.framework:
             instance.framework = framework
-            description = f"changed framework to {framework}."
+            description = f"changed the framework to {framework}."
 
         user = request.user
         is_superuser = user.is_superuser or user.is_staff
