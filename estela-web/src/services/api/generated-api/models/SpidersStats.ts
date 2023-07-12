@@ -14,18 +14,6 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    SpiderJobArg,
-    SpiderJobArgFromJSON,
-    SpiderJobArgFromJSONTyped,
-    SpiderJobArgToJSON,
-    SpiderJobEnvVar,
-    SpiderJobEnvVarFromJSON,
-    SpiderJobEnvVarFromJSONTyped,
-    SpiderJobEnvVarToJSON,
-    SpiderJobTag,
-    SpiderJobTagFromJSON,
-    SpiderJobTagFromJSONTyped,
-    SpiderJobTagToJSON,
     Stats,
     StatsFromJSON,
     StatsFromJSONTyped,
@@ -39,95 +27,11 @@ import {
  */
 export interface SpidersStats {
     /**
-     * A unique integer value identifying this job.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    readonly jid?: number;
-    /**
      * 
-     * @type {string}
-     * @memberof SpidersJobsStats
-     */
-    readonly spider?: string;
-    /**
-     * Job creation date.
      * @type {Date}
      * @memberof SpidersStats
      */
-    readonly created?: Date;
-    /**
-     * Unique job name.
-     * @type {string}
-     * @memberof SpidersJobsStats
-     */
-    readonly name?: string;
-    /**
-     * The elapsed seconds the spider job was running.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    lifespan?: number;
-    /**
-     * The total bytes received in responses.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    totalResponseBytes?: number;
-    /**
-     * The number of items extracted in the job.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    itemCount?: number;
-    /**
-     * The number of requests made by the spider job.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    requestCount?: number;
-    /**
-     * Job arguments.
-     * @type {Array<SpiderJobArg>}
-     * @memberof SpidersJobsStats
-     */
-    args?: Array<SpiderJobArg>;
-    /**
-     * Job env variables.
-     * @type {Array<SpiderJobEnvVar>}
-     * @memberof SpidersJobsStats
-     */
-    envVars?: Array<SpiderJobEnvVar>;
-    /**
-     * Job tags.
-     * @type {Array<SpiderJobTag>}
-     * @memberof SpidersJobsStats
-     */
-    tags?: Array<SpiderJobTag>;
-    /**
-     * Current job status.
-     * @type {string}
-     * @memberof SpidersJobsStats
-     */
-    readonly jobStatus?: string;
-    /**
-     * Related cron job.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    cronjob?: number | null;
-    /**
-     * Days before data is deleted.
-     * @type {number}
-     * @memberof SpidersJobsStats
-     */
-    dataExpiryDays?: number | null;
-    /**
-     * Data status.
-     * @type {string}
-     * @memberof SpidersJobsStats
-     */
-    dataStatus?: SpidersJobsStatsDataStatusEnum;
+    date: Date;
     /**
      * 
      * @type {Stats}
@@ -136,23 +40,8 @@ export interface SpidersStats {
     stats: Stats;
 }
 
-<<<<<<<< HEAD:estela-web/src/services/api/generated-api/models/SpidersStats.ts
 export function SpidersStatsFromJSON(json: any): SpidersStats {
     return SpidersStatsFromJSONTyped(json, false);
-========
-/**
-* @export
-* @enum {string}
-*/
-export enum SpidersJobsStatsDataStatusEnum {
-    Persistent = 'PERSISTENT',
-    Pending = 'PENDING',
-    Deleted = 'DELETED'
-}
-
-export function SpidersJobsStatsFromJSON(json: any): SpidersJobsStats {
-    return SpidersJobsStatsFromJSONTyped(json, false);
->>>>>>>> 12b8afa (Added the integration in frontend with the backend, disabled the expandable feature on the stats table):estela-web/src/services/api/generated-api/models/SpidersJobsStats.ts
 }
 
 export function SpidersStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpidersStats {
@@ -161,21 +50,7 @@ export function SpidersStatsFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
-        'jid': !exists(json, 'jid') ? undefined : json['jid'],
-        'spider': !exists(json, 'spider') ? undefined : json['spider'],
-        'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
-        'name': !exists(json, 'name') ? undefined : json['name'],
-        'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
-        'totalResponseBytes': !exists(json, 'total_response_bytes') ? undefined : json['total_response_bytes'],
-        'itemCount': !exists(json, 'item_count') ? undefined : json['item_count'],
-        'requestCount': !exists(json, 'request_count') ? undefined : json['request_count'],
-        'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
-        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
-        'tags': !exists(json, 'tags') ? undefined : ((json['tags'] as Array<any>).map(SpiderJobTagFromJSON)),
-        'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
-        'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
-        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
-        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'date': (new Date(json['date'])),
         'stats': StatsFromJSON(json['stats']),
     };
 }
@@ -189,16 +64,7 @@ export function SpidersStatsToJSON(value?: SpidersStats | null): any {
     }
     return {
         
-        'lifespan': value.lifespan,
-        'total_response_bytes': value.totalResponseBytes,
-        'item_count': value.itemCount,
-        'request_count': value.requestCount,
-        'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
-        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
-        'tags': value.tags === undefined ? undefined : ((value.tags as Array<any>).map(SpiderJobTagToJSON)),
-        'cronjob': value.cronjob,
-        'data_expiry_days': value.dataExpiryDays,
-        'data_status': value.dataStatus,
+        'date': (value.date.toISOString().substr(0,10)),
         'stats': StatsToJSON(value.stats),
     };
 }
