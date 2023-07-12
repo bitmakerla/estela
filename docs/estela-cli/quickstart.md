@@ -71,9 +71,10 @@ With this, we have created a project in estela. Note the hint in the last
 line of the output. It shows us the ID of the project we have just created in
 UUID format.
 
-### Linking a project
-
 A project cannot run spiders if it is not linked to the Docker image of a Scrapy Project.
+
+### Linking an Scrapy project
+
 To link a project, navigate to a Scrapy project with the following structure:
 
 ```
@@ -93,6 +94,26 @@ Then, run the suggested command to activate the project:
 ```bash
 $ estela init 23ea584d-f39c-85bd-74c1-9b725ffcab1d7
 ```
+
+### Linking a Requests Project
+
+If you are using a Requests project instead of a Scrapy project, you can link it to Estela by following these steps:
+
+1. Ensure you have created a Requests project using Estela Requests. Refer to the [Estela Requests documentation](https://github.com/bitmakerla/estela-requests/tree/main#basic-usage) for instructions on creating a project.
+
+2. Navigate to the root directory of your Requests project.
+
+3. Run the following command to activate the project, replacing `23ea584d-f39c-85bd-74c1-9b725ffcab1d7` with the ID of your Estela project:
+
+   ```bash
+   $ estela init 23ea584d-f39c-85bd-74c1-9b725ffcab1d7 -p requests
+   ```
+
+   This command links your Requests project to the corresponding Estela project, allowing you to utilize Estela's features for managing and running your project.
+   
+   {:% .highlight}
+   In order to be discoverable, **spiders should reside in the project's root directory**. However, please note that this will be enhanced in the future to provide greater flexibility.
+
 
 This will create the files `.estela/Dockerfile-estela.yaml` and `estela.yaml`
 in your project directory. `estela.yaml` contains the project ID and the Docker
