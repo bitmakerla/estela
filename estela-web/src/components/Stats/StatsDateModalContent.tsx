@@ -6,7 +6,8 @@ import ArrowLeft from "../../assets/icons/arrowLeft.svg";
 import ArrowRight from "../../assets/icons/arrowRight.svg";
 import "./StatsDateModalContent.scss";
 import moment from "moment";
-// import { ChartsModalSection } from "./ChartsModalSection";
+import { Link } from "react-router-dom";
+import { ChartsModalSection } from "./ChartsModalSection";
 
 interface StatsDateModalContentState {
     activeSpider: number | null;
@@ -138,38 +139,22 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
             {
                 label: <p className="text-estela-black-full text-right">Overview</p>,
                 key: "overview",
-                children: (
-                    <></>
-                    // <ChartsModalSection
-                    //     stats={groupedStats.get(activeSpider) || []}
-                    //     pages
-                    //     items
-                    //     runtime
-                    //     statusCodes
-                    //     logs
-                    // />
-                ),
-                onclick: () => {
-                    this.setState({ overviewTabSelected: true });
-                },
+                children: <ChartsModalSection stats={jobs.results} pages items runtime statusCodes logs />,
             },
         ];
-        const jobsItems = jobs.results.map((job, index) => {
+        const jobsItems = jobs.results.map((job) => {
             return {
                 label: <p className="text-estela-black-full text-right">Job {job.jid}</p>,
-                key: `${index}`,
+                key: `${job.jid}`,
                 children: <p>job stats {job.jid}</p>,
-                onclick: () => {
-                    this.setState({ overviewTabSelected: false, jobSelected: { ...job } });
-                },
             };
         });
         return items.concat(jobsItems);
     };
 
     render() {
-        const { nextDate, prevDate, startDate } = this.props;
-        const { activeSpider, loadedSpiders, spiders, loadedJobs } = this.state;
+        const { nextDate, prevDate, startDate, pid } = this.props;
+        const { activeSpider, loadedSpiders, spiders, loadedJobs, overviewTabSelected } = this.state;
 
         return (
             <div className="rounded-lg">
@@ -224,10 +209,27 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                     {loadedSpiders && activeSpider && loadedJobs ? (
                         <div className="ml-5 mr-7 py-7 pr-5 flex divide-x">
                             <div className="w-8/12 pr-6">
-                                <Tabs tabPosition="left" items={this.generateTabsItems()} className="w-full" />
+                                <Tabs
+                                    tabPosition="left"
+                                    onChange={(key) => {
+                                        this.setState({ overviewTabSelected: key === "overview" });
+                                    }}
+                                    items={this.generateTabsItems()}
+                                    className="w-full"
+                                />
                             </div>
                             <div className="w-4/12 pl-6">
-                                <Button className="w-full mb-8">See all information</Button>
+                                {overviewTabSelected ? (
+                                    <Link
+                                        to={`/projects/${pid}/spiders/${activeSpider}`}
+                                        className="flex items-center justify-between w-full text-estela-white-full stroke-estela-white-full bg-bitmaker-primary py-2 px-3 mb-8 rounded-lg hover:text-estela-white-full"
+                                    >
+                                        <span>See all spider {activeSpider} information</span>
+                                        <ArrowRight className="w-6 h-6" />
+                                    </Link>
+                                ) : (
+                                    <Button className="w-full mb-8">See all information</Button>
+                                )}
                                 <p className="text-estela-black-full text-base font-medium">Spider usage stats</p>
                                 <div className="divide-y">
                                     <div className="flex items-center gap-x-5 py-5">
