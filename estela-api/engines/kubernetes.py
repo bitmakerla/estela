@@ -86,14 +86,17 @@ class KubernetesEngine:
         pod_spec = client.V1PodSpec(
             containers=[container],
             restart_policy=self.POD_RESTART_POLICY,
-            image_pull_secrets=[client.V1LocalObjectReference(self.IMAGE_PULL_SECRET_NAME)],
+            image_pull_secrets=[
+                client.V1LocalObjectReference(self.IMAGE_PULL_SECRET_NAME)
+            ],
             volumes=[volume] if volume else None,
-            node_selector={"role": self.SPIDER_NODE_ROLE} if settings.MULTI_NODE_MODE else None,
+            node_selector={"role": self.SPIDER_NODE_ROLE}
+            if settings.MULTI_NODE_MODE
+            else None,
         )
         if not isbuild:
             pod_spec.security_context = client.V1PodSecurityContext(
-                run_as_non_root=True,
-                run_as_user=1000
+                run_as_non_root=True, run_as_user=1000
             )
 
         template.template.spec = pod_spec

@@ -943,9 +943,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsCreateRaw(
-        requestParameters: ApiNotificationsCreateRequest,
-    ): Promise<runtime.ApiResponse<Notification>> {
+    async apiNotificationsCreateRaw(requestParameters: ApiNotificationsCreateRequest): Promise<runtime.ApiResponse<Notification>> {
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiNotificationsCreate.');
         }
@@ -979,14 +977,9 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsDeleteRaw(
-        requestParameters: ApiNotificationsDeleteRequest,
-    ): Promise<runtime.ApiResponse<void>> {
+    async apiNotificationsDeleteRaw(requestParameters: ApiNotificationsDeleteRequest): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.nid === null || requestParameters.nid === undefined) {
-            throw new runtime.RequiredError(
-                "nid",
-                "Required parameter requestParameters.nid was null or undefined when calling apiNotificationsDelete.",
-            );
+            throw new runtime.RequiredError('nid','Required parameter requestParameters.nid was null or undefined when calling apiNotificationsDelete.');
         }
 
         const queryParameters: any = {};
@@ -998,7 +991,7 @@ export class ApiApi extends runtime.BaseAPI {
         }
         const response = await this.request({
             path: `/api/notifications/{nid}`.replace(`{${"nid"}}`, encodeURIComponent(String(requestParameters.nid))),
-            method: "DELETE",
+            method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
         });
@@ -1049,14 +1042,9 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsPartialUpdateRaw(
-        requestParameters: ApiNotificationsPartialUpdateRequest,
-    ): Promise<runtime.ApiResponse<Notification>> {
+    async apiNotificationsPartialUpdateRaw(requestParameters: ApiNotificationsPartialUpdateRequest): Promise<runtime.ApiResponse<Notification>> {
         if (requestParameters.nid === null || requestParameters.nid === undefined) {
-            throw new runtime.RequiredError(
-                "nid",
-                "Required parameter requestParameters.nid was null or undefined when calling apiNotificationsPartialUpdate.",
-            );
+            throw new runtime.RequiredError('nid','Required parameter requestParameters.nid was null or undefined when calling apiNotificationsPartialUpdate.');
         }
 
         if (requestParameters.data === null || requestParameters.data === undefined) {
@@ -1074,7 +1062,7 @@ export class ApiApi extends runtime.BaseAPI {
         }
         const response = await this.request({
             path: `/api/notifications/{nid}`.replace(`{${"nid"}}`, encodeURIComponent(String(requestParameters.nid))),
-            method: "PATCH",
+            method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
             body: NotificationToJSON(requestParameters.data),
@@ -1085,23 +1073,16 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsPartialUpdate(
-        requestParameters: ApiNotificationsPartialUpdateRequest,
-    ): Promise<Notification> {
+    async apiNotificationsPartialUpdate(requestParameters: ApiNotificationsPartialUpdateRequest): Promise<Notification> {
         const response = await this.apiNotificationsPartialUpdateRaw(requestParameters);
         return await response.value();
     }
 
     /**
      */
-    async apiNotificationsReadRaw(
-        requestParameters: ApiNotificationsReadRequest,
-    ): Promise<runtime.ApiResponse<Notification>> {
+    async apiNotificationsReadRaw(requestParameters: ApiNotificationsReadRequest): Promise<runtime.ApiResponse<Notification>> {
         if (requestParameters.nid === null || requestParameters.nid === undefined) {
-            throw new runtime.RequiredError(
-                "nid",
-                "Required parameter requestParameters.nid was null or undefined when calling apiNotificationsRead.",
-            );
+            throw new runtime.RequiredError('nid','Required parameter requestParameters.nid was null or undefined when calling apiNotificationsRead.');
         }
 
         const queryParameters: any = {};
@@ -1113,7 +1094,7 @@ export class ApiApi extends runtime.BaseAPI {
         }
         const response = await this.request({
             path: `/api/notifications/{nid}`.replace(`{${"nid"}}`, encodeURIComponent(String(requestParameters.nid))),
-            method: "GET",
+            method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         });
@@ -1130,14 +1111,9 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsUpdateRaw(
-        requestParameters: ApiNotificationsUpdateRequest,
-    ): Promise<runtime.ApiResponse<NotificationUpdate>> {
+    async apiNotificationsUpdateRaw(requestParameters: ApiNotificationsUpdateRequest): Promise<runtime.ApiResponse<NotificationUpdate>> {
         if (requestParameters.nid === null || requestParameters.nid === undefined) {
-            throw new runtime.RequiredError(
-                "nid",
-                "Required parameter requestParameters.nid was null or undefined when calling apiNotificationsUpdate.",
-            );
+            throw new runtime.RequiredError('nid','Required parameter requestParameters.nid was null or undefined when calling apiNotificationsUpdate.');
         }
 
         if (requestParameters.data === null || requestParameters.data === undefined) {
@@ -1155,7 +1131,7 @@ export class ApiApi extends runtime.BaseAPI {
         }
         const response = await this.request({
             path: `/api/notifications/{nid}`.replace(`{${"nid"}}`, encodeURIComponent(String(requestParameters.nid))),
-            method: "PUT",
+            method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
             body: NotificationUpdateToJSON(requestParameters.data),
@@ -1173,41 +1149,29 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsActivitiesRaw(
-        requestParameters: ApiProjectsActivitiesRequest,
-    ): Promise<runtime.ApiResponse<ProjectActivity>> {
+    async apiProjectsActivitiesRaw(requestParameters: ApiProjectsActivitiesRequest): Promise<runtime.ApiResponse<ProjectActivity>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError(
-                "pid",
-                "Required parameter requestParameters.pid was null or undefined when calling apiProjectsActivities.",
-            );
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsActivities.');
         }
 
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
-            queryParameters["page"] = requestParameters.page;
+            queryParameters['page'] = requestParameters.page;
         }
 
         if (requestParameters.pageSize !== undefined) {
-            queryParameters["page_size"] = requestParameters.pageSize;
+            queryParameters['page_size'] = requestParameters.pageSize;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-        if (
-            this.configuration &&
-            (this.configuration.username !== undefined || this.configuration.password !== undefined)
-        ) {
-            headerParameters["Authorization"] =
-                "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
         }
         const response = await this.request({
-            path: `/api/projects/{pid}/activities`.replace(
-                `{${"pid"}}`,
-                encodeURIComponent(String(requestParameters.pid)),
-            ),
-            method: "GET",
+            path: `/api/projects/{pid}/activities`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
             headers: headerParameters,
             query: queryParameters,
         });
