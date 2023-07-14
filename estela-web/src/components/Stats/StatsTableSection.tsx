@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Modal, Row, Table } from "antd";
+import { Modal, Row, Table } from "antd";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
 import { formatSecondsToHHMMSS } from "../../utils";
@@ -37,6 +37,33 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
     };
 
     colsStatsTable: ColumnsType<StatsTableDataType> = [
+        {
+            title: "",
+            dataIndex: "details",
+            key: "details",
+            align: "center",
+            render: (_, { statsDate }, index) => {
+                return (
+                    <div
+                        title="see details"
+                        onClick={() => {
+                            const [startDate, endDate] = [
+                                moment(statsDate.date).startOf("day").utc().toISOString(),
+                                moment(statsDate.date).endOf("day").utc().toISOString(),
+                            ];
+                            this.setState({
+                                openDateModal: true,
+                                focusStatsDateIndex: index,
+                                startDateModal: startDate,
+                                endDateModal: endDate,
+                            });
+                        }}
+                    >
+                        <Expand className="w-5 h-5 stroke-estela" />
+                    </div>
+                );
+            },
+        },
         {
             title: <p className="text-estela-black-full font-medium text-xs text-center">DAY</p>,
             dataIndex: "day",
@@ -188,34 +215,6 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                 const criticalLogsA = statA.statsDate.stats.logs.criticalLogs ?? 0;
                 const criticalLogsB = statB.statsDate.stats.logs.criticalLogs ?? 0;
                 return criticalLogsA - criticalLogsB;
-            },
-        },
-        {
-            title: <p className="text-estela-black-full font-medium text-xs text-center">DETAILS</p>,
-            dataIndex: "details",
-            key: "details",
-            align: "center",
-            render: (_, { statsDate }, index) => {
-                return (
-                    <Button
-                        type="link"
-                        className="text-estela stroke-estela font-semibold hover:text-estela-blue-medium focus:text-estela-blue-medium"
-                        onClick={() => {
-                            const [startDate, endDate] = [
-                                moment(statsDate.date).startOf("day").utc().toISOString(),
-                                moment(statsDate.date).endOf("day").utc().toISOString(),
-                            ];
-                            this.setState({
-                                openDateModal: true,
-                                focusStatsDateIndex: index,
-                                startDateModal: startDate,
-                                endDateModal: endDate,
-                            });
-                        }}
-                    >
-                        <Expand className="w-5 h-5" />
-                    </Button>
-                );
             },
         },
     ];
