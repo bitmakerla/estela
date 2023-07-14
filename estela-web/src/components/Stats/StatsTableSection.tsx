@@ -5,6 +5,7 @@ import type { ColumnsType } from "antd/es/table";
 import { formatSecondsToHHMMSS } from "../../utils";
 import { ApiApi, ProjectStats, SpidersStats } from "../../services";
 import Cross from "../../assets/icons/cross.svg";
+import Expand from "../../assets/icons/expand.svg";
 import "./StatsTableSection.scss";
 import { StatsDateModalContent } from "./StatsDateModalContent";
 
@@ -198,7 +199,7 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                 return (
                     <Button
                         type="link"
-                        className="text-estela font-semibold hover:text-estela-blue-medium focus:text-estela-blue-medium"
+                        className="text-estela stroke-estela font-semibold hover:text-estela-blue-medium focus:text-estela-blue-medium"
                         onClick={() => {
                             const [startDate, endDate] = [
                                 moment(statsDate.date).startOf("day").utc().toISOString(),
@@ -212,7 +213,7 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                             });
                         }}
                     >
-                        See details
+                        <Expand className="w-5 h-5" />
                     </Button>
                 );
             },
