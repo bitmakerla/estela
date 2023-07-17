@@ -344,7 +344,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                                                 });
                                                 this.retrieveJobsSpider(spider.sid ?? 0);
                                             }}
-                                            title={`Id: ${spider.sid}`}
+                                            title={`Spider ID: ${spider.sid}`}
                                         >
                                             {spider.name}
                                         </Button>
