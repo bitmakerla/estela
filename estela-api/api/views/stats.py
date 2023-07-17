@@ -372,7 +372,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             return Response({"error": str(e.detail)}, status=e.status_code)
 
         paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", self.DEFAULT_PAGINATION_SIZE)
+        paginator.page = request.query_params.get("page", 1)
         paginator.page_size = request.query_params.get(
             "page_size", self.DEFAULT_PAGINATION_SIZE
         )
@@ -435,7 +435,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", self.DEFAULT_PAGINATION_SIZE)
+        paginator.page = request.query_params.get("page", 1)
         paginator.page_size = request.query_params.get(
             "page_size", self.DEFAULT_PAGINATION_SIZE
         )
@@ -582,7 +582,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", self.DEFAULT_PAGINATION_SIZE)
+        paginator.page = request.query_params.get("page", 1)
         paginator.page_size = request.query_params.get(
             "page_size", self.DEFAULT_PAGINATION_SIZE
         )
