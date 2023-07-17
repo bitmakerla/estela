@@ -37,6 +37,11 @@ export function formatSecondsToHHMMSS(seconds: number): string {
     return formattedTime;
 }
 
+export function setValArr({ arr, val, index }: { arr: number[]; val: number; index: number }): number[] {
+    arr.fill(val, index, index + 1);
+    return arr;
+}
+
 export function parseDurationToSeconds(durationString: string | undefined): number {
     if (durationString) {
         const [hours, minutes, seconds] = durationString.split(":").map(Number);
@@ -44,6 +49,10 @@ export function parseDurationToSeconds(durationString: string | undefined): numb
         return totalSeconds;
     }
     return 0;
+}
+
+export function sumArr(arr: number[]): number {
+    return arr.reduce((acc, curr) => acc + curr, 0);
 }
 
 export function formatBytes(bytes: number): BytesMetric {

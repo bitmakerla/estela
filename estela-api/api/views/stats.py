@@ -320,6 +320,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         )
 
         global_stats_results = self.summarize_stats_results(stats_set, jobs_set)
+
         response_schema = []
         for stat_result in global_stats_results.values():
             date = stat_result.pop("min_date", None)
@@ -371,7 +372,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             return Response({"error": str(e.detail)}, status=e.status_code)
 
         paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", self.DEFAULT_PAGINATION_SIZE)
+        paginator.page = request.query_params.get("page", 1)
         paginator.page_size = request.query_params.get(
             "page_size", self.DEFAULT_PAGINATION_SIZE
         )
@@ -434,7 +435,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", self.DEFAULT_PAGINATION_SIZE)
+        paginator.page = request.query_params.get("page", 1)
         paginator.page_size = request.query_params.get(
             "page_size", self.DEFAULT_PAGINATION_SIZE
         )
@@ -581,7 +582,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", self.DEFAULT_PAGINATION_SIZE)
+        paginator.page = request.query_params.get("page", 1)
         paginator.page_size = request.query_params.get(
             "page_size", self.DEFAULT_PAGINATION_SIZE
         )

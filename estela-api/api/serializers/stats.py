@@ -67,6 +67,10 @@ class StatsSerializer(serializers.Serializer):
 class SpiderJobStatsSerializer(SpiderJobSerializer):
     stats = StatsSerializer()
 
+
+class SpiderJobStatsSerializer(SpiderJobSerializer):
+    stats = StatsSerializer()
+
     class Meta:
         model = SpiderJob
         fields = (

@@ -1,46 +1,69 @@
 import React, { Component } from "react";
-import { Row, Table } from "antd";
+import { Modal, Row, Table } from "antd";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
 import { formatSecondsToHHMMSS } from "../../utils";
 import { ApiApi, ProjectStats, SpidersStats } from "../../services";
+import Cross from "../../assets/icons/cross.svg";
+import Expand from "../../assets/icons/expand.svg";
+import "./StatsTableSection.scss";
+import { StatsDateModalContent } from "./StatsDateModalContent";
 
 interface StatsTableDataType {
     key: string;
     statsDate: ProjectStats;
 }
 
-interface DataListSectionProps {
+interface StatsTableSectionProps {
     loadedStats: boolean;
     stats: ProjectStats[] | SpidersStats[];
     pid: string;
     apiService: ApiApi;
 }
 
-interface DataListSectionState {
-    loadedDatesStats: boolean[];
-    jobsDateStats: ProjectStats[][];
-    focusedStatIndex: number;
+interface StatsTableSectionState {
+    focusStatsDateIndex: number;
+    openDateModal: boolean;
+    startDateModal: string;
+    endDateModal: string;
 }
 
-export class StatsTableSection extends Component<DataListSectionProps, DataListSectionState> {
-    state: DataListSectionState = {
-        loadedDatesStats: [],
-        jobsDateStats: [],
-        focusedStatIndex: 0,
+export class StatsTableSection extends Component<StatsTableSectionProps, StatsTableSectionState> {
+    state: StatsTableSectionState = {
+        focusStatsDateIndex: 0,
+        openDateModal: false,
+        startDateModal: "",
+        endDateModal: "",
     };
 
-    componentDidUpdate() {
-        const { stats } = this.props;
-        const { loadedDatesStats, jobsDateStats } = this.state;
-        if (loadedDatesStats.length === 0 && jobsDateStats.length === 0 && stats.length !== 0) {
-            const newLoadedDatesStats = Array(stats.length).fill(false);
-            const newJobsDateStats = Array<ProjectStats[]>(stats.length);
-            this.setState({ loadedDatesStats: [...newLoadedDatesStats], jobsDateStats: [...newJobsDateStats] });
-        }
-    }
-
     colsStatsTable: ColumnsType<StatsTableDataType> = [
+        {
+            title: "",
+            dataIndex: "details",
+            key: "details",
+            align: "center",
+            render: (_, { statsDate }, index) => {
+                return (
+                    <div
+                        title="see details"
+                        onClick={() => {
+                            const [startDate, endDate] = [
+                                moment(statsDate.date).startOf("day").utc().toISOString(),
+                                moment(statsDate.date).endOf("day").utc().toISOString(),
+                            ];
+                            this.setState({
+                                openDateModal: true,
+                                focusStatsDateIndex: index,
+                                startDateModal: startDate,
+                                endDateModal: endDate,
+                            });
+                        }}
+                    >
+                        <Expand className="w-5 h-5 stroke-estela" />
+                    </div>
+                );
+            },
+        },
         {
             title: <p className="text-estela-black-full font-medium text-xs text-center">DAY</p>,
             dataIndex: "day",
@@ -149,10 +172,56 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
                 return successRateA - successRateB;
             },
         },
+        {
+            title: <p className="text-estela-black-full font-medium text-xs text-center">ERROR</p>,
+            dataIndex: "errorLogs",
+            key: "errorLogs",
+            align: "center",
+            render: (_, { statsDate }) => {
+                const errorLogs = statsDate.stats.logs.errorLogs ?? 0;
+                return <p className="text-black text-xs font-normal">{errorLogs}</p>;
+            },
+            sorter: (statA, statB) => {
+                const errorLogsA = statA.statsDate.stats.logs.errorLogs ?? 0;
+                const errorLogsB = statB.statsDate.stats.logs.errorLogs ?? 0;
+                return errorLogsA - errorLogsB;
+            },
+        },
+        {
+            title: <p className="text-estela-black-full font-medium text-xs text-center">WARNING</p>,
+            dataIndex: "warningLogs",
+            key: "warningLogs",
+            align: "center",
+            render: (_, { statsDate }) => {
+                const warningLogs = statsDate.stats.logs.warningLogs ?? 0;
+                return <p className="text-black text-xs font-normal">{warningLogs}</p>;
+            },
+            sorter: (statA, statB) => {
+                const warningLogsA = statA.statsDate.stats.logs.warningLogs ?? 0;
+                const warningLogsB = statB.statsDate.stats.logs.warningLogs ?? 0;
+                return warningLogsA - warningLogsB;
+            },
+        },
+        {
+            title: <p className="text-estela-black-full font-medium text-xs text-center">CRITICAL</p>,
+            dataIndex: "criticalLogs",
+            key: "criticalLogs",
+            align: "center",
+            render: (_, { statsDate }) => {
+                const criticalLogs = statsDate.stats.logs.criticalLogs ?? 0;
+                return <p className="text-black text-xs font-normal">{criticalLogs}</p>;
+            },
+            sorter: (statA, statB) => {
+                const criticalLogsA = statA.statsDate.stats.logs.criticalLogs ?? 0;
+                const criticalLogsB = statB.statsDate.stats.logs.criticalLogs ?? 0;
+                return criticalLogsA - criticalLogsB;
+            },
+        },
     ];
 
     render() {
-        const { loadedStats, stats } = this.props;
+        const { openDateModal, focusStatsDateIndex, startDateModal, endDateModal } = this.state;
+        const { loadedStats, stats, apiService, pid } = this.props;
 
         if (!loadedStats) {
             return <Row className="animate-pulse mt-6 h-12 w-full bg-estela-blue-low rounded-md" />;
@@ -170,7 +239,87 @@ export class StatsTableSection extends Component<DataListSectionProps, DataListS
         });
 
         return (
-            <Table className="w-full" columns={this.colsStatsTable} dataSource={dataDatesStats} pagination={false} />
+            <>
+                <Table
+                    className="w-full"
+                    rowClassName="hover:cursor-pointer"
+                    columns={this.colsStatsTable}
+                    dataSource={dataDatesStats}
+                    pagination={false}
+                    onRow={(record, rowIndex) => {
+                        return {
+                            onClick: () => {
+                                const [startDate, endDate] = [
+                                    moment(record.statsDate.date).startOf("day").utc().toISOString(),
+                                    moment(record.statsDate.date).endOf("day").utc().toISOString(),
+                                ];
+                                this.setState({
+                                    openDateModal: true,
+                                    focusStatsDateIndex: rowIndex ?? 0,
+                                    startDateModal: startDate,
+                                    endDateModal: endDate,
+                                });
+                            },
+                        };
+                    }}
+                />
+
+                <Modal
+                    open={openDateModal}
+                    onCancel={() => this.setState({ openDateModal: false })}
+                    title={null}
+                    className="stats-date-modal"
+                    width="90%"
+                    closeIcon={<Cross className="w-6 h-6 stroke-white mx-auto mt-3" />}
+                    footer={null}
+                    destroyOnClose
+                >
+                    <StatsDateModalContent
+                        pid={pid}
+                        apiService={apiService}
+                        startDate={startDateModal}
+                        endDate={endDateModal}
+                        nextDate={() => {
+                            if (focusStatsDateIndex < stats.length - 1) {
+                                const [startDate, endDate] = [
+                                    moment(stats[focusStatsDateIndex + 1].date)
+                                        .startOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                    moment(stats[focusStatsDateIndex + 1].date)
+                                        .endOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                ];
+                                this.setState({
+                                    focusStatsDateIndex: focusStatsDateIndex + 1,
+                                    startDateModal: startDate,
+                                    endDateModal: endDate,
+                                });
+                            }
+                        }}
+                        prevDate={() => {
+                            if (focusStatsDateIndex > 0) {
+                                const [startDate, endDate] = [
+                                    moment(stats[focusStatsDateIndex - 1].date)
+                                        .startOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                    moment(stats[focusStatsDateIndex - 1].date)
+                                        .endOf("day")
+                                        .utc()
+                                        .toISOString(),
+                                ];
+                                this.setState({
+                                    focusStatsDateIndex: focusStatsDateIndex - 1,
+                                    startDateModal: startDate,
+                                    endDateModal: endDate,
+                                });
+                            }
+                        }}
+                    />
+                </Modal>
+            </>
         );
     }
 }

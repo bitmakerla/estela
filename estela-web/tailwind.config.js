@@ -37,6 +37,7 @@ module.exports = {
                 "estela-red-low": "#FFF5F2",
                 "estela-background": "#FBFCFD",
                 "estela-complementary-purple": "#A13764",
+                "bitmaker-primary": "#FF5733",
             },
         },
     },
