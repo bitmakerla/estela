@@ -68,7 +68,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
     }
 
     retrieveSpiders = async (page?: number) => {
-        this.setState({ loadedSpiders: false });
+        this.setState({ loadedSpiders: false, overviewTabSelected: true });
         try {
             const { currSpidersPage } = this.state;
             const { pid, startDate, endDate, apiService } = this.props;
@@ -99,7 +99,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
     };
 
     retrieveJobsSpider = async (spider: number, page?: number) => {
-        this.setState({ loadedJobs: false });
+        this.setState({ loadedJobs: false, overviewTabSelected: true });
         try {
             const { pid, startDate, endDate, apiService } = this.props;
             const { activeSpider, currJobsPage } = this.state;
@@ -172,7 +172,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                         target="_blank"
                         className="flex items-center justify-between w-full text-estela-white-full stroke-estela-white-full bg-bitmaker-primary py-2 px-3 mb-8 rounded-lg hover:text-estela-white-full"
                     >
-                        <span>See all spider {activeSpider.sid} information</span>
+                        <span>See all spider {activeSpider.name} information</span>
                         <ArrowRight className="w-6 h-6" />
                     </Link>
                 ) : (
@@ -339,12 +339,14 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                                             key={index}
                                             className={style}
                                             onClick={() => {
-                                                this.setState({ activeSpider: { ...spider } });
+                                                this.setState({
+                                                    activeSpider: { ...spider },
+                                                });
                                                 this.retrieveJobsSpider(spider.sid ?? 0);
                                             }}
-                                            title={`${spider.name}`}
+                                            title={`Id: ${spider.sid}`}
                                         >
-                                            Spider {spider.sid}
+                                            {spider.name}
                                         </Button>
                                     );
                                 })}
