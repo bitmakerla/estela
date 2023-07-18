@@ -2,7 +2,8 @@ import React, { Component } from "react";
 import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space } from "antd";
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
-import { EnvVarsSetting } from "../EnvVarsSettingsPage";
+
+import { EnvVarsSetting } from "../../components/EnvVarsSettingsPage";
 
 import "./styles.scss";
 import history from "../../history";
@@ -219,7 +220,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     ];
 
     projectCategoryOptions = [
-        { label: "Not Specified", key: 1, value: ProjectCategoryEnum.NotEspecified },
+        { label: "Not Specified", key: 1, value: ProjectCategoryEnum.NotSpecified },
         { label: "E-commerce", key: 2, value: ProjectCategoryEnum.ECommerce },
         { label: "Logistics", key: 3, value: ProjectCategoryEnum.Logistics },
         { label: "Finance", key: 4, value: ProjectCategoryEnum.Finance },

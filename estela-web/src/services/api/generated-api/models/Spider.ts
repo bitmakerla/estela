@@ -87,8 +87,8 @@ export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sp
         'name': json['name'],
         'project': json['project'],
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
-        'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
-        'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'dataStatus': json['data_status'],
+        'dataExpiryDays': json['data_expiry_days'],
     };
 }
 

@@ -16,7 +16,7 @@ import {
 } from "antd";
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
-import { EnvVarsSetting } from "../EnvVarsSettingsPage";
+import { EnvVarsSetting } from "../../components/EnvVarsSettingsPage";
 
 import "./styles.scss";
 import CronjobCreateModal from "../CronjobCreateModal";
@@ -205,9 +205,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
         this.apiService.apiProjectsSpidersRead(requestParams).then(
             async (response: Spider) => {
-                console.log(response);
                 const data = await this.getSpiderJobs(1);
-
                 const waitingJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "WAITING");
                 const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
                 const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
@@ -230,7 +228,14 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 ];
 
                 const jobs: SpiderJobData[] = data.data;
-                const envVars = response.envVars || [];
+                let envVars = response.envVars || [];
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
                 this.setState({
                     spider: response,
                     name: response.name,

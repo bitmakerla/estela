@@ -66,6 +66,7 @@ export interface ProjectUpdate {
      * @memberof ProjectUpdate
      */
     framework?: ProjectUpdateFrameworkEnum;
+    /**
      * Project env variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof ProjectUpdate

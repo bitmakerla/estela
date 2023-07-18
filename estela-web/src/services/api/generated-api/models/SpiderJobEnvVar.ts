@@ -20,6 +20,12 @@ import { exists, mapValues } from '../runtime';
  */
 export interface SpiderJobEnvVar {
     /**
+     * A unique integer value identifying this job env variable.
+     * @type {number}
+     * @memberof SpiderJobEnvVar
+     */
+    readonly evid?: number;
+    /**
      * Env variable name.
      * @type {string}
      * @memberof SpiderJobEnvVar
@@ -49,6 +55,7 @@ export function SpiderJobEnvVarFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
+        'evid': !exists(json, 'evid') ? undefined : json['evid'],
         'name': json['name'],
         'value': json['value'],
         'masked': !exists(json, 'masked') ? undefined : json['masked'],

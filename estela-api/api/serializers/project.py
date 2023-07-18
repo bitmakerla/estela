@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from core.models import DataStatus, Permission, Project, UsageRecord, Activity
-from job_specific import SpiderJobEnvVarSerializer
+from api.serializers.job_specific import SpiderJobEnvVarSerializer
 
 
 class UserDetailSerializer(serializers.ModelSerializer):

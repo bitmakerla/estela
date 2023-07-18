@@ -1711,6 +1711,11 @@ definitions:
       - value
     type: object
     properties:
+      evid:
+        title: Evid
+        description: A unique integer value identifying this job env variable.
+        type: integer
+        readOnly: true
       name:
         title: Name
         description: Env variable name.

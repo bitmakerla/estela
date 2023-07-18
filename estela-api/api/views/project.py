@@ -45,7 +45,10 @@ def update_env_vars(instance, env_vars, level="project"):
         elif env_var["masked"] is False and env_var["value"] == "__MASKED__":
             env_vars_instance.filter(name=env_var["name"]).update(masked=False)
         elif env_var["name"] in [value.name for value in env_vars_instance]:
-            env_vars_instance.filter(name=env_var["name"]).update(value=env_var["value"], masked=env_var["masked"])
+            env_vars_instance.filter(name=env_var["name"]).update(
+                value=env_var["value"],
+                masked=env_var["masked"]
+            )
         else:
             if level == "project":
                 SpiderJobEnvVar.objects.create(project=instance, **env_var)
