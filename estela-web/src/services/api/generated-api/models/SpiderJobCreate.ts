@@ -18,10 +18,10 @@ import {
     SpiderJobArgFromJSON,
     SpiderJobArgFromJSONTyped,
     SpiderJobArgToJSON,
-    SpiderJobEnvVar,
-    SpiderJobEnvVarFromJSON,
-    SpiderJobEnvVarFromJSONTyped,
-    SpiderJobEnvVarToJSON,
+    SpiderJobCreateEnvVar,
+    SpiderJobCreateEnvVarFromJSON,
+    SpiderJobCreateEnvVarFromJSONTyped,
+    SpiderJobCreateEnvVarToJSON,
     SpiderJobTag,
     SpiderJobTagFromJSON,
     SpiderJobTagFromJSONTyped,
@@ -54,10 +54,10 @@ export interface SpiderJobCreate {
     args?: Array<SpiderJobArg>;
     /**
      * Job env variables.
-     * @type {Array<SpiderJobEnvVar>}
+     * @type {Array<SpiderJobCreateEnvVar>}
      * @memberof SpiderJobCreate
      */
-    envVars?: Array<SpiderJobEnvVar>;
+    envVars?: Array<SpiderJobCreateEnvVar>;
     /**
      * Job tags.
      * @type {Array<SpiderJobTag>}
@@ -103,7 +103,7 @@ export function SpiderJobCreateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
         'name': !exists(json, 'name') ? undefined : json['name'],
         'args': !exists(json, 'args') ? undefined : ((json['args'] as Array<any>).map(SpiderJobArgFromJSON)),
-        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
+        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobCreateEnvVarFromJSON)),
         'tags': !exists(json, 'tags') ? undefined : ((json['tags'] as Array<any>).map(SpiderJobTagFromJSON)),
         'jobStatus': !exists(json, 'job_status') ? undefined : json['job_status'],
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
@@ -122,7 +122,7 @@ export function SpiderJobCreateToJSON(value?: SpiderJobCreate | null): any {
     return {
         
         'args': value.args === undefined ? undefined : ((value.args as Array<any>).map(SpiderJobArgToJSON)),
-        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
+        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobCreateEnvVarToJSON)),
         'tags': value.tags === undefined ? undefined : ((value.tags as Array<any>).map(SpiderJobTagToJSON)),
         'cronjob': value.cronjob,
         'data_expiry_days': value.dataExpiryDays,

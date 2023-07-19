@@ -41,6 +41,7 @@ export * from './SpiderCronJobUpdate';
 export * from './SpiderJob';
 export * from './SpiderJobArg';
 export * from './SpiderJobCreate';
+export * from './SpiderJobCreateEnvVar';
 export * from './SpiderJobEnvVar';
 export * from './SpiderJobStats';
 export * from './SpiderJobTag';

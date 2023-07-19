@@ -2401,6 +2401,32 @@ definitions:
         maximum: 65535
         minimum: 0
         x-nullable: true
+  SpiderJobCreateEnvVar:
+    description: Job env variables.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      evid:
+        title: Evid
+        description: Env var id.
+        type: integer
+      name:
+        title: Name
+        description: Env var name.
+        type: string
+        minLength: 1
+      value:
+        title: Value
+        description: Env var value.
+        type: string
+        minLength: 1
+      masked:
+        title: Masked
+        description: Env var masked.
+        type: boolean
+        default: false
   SpiderJobCreate:
     required:
       - data_status
@@ -2426,7 +2452,7 @@ definitions:
         description: Job env variables.
         type: array
         items:
-          $ref: '#/definitions/SpiderJobEnvVar'
+          $ref: '#/definitions/SpiderJobCreateEnvVar'
       tags:
         description: Job tags.
         type: array

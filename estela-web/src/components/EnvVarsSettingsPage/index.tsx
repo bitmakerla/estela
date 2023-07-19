@@ -272,7 +272,7 @@ export const EnvVarsSetting: React.FC<ProjectEnvVar> = ({ projectId, spiderId, e
                 setActiveUpdateButton(false);
             },
             (error: unknown) => {
-                console.error(error)
+                console.error(error);
             },
         );
     };
