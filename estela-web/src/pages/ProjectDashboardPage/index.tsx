@@ -4,14 +4,7 @@ import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
-import {
-    ApiProjectsReadRequest,
-    Project,
-    ProjectUsage,
-    ApiStatsListRequest,
-    ProjectStats,
-    Stats,
-} from "../../services/api";
+import { ApiProjectsReadRequest, Project, ProjectUsage, ProjectStats } from "../../services/api";
 import { BytesMetric, formatBytes, parseDurationToSeconds } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
@@ -110,113 +103,40 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         startDate?: string | undefined | null,
         endDate?: string | undefined | null,
     ): Promise<void> => {
+        this.setState({ loadedStats: false });
         const { statsStartDate, statsEndDate } = this.state;
-        const params: ApiStatsListRequest = {
-            pid: this.projectId,
-            startDate: !startDate ? statsStartDate.toISOString() : startDate,
-            endDate: !endDate ? statsEndDate.toISOString() : endDate,
-        };
-
         if (startDate && endDate) {
             this.setState({
                 statsStartDate: moment.utc(startDate),
                 statsEndDate: moment.utc(endDate),
             });
         }
-
-        await this.apiService.apiStatsList(params).then(
-            (response: ProjectStats[]) => {
-                const tempStats = new Map<string, Stats[]>();
-                response.forEach((stat) => {
-                    if (stat.stats.runtime) {
-                        stat.stats.runtime = parseDurationToSeconds(stat.stats.runtime.toString());
-                    }
-                    const tempDate = moment(stat.date).format("YYYY-MM-DD");
-                    const statsArr = tempStats.get(tempDate);
-                    if (statsArr) {
-                        tempStats.set(tempDate, statsArr.concat([{ ...stat.stats }]));
-                        return;
-                    }
-                    tempStats.set(tempDate, [{ ...stat.stats }]);
-                });
-                const finalProjectStats: ProjectStats[] = Array.from(tempStats.entries()).map(([date, stats]) => {
-                    const reducedStats = stats.reduce((acc, curr) => {
-                        return {
-                            jobs: {
-                                totalJobs: (acc.jobs?.totalJobs ?? 0) + (curr.jobs?.totalJobs ?? 0),
-                                waitingJobs: (acc.jobs?.waitingJobs ?? 0) + (curr.jobs?.waitingJobs ?? 0),
-                                runningJobs: (acc.jobs?.runningJobs ?? 0) + (curr.jobs?.runningJobs ?? 0),
-                                stoppedJobs: (acc.jobs?.stoppedJobs ?? 0) + (curr.jobs?.stoppedJobs ?? 0),
-                                completedJobs: (acc.jobs?.completedJobs ?? 0) + (curr.jobs?.completedJobs ?? 0),
-                                inQueueJobs: (acc.jobs?.inQueueJobs ?? 0) + (curr.jobs?.inQueueJobs ?? 0),
-                                errorJobs: (acc.jobs?.errorJobs ?? 0) + (curr.jobs?.errorJobs ?? 0),
-                            },
-                            pages: {
-                                totalPages: (acc.pages.totalPages ?? 0) + (curr.pages.totalPages ?? 0),
-                                scrapedPages: (acc.pages.scrapedPages ?? 0) + (curr.pages.scrapedPages ?? 0),
-                                missedPages: (acc.pages.missedPages ?? 0) + (curr.pages.missedPages ?? 0),
-                            },
-                            itemsCount: (acc.itemsCount ?? 0) + (curr.itemsCount ?? 0),
-                            successRate: (acc.successRate ?? 0) + (curr.successRate ?? 0),
-                            runtime: (acc.runtime ?? 0) + (curr.runtime ?? 0),
-                            statusCodes: {
-                                status200: (acc.statusCodes.status200 ?? 0) + (curr.statusCodes.status200 ?? 0),
-                                status301: (acc.statusCodes.status301 ?? 0) + (curr.statusCodes.status301 ?? 0),
-                                status302: (acc.statusCodes.status302 ?? 0) + (curr.statusCodes.status302 ?? 0),
-                                status401: (acc.statusCodes.status401 ?? 0) + (curr.statusCodes.status401 ?? 0),
-                                status403: (acc.statusCodes.status403 ?? 0) + (curr.statusCodes.status403 ?? 0),
-                                status404: (acc.statusCodes.status404 ?? 0) + (curr.statusCodes.status404 ?? 0),
-                                status429: (acc.statusCodes.status429 ?? 0) + (curr.statusCodes.status429 ?? 0),
-                                status500: (acc.statusCodes.status500 ?? 0) + (curr.statusCodes.status500 ?? 0),
-                            },
-                            logs: {
-                                totalLogs: (acc.logs.totalLogs ?? 0) + (curr.logs.totalLogs ?? 0),
-                                debugLogs: (acc.logs.debugLogs ?? 0) + (curr.logs.debugLogs ?? 0),
-                                infoLogs: (acc.logs.infoLogs ?? 0) + (curr.logs.infoLogs ?? 0),
-                                warningLogs: (acc.logs.warningLogs ?? 0) + (curr.logs.warningLogs ?? 0),
-                                errorLogs: (acc.logs.errorLogs ?? 0) + (curr.logs.errorLogs ?? 0),
-                                criticalLogs: (acc.logs.criticalLogs ?? 0) + (curr.logs.criticalLogs ?? 0),
-                            },
-                            coverage: {
-                                totalItems: (acc.coverage?.totalItems ?? 0) + (curr.coverage?.totalItems ?? 0),
-                                totalItemsCoverage:
-                                    (acc.coverage?.totalItemsCoverage ?? 0) + (curr.coverage?.totalItemsCoverage ?? 0),
-                            },
-                        };
+        await this.apiService
+            .apiStatsList({
+                pid: this.projectId,
+                startDate: !startDate ? statsStartDate.toISOString() : startDate,
+                endDate: !endDate ? statsEndDate.toISOString() : endDate,
+                offset: new Date().getTimezoneOffset(),
+            })
+            .then(
+                (response: ProjectStats[]) => {
+                    response.forEach((stat) => {
+                        if (stat.stats.runtime)
+                            stat.stats.runtime = parseDurationToSeconds(stat.stats.runtime.toString());
                     });
-
-                    if (
-                        reducedStats.jobs &&
-                        reducedStats.jobs.completedJobs &&
-                        reducedStats.jobs.completedJobs !== 0 &&
-                        reducedStats.coverage &&
-                        reducedStats.coverage.totalItemsCoverage
-                    ) {
-                        reducedStats.coverage.totalItemsCoverage /= reducedStats.jobs.completedJobs;
-                    }
-
-                    if (reducedStats.successRate) {
-                        reducedStats.successRate /= stats.length;
-                    }
-                    return {
-                        date: moment(date).toDate(),
-                        stats: reducedStats,
-                    };
-                });
-
-                this.setState({
-                    projectStats: finalProjectStats,
-                    loadedStats: true,
-                });
-            },
-            (error: Error) => {
-                notification.error({
-                    message: "No data",
-                    description: error.message,
-                });
-                this.setState({ loadedStats: true });
-            },
-        );
+                    this.setState({
+                        projectStats: [...response],
+                        loadedStats: true,
+                    });
+                },
+                (error: Error) => {
+                    notification.error({
+                        message: "No data",
+                        description: error.message,
+                    });
+                    this.setState({ loadedStats: true });
+                },
+            );
     };
 
     calcAverageSuccessRate = (): number => {
@@ -236,9 +156,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         this.getProjectStatsAndUpdateDates(startDateUTC, endDateUTC);
     };
 
-    onRefreshEventHandler: React.MouseEventHandler<HTMLElement> | undefined = () => {
-        this.setState({ loadedStats: false });
-        this.getProjectStatsAndUpdateDates();
+    onRefreshEventHandler = async () => {
+        await this.getProjectStatsAndUpdateDates();
     };
 
     render(): JSX.Element {

@@ -32,7 +32,56 @@ from core.models import Project, Spider, SpiderJob
 
 
 class StatsMixin:
+    numerical_stats: dict = {
+        "items_count": 0,
+        "runtime": timedelta(seconds=0),
+        "success_rate": 0.0,
+    }
+    pages_stats: dict = {
+        "total_pages": 0,
+        "scraped_pages": 0,
+        "missed_pages": 0,
+    }
+    jobs_stats: dict = {
+        "total_jobs": 0,
+        "waiting_jobs": 0,
+        "running_jobs": 0,
+        "stopped_jobs": 0,
+        "completed_jobs": 0,
+        "in_queue_jobs": 0,
+        "error_jobs": 0,
+    }
+    status_codes_stats: dict = {
+        "status_200": 0,
+        "status_301": 0,
+        "status_302": 0,
+        "status_401": 0,
+        "status_403": 0,
+        "status_404": 0,
+        "status_429": 0,
+        "status_500": 0,
+    }
+    logs_stats: dict = {
+        "total_logs": 0,
+        "debug_logs": 0,
+        "info_logs": 0,
+        "warning_logs": 0,
+        "error_logs": 0,
+        "critical_logs": 0,
+    }
+    coverage_stats: dict = {
+        "total_items": 0,
+        "total_items_coverage": 0.0,
+    }
     stats_mapping: dict = {
+        "jobs": {
+            "waiting_jobs": SpiderJob.WAITING_STATUS,
+            "running_jobs": SpiderJob.RUNNING_STATUS,
+            "stopped_jobs": SpiderJob.STOPPED_STATUS,
+            "completed_jobs": SpiderJob.COMPLETED_STATUS,
+            "in_queue_jobs": SpiderJob.IN_QUEUE_STATUS,
+            "error_jobs": SpiderJob.ERROR_STATUS,
+        },
         "items_count": "item_scraped_count",
         "runtime": "elapsed_time_seconds",
         "scraped_pages": "downloader/response_status_count/200",
@@ -70,87 +119,31 @@ class StatsMixin:
         return start_date, end_date
 
     def summarize_stats_results(
-        self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob]
+        self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob], offset: int
     ) -> dict:
         stats_results = defaultdict(lambda: defaultdict(int))
         stats_results.default_factory = lambda: {
-            "jobs": {
-                "total_jobs": 0,
-                "waiting_jobs": 0,
-                "running_jobs": 0,
-                "stopped_jobs": 0,
-                "completed_jobs": 0,
-                "in_queue_jobs": 0,
-                "error_jobs": 0,
-            },
-            "pages": {
-                "total_pages": 0,
-                "scraped_pages": 0,
-                "missed_pages": 0,
-            },
-            "items_count": 0,
-            "runtime": timedelta(seconds=0),
-            "status_codes": {
-                "status_200": 0,
-                "status_301": 0,
-                "status_302": 0,
-                "status_401": 0,
-                "status_403": 0,
-                "status_404": 0,
-                "status_429": 0,
-                "status_500": 0,
-            },
-            "success_rate": 0.0,
-            "logs": {
-                "total_logs": 0,
-                "debug_logs": 0,
-                "info_logs": 0,
-                "warning_logs": 0,
-                "error_logs": 0,
-                "critical_logs": 0,
-            },
-            "coverage": {
-                "total_items": 0,
-                "total_items_coverage": 0.0,
-            },
+            **self.numerical_stats,
+            "jobs": {**self.jobs_stats},
+            "pages": {**self.pages_stats},
+            "status_codes": {**self.status_codes_stats},
+            "logs": {**self.logs_stats},
+            "coverage": {**self.coverage_stats},
         }
-        jobs_ids = {job.jid: job.created.strftime("%Y-%m-%d") for job in jobs_set}
-        min_jobs_date: dict = {}
-        min_jobs_date = {
-            job.created.strftime("%Y-%m-%d"): job.created
-            if min_date is None or job.created < min_date
-            else min_date
+        jobs_offset = {
+            job.jid: (job.created - timedelta(minutes=offset)).strftime("%Y-%m-%d")
             for job in jobs_set
-            for min_date in [min_jobs_date.get(job.created.strftime("%Y-%m-%d"), None)]
         }
-        min_jobs_date = {key: value.isoformat() for key, value in min_jobs_date.items()}
 
         for job in jobs_set:
-            date_str = jobs_ids[job.jid]
-            stats_results[date_str]["min_date"] = min_jobs_date[date_str]
+            date_str = jobs_offset[job.jid]
             stats_results[date_str]["jobs"]["total_jobs"] += 1
-            stats_results[date_str]["jobs"]["waiting_jobs"] += int(
-                job.status == SpiderJob.WAITING_STATUS
-            )
-            stats_results[date_str]["jobs"]["running_jobs"] += int(
-                job.status == SpiderJob.RUNNING_STATUS
-            )
-            stats_results[date_str]["jobs"]["stopped_jobs"] += int(
-                job.status == SpiderJob.STOPPED_STATUS
-            )
-            stats_results[date_str]["jobs"]["completed_jobs"] += int(
-                job.status == SpiderJob.COMPLETED_STATUS
-            )
-            stats_results[date_str]["jobs"]["in_queue_jobs"] += int(
-                job.status == SpiderJob.IN_QUEUE_STATUS
-            )
-            stats_results[date_str]["jobs"]["error_jobs"] += int(
-                job.status == SpiderJob.ERROR_STATUS
-            )
+            for (key, value) in self.stats_mapping["jobs"].items():
+                stats_results[date_str]["jobs"][key] += int(job.status == value)
 
         for stats in stats_set:
             job_id = int(findall(r"\d+", stats["_id"])[1])
-            date_str = jobs_ids[job_id]
+            date_str = jobs_offset[job_id]
             stats_results[date_str]["items_count"] += stats.get(
                 self.stats_mapping["items_count"], 0
             )
@@ -202,31 +195,10 @@ class StatsMixin:
     def parse_jobs_stats(self, stats_set: List[dict]) -> dict:
         stats_results = defaultdict(lambda: defaultdict(int))
         stats_results.default_factory = lambda: {
-            "pages": {
-                "total_pages": 0,
-                "scraped_pages": 0,
-                "missed_pages": 0,
-            },
-            "items_count": 0,
-            "runtime": timedelta(seconds=0),
-            "status_codes": {
-                "status_200": 0,
-                "status_301": 0,
-                "status_302": 0,
-                "status_401": 0,
-                "status_403": 0,
-                "status_404": 0,
-                "status_429": 0,
-                "status_500": 0,
-            },
-            "logs": {
-                "total_logs": 0,
-                "debug_logs": 0,
-                "info_logs": 0,
-                "warning_logs": 0,
-                "error_logs": 0,
-                "critical_logs": 0,
-            },
+            **self.numerical_stats,
+            "pages": {**self.pages_stats},
+            "status_codes": {**self.status_codes_stats},
+            "logs": {**self.logs_stats},
         }
 
         for stats in stats_set:
@@ -286,6 +258,13 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 required=True,
                 description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                required=False,
+                description="Offset from UTC time in minutes.",
+            ),
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
@@ -297,6 +276,12 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     def list(self, request: Request, *args, **kwargs):
         try:
             start_date, end_date = self.get_parameters(request)
+            offset = int(request.query_params.get("offset", 0))
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid 'offset' parameter. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
 
@@ -319,16 +304,16 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             kwargs["pid"], job_stats_ids
         )
 
-        global_stats_results = self.summarize_stats_results(stats_set, jobs_set)
+        global_stats_results = self.summarize_stats_results(stats_set, jobs_set, offset)
 
         response_schema = []
-        for stat_result in global_stats_results.values():
-            date = stat_result.pop("min_date", None)
+        for (date_stat, stat_result) in global_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid(raise_exception=True):
                 response_schema.append(
                     {
-                        "date": date,
+                        "date": datetime.strptime(date_stat, "%Y-%m-%d")
+                        + timedelta(minutes=offset),
                         "stats": stat_serializer.data,
                     }
                 )
@@ -454,7 +439,6 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         stats_set: List[dict] = spiderdata_db_client.get_jobs_set_stats(
             kwargs["pid"], jobs_stats_ids
         )
-
         stats_results: dict = self.parse_jobs_stats(stats_set=stats_set)
         serializer = SpiderJobSerializer(paginated_jobs_set, many=True)
         response_schema = []
@@ -488,6 +472,13 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 required=True,
                 description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                required=False,
+                description="Offset from UTC time in minutes.",
+            ),
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
@@ -496,9 +487,15 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             ),
         },
     )
-    def list(self, request, *args, **kwargs):
+    def list(self, request: Request, *args, **kwargs):
         try:
             start_date, end_date = self.get_parameters(request)
+            offset = int(request.query_params.get("offset", 0))
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid 'offset' parameter. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
 
@@ -519,17 +516,17 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         )
 
         spider_jobs_stats_results: dict = self.summarize_stats_results(
-            stats_set, jobs_set
+            stats_set, jobs_set, offset
         )
 
         response_schema = []
-        for stat_result in spider_jobs_stats_results.values():
-            date = stat_result.pop("min_date", None)
+        for (date_stat, stat_result) in spider_jobs_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
                 response_schema.append(
                     {
-                        "date": date,
+                        "date": datetime.strptime(date_stat, "%Y-%m-%d")
+                        + timedelta(minutes=offset),
                         "stats": stat_serializer.data,
                     }
                 )

@@ -1328,6 +1328,11 @@ paths:
           description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
           required: true
           type: string
+        - name: offset
+          in: query
+          description: Offset from UTC time in minutes.
+          required: false
+          type: integer
       responses:
         '200':
           description: Global stats array with stats summary for each date
@@ -1410,6 +1415,11 @@ paths:
           description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
           required: true
           type: string
+        - name: offset
+          in: query
+          description: Offset from UTC time in minutes.
+          required: false
+          type: integer
       responses:
         '200':
           description: Spiders/Jobs stats array with stats summary for each date

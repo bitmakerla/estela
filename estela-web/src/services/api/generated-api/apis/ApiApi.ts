@@ -453,6 +453,7 @@ export interface ApiStatsListRequest {
     endDate: string;
     page?: number;
     pageSize?: number;
+    offset?: number;
 }
 
 export interface ApiStatsSpiderJobsRequest {
@@ -472,6 +473,7 @@ export interface ApiStatsSpiderListRequest {
     endDate: string;
     page?: number;
     pageSize?: number;
+    offset?: number;
 }
 
 export interface ApiStatsSpidersRequest {
@@ -2705,6 +2707,10 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['end_date'] = requestParameters.endDate;
         }
 
+        if (requestParameters.offset !== undefined) {
+            queryParameters['offset'] = requestParameters.offset;
+        }
+
         const headerParameters: runtime.HTTPHeaders = {};
 
         if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
@@ -2833,6 +2839,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.endDate !== undefined) {
             queryParameters['end_date'] = requestParameters.endDate;
+        }
+
+        if (requestParameters.offset !== undefined) {
+            queryParameters['offset'] = requestParameters.offset;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
