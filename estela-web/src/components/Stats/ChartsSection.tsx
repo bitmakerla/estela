@@ -12,14 +12,14 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { StatType, Spin as Spinner } from "../../shared";
-import { GlobalStats, SpidersJobsStats } from "../../services";
+import { ProjectStats, SpidersStats } from "../../services";
 import { Empty, Tabs } from "antd";
 import moment from "moment";
 import "./ChartsSection.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const getJobsDataset = (statsData: GlobalStats[]) => {
+const getJobsDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "Completed",
@@ -54,7 +54,7 @@ const getJobsDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-const getPagesDataset = (statsData: GlobalStats[]) => {
+const getPagesDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "Scraped",
@@ -69,7 +69,7 @@ const getPagesDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-const getItemsDataset = (statsData: GlobalStats[]) => {
+const getItemsDataset = (statsData: ProjectStats[]) => {
     const datasets = [
         {
             label: "Scraped",
@@ -80,7 +80,7 @@ const getItemsDataset = (statsData: GlobalStats[]) => {
     return datasets;
 };
 
-const getRuntimeDataset = (statsData: GlobalStats[]) => {
+const getRuntimeDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "Runtime (seconds)",
@@ -90,17 +90,17 @@ const getRuntimeDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-const getCoverageDataset = (statsData: GlobalStats[]) => {
+const getCoverageDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "Item coverage (percentage)",
-            data: statsData.map((statsData) => statsData.stats.coverage.totalItemsCoverage ?? 0),
+            data: statsData.map((statsData) => statsData.stats.coverage?.totalItemsCoverage ?? 0),
             backgroundColor: "#32C3A4",
         },
     ];
 };
 
-const getSuccessRateDataset = (statsData: GlobalStats[]) => {
+const getSuccessRateDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "Success rate (percentage)",
@@ -110,7 +110,7 @@ const getSuccessRateDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-const getStatusCodeDataset = (statsData: GlobalStats[]) => {
+const getStatusCodeDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "200",
@@ -155,7 +155,7 @@ const getStatusCodeDataset = (statsData: GlobalStats[]) => {
     ];
 };
 
-const getLogsDataset = (statData: GlobalStats[]) => {
+const getLogsDataset = (statData: ProjectStats[]) => {
     return [
         {
             label: "INFO",
@@ -187,11 +187,11 @@ const getLogsDataset = (statData: GlobalStats[]) => {
 
 interface ChartsSectionProps {
     loadedStats: boolean;
-    stats: GlobalStats[] | SpidersJobsStats[];
+    stats: ProjectStats[] | SpidersStats[];
 }
 
 export class ChartsSection extends Component<ChartsSectionProps, unknown> {
-    datasetsGenerators: { [key in StatType]: (statsData: GlobalStats[]) => ChartDataset<"bar", number[]>[] } = {
+    datasetsGenerators: { [key in StatType]: (statsData: ProjectStats[]) => ChartDataset<"bar", number[]>[] } = {
         [StatType.JOBS]: getJobsDataset,
         [StatType.PAGES]: getPagesDataset,
         [StatType.ITEMS]: getItemsDataset,
@@ -221,7 +221,7 @@ export class ChartsSection extends Component<ChartsSectionProps, unknown> {
                 {stats.length === 0 ? (
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 ) : (
-                    <div className="stats-charts">
+                    <div className="stats-charts mb-4">
                         <Bar
                             options={{
                                 responsive: true,

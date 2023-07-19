@@ -5,7 +5,7 @@ import Run from "../../assets/icons/run.svg";
 import { Row } from "antd";
 import { ProjectHealth, RightSidedModal } from "..";
 import { BytesMetric } from "../../utils";
-import { GlobalStats } from "../../services";
+import { ProjectStats } from "../../services";
 
 const { RangePicker } = DatePicker;
 
@@ -15,11 +15,11 @@ interface HeaderSectionProps {
     formattedNetwork: BytesMetric;
     formattedStorage: BytesMetric;
     processingTime: number;
-    stats: GlobalStats[];
+    stats: ProjectStats[];
     loadedStats: boolean;
     startDate: string;
     endDate: string;
-    onRefreshEventHandler: React.MouseEventHandler<HTMLElement> | undefined;
+    onRefreshEventHandler: () => Promise<void>;
     onChangeDateRangeHandler: ((values: RangeValue, formatString: [string, string]) => void) | undefined;
 }
 
@@ -65,7 +65,7 @@ export class HeaderSection extends Component<HeaderSectionProps, HeaderSectionSt
                     <Button
                         icon={<Run className="mr-2" width={19} />}
                         className="flex float-left items-center py-3 px-4 rounded-3xl text-sm font-medium stroke-estela border-none bg-estela-blue-low hover:bg-estela-blue-low text-estela hover:stroke-estela hover:text-estela focus:bg-estela-blue-low focus:stroke-estela focus:text-estela"
-                        onClick={onRefreshEventHandler}
+                        onClick={() => onRefreshEventHandler()}
                     >
                         Refresh
                     </Button>

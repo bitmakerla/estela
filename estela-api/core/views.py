@@ -10,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from api.tokens import account_reset_token
 from config.job_manager import job_manager
 
+
 def launch_deploy_job(pid, did, container_image):
     deploy_user = User.objects.get(username="deploy_manager")
     deploy_user_token, _ = Token.objects.get_or_create(user=deploy_user)

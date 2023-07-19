@@ -14,10 +14,6 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    JobsMetadata,
-    JobsMetadataFromJSON,
-    JobsMetadataFromJSONTyped,
-    JobsMetadataToJSON,
     Stats,
     StatsFromJSON,
     StatsFromJSONTyped,
@@ -27,34 +23,28 @@ import {
 /**
  * 
  * @export
- * @interface SpidersJobsStats
+ * @interface SpidersStats
  */
-export interface SpidersJobsStats {
+export interface SpidersStats {
     /**
      * 
      * @type {Date}
-     * @memberof SpidersJobsStats
+     * @memberof SpidersStats
      */
     date: Date;
     /**
      * 
      * @type {Stats}
-     * @memberof SpidersJobsStats
+     * @memberof SpidersStats
      */
     stats: Stats;
-    /**
-     * 
-     * @type {Array<JobsMetadata>}
-     * @memberof SpidersJobsStats
-     */
-    jobsMetadata: Array<JobsMetadata>;
 }
 
-export function SpidersJobsStatsFromJSON(json: any): SpidersJobsStats {
-    return SpidersJobsStatsFromJSONTyped(json, false);
+export function SpidersStatsFromJSON(json: any): SpidersStats {
+    return SpidersStatsFromJSONTyped(json, false);
 }
 
-export function SpidersJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpidersJobsStats {
+export function SpidersStatsFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpidersStats {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -62,11 +52,10 @@ export function SpidersJobsStatsFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'date': (new Date(json['date'])),
         'stats': StatsFromJSON(json['stats']),
-        'jobsMetadata': ((json['jobs_metadata'] as Array<any>).map(JobsMetadataFromJSON)),
     };
 }
 
-export function SpidersJobsStatsToJSON(value?: SpidersJobsStats | null): any {
+export function SpidersStatsToJSON(value?: SpidersStats | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -77,7 +66,6 @@ export function SpidersJobsStatsToJSON(value?: SpidersJobsStats | null): any {
         
         'date': (value.date.toISOString().substr(0,10)),
         'stats': StatsToJSON(value.stats),
-        'jobs_metadata': ((value.jobsMetadata as Array<any>).map(JobsMetadataToJSON)),
     };
 }
 

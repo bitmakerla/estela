@@ -4,8 +4,8 @@ import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
-import { ApiProjectsReadRequest, Project, ProjectUsage, GlobalStats, ApiStatsListRequest } from "../../services/api";
-import { BytesMetric, formatBytes } from "../../utils";
+import { ApiProjectsReadRequest, Project, ProjectUsage, ProjectStats } from "../../services/api";
+import { BytesMetric, formatBytes, parseDurationToSeconds } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
@@ -24,7 +24,7 @@ interface ProjectDashboardPageState {
     count: number;
     current: number;
     loadedStats: boolean;
-    globalStats: GlobalStats[];
+    projectStats: ProjectStats[];
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
 }
@@ -50,7 +50,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         count: 0,
         current: 0,
         loadedStats: false,
-        globalStats: [],
+        projectStats: [],
         statsStartDate: moment().subtract(7, "days").startOf("day").utc(),
         statsEndDate: moment().utc(),
     };
@@ -103,41 +103,46 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         startDate?: string | undefined | null,
         endDate?: string | undefined | null,
     ): Promise<void> => {
+        this.setState({ loadedStats: false });
         const { statsStartDate, statsEndDate } = this.state;
-        const params: ApiStatsListRequest = {
-            pid: this.projectId,
-            startDate: !startDate ? statsStartDate.toISOString() : startDate,
-            endDate: !endDate ? statsEndDate.toISOString() : endDate,
-        };
-
         if (startDate && endDate) {
             this.setState({
                 statsStartDate: moment.utc(startDate),
                 statsEndDate: moment.utc(endDate),
             });
         }
-
-        await this.apiService.apiStatsList(params).then(
-            (response: GlobalStats[]) => {
-                this.setState({
-                    globalStats: response,
-                    loadedStats: true,
-                });
-            },
-            (error: Error) => {
-                notification.error({
-                    message: "No data",
-                    description: error.message,
-                });
-                this.setState({ loadedStats: true });
-            },
-        );
+        await this.apiService
+            .apiStatsList({
+                pid: this.projectId,
+                startDate: !startDate ? statsStartDate.toISOString() : startDate,
+                endDate: !endDate ? statsEndDate.toISOString() : endDate,
+                offset: new Date().getTimezoneOffset(),
+            })
+            .then(
+                (response: ProjectStats[]) => {
+                    response.forEach((stat) => {
+                        if (stat.stats.runtime)
+                            stat.stats.runtime = parseDurationToSeconds(stat.stats.runtime.toString());
+                    });
+                    this.setState({
+                        projectStats: [...response],
+                        loadedStats: true,
+                    });
+                },
+                (error: Error) => {
+                    notification.error({
+                        message: "No data",
+                        description: error.message,
+                    });
+                    this.setState({ loadedStats: true });
+                },
+            );
     };
 
     calcAverageSuccessRate = (): number => {
-        const { globalStats } = this.state;
-        if (globalStats.length === 0) return 0;
-        const successRates = globalStats.map((stat) => (stat.stats.successRate ?? 0) / 100);
+        const { projectStats } = this.state;
+        if (projectStats.length === 0) return 0;
+        const successRates = projectStats.map((stat) => (stat.stats.successRate ?? 0) / 100);
         const sumSuccessRates = successRates.reduce((acc, cur) => acc + cur, 0);
         return sumSuccessRates / successRates.length;
     };
@@ -151,16 +156,15 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         this.getProjectStatsAndUpdateDates(startDateUTC, endDateUTC);
     };
 
-    onRefreshEventHandler: React.MouseEventHandler<HTMLElement> | undefined = () => {
-        this.setState({ loadedStats: false });
-        this.getProjectStatsAndUpdateDates();
+    onRefreshEventHandler = async () => {
+        await this.getProjectStatsAndUpdateDates();
     };
 
     render(): JSX.Element {
         const {
             name,
             loaded,
-            globalStats,
+            projectStats,
             loadedStats,
             formattedNetwork,
             formattedStorage,
@@ -199,16 +203,16 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     formattedNetwork={formattedNetwork}
                                     formattedStorage={formattedStorage}
                                     processingTime={processingTime}
-                                    stats={globalStats}
+                                    stats={projectStats}
                                     loadedStats={loadedStats}
                                     startDate={statsStartDate.local().format("ddd, DD MMM")}
                                     endDate={statsEndDate.local().format("ddd, DD MMM")}
                                 />
-                                <ChartsSection stats={globalStats.slice().reverse()} loadedStats={loadedStats} />
+                                <ChartsSection stats={projectStats.slice().reverse()} loadedStats={loadedStats} />
                                 <StatsTableSection
                                     pid={this.projectId}
                                     apiService={this.apiService}
-                                    stats={globalStats}
+                                    stats={projectStats}
                                     loadedStats={loadedStats}
                                 />
                             </Content>

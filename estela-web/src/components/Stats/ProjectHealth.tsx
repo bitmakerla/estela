@@ -5,7 +5,7 @@ import { Spin } from "../../shared";
 import { BytesMetric, formatSecondsToHHMMSS } from "../../utils";
 import { Chart as ChartJS, CategoryScale, Title, Tooltip, Legend, ArcElement } from "chart.js";
 import Help from "../../assets/icons/help.svg";
-import { GlobalStats } from "../../services";
+import { ProjectStats } from "../../services";
 
 ChartJS.register(CategoryScale, ArcElement, Title, Tooltip, Legend);
 const { Text } = Typography;
@@ -15,7 +15,7 @@ const influencePages = 0.3;
 
 interface ProjectHealthProps {
     loadedStats: boolean;
-    stats: GlobalStats[];
+    stats: ProjectStats[];
     formattedNetwork: BytesMetric;
     processingTime: number;
     formattedStorage: BytesMetric;

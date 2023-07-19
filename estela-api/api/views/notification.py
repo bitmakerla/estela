@@ -18,7 +18,9 @@ class NotificationViewSet(BaseViewSet, viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request is None:
             return Notification.objects.none()
-        return Notification.objects.filter(user=self.request.user).order_by("-activity__created")
+        return Notification.objects.filter(user=self.request.user).order_by(
+            "-activity__created"
+        )
 
     @swagger_auto_schema(
         request_body=NotificationUpdateSerializer,
