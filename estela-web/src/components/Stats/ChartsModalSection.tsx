@@ -40,7 +40,7 @@ const datasetsGenerator = (statOption: StatType, stats: SpiderJobStats | SpiderJ
             return [
                 {
                     label: "items",
-                    data: [sumArr(stats.map((jobsStats) => jobsStats.stats?.itemsCount ?? 0))],
+                    data: stats.map((jobsStats) => jobsStats.stats?.itemsCount ?? 0),
                     backgroundColor: "#32C3A4",
                 },
             ];
@@ -48,9 +48,7 @@ const datasetsGenerator = (statOption: StatType, stats: SpiderJobStats | SpiderJ
             return [
                 {
                     label: "runtime",
-                    data: [
-                        sumArr(stats.map((jobsStats) => parseDurationToSeconds(jobsStats.stats?.runtime?.toString()))),
-                    ],
+                    data: stats.map((jobsStats) => parseDurationToSeconds(jobsStats.stats?.runtime?.toString())),
                     backgroundColor: "#32C3A4",
                 },
             ];
@@ -487,9 +485,12 @@ interface ChartsModalSectionProps {
 }
 export class ChartsModalSection extends Component<ChartsModalSectionProps, unknown> {
     labelsGenerator = (statOption: StatType) => {
+        const { stats } = this.props;
         if (statOption === StatType.PAGES) return ["scraped", "missed"];
-        else if (statOption === StatType.ITEMS) return ["items"];
-        else if (statOption === StatType.RUNTIME) return ["runtime"];
+        else if (statOption === StatType.ITEMS)
+            return Array.isArray(stats) ? stats.map(({ jid }) => `job ${jid}`) : ["items"];
+        else if (statOption === StatType.RUNTIME)
+            return Array.isArray(stats) ? stats.map(({ jid }) => `job ${jid}`) : ["runtime"];
         else if (statOption === StatType.SUCCESS_RATE) return ["job success rate"];
         else if (statOption === StatType.STATUS_CODE) return ["200", "301", "302", "401", "403", "404", "429", "500"];
         else if (statOption === StatType.COVERAGE) return ["coverage"];

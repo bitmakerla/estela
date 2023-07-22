@@ -1320,17 +1320,17 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
         - name: offset
           in: query
-          description: Offset from UTC time in minutes.
+          description: Offset between your local timezone and UTC in 'minutes'.
           required: false
           type: integer
       responses:
@@ -1340,48 +1340,6 @@ paths:
             type: array
             items:
               $ref: '#/definitions/ProjectStats'
-      tags:
-        - api
-    parameters:
-      - name: pid
-        in: path
-        required: true
-        type: string
-  /api/stats/{pid}/jobs:
-    get:
-      operationId: api_stats_jobs
-      description: Retrieve all the jobs of a spider executed in a range of dates.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-        - name: page_size
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-        - name: start_date
-          in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
-          required: true
-          type: string
-        - name: end_date
-          in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
-          required: true
-          type: string
-        - name: spider
-          in: query
-          description: The spider ID related to the jobs.
-          required: true
-          type: integer
-      responses:
-        '200':
-          description: Paginated jobs belonging to a spider in a range of time
-          schema:
-            $ref: '#/definitions/JobsPagination'
       tags:
         - api
     parameters:
@@ -1417,7 +1375,7 @@ paths:
           type: string
         - name: offset
           in: query
-          description: Offset from UTC time in minutes.
+          description: Offset between your local timezone and UTC in 'minutes'.
           required: false
           type: integer
       responses:
@@ -1463,10 +1421,10 @@ paths:
           description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
           required: true
           type: string
-        - name: spider
+        - name: offset
           in: query
-          description: The spider ID related to the jobs.
-          required: true
+          description: Offset between your local timezone and UTC in 'minutes'.
+          required: false
           type: integer
       responses:
         '200':
@@ -1509,6 +1467,11 @@ paths:
           description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
           required: true
           type: string
+        - name: offset
+          in: query
+          description: Offset between your local timezone and UTC in 'minutes'.
+          required: false
+          type: integer
       responses:
         '200':
           description: Paginated spiders launched in a range of time
@@ -2771,6 +2734,18 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
+  SpidersStats:
+    required:
+      - date
+      - stats
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
   SpiderJobStats:
     required:
       - stats
@@ -2887,18 +2862,6 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobStats'
-  SpidersStats:
-    required:
-      - date
-      - stats
-    type: object
-    properties:
-      date:
-        title: Date
-        type: string
-        format: date
-      stats:
-        $ref: '#/definitions/Stats'
   SpidersPagination:
     required:
       - count

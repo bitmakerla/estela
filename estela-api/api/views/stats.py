@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from re import findall
 from typing import List, Tuple
-from json import dumps
 
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -107,16 +106,28 @@ class StatsMixin:
     }
 
     def get_parameters(self, request: Request) -> Tuple[datetime, datetime]:
-        start_date = request.query_params.get("start_date", timezone.now())
-        end_date = request.query_params.get("end_date", timezone.now())
         try:
-            if type(start_date) == str:
-                start_date = datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-            if type(end_date) == str:
-                end_date = datetime.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            offset = int(request.query_params.get("offset", 0))
+        except (ValueError, TypeError):
+            raise TypeError()
+
+        try:
+            start_date = request.query_params.get(
+                "start_date", timezone.now().strftime("%Y-%m-%d")
+            )
+            end_date = request.query_params.get(
+                "end_date", timezone.now().strftime("%Y-%m-%d")
+            )
+
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(
+                hour=23, minute=59, second=59, microsecond=999999
+            )
         except ValueError:
             raise InvalidDateFormatException()
-        return start_date, end_date
+        return start_date, end_date, offset
 
     def summarize_stats_results(
         self, stats_set: List[dict], jobs_set: QuerySet[SpiderJob], offset: int
@@ -249,21 +260,21 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
+                description="Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).",
             ),
             openapi.Parameter(
                 name="end_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
+                description="End of date in format [%Y-%m-%d] (e.g. 2023-06-02).",
             ),
             openapi.Parameter(
                 name="offset",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
                 required=False,
-                description="Offset from UTC time in minutes.",
+                description="Offset between your local timezone and UTC in 'minutes'.",
             ),
         ],
         responses={
@@ -275,8 +286,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     )
     def list(self, request: Request, *args, **kwargs):
         try:
-            start_date, end_date = self.get_parameters(request)
-            offset = int(request.query_params.get("offset", 0))
+            start_date, end_date, offset = self.get_parameters(request)
         except (ValueError, TypeError):
             return Response(
                 {"error": "Invalid 'offset' parameter. Must be an integer."},
@@ -284,6 +294,10 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
+
+        start_date, end_date = start_date + timedelta(
+            minutes=offset
+        ), end_date + timedelta(minutes=offset)
 
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
@@ -312,8 +326,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             if stat_serializer.is_valid(raise_exception=True):
                 response_schema.append(
                     {
-                        "date": datetime.strptime(date_stat, "%Y-%m-%d")
-                        + timedelta(minutes=offset),
+                        "date": datetime.strptime(date_stat, "%Y-%m-%d"),
                         "stats": stat_serializer.data,
                     }
                 )
@@ -341,6 +354,13 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 required=True,
                 description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
+            openapi.Parameter(
+                name="offset",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                required=False,
+                description="Offset between your local timezone and UTC in 'minutes'.",
+            ),
         ],
         responses={
             status.HTTP_200_OK: openapi.Response(
@@ -352,9 +372,18 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     @action(methods=["GET"], detail=False)
     def spiders(self, request: Request, *args, **kwargs):
         try:
-            start_date, end_date = self.get_parameters(request)
+            start_date, end_date, offset = self.get_parameters(request)
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid 'offset' parameter. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
+
+        start_date, end_date = start_date + timedelta(
+            minutes=offset
+        ), end_date + timedelta(minutes=offset)
 
         paginator = PageNumberPagination()
         paginator.page = request.query_params.get("page", 1)
@@ -364,88 +393,12 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         paginator.max_page_size = self.MAX_PAGINATION_SIZE
 
         spiders_set = Spider.objects.filter(
-            jobs__created__range=[start_date, end_date]
+            project=kwargs["pid"], jobs__created__range=[start_date, end_date]
         ).distinct()
         paginated_spiders_set = paginator.paginate_queryset(spiders_set, request)
 
         serializer = SpiderSerializer(paginated_spiders_set, many=True)
         return paginator.get_paginated_response(serializer.data)
-
-    @swagger_auto_schema(
-        operation_description="Retrieve all the jobs of a spider executed in a range of dates.",
-        manual_parameters=[
-            openapi.Parameter(
-                name="start_date",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
-                required=True,
-                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
-            ),
-            openapi.Parameter(
-                name="end_date",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_STRING,
-                required=True,
-                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
-            ),
-            openapi.Parameter(
-                name="spider",
-                in_=openapi.IN_QUERY,
-                type=openapi.TYPE_INTEGER,
-                required=True,
-                description="The spider ID related to the jobs.",
-            ),
-        ],
-        responses={
-            status.HTTP_200_OK: openapi.Response(
-                description="Paginated jobs belonging to a spider in a range of time",
-                schema=JobsPaginationSerializer(),
-            ),
-        },
-    )
-    @action(methods=["GET"], detail=False)
-    def jobs(self, request: Request, *args, **kwargs):
-        try:
-            start_date, end_date = self.get_parameters(request)
-            spider = int(request.query_params.get("spider"))
-        except (ValueError, TypeError):
-            return Response(
-                {"error": "Invalid 'spider' parameter. Must be an integer."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except InvalidDateFormatException as e:
-            return Response({"error": str(e.detail)}, status=e.status_code)
-
-        if not spiderdata_db_client.get_connection():
-            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
-
-        paginator = PageNumberPagination()
-        paginator.page = request.query_params.get("page", 1)
-        paginator.page_size = request.query_params.get(
-            "page_size", self.DEFAULT_PAGINATION_SIZE
-        )
-        paginator.max_page_size = self.MAX_PAGINATION_SIZE
-
-        jobs_set = SpiderJob.objects.filter(
-            spider=spider, created__range=[start_date, end_date]
-        )
-
-        paginated_jobs_set = paginator.paginate_queryset(jobs_set, request)
-
-        jobs_stats_ids: List[str] = [
-            "{}-{}-job_stats".format(job.spider.sid, job.jid)
-            for job in paginated_jobs_set
-        ]
-        stats_set: List[dict] = spiderdata_db_client.get_jobs_set_stats(
-            kwargs["pid"], jobs_stats_ids
-        )
-        stats_results: dict = self.parse_jobs_stats(stats_set=stats_set)
-        serializer = SpiderJobSerializer(paginated_jobs_set, many=True)
-        response_schema = []
-        for job in serializer.data:
-            job_id = job.get("jid", None)
-            response_schema.append({**job, "stats": stats_results[job_id]})
-        return paginator.get_paginated_response(response_schema)
 
 
 class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
@@ -477,7 +430,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
                 required=False,
-                description="Offset from UTC time in minutes.",
+                description="Offset between your local timezone and UTC in 'minutes'.",
             ),
         ],
         responses={
@@ -489,8 +442,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     )
     def list(self, request: Request, *args, **kwargs):
         try:
-            start_date, end_date = self.get_parameters(request)
-            offset = int(request.query_params.get("offset", 0))
+            start_date, end_date, offset = self.get_parameters(request)
         except (ValueError, TypeError):
             return Response(
                 {"error": "Invalid 'offset' parameter. Must be an integer."},
@@ -498,6 +450,10 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
+
+        start_date, end_date = start_date + timedelta(
+            minutes=offset
+        ), end_date + timedelta(minutes=offset)
 
         if not spiderdata_db_client.get_connection():
             raise ConnectionError({"error": errors.UNABLE_CONNECT_DB})
@@ -525,8 +481,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
             if stat_serializer.is_valid():
                 response_schema.append(
                     {
-                        "date": datetime.strptime(date_stat, "%Y-%m-%d")
-                        + timedelta(minutes=offset),
+                        "date": datetime.strptime(date_stat, "%Y-%m-%d"),
                         "stats": stat_serializer.data,
                     }
                 )
@@ -554,11 +509,11 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
             ),
             openapi.Parameter(
-                name="spider",
+                name="offset",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
-                required=True,
-                description="The spider ID related to the jobs.",
+                required=False,
+                description="Offset between your local timezone and UTC in 'minutes'.",
             ),
         ],
         responses={
@@ -571,9 +526,18 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     @action(methods=["GET"], detail=False)
     def jobs(self, request: Request, *args, **kwargs):
         try:
-            start_date, end_date = self.get_parameters(request)
+            start_date, end_date, offset = self.get_parameters(request)
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid 'offset' parameter. Must be an integer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except InvalidDateFormatException as e:
             return Response({"error": str(e.detail)}, status=e.status_code)
+
+        start_date, end_date = start_date + timedelta(
+            minutes=offset
+        ), end_date + timedelta(minutes=offset)
 
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})

@@ -47,9 +47,10 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                     <div
                         title="see details"
                         onClick={() => {
+                            const dateString = statsDate.date.toLocaleDateString();
                             const [startDate, endDate] = [
-                                moment(statsDate.date).startOf("day").utc().toISOString(),
-                                moment(statsDate.date).endOf("day").utc().toISOString(),
+                                moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
+                                moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
                             ];
                             this.setState({
                                 openDateModal: true,
@@ -249,9 +250,10 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                     onRow={(record, rowIndex) => {
                         return {
                             onClick: () => {
+                                const dateString = record.statsDate.date.toLocaleDateString();
                                 const [startDate, endDate] = [
-                                    moment(record.statsDate.date).startOf("day").utc().toISOString(),
-                                    moment(record.statsDate.date).endOf("day").utc().toISOString(),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
                                 ];
                                 this.setState({
                                     openDateModal: true,
@@ -280,38 +282,28 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                         startDate={startDateModal}
                         endDate={endDateModal}
                         nextDate={() => {
-                            if (focusStatsDateIndex < stats.length - 1) {
+                            if (focusStatsDateIndex > 0) {
+                                const dateString = stats[focusStatsDateIndex - 1].date.toLocaleDateString();
                                 const [startDate, endDate] = [
-                                    moment(stats[focusStatsDateIndex + 1].date)
-                                        .startOf("day")
-                                        .utc()
-                                        .toISOString(),
-                                    moment(stats[focusStatsDateIndex + 1].date)
-                                        .endOf("day")
-                                        .utc()
-                                        .toISOString(),
+                                    moment(dateString, "M/D/YYYY").startOf("day").format("YYYY-MM-DD"),
+                                    moment(dateString, "M/D/YYYY").endOf("day").format("YYYY-MM-DD"),
                                 ];
                                 this.setState({
-                                    focusStatsDateIndex: focusStatsDateIndex + 1,
+                                    focusStatsDateIndex: focusStatsDateIndex - 1,
                                     startDateModal: startDate,
                                     endDateModal: endDate,
                                 });
                             }
                         }}
                         prevDate={() => {
-                            if (focusStatsDateIndex > 0) {
+                            if (focusStatsDateIndex < stats.length - 1) {
+                                const dateString = stats[focusStatsDateIndex + 1].date.toLocaleDateString();
                                 const [startDate, endDate] = [
-                                    moment(stats[focusStatsDateIndex - 1].date)
-                                        .startOf("day")
-                                        .utc()
-                                        .toISOString(),
-                                    moment(stats[focusStatsDateIndex - 1].date)
-                                        .endOf("day")
-                                        .utc()
-                                        .toISOString(),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
                                 ];
                                 this.setState({
-                                    focusStatsDateIndex: focusStatsDateIndex - 1,
+                                    focusStatsDateIndex: focusStatsDateIndex + 1,
                                     startDateModal: startDate,
                                     endDateModal: endDate,
                                 });

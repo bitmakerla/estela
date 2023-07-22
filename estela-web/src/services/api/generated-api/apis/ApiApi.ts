@@ -438,15 +438,6 @@ export interface ApiProjectsUsageRequest {
     endDate?: string;
 }
 
-export interface ApiStatsJobsRequest {
-    pid: string;
-    startDate: string;
-    endDate: string;
-    spider: number;
-    page?: number;
-    pageSize?: number;
-}
-
 export interface ApiStatsListRequest {
     pid: string;
     startDate: string;
@@ -461,9 +452,9 @@ export interface ApiStatsSpiderJobsRequest {
     sid: string;
     startDate: string;
     endDate: string;
-    spider: number;
     page?: number;
     pageSize?: number;
+    offset?: number;
 }
 
 export interface ApiStatsSpiderListRequest {
@@ -482,6 +473,7 @@ export interface ApiStatsSpidersRequest {
     endDate: string;
     page?: number;
     pageSize?: number;
+    offset?: number;
 }
 
 /**
@@ -2609,71 +2601,6 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve all the jobs of a spider executed in a range of dates.
-     */
-    async apiStatsJobsRaw(requestParameters: ApiStatsJobsRequest): Promise<runtime.ApiResponse<JobsPagination>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiStatsJobs.');
-        }
-
-        if (requestParameters.startDate === null || requestParameters.startDate === undefined) {
-            throw new runtime.RequiredError('startDate','Required parameter requestParameters.startDate was null or undefined when calling apiStatsJobs.');
-        }
-
-        if (requestParameters.endDate === null || requestParameters.endDate === undefined) {
-            throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiStatsJobs.');
-        }
-
-        if (requestParameters.spider === null || requestParameters.spider === undefined) {
-            throw new runtime.RequiredError('spider','Required parameter requestParameters.spider was null or undefined when calling apiStatsJobs.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.page !== undefined) {
-            queryParameters['page'] = requestParameters.page;
-        }
-
-        if (requestParameters.pageSize !== undefined) {
-            queryParameters['page_size'] = requestParameters.pageSize;
-        }
-
-        if (requestParameters.startDate !== undefined) {
-            queryParameters['start_date'] = requestParameters.startDate;
-        }
-
-        if (requestParameters.endDate !== undefined) {
-            queryParameters['end_date'] = requestParameters.endDate;
-        }
-
-        if (requestParameters.spider !== undefined) {
-            queryParameters['spider'] = requestParameters.spider;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/stats/{pid}/jobs`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => JobsPaginationFromJSON(jsonValue));
-    }
-
-    /**
-     * Retrieve all the jobs of a spider executed in a range of dates.
-     */
-    async apiStatsJobs(requestParameters: ApiStatsJobsRequest): Promise<JobsPagination> {
-        const response = await this.apiStatsJobsRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
      * Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.
      */
     async apiStatsListRaw(requestParameters: ApiStatsListRequest): Promise<runtime.ApiResponse<Array<ProjectStats>>> {
@@ -2754,10 +2681,6 @@ export class ApiApi extends runtime.BaseAPI {
             throw new runtime.RequiredError('endDate','Required parameter requestParameters.endDate was null or undefined when calling apiStatsSpiderJobs.');
         }
 
-        if (requestParameters.spider === null || requestParameters.spider === undefined) {
-            throw new runtime.RequiredError('spider','Required parameter requestParameters.spider was null or undefined when calling apiStatsSpiderJobs.');
-        }
-
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -2776,8 +2699,8 @@ export class ApiApi extends runtime.BaseAPI {
             queryParameters['end_date'] = requestParameters.endDate;
         }
 
-        if (requestParameters.spider !== undefined) {
-            queryParameters['spider'] = requestParameters.spider;
+        if (requestParameters.offset !== undefined) {
+            queryParameters['offset'] = requestParameters.offset;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -2900,6 +2823,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.endDate !== undefined) {
             queryParameters['end_date'] = requestParameters.endDate;
+        }
+
+        if (requestParameters.offset !== undefined) {
+            queryParameters['offset'] = requestParameters.offset;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
