@@ -6,15 +6,15 @@ from core.tasks import launch_job
 
 
 def create_cronjob(name, key, args, env_vars, tags, schedule, data_expiry_days=None):
-    m, h, d_w, d_m, m_y = schedule.split(" ")
+    minute, hour, day_of_month, month, day_of_week = schedule.split(" ")
     cjid, sid, pid = key.split(".")
     data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
     schedule, _ = CrontabSchedule.objects.get_or_create(
-        minute=m,
-        hour=h,
-        day_of_week=d_w,
-        day_of_month=d_m,
-        month_of_year=m_y,
+        minute=minute,
+        hour=hour,
+        day_of_week=day_of_week,
+        day_of_month=day_of_month,
+        month_of_year=month,
     )
     response = PeriodicTask.objects.create(
         crontab=schedule,
@@ -67,13 +67,13 @@ def delete_cronjob(key):
 def update_schedule(key, schedule):
     try:
         cronjob = PeriodicTask.objects.get(name=key)
-        m, h, d_w, d_m, m_y = schedule.split(" ")
+        minute, hour, day_of_month, month, day_of_week = schedule.split(" ")
         schedule, _ = CrontabSchedule.objects.get_or_create(
-            minute=m,
-            hour=h,
-            day_of_week=d_w,
-            day_of_month=d_m,
-            month_of_year=m_y,
+            minute=minute,
+            hour=hour,
+            day_of_week=day_of_week,
+            day_of_month=day_of_month,
+            month_of_year=month,
         )
         cronjob.crontab = schedule
         cronjob.save()
