@@ -151,16 +151,13 @@ class StatsMixin:
             stats_results[date_str]["jobs"]["total_jobs"] += 1
             for (key, value) in self.stats_mapping["jobs"].items():
                 stats_results[date_str]["jobs"][key] += int(job.status == value)
+            stats_results[date_str]["runtime"] += job.lifespan
 
         for stats in stats_set:
             job_id = int(findall(r"\d+", stats["_id"])[1])
             date_str = jobs_offset[job_id]
             stats_results[date_str]["items_count"] += stats.get(
                 self.stats_mapping["items_count"], 0
-            )
-
-            stats_results[date_str]["runtime"] += timedelta(
-                seconds=stats.get(self.stats_mapping["runtime"], 0.0)
             )
 
             stats_results[date_str]["pages"]["scraped_pages"] += stats.get(

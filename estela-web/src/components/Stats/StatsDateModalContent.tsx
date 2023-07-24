@@ -10,7 +10,7 @@ import "./StatsDateModalContent.scss";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { ChartsModalSection } from "./ChartsModalSection";
-import { formatBytes, formatSecondsToHHMMSS, parseDurationToSeconds } from "../../utils";
+import { durationToSeconds, durationToString, formatBytes, parseDuration, secondsToDuration } from "../../utils";
 
 interface StatsDateModalContentState {
     activeSpider: Spider;
@@ -155,7 +155,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
         const jobsItems = jobs.results.map((job) => {
             return {
                 label: <p className="text-estela-black-full text-right">Job {job.jid}</p>,
-                key: `job-${job.jid}`,
+                key: `${job.jid}`,
                 children: <ChartsModalSection pid={pid} stats={job} pages statusCodes logs />,
             };
         });
@@ -169,12 +169,16 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
         const spiderBandwidth = formatBytes(
             jobs.results.reduce((acc, curr) => acc + (curr.totalResponseBytes ?? 0), 0),
         );
-        const spiderProcessingTime = formatSecondsToHHMMSS(
-            Math.round(
-                jobs.results.reduce((acc, curr) => acc + parseDurationToSeconds(curr.stats.runtime?.toString()), 0),
+        const spiderProcessingTime = durationToString(
+            secondsToDuration(
+                Math.round(
+                    jobs.results.reduce(
+                        (acc, curr) => acc + durationToSeconds(parseDuration(curr.lifespan?.toString())),
+                        0,
+                    ),
+                ),
             ),
         );
-
         return (
             <>
                 {overviewTabSelected && activeSpider.sid ? (
@@ -204,13 +208,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                             <div className="flex items-center gap-x-5 py-5">
                                 <div className="w-3/12 rounded-lg border-2 border-estela-states-green-full p-3 bg-estela-blue-low">
                                     <p className="text-center text-estela-states-green-full text-sm font-bold">
-                                        {isNaN(Math.round(parseDurationToSeconds(activeJob.stats.runtime?.toString())))
-                                            ? "00:00:00"
-                                            : formatSecondsToHHMMSS(
-                                                  Math.round(
-                                                      parseDurationToSeconds(activeJob.stats.runtime?.toString()),
-                                                  ),
-                                              )}
+                                        {activeJob.lifespan || "0:00:00"}
                                     </p>
                                     <p title="Duration" className="text-center text-estela-states-green-full text-sm">
                                         Dur.

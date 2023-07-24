@@ -5,7 +5,7 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import { ApiProjectsReadRequest, Project, ProjectUsage, ProjectStats } from "../../services/api";
-import { BytesMetric, formatBytes, parseDurationToSeconds } from "../../utils";
+import { BytesMetric, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
@@ -120,10 +120,6 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             })
             .then(
                 (response: ProjectStats[]) => {
-                    response.forEach((stat) => {
-                        if (stat.stats.runtime)
-                            stat.stats.runtime = parseDurationToSeconds(stat.stats.runtime.toString());
-                    });
                     this.setState({
                         projectStats: [...response],
                         loadedStats: true,

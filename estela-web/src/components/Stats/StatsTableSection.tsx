@@ -2,12 +2,12 @@ import React, { Component } from "react";
 import { Modal, Row, Table } from "antd";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
-import { formatSecondsToHHMMSS } from "../../utils";
 import { ApiApi, ProjectStats, SpidersStats } from "../../services";
 import Cross from "../../assets/icons/cross.svg";
 import Expand from "../../assets/icons/expand.svg";
 import "./StatsTableSection.scss";
 import { StatsDateModalContent } from "./StatsDateModalContent";
+import { durationToString, parseDuration } from "../../utils";
 
 interface StatsTableDataType {
     key: string;
@@ -149,8 +149,9 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
             key: "runtime",
             align: "center",
             render: (_, { statsDate }) => {
-                const runtime = formatSecondsToHHMMSS(statsDate.stats.runtime ?? 0);
-                return <p className="text-black text-xs font-normal">{runtime}</p>;
+                const runtime = parseDuration(statsDate.stats.runtime?.toString() || "0:00:00");
+                runtime.milliseconds = 0;
+                return <p className="text-black text-xs font-normal">{durationToString(runtime)}</p>;
             },
             sorter: (statA, statB) => {
                 const runtimeA = statA.statsDate.stats.runtime ?? 0;

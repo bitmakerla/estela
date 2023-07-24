@@ -15,7 +15,7 @@ import { StatType } from "../../shared";
 import { SpiderJobStats } from "../../services";
 import { Tabs } from "antd";
 import "./ChartsSection.scss";
-import { parseDurationToSeconds, setValArr, sumArr } from "../../utils";
+import { durationToSeconds, parseDuration, setValArr, sumArr } from "../../utils";
 import moment from "moment";
 import { MinMaxStatCard } from "./MinMaxStatCard";
 
@@ -48,7 +48,7 @@ const datasetsGenerator = (statOption: StatType, stats: SpiderJobStats | SpiderJ
             return [
                 {
                     label: "runtime",
-                    data: stats.map((jobsStats) => parseDurationToSeconds(jobsStats.stats?.runtime?.toString())),
+                    data: stats.map((jobsStats) => durationToSeconds(parseDuration(jobsStats.lifespan?.toString()))),
                     backgroundColor: "#32C3A4",
                 },
             ];

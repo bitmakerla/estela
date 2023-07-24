@@ -5,6 +5,14 @@ export interface BytesMetric {
     type: string;
 }
 
+export interface Duration {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    milliseconds: number;
+}
+
 function completeDateInfo(data: number): string {
     if (data < 10) {
         return `0${data}`;
@@ -25,30 +33,71 @@ export function convertDateToString(date: Date | undefined): string {
     return "";
 }
 
-export function formatSecondsToHHMMSS(seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = Math.round(seconds) % 60;
-    const formattedTime = [
-        hours.toString().padStart(2, "0"),
-        minutes.toString().padStart(2, "0"),
-        remainingSeconds.toString().padStart(2, "0"),
-    ].join(":");
-    return formattedTime;
-}
-
 export function setValArr({ arr, val, index }: { arr: number[]; val: number; index: number }): number[] {
     arr.fill(val, index, index + 1);
     return arr;
 }
 
-export function parseDurationToSeconds(durationString: string | undefined): number {
-    if (durationString) {
-        const [hours, minutes, seconds] = durationString.split(":").map(Number);
-        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-        return totalSeconds;
+export function parseDuration(duration: string | undefined): Duration {
+    if (duration && duration !== "undefined") {
+        const durationRegex = /(?:(\d+) days?,\s*)?(\d{1,2}):(\d{1,2}):(\d{1,2})(?:\.(\d+))?/;
+        const matches = duration.match(durationRegex);
+        if (!matches) {
+            return { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 };
+        }
+        const [, daysStr, hoursStr, minutesStr, secondsStr, millisecondsStr] = matches;
+        const days = parseInt(daysStr || "0", 10);
+        const hours = parseInt(hoursStr, 10);
+        const minutes = parseInt(minutesStr, 10);
+        const seconds = parseInt(secondsStr, 10);
+        const milliseconds = parseInt(millisecondsStr || "0", 10);
+        return {
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+        };
     }
-    return 0;
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 };
+}
+
+export function durationToString(duration: Duration): string {
+    let str = duration.days > 0 ? `${duration.days} days, ` : "";
+    str += duration.hours > 0 ? `${duration.hours}` : "0";
+    str += duration.minutes > 0 ? `:${duration.minutes.toString().padStart(2, "0")}` : ":00";
+    str += duration.seconds > 0 ? `:${duration.seconds.toString().padStart(2, "0")}` : ":00";
+    if (duration.milliseconds > 0) str += `.${duration.milliseconds.toString().padStart(3, "0")}`;
+    return str;
+}
+
+export function durationToSeconds(duration: Duration): number {
+    const { days, hours, minutes, seconds, milliseconds } = duration;
+    return days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds + milliseconds / 1000;
+}
+
+export function secondsToDuration(seconds: number): Duration {
+    const milliseconds = seconds * 1000;
+
+    const days = Math.floor(milliseconds / 86400000);
+    const remainingMilliseconds = milliseconds % 86400000;
+
+    const hours = Math.floor(remainingMilliseconds / 3600000);
+    const remainingMillisecondsAfterHours = remainingMilliseconds % 3600000;
+
+    const minutes = Math.floor(remainingMillisecondsAfterHours / 60000);
+    const remainingMillisecondsAfterMinutes = remainingMillisecondsAfterHours % 60000;
+
+    const secondsInDuration = Math.floor(remainingMillisecondsAfterMinutes / 1000);
+    const millisecondsInDuration = remainingMillisecondsAfterMinutes % 1000;
+
+    return {
+        days,
+        hours,
+        minutes,
+        seconds: secondsInDuration,
+        milliseconds: millisecondsInDuration,
+    };
 }
 
 export function sumArr(arr: number[]): number {
