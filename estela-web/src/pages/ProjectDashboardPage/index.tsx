@@ -5,7 +5,7 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import { ApiProjectsReadRequest, Project, ProjectUsage, ProjectStats } from "../../services/api";
-import { BytesMetric, formatBytes, parseDurationToSeconds } from "../../utils";
+import { BytesMetric, formatBytes } from "../../utils";
 import { resourceNotAllowedNotification, Spin } from "../../shared";
 import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
@@ -51,8 +51,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         current: 0,
         loadedStats: false,
         projectStats: [],
-        statsStartDate: moment().subtract(7, "days").startOf("day").utc(),
-        statsEndDate: moment().utc(),
+        statsStartDate: moment().subtract(7, "days").startOf("day"),
+        statsEndDate: moment(),
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -114,16 +114,12 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         await this.apiService
             .apiStatsList({
                 pid: this.projectId,
-                startDate: !startDate ? statsStartDate.toISOString() : startDate,
-                endDate: !endDate ? statsEndDate.toISOString() : endDate,
+                startDate: !startDate ? statsStartDate.format("YYYY-MM-DD") : startDate,
+                endDate: !endDate ? statsEndDate.format("YYYY-MM-DD") : endDate,
                 offset: new Date().getTimezoneOffset(),
             })
             .then(
                 (response: ProjectStats[]) => {
-                    response.forEach((stat) => {
-                        if (stat.stats.runtime)
-                            stat.stats.runtime = parseDurationToSeconds(stat.stats.runtime.toString());
-                    });
                     this.setState({
                         projectStats: [...response],
                         loadedStats: true,
@@ -150,8 +146,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
     onChangeDateRangeHandler: RangePickerProps["onChange"] = (_, dateStrings) => {
         this.setState({ loadedStats: false });
         const [startDateUTC, endDateUTC] = [
-            moment(dateStrings[0]).startOf("day").utc().toISOString(),
-            moment(dateStrings[1]).endOf("day").utc().toISOString(),
+            moment(dateStrings[0]).startOf("day").format("YYYY-MM-DD"),
+            moment(dateStrings[1]).endOf("day").format("YYYY-MM-DD"),
         ];
         this.getProjectStatsAndUpdateDates(startDateUTC, endDateUTC);
     };
@@ -205,8 +201,8 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
                                     processingTime={processingTime}
                                     stats={projectStats}
                                     loadedStats={loadedStats}
-                                    startDate={statsStartDate.local().format("ddd, DD MMM")}
-                                    endDate={statsEndDate.local().format("ddd, DD MMM")}
+                                    startDate={statsStartDate.format("ddd, DD MMM")}
+                                    endDate={statsEndDate.format("ddd, DD MMM")}
                                 />
                                 <ChartsSection stats={projectStats.slice().reverse()} loadedStats={loadedStats} />
                                 <StatsTableSection

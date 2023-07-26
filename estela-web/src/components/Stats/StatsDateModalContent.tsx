@@ -10,7 +10,7 @@ import "./StatsDateModalContent.scss";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { ChartsModalSection } from "./ChartsModalSection";
-import { formatBytes, parseDurationToSeconds } from "../../utils";
+import { durationToSeconds, durationToString, formatBytes, parseDuration, secondsToDuration } from "../../utils";
 
 interface StatsDateModalContentState {
     activeSpider: Spider;
@@ -37,6 +37,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
     abortController = new AbortController();
     jobPageSize = 10;
     spiderPageSize = 10;
+    isMounted = false;
 
     state: StatsDateModalContentState = {
         activeSpider: {} as Spider,
@@ -51,24 +52,30 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
     };
 
     async componentDidMount(): Promise<void> {
-        const activeSpider = await this.retrieveSpiders(1);
-        if (activeSpider) this.retrieveJobsSpider(activeSpider.sid ?? 0, 1);
-    }
-
-    async componentDidUpdate(prevProps: Readonly<StatsDateModalContentProps>) {
-        const { startDate, endDate } = this.props;
-        if (prevProps.startDate !== startDate && prevProps.endDate !== endDate) {
+        this.isMounted = true;
+        if (this.isMounted) {
             const activeSpider = await this.retrieveSpiders(1);
             if (activeSpider) this.retrieveJobsSpider(activeSpider.sid ?? 0, 1);
         }
     }
 
+    async componentDidUpdate(prevProps: Readonly<StatsDateModalContentProps>) {
+        const { startDate, endDate } = this.props;
+        if (prevProps.startDate !== startDate && prevProps.endDate !== endDate) {
+            if (this.isMounted) {
+                const activeSpider = await this.retrieveSpiders(1);
+                if (activeSpider) this.retrieveJobsSpider(activeSpider.sid ?? 0, 1);
+            }
+        }
+    }
+
     componentWillUnmount(): void {
+        this.isMounted = false;
         this.abortController.abort();
     }
 
     retrieveSpiders = async (page?: number) => {
-        this.setState({ loadedSpiders: false, overviewTabSelected: true });
+        this.isMounted && this.setState({ loadedSpiders: false, overviewTabSelected: true });
         try {
             const { currSpidersPage } = this.state;
             const { pid, startDate, endDate, apiService } = this.props;
@@ -76,14 +83,15 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                 pid: pid,
                 startDate: startDate,
                 endDate: endDate,
+                offset: new Date().getTimezoneOffset(),
                 pageSize: this.spiderPageSize,
                 page: page || currSpidersPage,
             });
-            if (spiders.results.length === 0 && !this.abortController.signal.aborted) {
+            if (spiders.results.length === 0 && !this.abortController.signal.aborted && this.isMounted) {
                 this.setState({ loadedSpiders: true, spiders: spiders });
                 return null;
             }
-            if (!this.abortController.signal.aborted) {
+            if (!this.abortController.signal.aborted && this.isMounted) {
                 this.setState({
                     loadedSpiders: true,
                     spiders: spiders,
@@ -99,26 +107,27 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
     };
 
     retrieveJobsSpider = async (spider: number, page?: number) => {
-        this.setState({ loadedJobs: false, overviewTabSelected: true });
+        this.isMounted && this.setState({ loadedJobs: false, overviewTabSelected: true });
         try {
             const { pid, startDate, endDate, apiService } = this.props;
             const { activeSpider, currJobsPage } = this.state;
 
             if (!activeSpider.sid) throw new Error("No active spider found");
-            const jobs = apiService.apiStatsJobs({
+            const jobs = apiService.apiStatsSpiderJobs({
                 pid: pid,
-                spider: spider,
+                sid: `${spider}`,
                 startDate: startDate,
                 endDate: endDate,
+                offset: new Date().getTimezoneOffset(),
                 pageSize: this.jobPageSize,
                 page: page || currJobsPage,
             });
             jobs.then((jobs) => {
-                if (jobs.results.length === 0 && !this.abortController.signal.aborted) {
+                if (jobs.results.length === 0 && !this.abortController.signal.aborted && this.isMounted) {
                     this.setState({ loadedJobs: true, jobs: jobs });
                     return;
                 }
-                if (!this.abortController.signal.aborted) {
+                if (!this.abortController.signal.aborted && this.isMounted) {
                     this.setState({ loadedJobs: true, jobs: jobs, currJobsPage: page || currJobsPage });
                     return;
                 }
@@ -160,10 +169,16 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
         const spiderBandwidth = formatBytes(
             jobs.results.reduce((acc, curr) => acc + (curr.totalResponseBytes ?? 0), 0),
         );
-        const spiderProcessingTime = Math.round(
-            jobs.results.reduce((acc, curr) => acc + parseDurationToSeconds(curr.stats.runtime?.toString()), 0),
+        const spiderProcessingTime = durationToString(
+            secondsToDuration(
+                Math.round(
+                    jobs.results.reduce(
+                        (acc, curr) => acc + durationToSeconds(parseDuration(curr.lifespan?.toString())),
+                        0,
+                    ),
+                ),
+            ),
         );
-
         return (
             <>
                 {overviewTabSelected && activeSpider.sid ? (
@@ -192,24 +207,24 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                         <div className="divide-y">
                             <div className="flex items-center gap-x-5 py-5">
                                 <div className="w-3/12 rounded-lg border-2 border-estela-states-green-full p-3 bg-estela-blue-low">
-                                    <p className="text-center text-estela-states-green-full text-lg font-bold">
-                                        {isNaN(Math.round(parseDurationToSeconds(activeJob.stats.runtime?.toString())))
-                                            ? "none"
-                                            : Math.round(parseDurationToSeconds(activeJob.stats.runtime?.toString()))}
+                                    <p className="text-center text-estela-states-green-full text-sm font-bold">
+                                        {activeJob.lifespan || "0:00:00"}
                                     </p>
-                                    <p className="text-center text-estela-states-green-full text-sm">Sec</p>
+                                    <p title="Duration" className="text-center text-estela-states-green-full text-sm">
+                                        Dur.
+                                    </p>
                                 </div>
                                 <div className="w-9/12">
                                     <p className="text-estela-black-full text-sm font-medium">Runtime</p>
                                     <p className="text-estela-black-medium text-xs">
-                                        How much your spider delayed (seconds).
+                                        How much your spider delayed (HH:MM:SS).
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-x-5 py-5">
                                 <div className="w-3/12 rounded-lg border-2 border-estela-states-green-full p-3 bg-estela-blue-low">
                                     <p className="text-center text-estela-states-green-full text-lg font-bold">
-                                        {activeJob.itemCount || "none"}
+                                        {activeJob.itemCount || 0}
                                     </p>
                                     <p className="text-center text-estela-states-green-full text-sm">Items</p>
                                 </div>
@@ -267,10 +282,12 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                             </div>
                             <div className="flex items-center gap-x-5 py-5">
                                 <div className="w-3/12 rounded-lg border-2 border-estela-blue-full p-3 bg-estela-blue-low">
-                                    <p className="text-center text-estela-blue-full text-lg font-bold">
+                                    <p className="text-center text-estela-blue-full text-sm font-bold">
                                         {spiderProcessingTime}
                                     </p>
-                                    <p className="text-center text-estela-blue-full text-sm">Sec</p>
+                                    <p title="Duration" className="text-center text-estela-blue-full text-sm">
+                                        Dur.
+                                    </p>
                                 </div>
                                 <div className="w-9/12">
                                     <p className="text-estela-black-full text-sm font-medium">Processing time</p>
@@ -296,20 +313,22 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                         <>
                             <Row className="flex justify-center items-center py-4 gap-32">
                                 <div
+                                    title="previous date"
                                     className="stroke-estela-white-full hover:cursor-pointer"
                                     onClick={() => prevDate()}
                                 >
                                     <ArrowLeft className="h-6 w-6 hover:drop-shadow-md hover:brightness-100" />
                                 </div>
                                 <div className="text-estela-white-full text-sm">
-                                    <p className="text-center">{moment.utc(startDate).local().format("dddd")}</p>
-                                    <p className="text-center">
-                                        {moment.utc(startDate).local().format("DD MMMM, YYYY")}
-                                    </p>
+                                    <p className="text-center">{moment(startDate).format("dddd")}</p>
+                                    <p className="text-center">{moment(startDate).format("DD MMMM, YYYY")}</p>
                                 </div>
                                 <div
+                                    title="next date"
                                     className="stroke-estela-white-full hover:cursor-pointer"
-                                    onClick={() => nextDate()}
+                                    onClick={() => {
+                                        nextDate();
+                                    }}
                                 >
                                     <ArrowRight className="h-6 w-6" />
                                 </div>

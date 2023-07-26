@@ -2,12 +2,12 @@ import React, { Component } from "react";
 import { Modal, Row, Table } from "antd";
 import moment from "moment";
 import type { ColumnsType } from "antd/es/table";
-import { formatSecondsToHHMMSS } from "../../utils";
 import { ApiApi, ProjectStats, SpidersStats } from "../../services";
 import Cross from "../../assets/icons/cross.svg";
 import Expand from "../../assets/icons/expand.svg";
 import "./StatsTableSection.scss";
 import { StatsDateModalContent } from "./StatsDateModalContent";
+import { durationToString, parseDuration } from "../../utils";
 
 interface StatsTableDataType {
     key: string;
@@ -47,9 +47,10 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                     <div
                         title="see details"
                         onClick={() => {
+                            const dateString = statsDate.date.toLocaleDateString();
                             const [startDate, endDate] = [
-                                moment(statsDate.date).startOf("day").utc().toISOString(),
-                                moment(statsDate.date).endOf("day").utc().toISOString(),
+                                moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
+                                moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
                             ];
                             this.setState({
                                 openDateModal: true,
@@ -148,8 +149,9 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
             key: "runtime",
             align: "center",
             render: (_, { statsDate }) => {
-                const runtime = formatSecondsToHHMMSS(statsDate.stats.runtime ?? 0);
-                return <p className="text-black text-xs font-normal">{runtime}</p>;
+                const runtime = parseDuration(statsDate.stats.runtime?.toString() || "0:00:00");
+                runtime.milliseconds = 0;
+                return <p className="text-black text-xs font-normal">{durationToString(runtime)}</p>;
             },
             sorter: (statA, statB) => {
                 const runtimeA = statA.statsDate.stats.runtime ?? 0;
@@ -249,9 +251,10 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                     onRow={(record, rowIndex) => {
                         return {
                             onClick: () => {
+                                const dateString = record.statsDate.date.toLocaleDateString();
                                 const [startDate, endDate] = [
-                                    moment(record.statsDate.date).startOf("day").utc().toISOString(),
-                                    moment(record.statsDate.date).endOf("day").utc().toISOString(),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
                                 ];
                                 this.setState({
                                     openDateModal: true,
@@ -280,38 +283,28 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                         startDate={startDateModal}
                         endDate={endDateModal}
                         nextDate={() => {
-                            if (focusStatsDateIndex < stats.length - 1) {
+                            if (focusStatsDateIndex > 0) {
+                                const dateString = stats[focusStatsDateIndex - 1].date.toLocaleDateString();
                                 const [startDate, endDate] = [
-                                    moment(stats[focusStatsDateIndex + 1].date)
-                                        .startOf("day")
-                                        .utc()
-                                        .toISOString(),
-                                    moment(stats[focusStatsDateIndex + 1].date)
-                                        .endOf("day")
-                                        .utc()
-                                        .toISOString(),
+                                    moment(dateString, "M/D/YYYY").startOf("day").format("YYYY-MM-DD"),
+                                    moment(dateString, "M/D/YYYY").endOf("day").format("YYYY-MM-DD"),
                                 ];
                                 this.setState({
-                                    focusStatsDateIndex: focusStatsDateIndex + 1,
+                                    focusStatsDateIndex: focusStatsDateIndex - 1,
                                     startDateModal: startDate,
                                     endDateModal: endDate,
                                 });
                             }
                         }}
                         prevDate={() => {
-                            if (focusStatsDateIndex > 0) {
+                            if (focusStatsDateIndex < stats.length - 1) {
+                                const dateString = stats[focusStatsDateIndex + 1].date.toLocaleDateString();
                                 const [startDate, endDate] = [
-                                    moment(stats[focusStatsDateIndex - 1].date)
-                                        .startOf("day")
-                                        .utc()
-                                        .toISOString(),
-                                    moment(stats[focusStatsDateIndex - 1].date)
-                                        .endOf("day")
-                                        .utc()
-                                        .toISOString(),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
+                                    moment(dateString, "M/D/YYYY").format("YYYY-MM-DD"),
                                 ];
                                 this.setState({
-                                    focusStatsDateIndex: focusStatsDateIndex - 1,
+                                    focusStatsDateIndex: focusStatsDateIndex + 1,
                                     startDateModal: startDate,
                                     endDateModal: endDate,
                                 });

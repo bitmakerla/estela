@@ -16,6 +16,7 @@ import { ProjectStats, SpidersStats } from "../../services";
 import { Empty, Tabs } from "antd";
 import moment from "moment";
 import "./ChartsSection.scss";
+import { durationToSeconds, parseDuration } from "../../utils";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -84,7 +85,9 @@ const getRuntimeDataset = (statsData: ProjectStats[]) => {
     return [
         {
             label: "Runtime (seconds)",
-            data: statsData.map((statData) => statData.stats.runtime ?? 0),
+            data: statsData.map((statData) =>
+                durationToSeconds(parseDuration(statData.stats.runtime?.toString() || "0:00:00")),
+            ),
             backgroundColor: "#32C3A4",
         },
     ];

@@ -26,7 +26,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
-import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
+import { BytesMetric, durationToString, formatBytes, secondsToDuration } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
@@ -946,7 +946,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">
-                                    {formatSecondsToHHMMSS(lifespan ?? 0)}
+                                    {durationToString(secondsToDuration(lifespan || 0))}
                                 </Text>
                             </Col>
                             <Col>

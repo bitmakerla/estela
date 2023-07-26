@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Doughnut } from "react-chartjs-2";
 import { Card, Space, Typography, Tooltip as TooltipAntd, Divider } from "antd";
 import { Spin } from "../../shared";
-import { BytesMetric, formatSecondsToHHMMSS } from "../../utils";
+import { BytesMetric, durationToString, parseDuration } from "../../utils";
 import { Chart as ChartJS, CategoryScale, Title, Tooltip, Legend, ArcElement } from "chart.js";
 import Help from "../../assets/icons/help.svg";
 import { ProjectStats } from "../../services";
@@ -216,7 +216,7 @@ export class ProjectHealth extends Component<ProjectHealthProps, ProjectHealthSt
                             <div className="flex items-center justify-between space-x-4">
                                 <Text className="text-sm text-estela-black-medium break-words">Processing time</Text>
                                 <Text className="text-base text-estela-black-full break-words">
-                                    {formatSecondsToHHMMSS(processingTime)}
+                                    {durationToString(parseDuration(processingTime.toString()))}
                                 </Text>
                             </div>
                             <div className="flex items-center justify-between space-x-4">
