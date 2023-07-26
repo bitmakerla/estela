@@ -28,6 +28,17 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
+        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        resources:
+          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -59,6 +70,17 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
+        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        resources:
+          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -90,6 +112,17 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
+        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        resources:
+          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
 ---
 kind: Deployment
 apiVersion: apps/v1
@@ -121,3 +154,14 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
+        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        resources:
+          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}

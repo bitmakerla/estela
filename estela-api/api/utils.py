@@ -1,8 +1,7 @@
-import redis
-
-from django.conf import settings
-
 from datetime import timedelta
+
+import redis
+from django.conf import settings
 
 
 def update_stats_from_redis(job):

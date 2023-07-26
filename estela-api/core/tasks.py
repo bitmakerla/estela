@@ -3,17 +3,16 @@ from collections import defaultdict
 from datetime import timedelta
 from typing import List
 
-from celery import chain
-from celery.exceptions import TaskError
-from django.conf import settings
-from django.utils import timezone
-from rest_framework.authtoken.models import Token
-
 from api.serializers.job import SpiderJobCreateSerializer
 from api.utils import delete_stats_from_redis, update_stats_from_redis
+from celery import chain
+from celery.exceptions import TaskError
 from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
 from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
+from django.conf import settings
+from django.utils import timezone
+from rest_framework.authtoken.models import Token
 
 
 def get_default_token(job):

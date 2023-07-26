@@ -1,8 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
-from django.conf import settings
-
 from credentials import Credentials
+from django.conf import settings
 
 
 class AWSCredentials(Credentials):

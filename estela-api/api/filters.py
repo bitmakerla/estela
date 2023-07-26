@@ -1,6 +1,5 @@
-from django_filters import rest_framework as filters
-
 from core.models import SpiderCronJob, SpiderJob
+from django_filters import rest_framework as filters
 
 
 class SpiderJobFilter(filters.FilterSet):

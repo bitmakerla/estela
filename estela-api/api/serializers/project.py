@@ -1,7 +1,6 @@
+from core.models import Activity, DataStatus, Permission, Project, UsageRecord
 from django.contrib.auth.models import User
 from rest_framework import serializers
-
-from core.models import DataStatus, Permission, Project, UsageRecord, Activity
 
 
 class UserDetailSerializer(serializers.ModelSerializer):

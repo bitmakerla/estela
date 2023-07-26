@@ -1,23 +1,15 @@
 from datetime import timedelta
 
+from api import errors
+from api.serializers.job_specific import (SpiderJobArgSerializer,
+                                          SpiderJobEnvVarSerializer,
+                                          SpiderJobTagSerializer)
+from api.utils import delete_stats_from_redis, update_stats_from_redis
+from config.job_manager import job_manager
+from core.models import (DataStatus, SpiderJob, SpiderJobArg, SpiderJobEnvVar,
+                         SpiderJobTag)
 from django.conf import settings
 from rest_framework import serializers
-
-from api import errors
-from api.serializers.job_specific import (
-    SpiderJobArgSerializer,
-    SpiderJobEnvVarSerializer,
-    SpiderJobTagSerializer,
-)
-from api.utils import update_stats_from_redis, delete_stats_from_redis
-from config.job_manager import job_manager
-from core.models import (
-    DataStatus,
-    SpiderJob,
-    SpiderJobArg,
-    SpiderJobEnvVar,
-    SpiderJobTag,
-)
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):

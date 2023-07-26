@@ -1,8 +1,7 @@
 import json
 
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
-
 from core.tasks import launch_job
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 
 def create_cronjob(name, key, args, env_vars, tags, schedule, data_expiry_days=None):

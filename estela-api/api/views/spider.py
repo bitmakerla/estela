@@ -1,10 +1,9 @@
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins, status
-from rest_framework.response import Response
-
 from api.mixins import BaseViewSet
 from api.serializers.spider import SpiderSerializer, SpiderUpdateSerializer
 from core.models import Spider
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import mixins, status
+from rest_framework.response import Response
 
 
 class SpiderViewSet(

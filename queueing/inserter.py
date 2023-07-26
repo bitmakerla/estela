@@ -1,11 +1,10 @@
-import os
 import logging
+import os
 import sys
 import threading
 import time
 
 from estela_queue_adapter import get_producer_interface
-
 
 BATCH_SIZE_THRESHOLD = int(os.getenv("BATCH_SIZE_THRESHOLD", "4096"))
 INSERT_TIME_THRESHOLD = int(os.getenv("INSERT_TIME_THRESHOLD", "5"))

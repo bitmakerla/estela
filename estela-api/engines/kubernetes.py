@@ -90,9 +90,7 @@ class KubernetesEngine:
                 client.V1LocalObjectReference(self.IMAGE_PULL_SECRET_NAME)
             ],
             volumes=[volume] if volume else None,
-            node_selector={"role": self.SPIDER_NODE_ROLE}
-            if settings.MULTI_NODE_MODE
-            else None,
+            node_selector={"role": self.SPIDER_NODE_ROLE} if settings.MULTI_NODE_MODE == "True" else None,
         )
         if not isbuild:
             pod_spec.security_context = client.V1PodSecurityContext(
@@ -162,8 +160,8 @@ class KubernetesEngine:
             command,
             isbuild,
         )
+        
         api_response = api_instance.create_namespaced_job(namespace, body)
-
         return self.Job(api_response)
 
     def delete_job(self, name, namespace="default", api_instance=None):

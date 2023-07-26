@@ -1,20 +1,12 @@
+from api.mixins import ActionHandlerMixin
+from api.serializers.job_specific import (SpiderJobArgSerializer,
+                                          SpiderJobEnvVarSerializer,
+                                          SpiderJobTagSerializer)
+from core.cronjob import disable_cronjob, enable_cronjob, update_schedule
+from core.models import (DataStatus, SpiderCronJob, SpiderJobArg,
+                         SpiderJobEnvVar, SpiderJobTag)
 from croniter import croniter
 from rest_framework import serializers
-
-from api.mixins import ActionHandlerMixin
-from api.serializers.job_specific import (
-    SpiderJobArgSerializer,
-    SpiderJobEnvVarSerializer,
-    SpiderJobTagSerializer,
-)
-from core.cronjob import disable_cronjob, enable_cronjob, update_schedule
-from core.models import (
-    DataStatus,
-    SpiderCronJob,
-    SpiderJobArg,
-    SpiderJobEnvVar,
-    SpiderJobTag,
-)
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):

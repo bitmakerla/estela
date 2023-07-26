@@ -1,5 +1,16 @@
 from datetime import datetime, timezone
 
+from api import errors
+from api.exceptions import EmailServiceError, UserNotFoundError
+from api.permissions import IsProfileUser
+from api.serializers.auth import (ChangePasswordSerializer,
+                                  ResetPasswordConfirmSerializer,
+                                  ResetPasswordRequestSerializer,
+                                  TokenSerializer, UserProfileSerializer,
+                                  UserSerializer)
+from api.tokens import account_reset_token
+from core.views import (send_alert_password_changed,
+                        send_change_password_email, send_verification_email)
 from django.conf import settings
 from django.contrib.auth.models import User, update_last_login
 from django.core.mail import EmailMessage
@@ -16,24 +27,6 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
 from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
-
-from api import errors
-from api.exceptions import EmailServiceError, UserNotFoundError
-from api.permissions import IsProfileUser
-from api.serializers.auth import (
-    ChangePasswordSerializer,
-    ResetPasswordConfirmSerializer,
-    ResetPasswordRequestSerializer,
-    TokenSerializer,
-    UserProfileSerializer,
-    UserSerializer,
-)
-from api.tokens import account_reset_token
-from core.views import (
-    send_alert_password_changed,
-    send_change_password_email,
-    send_verification_email,
-)
 
 
 class AuthAPIViewSet(viewsets.GenericViewSet):

@@ -1,7 +1,6 @@
+from credentials import Credentials
 from django.conf import settings
 from minio import Minio
-
-from credentials import Credentials
 
 
 class LocalCredentials(Credentials):

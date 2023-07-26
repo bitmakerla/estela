@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from core.models import DataStatus, Spider
+from rest_framework import serializers
 
 
 class SpiderSerializer(serializers.ModelSerializer):
