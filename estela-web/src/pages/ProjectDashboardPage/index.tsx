@@ -170,7 +170,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         } = this.state;
 
         return (
-            <Layout className="bg-metal rounded-t-2xl">
+            <Layout className="bg-metal rounded-2xl">
                 {loaded ? (
                     <Fragment>
                         <Row className="flow-root lg:m-8 m-4">
