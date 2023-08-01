@@ -1,0 +1,20 @@
+name: Build and Deploy preview for the Docs
+on:
+  pull_request:
+    paths:
+      - docs/**
+
+jobs:
+  build:
+    name: Build preview docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set-up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: "./docs/"
+      - name:
