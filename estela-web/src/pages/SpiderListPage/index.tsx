@@ -142,7 +142,6 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     };
 
     handleSpiderChange = (value: string | undefined) => {
-        console.log(value);
         this.getSpiderStatsAndUpdateDates(null, null, Number(value));
     };
 
