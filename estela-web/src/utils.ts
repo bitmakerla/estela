@@ -10,7 +10,6 @@ export interface Duration {
     hours: number;
     minutes: number;
     seconds: number;
-    milliseconds: number;
 }
 
 function completeDateInfo(data: number): string {
@@ -40,26 +39,24 @@ export function setValArr({ arr, val, index }: { arr: number[]; val: number; ind
 
 export function parseDuration(duration: string | undefined): Duration {
     if (duration && duration !== "undefined") {
-        const durationRegex = /(?:(\d+) days?,\s*)?(\d{1,2}):(\d{1,2}):(\d{1,2})(?:\.(\d+))?/;
+        const durationRegex = /(?:(\d+) days?,\s*)?(\d{1,2}):(\d{1,2}):(\d{1,2}?\.(\d+))?/;
         const matches = duration.match(durationRegex);
         if (!matches) {
-            return { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 };
+            return { days: 0, hours: 0, minutes: 0, seconds: 0 };
         }
-        const [, daysStr, hoursStr, minutesStr, secondsStr, millisecondsStr] = matches;
+        const [, daysStr, hoursStr, minutesStr, secondsStr] = matches;
         const days = parseInt(daysStr || "0", 10);
         const hours = parseInt(hoursStr, 10);
         const minutes = parseInt(minutesStr, 10);
         const seconds = parseInt(secondsStr, 10);
-        const milliseconds = parseInt(millisecondsStr || "0", 10);
         return {
             days,
             hours,
             minutes,
             seconds,
-            milliseconds,
         };
     }
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 };
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
 }
 
 export function durationToString(duration: Duration): string {
@@ -67,36 +64,29 @@ export function durationToString(duration: Duration): string {
     str += duration.hours > 0 ? `${duration.hours}` : "0";
     str += duration.minutes > 0 ? `:${duration.minutes.toString().padStart(2, "0")}` : ":00";
     str += duration.seconds > 0 ? `:${duration.seconds.toString().padStart(2, "0")}` : ":00";
-    if (duration.milliseconds > 0) str += `.${duration.milliseconds.toString().padStart(3, "0")}`;
     return str;
 }
 
 export function durationToSeconds(duration: Duration): number {
-    const { days, hours, minutes, seconds, milliseconds } = duration;
-    return days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds + milliseconds / 1000;
+    const { days, hours, minutes, seconds } = duration;
+    return days * 24 * 60 * 60 + hours * 60 * 60 + minutes * 60 + seconds;
 }
 
 export function secondsToDuration(seconds: number): Duration {
-    const milliseconds = seconds * 1000;
+    const days = Math.floor(seconds / 86400);
+    const remainingSeconds = seconds % 86400;
 
-    const days = Math.floor(milliseconds / 86400000);
-    const remainingMilliseconds = milliseconds % 86400000;
+    const hours = Math.floor(remainingSeconds / 3600);
+    const remainingSecondsAfterHours = remainingSeconds % 3600;
 
-    const hours = Math.floor(remainingMilliseconds / 3600000);
-    const remainingMillisecondsAfterHours = remainingMilliseconds % 3600000;
-
-    const minutes = Math.floor(remainingMillisecondsAfterHours / 60000);
-    const remainingMillisecondsAfterMinutes = remainingMillisecondsAfterHours % 60000;
-
-    const secondsInDuration = Math.floor(remainingMillisecondsAfterMinutes / 1000);
-    const millisecondsInDuration = remainingMillisecondsAfterMinutes % 1000;
+    const minutes = Math.floor(remainingSecondsAfterHours / 60);
+    const remainingSecondsAfterMinutes = remainingSecondsAfterHours % 60;
 
     return {
         days,
         hours,
         minutes,
-        seconds: secondsInDuration,
-        milliseconds: millisecondsInDuration,
+        seconds: Math.floor(remainingSecondsAfterMinutes),
     };
 }
 
