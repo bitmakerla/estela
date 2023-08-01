@@ -4,6 +4,9 @@ on:
     paths:
       - docs/**
 
+env:
+  BUCKET_REGION: us-west-2
+
 jobs:
   build:
     name: Build preview docs
@@ -12,9 +15,67 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Set-up Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
           working-directory: "./docs/"
-      - name:
+
+      - name: Install redoc-cli
+        run: |
+          yarn global add redoc-cli@0.13.16
+          echo "$(yarn global bin)" >> $GITHUB_PATH
+
+      - name: Build Swagger Documentation
+        run: redoc-cli build ./estela-api/docs/api.yaml -t ./docs/assets/swagger-template.hbs --options.hideDownloadButton -o ./docs/estela/api/endpoints.html
+
+      - name: Build Site
+        run: |
+          cd ./docs
+          bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Set Environment Variables
+        run: |
+          export _BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }}.la | tr '[:upper:]' '[:lower:]')
+          echo "BUCKET_NAME=$_BUCKET_NAME" >> $GITHUB_ENV
+          echo "{
+            \"Version\": \"2012-10-17\",
+            \"Statement\": [
+              {
+                \"Sid\": \"PublicReadGetObject\",
+                \"Effect\": \"Allow\",
+                \"Principal\": \"*\",
+                \"Action\": \"s3:GetObject\",
+                \"Resource\": \"arn:aws:s3:::$_BUCKET_NAME/*\"
+              }
+            ]
+          }" > bucket_policy.json
+
+      - name: Create New S3 Bucket
+        run: |
+          if ! aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null; then \
+            aws s3 mb s3://$BUCKET_NAME; \
+            aws s3 website s3://$BUCKET_NAME --index-document ./_site/index.html; \
+            aws s3api put-public-access-block --bucket $BUCKET_NAME --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
+            aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket_policy.json; \
+          fi
+
+      - name: Deploy to S3 Bucket
+        run: aws s3 sync ./_site/ s3://$BUCKET_NAME --delete
+
+      - name: Comment Website Direction
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          message: |
+            [`${{ github.sha }}`] Check out the preview [here](http://${{ env.BUCKET_NAME }}.s3-website-${{ env.BUCKET_REGION }}.amazonaws.com) :point_left:
