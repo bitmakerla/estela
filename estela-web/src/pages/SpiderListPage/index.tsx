@@ -168,13 +168,16 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                             </Col>
                             <Col className="flex items-center order-last">
                                 <p className="text-base text-estela-black-medium mr-2">Spider:</p>
-                                <Select className="w-40"
+                                <Select
+                                    className="w-40"
                                     size="large"
                                     defaultValue={spiders[0].name}
                                     onChange={this.handleSpiderChange}
                                 >
                                     {spiders.map((spider: SpiderList) => (
-                                        <Option key={spider.sid} value={spider.sid}>{spider.name}</Option>
+                                        <Option key={spider.sid} value={spider.sid}>
+                                            {spider.name}
+                                        </Option>
                                     ))}
                                 </Select>
                             </Col>
