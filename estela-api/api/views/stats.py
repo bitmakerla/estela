@@ -250,7 +250,9 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     DEFAULT_PAGINATION_SIZE = 10
 
     @swagger_auto_schema(
-        operation_description="Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd.",
+        operation_description=(
+            "Retrieve stats of all jobs in a range of time, dates must have the format YYYY-mm-dd."
+        ),
         manual_parameters=[
             openapi.Parameter(
                 name="start_date",
@@ -342,14 +344,14 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
+                description="Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).",
             ),
             openapi.Parameter(
                 name="end_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
+                description="End of date in format [%Y-%m-%d] (e.g. 2023-06-02).",
             ),
             openapi.Parameter(
                 name="offset",
@@ -406,21 +408,23 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
     DEFAULT_PAGINATION_SIZE = 10
 
     @swagger_auto_schema(
-        operation_description="Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.",
+        operation_description=(
+            "Retrieve stats of all spider jobs in a time range, dates must be in YYYY-mm-dd format."
+        ),
         manual_parameters=[
             openapi.Parameter(
                 name="start_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
+                description="Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).",
             ),
             openapi.Parameter(
                 name="end_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
+                description="End of date in format [%Y-%m-%d] (e.g. 2023-06-02).",
             ),
             openapi.Parameter(
                 name="offset",
@@ -496,14 +500,14 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).",
+                description="Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).",
             ),
             openapi.Parameter(
                 name="end_date",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 required=True,
-                description="End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).",
+                description="End of date in format [%Y-%m-%d] (e.g. 2023-06-02).",
             ),
             openapi.Parameter(
                 name="offset",

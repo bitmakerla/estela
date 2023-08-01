@@ -5,7 +5,7 @@ import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService } from "../../services";
 import { SpidersStats, ApiProjectsSpidersListRequest, Spider } from "../../services/api";
-import { BytesMetric, parseDurationToSeconds } from "../../utils";
+import { BytesMetric } from "../../utils";
 import { Spin, resourceNotAllowedNotification } from "../../shared";
 import { HeaderSection, ChartsSection, StatsTableSection } from "../../components";
 import type { RangePickerProps } from "antd/es/date-picker";
@@ -103,16 +103,12 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
             .apiStatsSpiderList({
                 pid: this.projectId,
                 sid: String(sid),
-                startDate: !startDate ? statsStartDate.toISOString() : startDate,
-                endDate: !endDate ? statsEndDate.toISOString() : endDate,
+                startDate: !startDate ? statsStartDate.format("YYYY-MM-DD") : startDate,
+                endDate: !endDate ? statsEndDate.format("YYYY-MM-DD") : endDate,
                 offset: new Date().getTimezoneOffset(),
             })
             .then(
                 (response: SpidersStats[]) => {
-                    response.forEach((stat) => {
-                        if (stat.stats.runtime)
-                            stat.stats.runtime = parseDurationToSeconds(stat.stats.runtime.toString());
-                    });
                     this.setState({
                         spiderStats: [...response],
                         loadedStats: true,
@@ -131,8 +127,8 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     onChangeDateRangeHandler: RangePickerProps["onChange"] = (_, dateStrings) => {
         this.setState({ loadedStats: false });
         const [startDateUTC, endDateUTC] = [
-            moment(dateStrings[0]).startOf("day").utc().toISOString(),
-            moment(dateStrings[1]).endOf("day").utc().toISOString(),
+            moment(dateStrings[0]).startOf("day").format("YYYY-MM-DD"),
+            moment(dateStrings[1]).endOf("day").format("YYYY-MM-DD"),
         ];
         this.getSpiderStatsAndUpdateDates(startDateUTC, endDateUTC, this.state.spiderId);
     };

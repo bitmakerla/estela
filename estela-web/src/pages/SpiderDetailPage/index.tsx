@@ -50,11 +50,6 @@ const running = 2;
 const completed = 3;
 const withError = 4;
 
-// interface SpiderData {
-//     sid: number;
-//     name: string;
-// }
-
 interface SpiderJobData {
     id: number | null | undefined;
     key: number | null | undefined;
