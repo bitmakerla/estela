@@ -1,11 +1,8 @@
-name: Build and Deploy preview for the Docs
+name: Build and Deploy Docs preview
 on:
   pull_request:
     paths:
       - docs/**
-
-env:
-  BUCKET_REGION: us-west-2
 
 jobs:
   build:
@@ -71,11 +68,11 @@ jobs:
           fi
 
       - name: Deploy to S3 Bucket
-        run: aws s3 sync ./_site/ s3://$BUCKET_NAME --delete
+        run: aws s3 sync ./_site/ s3://$BUCKET_NAME/docs/ --delete
 
       - name: Comment Website Direction
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           recreate: true
           message: |
-            [`${{ github.sha }}`] Check out the preview [here](http://${{ env.BUCKET_NAME }}.s3-website-${{ env.BUCKET_REGION }}.amazonaws.com) :point_left:
+            [`${{ github.sha }}`] Check out the docs preview [here](http://${{ env.BUCKET_NAME }}.s3-website-${{ secrets.AWS_DEFAULT_REGION }}.amazonaws.com) :point_left:
