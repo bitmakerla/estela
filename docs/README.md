@@ -37,4 +37,4 @@ $ bundle exec jekyll serve
 ```
 
 By default, the site runs in the [localhost](http://localhost:4000/) and is built in a new folder named `_site`.  
-Preview 7
+Preview 8

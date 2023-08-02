@@ -64,11 +64,11 @@ jobs:
           ls
           if ! aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null; then \
             aws s3 mb s3://$BUCKET_NAME; \
-            aws s3 website s3://$BUCKET_NAME --index-document ./docs/_site/index.html; \
+            aws s3 website s3://$BUCKET_NAME --index-document docs/_site/index.html; \
             aws s3api put-public-access-block --bucket $BUCKET_NAME --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
             aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket_policy.json; \
           else \
-            aws s3 website s3://$BUCKET_NAME --index-document ./docs/_site/index.html; \
+            aws s3 website s3://$BUCKET_NAME --index-document docs/_site/index.html; \
             aws s3api put-public-access-block --bucket $BUCKET_NAME --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
             aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket_policy.json; \
           fi
