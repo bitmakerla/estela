@@ -62,8 +62,8 @@ jobs:
       - name: Create New S3 Bucket
         run: |
           cd ./docs/_site
-          if aws s3api bucket-exists --bucket $BUCKET_NAME; then \
-              echo "Exists";
+          if aws s3api get-bucket-website --bucket $BUCKET_NAME 2>/dev/null; then \
+              echo "Exists website";
           fi
           if ! aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null; then \
             aws s3 mb s3://$BUCKET_NAME; \
