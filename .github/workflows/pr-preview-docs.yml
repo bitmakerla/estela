@@ -69,15 +69,13 @@ jobs:
           fi
 
       - name: Deploy to S3 Bucket
-        run: |
-          ls
-          aws s3 sync ./_site/ s3://$BUCKET_NAME/docs/ --delete
+        run: aws s3 sync ./docs/_site/ s3://$BUCKET_NAME/docs/ --delete
 
-      - name: Duplicate Html Files without Extension
-        run: find ./_site -type f -name "*.html" | while read f; do cp "$f" "${f%.html}"; done
+      # - name: Duplicate Html Files without Extension
+      #   run: find ./docs/_site -type f -name "*.html" | while read f; do cp "$f" "${f%.html}"; done
 
-      - name: Deploy to the PR Bucket
-        run: aws s3 sync ./_site/ s3://$BUCKET_NAME/docs/ --delete --content-type "text/html" --exclude "*.*"
+      # - name: Deploy to the PR Bucket
+      #   run: aws s3 sync ./_site/ s3://$BUCKET_NAME/docs/ --delete --content-type "text/html" --exclude "*.*"
 
       - name: Comment Website Direction
         uses: marocchino/sticky-pull-request-comment@v2
