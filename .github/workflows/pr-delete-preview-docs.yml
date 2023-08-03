@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Set Environment Variables
         run: |
-          echo "BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }}.la | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
