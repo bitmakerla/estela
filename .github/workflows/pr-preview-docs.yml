@@ -44,7 +44,7 @@ jobs:
 
       - name: Set Environment Variables
         run: |
-          export _BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }} | tr '[:upper:]' '[:lower:]')
+          export _BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }}.la | tr '[:upper:]' '[:lower:]')
           echo "BUCKET_NAME=$_BUCKET_NAME" >> $GITHUB_ENV
           echo "{
             \"Version\": \"2012-10-17\",
