@@ -68,28 +68,14 @@ jobs:
             cd ../../
             aws s3api put-public-access-block --bucket $BUCKET_NAME --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
             aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket_policy.json; \
-          else \
-            aws s3 rb s3://$BUCKET_NAME --force;
-            aws s3 mb s3://$BUCKET_NAME; \
-            cd ./docs/_site/
-            aws s3 website s3://$BUCKET_NAME --index-document index.html; \
-            cd ../../
-            aws s3api put-public-access-block --bucket $BUCKET_NAME --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
-            aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket_policy.json; \
           fi
 
       - name: Deploy to S3 Bucket
         run: aws s3 sync ./docs/_site/ s3://$BUCKET_NAME/docs/ --delete
 
-      # - name: Duplicate Html Files without Extension
-      #   run: find ./docs/_site -type f -name "*.html" | while read f; do cp "$f" "${f%.html}"; done
-
-      # - name: Deploy to the PR Bucket
-      #   run: aws s3 sync ./docs/_site/ s3://$BUCKET_NAME/docs/ --delete --content-type "text/html" --exclude "*.*"
-
       - name: Comment Website Direction
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          header: Docs preview
           recreate: true
-          message: |
-            [`${{ github.sha }}`] Check out the docs preview [here](http://${{ env.BUCKET_NAME }}.s3-website-${{ secrets.AWS_DEFAULT_REGION }}.amazonaws.com/docs/index.html) :point_left:
+          path: ./github/PREVIEW_TEMPLATES/docs-preview.md
