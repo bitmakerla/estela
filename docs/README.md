@@ -36,5 +36,4 @@ Then, build and run the site
 $ bundle exec jekyll serve
 ```
 
-By default, the site runs in the [localhost](http://localhost:4000/) and is built in a new folder named `_site`.  
-Preview 2
+By default, the site runs in the [localhost](http://localhost:4000/) and is built in a new folder named `_site`.
