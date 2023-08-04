@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component, Fragment, ReactElement } from "react";
 import { Col, Layout, Row, notification, Select } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 
@@ -6,6 +6,7 @@ import "./styles.scss";
 import { ApiService } from "../../services";
 import { SpidersStats, ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { BytesMetric } from "../../utils";
+import FolderDotted from "../../assets/icons/folderDotted.svg";
 import { Spin, resourceNotAllowedNotification } from "../../shared";
 import { HeaderSection, ChartsSection, StatsTableSection } from "../../components";
 import type { RangePickerProps } from "antd/es/date-picker";
@@ -76,8 +77,11 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                         sid: spider.sid,
                     };
                 });
-                this.getSpiderStatsAndUpdateDates(null, null, spiders[0].sid);
-                this.setState({ spiders: [...spiders], loaded: true, spiderId: spiders[0].sid });
+                if (spiders.length > 0) {
+                    this.getSpiderStatsAndUpdateDates(null, null, spiders[0].sid);
+                    this.setState({ spiderId: spiders[0].sid });
+                }
+                this.setState({ spiders: [...spiders], loaded: true });
             },
             (error: unknown) => {
                 error;
@@ -139,7 +143,15 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
 
     handleSpiderChange = (value: string | undefined) => {
         this.getSpiderStatsAndUpdateDates(null, null, Number(value));
+        this.setState({ spiderId: Number(value) });
     };
+
+    emptyText = (): ReactElement => (
+        <Content className="flex flex-col items-center justify-center text-estela-black-medium">
+            <FolderDotted className="w-20 h-20" />
+            <p>No spiders yet.</p>
+        </Content>
+    );
 
     render(): JSX.Element {
         const {
@@ -161,44 +173,49 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                             <Col className="">
                                 <p className="text-xl font-medium text-silver float-left">SPIDERS</p>
                             </Col>
-                            <Col className="flex items-center order-last">
-                                <p className="text-base text-estela-black-medium mr-2">Spider:</p>
-                                <Select
-                                    className="w-40"
-                                    size="large"
-                                    defaultValue={spiders[0].name}
-                                    onChange={this.handleSpiderChange}
-                                >
-                                    {spiders.map((spider: SpiderList) => (
-                                        <Option key={spider.sid} value={spider.sid}>
-                                            {spider.name}
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </Col>
+                            {spiders.length > 0 && (
+                                <Col className="flex items-center order-last">
+                                    <p className="text-base text-estela-black-medium mr-2">Spider:</p>
+                                    <Select
+                                        className="w-40"
+                                        size="large"
+                                        defaultValue={spiders[0].name}
+                                        onChange={this.handleSpiderChange}
+                                    >
+                                        {spiders.map((spider: SpiderList) => (
+                                            <Option key={spider.sid} value={spider.sid}>
+                                                {spider.name}
+                                            </Option>
+                                        ))}
+                                    </Select>
+                                </Col>
+                            )}
                         </Row>
-                        <Row className="bg-metal-m-4">
-                            <Content className="bg-white rounded-2xl py-5 pr-8 pl-5 w-full">
-                                <HeaderSection
-                                    onRefreshEventHandler={this.onRefreshEventHandler}
-                                    onChangeDateRangeHandler={this.onChangeDateRangeHandler}
-                                    formattedNetwork={formattedNetwork}
-                                    formattedStorage={formattedStorage}
-                                    processingTime={processingTime}
-                                    stats={spiderStats}
-                                    loadedStats={loadedStats}
-                                    startDate={statsStartDate.local().format("ddd, DD MMM")}
-                                    endDate={statsEndDate.local().format("ddd, DD MMM")}
-                                />
-                                <ChartsSection stats={spiderStats.slice().reverse()} loadedStats={loadedStats} />
-                                <StatsTableSection
-                                    pid={this.projectId}
-                                    apiService={this.apiService}
-                                    stats={spiderStats}
-                                    loadedStats={loadedStats}
-                                />
-                            </Content>
-                        </Row>
+                        {spiders.length === 0 && this.emptyText()}
+                        {spiders.length > 0 && (
+                            <Row className="bg-metal-m-4">
+                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5 w-full">
+                                    <HeaderSection
+                                        onRefreshEventHandler={this.onRefreshEventHandler}
+                                        onChangeDateRangeHandler={this.onChangeDateRangeHandler}
+                                        formattedNetwork={formattedNetwork}
+                                        formattedStorage={formattedStorage}
+                                        processingTime={processingTime}
+                                        stats={spiderStats}
+                                        loadedStats={loadedStats}
+                                        startDate={statsStartDate.local().format("ddd, DD MMM")}
+                                        endDate={statsEndDate.local().format("ddd, DD MMM")}
+                                    />
+                                    <ChartsSection stats={spiderStats.slice().reverse()} loadedStats={loadedStats} />
+                                    <StatsTableSection
+                                        pid={this.projectId}
+                                        apiService={this.apiService}
+                                        stats={spiderStats}
+                                        loadedStats={loadedStats}
+                                    />
+                                </Content>
+                            </Row>
+                        )}
                     </Fragment>
                 ) : (
                     <Spin />
