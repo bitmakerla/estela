@@ -69,7 +69,7 @@ jobs:
             aws s3api put-public-access-block --bucket $BUCKET_NAME --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
             aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket_policy.json; \
           else \
-            aws s3 rb s3://$BUCKET_NAME --force
+            aws s3 rb s3://$BUCKET_NAME --force; \
           fi
 
       - name: Deploy to S3 Bucket
