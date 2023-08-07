@@ -19,6 +19,7 @@ interface StatsTableSectionProps {
     stats: ProjectStats[] | SpidersStats[];
     pid: string;
     apiService: ApiApi;
+    disabled?: boolean;
 }
 
 interface StatsTableSectionState {
@@ -223,7 +224,7 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
 
     render() {
         const { openDateModal, focusStatsDateIndex, startDateModal, endDateModal } = this.state;
-        const { loadedStats, stats, apiService, pid } = this.props;
+        const { loadedStats, stats, apiService, pid, disabled } = this.props;
 
         if (!loadedStats) {
             return <Row className="animate-pulse mt-6 h-12 w-full bg-estela-blue-low rounded-md" />;
@@ -268,7 +269,7 @@ export class StatsTableSection extends Component<StatsTableSectionProps, StatsTa
                 />
 
                 <Modal
-                    open={openDateModal}
+                    open={openDateModal && !disabled}
                     onCancel={() => this.setState({ openDateModal: false })}
                     title={null}
                     className="stats-date-modal"

@@ -138,7 +138,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     };
 
     onRefreshEventHandler = async () => {
-        await this.getSpiderStatsAndUpdateDates();
+        await this.getSpiderStatsAndUpdateDates(null, null, this.state.spiderId);
     };
 
     handleSpiderChange = (value: string | undefined) => {
@@ -212,6 +212,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                                         apiService={this.apiService}
                                         stats={spiderStats}
                                         loadedStats={loadedStats}
+                                        disabled={true}
                                     />
                                 </Content>
                             </Row>
