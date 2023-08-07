@@ -39,7 +39,7 @@ export function setValArr({ arr, val, index }: { arr: number[]; val: number; ind
 
 export function parseDuration(duration: string | undefined): Duration {
     if (duration && duration !== "undefined") {
-        const durationRegex = /(?:(\d+) days?,\s*)?(\d{1,2}):(\d{1,2}):(\d{1,2}?\.*(\d*))?/;
+        const durationRegex = /(?:(\d+) \s*)?(\d{1,2}):(\d{1,2}):(\d{1,2}?\.*(\d*))?/;
 
         const matches = duration.match(durationRegex);
         if (!matches) {
