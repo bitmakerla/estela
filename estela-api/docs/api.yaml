@@ -1350,8 +1350,8 @@ paths:
   /api/stats/{pid}/spider/{sid}:
     get:
       operationId: api_stats_spider_list
-      description: Retrieve stats of all jobs of a spider in a range of time, dates
-        must have the format YYYY-mm-dd.
+      description: Retrieve stats of all spider jobs in a time range, dates must be
+        in YYYY-mm-dd format.
       parameters:
         - name: page
           in: query
@@ -1365,12 +1365,12 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
         - name: offset
@@ -1413,12 +1413,12 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
         - name: offset
@@ -1459,12 +1459,12 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
         - name: offset

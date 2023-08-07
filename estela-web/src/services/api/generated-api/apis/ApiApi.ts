@@ -2727,7 +2727,7 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
+     * Retrieve stats of all spider jobs in a time range, dates must be in YYYY-mm-dd format.
      */
     async apiStatsSpiderListRaw(requestParameters: ApiStatsSpiderListRequest): Promise<runtime.ApiResponse<Array<SpidersStats>>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
@@ -2784,7 +2784,7 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Retrieve stats of all jobs of a spider in a range of time, dates must have the format YYYY-mm-dd.
+     * Retrieve stats of all spider jobs in a time range, dates must be in YYYY-mm-dd format.
      */
     async apiStatsSpiderList(requestParameters: ApiStatsSpiderListRequest): Promise<Array<SpidersStats>> {
         const response = await this.apiStatsSpiderListRaw(requestParameters);
