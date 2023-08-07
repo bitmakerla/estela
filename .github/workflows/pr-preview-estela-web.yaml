@@ -23,11 +23,12 @@ jobs:
 
   build_web:
     needs: pre_processing
+    if: ${{ needs.pre_processing.outputs.web_changed }} == 'true'
     runs-on: ubuntu-latest
     name: Build web
+    env:
+      web_changed: ${{ needs.pre_processing.outputs.web_changed }}
     steps:
       - name: Web changed
-        env:
-          web_changed: ${{ needs.pre_processing.outputs.web_changed }}
-        if: ${{ env.web_changed }} == 'true'
-        run: echo "estela-web changed!"
+        run: |
+          echo "estela-web changed status: ${{ env.web_changed }}!"
