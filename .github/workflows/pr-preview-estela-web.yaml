@@ -1,0 +1,33 @@
+name: Build and Deploy estela-web
+on:
+  pull_request:
+
+env:
+  WEB_DIRECTORY: estela-web
+
+jobs:
+  pre_processing:
+    runs-on: ubuntu-latest
+    name: Test changed files
+    outputs:
+      web_changed: ${{ steps.changed-estela-web-files.outputs.any_changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check if estela-web directory changed
+        id: changed-estela-web-files
+        uses: tj-actions/changed-files@v37
+        with:
+          files: estela-web
+
+  build_web:
+    needs: pre_processing
+    runs-on: ubuntu-latest
+    name: Build web
+    steps:
+      - name: Web changed
+        env:
+          web_changed: ${{ needs.pre_processing.outputs.web_changed }}
+        if: ${{ env.web_changed }} == 'true'
+        run: echo "estela-web changed!"
