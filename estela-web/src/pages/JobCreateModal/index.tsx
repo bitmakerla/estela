@@ -542,9 +542,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                     <p className="text-base my-2">Environment Variables</p>
                     <Space direction="vertical">
                         <div className="flex gap-2 mt-1">
-                            {projectEnvVars.length > 0 && (
-                                <p className="text-sm">Project</p>
-                            )}
+                            {projectEnvVars.length > 0 && <p className="text-sm">Project</p>}
                             <div className="flex gap-2">
                                 {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
                                     envVar.masked ? (
@@ -565,9 +563,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                             </div>
                         </div>
                         <div className="flex gap-2 my-2">
-                            {spiderEnvVars.length > 0 && (
-                                <p className="text-sm">Spider</p>
-                            )}
+                            {spiderEnvVars.length > 0 && <p className="text-sm">Spider</p>}
                             <div className="flex gap-2">
                                 {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
                                     envVar.masked ? (

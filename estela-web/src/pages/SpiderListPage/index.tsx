@@ -194,7 +194,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                         {spiders.length === 0 && this.emptyText()}
                         {spiders.length > 0 && (
                             <Row className="bg-metal-m-4">
-                                <Content className="bg-white rounded-2xl py-5 pr-8 pl-5 w-full">
+                                <Content className="bg-white rounded-2xl py-5 px-4 mx-4 w-full">
                                     <HeaderSection
                                         onRefreshEventHandler={this.onRefreshEventHandler}
                                         onChangeDateRangeHandler={this.onChangeDateRangeHandler}

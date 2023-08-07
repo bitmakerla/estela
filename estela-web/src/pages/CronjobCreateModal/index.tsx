@@ -274,7 +274,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             },
         );
     };
-``
+
     const getProjectSpiders = async (page: number): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
         apiService.apiProjectsSpidersList(requestParams).then(
@@ -417,10 +417,15 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         const newEnvVarName = newCronjob.newEnvVarName.trim();
         const newEnvVarValue = newCronjob.newEnvVarValue.trim();
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newCronjob.newEnvVarMasked, key: countKey });
+            envVars.push({
+                name: newEnvVarName,
+                value: newEnvVarValue,
+                masked: newCronjob.newEnvVarMasked,
+                key: countKey,
+            });
             setCountKey(countKey + 1);
             setCronjobData({ ...cronjobData, envVars: [...envVars] });
-            setNewCronjob({ ...newCronjob, newEnvVarName: "", newEnvVarValue: "" });
+            setNewCronjob({ ...newCronjob, newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -592,6 +597,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             pid: projectData.pid,
             sid: projectData.sid,
         };
+        console.log(request);
         apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {
                 setLoading(false);
