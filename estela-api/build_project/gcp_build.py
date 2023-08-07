@@ -49,7 +49,7 @@ def build_image(estela_project_path, dockerfile, project_zip, image):
         args=["build", "--network", "cloudbuild", "--no-cache", "-f", dockerfile, "-t", image, estela_project_path]
     ))
     build.images = [image]
-    operation = build_client.create_build(project_id=credentials.quota_project_id, build=build)
+    operation = build_client.create_build(project_id=GCP.credentials["GOOGLE_APPLICATION_PROJECT_ID"], build=build)
 
     result = operation.result()
 
