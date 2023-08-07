@@ -16,3 +16,4 @@ This module introduces users with a friendly interface that interacts with the [
 This module allows users to **manage** their scraping projects and data collected from their spiders. This is a graphical alternative to [estela-cli](https://github.com/bitmakerla/estela-cli).
 
 For more information on this module and how to set it up, please refer to our [official documentation 📂](https://estela.bitmaker.la/docs/estela/web/web.html).
+Testing preview
