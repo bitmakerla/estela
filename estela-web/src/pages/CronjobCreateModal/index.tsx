@@ -22,14 +22,19 @@ import {
     TimePicker,
     Typography,
     notification,
+    Tooltip,
 } from "antd";
 
 import {
-    ApiProjectsSpidersListRequest,
     ApiProjectsSpidersCronjobsCreateRequest,
-    SpiderCronJobCreate,
     SpiderCronJobCreateDataStatusEnum,
+    ApiProjectsSpidersListRequest,
+    ApiProjectsSpidersReadRequest,
+    ApiProjectsReadRequest,
     SpiderDataStatusEnum,
+    SpiderCronJobCreate,
+    SpiderJobEnvVar,
+    Project,
     Spider,
 } from "../../services/api";
 import history from "../../history";
@@ -79,6 +84,7 @@ interface EnvVarsData {
     name: string;
     value: string;
     key: number;
+    masked: boolean;
 }
 
 interface TagsData {
@@ -90,11 +96,18 @@ interface Tags {
     key: number;
 }
 
+interface MaskedTagProps {
+    children: React.ReactNode;
+    id: number;
+    level: boolean;
+}
+
 interface Cronjob {
     newArgName: string;
     newArgValue: string;
     newEnvVarName: string;
     newEnvVarValue: string;
+    newEnvVarMasked: boolean;
     newTagName: string;
     newTags: Tags[];
 }
@@ -169,11 +182,14 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         dataExpiryDays: spider ? Number(spider.dataExpiryDays) : 1,
         uniqueCollection: false,
     });
+    const [projectEnvVars, setProjectEnvVars] = useState<SpiderJobEnvVar[]>([]);
+    const [spiderEnvVars, setSpiderEnvVars] = useState<SpiderJobEnvVar[]>([]);
     const [newCronjob, setNewCronjob] = useState<Cronjob>({
         newArgName: "",
         newArgValue: "",
         newEnvVarName: "",
         newEnvVarValue: "",
+        newEnvVarMasked: false,
         newTagName: "",
         newTags: [],
     });
@@ -195,43 +211,122 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
     const hourFormat = "HH:mm";
     const dateFormat = "MMM D, YYYY";
 
+    const MaskedTag: React.FC<MaskedTagProps> = ({ children, id, level }) => {
+        return (
+            <Tooltip placement="top" title="Masked variable" showArrow={false} className="tooltip">
+                <Tag
+                    closable
+                    className="bg-estela-blue-low border-none text-estela-blue-full rounded"
+                    onClose={() => handleRemoveProjectEnvVar(id, level)}
+                >
+                    {children}
+                </Tag>
+            </Tooltip>
+        );
+    };
+
     useEffect(() => {
         getProjectSpiders(1);
         const weekDays = crontab.weekDays;
         weekDays[moment().day() % 7] = true;
         setCrontab({ ...crontab, currentDay: moment().day(), weekDays: weekDays });
+        const requestParams: ApiProjectsReadRequest = { pid: projectData.pid };
+        apiService.apiProjectsRead(requestParams).then(
+            (response: Project) => {
+                const envVars = response.envVars || [];
+                setProjectEnvVars(
+                    envVars.map((envVar: SpiderJobEnvVar) => {
+                        return {
+                            evid: envVar.evid,
+                            name: envVar.name,
+                            value: envVar.masked ? "__MASKED__" : envVar.value,
+                            masked: envVar.masked,
+                        };
+                    }),
+                );
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
     }, []);
 
+    const getSpiderEnvVars = (sid: number) => {
+        const requestParams: ApiProjectsSpidersReadRequest = { pid: projectData.pid, sid: sid };
+        apiService.apiProjectsSpidersRead(requestParams).then(
+            async (response: Spider) => {
+                const envVars = response.envVars || [];
+                setSpiderEnvVars(
+                    envVars.map((envVar: SpiderJobEnvVar) => {
+                        return {
+                            evid: envVar.evid,
+                            name: envVar.name,
+                            value: envVar.masked ? "__MASKED__" : envVar.value,
+                            masked: envVar.masked,
+                        };
+                    }),
+                );
+            },
+            (error: unknown) => {
+                error;
+                resourceNotAllowedNotification();
+            },
+        );
+    };
+``
     const getProjectSpiders = async (page: number): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
         apiService.apiProjectsSpidersList(requestParams).then(
             (results) => {
-                const spider_list = results.results ? results.results : [];
+                const spiderList = results.results ? results.results : [];
                 if (spider) {
                     let index = 0;
-                    index = spider_list.findIndex((listedSpider: Spider) => {
+                    index = spiderList.findIndex((listedSpider: Spider) => {
                         return listedSpider.sid == spider.sid;
                     });
 
                     if (index < 0) {
-                        spider_list.unshift(spider);
+                        spiderList.unshift(spider);
                         index = 0;
                     }
-                    setProjectData({ ...projectData, sid: String(spider_list[index].sid) });
+                    setProjectData({ ...projectData, sid: String(spiderList[index].sid) });
+                    const envVars = spiderList[index].envVars || [];
+                    setSpiderEnvVars(
+                        envVars.map((envVar: SpiderJobEnvVar) => {
+                            return {
+                                evid: envVar.evid,
+                                name: envVar.name,
+                                value: envVar.masked ? "__MASKED__" : envVar.value,
+                                masked: envVar.masked,
+                            };
+                        }),
+                    );
                     setCronjobData({
                         ...cronjobData,
-                        dataStatus: spider_list[index].dataStatus,
-                        dataExpiryDays: spider_list[index].dataExpiryDays,
+                        dataStatus: spiderList[index].dataStatus,
+                        dataExpiryDays: spiderList[index].dataExpiryDays,
                     });
-                } else if (spider_list.length > 0) {
-                    setProjectData({ ...projectData, sid: String(spider_list[0].sid) });
+                } else if (spiderList.length > 0) {
+                    setProjectData({ ...projectData, sid: String(spiderList[0].sid) });
+                    const envVars = spiderList[0].envVars || [];
+                    setSpiderEnvVars(
+                        envVars.map((envVar: SpiderJobEnvVar) => {
+                            return {
+                                evid: envVar.evid,
+                                name: envVar.name,
+                                value: envVar.masked ? "__MASKED__" : envVar.value,
+                                masked: envVar.masked,
+                            };
+                        }),
+                    );
                     setCronjobData({
                         ...cronjobData,
-                        dataStatus: spider_list[0].dataStatus,
-                        dataExpiryDays: spider_list[0].dataExpiryDays,
+                        dataStatus: spiderList[0].dataStatus,
+                        dataExpiryDays: spiderList[0].dataExpiryDays,
                     });
                 }
-                setSpiders(spider_list);
+                setSpiders(spiderList);
             },
             (error: unknown) => {
                 error;
@@ -244,6 +339,9 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         const spiderId = spiders.find((spider) => {
             return spider.name === value;
         });
+        if (spiderId) {
+            getSpiderEnvVars(Number(spiderId.sid));
+        }
         setProjectData({ ...projectData, sid: String(spiderId?.sid) });
     };
 
@@ -302,12 +400,24 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, envVars: [...envVars] });
     };
 
+    const handleRemoveProjectEnvVar = (id: number, level: boolean): void => {
+        if (level) {
+            const envVars = [...projectEnvVars];
+            envVars.splice(id, 1);
+            setProjectEnvVars(envVars);
+        } else {
+            const envVars = [...spiderEnvVars];
+            envVars.splice(id, 1);
+            setSpiderEnvVars(envVars);
+        }
+    };
+
     const addEnvVar = (): void => {
         const envVars = [...cronjobData.envVars];
         const newEnvVarName = newCronjob.newEnvVarName.trim();
         const newEnvVarValue = newCronjob.newEnvVarValue.trim();
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, key: countKey });
+            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newCronjob.newEnvVarMasked, key: countKey });
             setCountKey(countKey + 1);
             setCronjobData({ ...cronjobData, envVars: [...envVars] });
             setNewCronjob({ ...newCronjob, newEnvVarName: "", newEnvVarValue: "" });
@@ -434,7 +544,36 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             expression = getExpression();
         }
 
-        const data_status =
+        const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
+            return envVar;
+        });
+        spiderEnvVars.map((envVar: SpiderJobEnvVar) => {
+            const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
+            if (index != -1) {
+                envVarsData[index] = envVar;
+            } else {
+                envVarsData.push(envVar);
+            }
+        });
+
+        cronjobData.envVars.map((envVar: EnvVarsData) => {
+            const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
+            if (index != -1) {
+                envVarsData[index] = {
+                    name: envVar.name,
+                    value: envVar.value,
+                    masked: envVar.masked,
+                };
+            } else {
+                envVarsData.push({
+                    name: envVar.name,
+                    value: envVar.value,
+                    masked: envVar.masked,
+                });
+            }
+        });
+
+        const dataStatus =
             cronjobData.dataStatus == SpiderDataStatusEnum.Persistent
                 ? SpiderCronJobCreateDataStatusEnum.Persistent
                 : SpiderCronJobCreateDataStatusEnum.Pending;
@@ -445,7 +584,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             ctags: [...cronjobData.tags],
             schedule: expression,
             uniqueCollection: cronjobData.uniqueCollection,
-            dataStatus: data_status,
+            dataStatus: dataStatus,
             dataExpiryDays: cronjobData.dataExpiryDays,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
@@ -592,6 +731,52 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         <Content>
                             <p className="text-base my-2">Environment Variables</p>
                             <Space direction="vertical">
+                                <div className="flex gap-2 mt-1">
+                                    {projectEnvVars.length > 0 && (
+                                        <p className="text-sm">Project</p>
+                                    )}
+                                    <div className="flex gap-2">
+                                        {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                            envVar.masked ? (
+                                                <MaskedTag key={id} id={id} level={true}>
+                                                    {envVar.name}
+                                                </MaskedTag>
+                                            ) : (
+                                                <Tag
+                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                    closable
+                                                    key={id}
+                                                    onClose={() => handleRemoveProjectEnvVar(id, true)}
+                                                >
+                                                    {envVar.name}: {envVar.value}
+                                                </Tag>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 my-2">
+                                    {spiderEnvVars.length > 0 && (
+                                        <p className="text-sm">Spider</p>
+                                    )}
+                                    <div className="flex gap-2">
+                                        {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                            envVar.masked ? (
+                                                <MaskedTag key={id} id={id} level={false}>
+                                                    {envVar.name}
+                                                </MaskedTag>
+                                            ) : (
+                                                <Tag
+                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                    closable
+                                                    key={id}
+                                                    onClose={() => handleRemoveProjectEnvVar(id, false)}
+                                                >
+                                                    {envVar.name}: {envVar.value}
+                                                </Tag>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
                                 <Space direction="horizontal">
                                     {cronjobData.envVars.map((envVar: EnvVarsData, id: number) => (
                                         <Tag
