@@ -22,10 +22,10 @@ jobs:
           files: estela-web
 
   build_web:
-    needs: pre_processing
-    if: ${{ needs.pre_processing.outputs.web_changed }} == 'true'
-    runs-on: ubuntu-latest
+    if: needs.pre_processing.outputs.web_changed == 'true'
     name: Build web
+    needs: pre_processing
+    runs-on: ubuntu-latest
     env:
       web_changed: ${{ needs.pre_processing.outputs.web_changed }}
     steps:
