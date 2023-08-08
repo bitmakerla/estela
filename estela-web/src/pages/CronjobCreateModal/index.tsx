@@ -24,6 +24,7 @@ import {
     notification,
     Tooltip,
 } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 
 import {
     ApiProjectsSpidersCronjobsCreateRequest,
@@ -42,6 +43,7 @@ import { ApiService } from "../../services";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
 import { checkExternalError } from "../../defaultComponents";
 
+import "./styles.scss";
 import Add from "../../assets/icons/add.svg";
 
 const { Content } = Layout;
@@ -216,7 +218,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             <Tooltip placement="top" title="Masked variable" showArrow={false} className="tooltip">
                 <Tag
                     closable
-                    className="bg-estela-blue-low border-none text-estela-blue-full rounded"
+                    className="bg-estela-blue-low border-none text-estela-blue-full rounded px-1"
                     onClose={() => handleRemoveProjectEnvVar(id, level)}
                 >
                     {children}
@@ -531,6 +533,11 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         }
     };
 
+    const onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
+        const { checked } = e.target;
+        setNewCronjob({ ...newCronjob, newEnvVarMasked: checked });
+    };
+
     const handleSubmit = (): void => {
         setLoading(true);
         let expression = "";
@@ -585,7 +592,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
 
         const requestData = {
             cargs: [...cronjobData.args],
-            cenvVars: [...cronjobData.envVars],
+            cenvVars: [...envVarsData],
             ctags: [...cronjobData.tags],
             schedule: expression,
             uniqueCollection: cronjobData.uniqueCollection,
@@ -597,7 +604,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             pid: projectData.pid,
             sid: projectData.sid,
         };
-        console.log(request);
         apiService.apiProjectsSpidersCronjobsCreate(request).then(
             (response: SpiderCronJobCreate) => {
                 setLoading(false);
@@ -736,11 +742,9 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         </Content>
                         <Content>
                             <p className="text-base my-2">Environment Variables</p>
-                            <Space direction="vertical">
-                                <div className="flex gap-2 mt-1">
-                                    {projectEnvVars.length > 0 && (
-                                        <p className="text-sm">Project</p>
-                                    )}
+                            <Space direction="vertical" className="flex">
+                                <div className="flex">
+                                    {projectEnvVars.length > 0 ? (<p className="text-sm mr-2">Project:</p>) : <></>}
                                     <div className="flex gap-2">
                                         {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
                                             envVar.masked ? (
@@ -760,10 +764,8 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                         )}
                                     </div>
                                 </div>
-                                <div className="flex gap-2 my-2">
-                                    {spiderEnvVars.length > 0 && (
-                                        <p className="text-sm">Spider</p>
-                                    )}
+                                <div className="flex">
+                                    {spiderEnvVars.length > 0 ? (<p className="text-sm mr-2">Spider:</p>) : <></>}
                                     <div className="flex gap-2">
                                         {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
                                             envVar.masked ? (
@@ -784,16 +786,28 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                     </div>
                                 </div>
                                 <Space direction="horizontal">
-                                    {cronjobData.envVars.map((envVar: EnvVarsData, id: number) => (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={envVar.key}
-                                            onClose={() => handleRemoveEnvVar(id)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ))}
+                                    {cronjobData.envVars.map((envVar: EnvVarsData, id: number) =>
+                                        envVar.masked ? (
+                                            <Tooltip key={id} placement="top" title="Masked variable" showArrow={false}>
+                                                <Tag
+                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                    closable
+                                                    onClose={() => handleRemoveEnvVar(id)}
+                                                >
+                                                    {envVar.name}
+                                                </Tag>
+                                            </Tooltip>
+                                        ) : (
+                                            <Tag
+                                                className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                closable
+                                                key={id}
+                                                onClose={() => handleRemoveEnvVar(id)}
+                                            >
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
                                 </Space>
                                 <Space direction="horizontal">
                                     <Input
@@ -812,6 +826,9 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                         value={newCronjob.newEnvVarValue}
                                         onChange={handleInputChange}
                                     />
+                                    <Checkbox checked={newCronjob.newEnvVarMasked} onChange={onChangeEnvVarMasked}>
+                                        Masked
+                                    </Checkbox>
                                     <Button
                                         shape="circle"
                                         size="small"
@@ -885,7 +902,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                     <p className="text-sm mt-2">
                                         More information about cron schedule expressions&nbsp;
                                         <a
-                                            className="text-estela-blue-full"
+                                            className="text-estela-blue-full text-underlined"
                                             href="https://crontab.guru/"
                                             target="_blank"
                                             rel="noreferrer"
