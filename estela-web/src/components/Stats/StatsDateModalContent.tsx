@@ -165,10 +165,11 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
     rightSidedStatsSection(): JSX.Element {
         const { pid } = this.props;
         const { activeSpider, overviewTabSelected, activeJob, jobs } = this.state;
-
         const spiderBandwidth = formatBytes(
             jobs.results.reduce((acc, curr) => acc + (curr.totalResponseBytes ?? 0), 0),
         );
+        const activeJobLifeSpan = activeJob.stats?.runtime ? activeJob.stats.runtime.toString() : "0:00:00";
+        const formattedActiveJobLifeSpan = durationToString(parseDuration(activeJobLifeSpan));
         const spiderProcessingTime = durationToString(
             secondsToDuration(
                 Math.round(
@@ -208,10 +209,10 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                             <div className="flex items-center gap-x-5 py-5">
                                 <div className="w-3/12 rounded-lg border-2 border-estela-states-green-full p-3 bg-estela-blue-low">
                                     <p className="text-center text-estela-states-green-full text-sm font-bold">
-                                        {activeJob.lifespan || "0:00:00"}
+                                        {formattedActiveJobLifeSpan}
                                     </p>
                                     <p title="Duration" className="text-center text-estela-states-green-full text-sm">
-                                        Dur.
+                                        Lifespan
                                     </p>
                                 </div>
                                 <div className="w-9/12">
@@ -286,7 +287,7 @@ export class StatsDateModalContent extends Component<StatsDateModalContentProps,
                                         {spiderProcessingTime}
                                     </p>
                                     <p title="Duration" className="text-center text-estela-blue-full text-sm">
-                                        Dur.
+                                        Lifespan
                                     </p>
                                 </div>
                                 <div className="w-9/12">
