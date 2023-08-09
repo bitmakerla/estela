@@ -1,7 +1,7 @@
 from builds.default import DefaultBuild
 from builds.gcp import GCPBuild
 
-def Builds(type):
+def Build(type):
     builds = {
         "default": DefaultBuild,
         "gcp": GCPBuild

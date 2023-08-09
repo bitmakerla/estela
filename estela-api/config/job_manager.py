@@ -1,7 +1,7 @@
 from credentials.config import Credentials
 from django.conf import settings
 from engines.config import JobManager
-from builds.config import Builds
+from builds.config import Build
 
 from database_adapters.db_adapters import get_database_interface
 
@@ -19,4 +19,4 @@ spiderdata_db_client = get_database_interface(
     certificate_path=settings.SPIDERDATA_DB_CERTIFICATE_PATH,
 )
 
-build_manager = Builds(type=settings.BUILD)
+build_manager = Build(type=settings.BUILD)
