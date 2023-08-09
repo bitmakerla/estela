@@ -1,4 +1,4 @@
-name: Build and Deploy estela-web
+name: Build and Deploy estela-web preview
 on:
   pull_request:
 
@@ -37,7 +37,7 @@ jobs:
           files: estela-api
 
   build_web:
-    if: needs.check-web.outputs.web_changed == 'true'
+    if: needs.check-web.outputs.web_changed == 'true' && needs.check-api.outputs.api_changed == 'false'
     name: Build web
     needs: [check-web, check-api]
     runs-on: ubuntu-latest
@@ -45,8 +45,78 @@ jobs:
       web_changed: ${{ needs.check-web.outputs.web_changed }}
       api_changed: ${{ needs.check-api.outputs.api_changed }}
     steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: $WEB_DIRECTORY/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Build Web
+        run: |
+          cd $WEB_DIRECTORY
+          echo "REACT_APP_API_BASE_URL=${{ secrets.STAGING_BMC_API_URL }}" > .env.production
+          yarn install
+          yarn build --env publicPath=${{ secrets.STAGING_BMC_PUBLIC_PATH }}
+
       - name: Web changed
         run: |
           echo "estela-api changed status: ${{ env.api_changed }}"
           echo "estela-web changed status: ${{ env.web_changed }}!"
           echo "API URL: ${{ secrets.STAGING_BMC_API_URL }}"
+
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-web
+          path: estela-web/dist/
+          retention-days: 1
+
+  deploy_to_s3:
+    name: Deploy web to s3
+    needs: build_web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Download built Web
+        uses: actions/download-artifact@v3
+        with:
+          name: build-web
+          path: estela-web/dist/
+
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # - name: Defining bucket name and policies
+      #   run: |
+      #     export _BUCKET_NAME=$(echo estela-web-${{ github.head_ref }} | tr '[:upper:]' '[:lower:]')
+      #     echo "BUCKET_NAME=$_BUCKET_NAME"
+      #     echo "{
+      #       \"Version\": \"2012-10-17\",
+      #       \"Statement\": [
+      #         {
+      #           \"Sid\": \"PublicReadGetObject\",
+      #           \"Effect\": \"Allow\",
+      #           \"Principal\": \"*\",
+      #           \"Action\": \"s3:GetObject\",
+      #           \"Resource\": \"arn:aws:s3:::$_BUCKET_NAME/*\"
+      #         }
+      #       ]
+      #     }" > bucket_policy.json
+
+      - name: Creating new S3 Bucket
+        run: |
+          ls
+
+      # - name: Deploy web to s3
+      #   run: |
+      #     cd $WEB_DIRECTORY
+      #     aws s3 sync --delete ./dist s3://
