@@ -120,6 +120,7 @@ jobs:
           cd estela-web
           ls
           echo "accessing dist folder"
+          cd dist
           ls
 
       # - name: Deploy web to s3
