@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: 18.x
           cache: "yarn"
-          cache-dependency-path: ${{env.WEB_DIRECTORY}}/yarn.lock
+          cache-dependency-path: ./${{env.WEB_DIRECTORY}}/yarn.lock
 
       # - uses: actions/cache@v2
       #   id: cache
@@ -61,7 +61,7 @@ jobs:
       #     key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
       - name: Build Web
-        working-directory: ${{env.WEB_DIRECTORY}}
+        working-directory: ./${{env.WEB_DIRECTORY}}
         run: |
           echo "REACT_APP_API_BASE_URL=${{ secrets.STAGING_BMC_API_URL }}" > .env.production
           yarn install
