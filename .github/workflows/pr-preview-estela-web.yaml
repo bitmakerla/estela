@@ -115,6 +115,8 @@ jobs:
       - name: Creating new S3 Bucket
         run: |
           ls
+          cd estela-web
+          ls
 
       # - name: Deploy web to s3
       #   run: |
