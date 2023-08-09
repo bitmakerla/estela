@@ -114,8 +114,12 @@ jobs:
 
       - name: Creating new S3 Bucket
         run: |
+          echo "Accessing main folder"
           ls
+          echo "accessing estela-web folder"
           cd estela-web
+          ls
+          echo "accessing dist folder"
           ls
 
       # - name: Deploy web to s3
