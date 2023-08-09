@@ -46,23 +46,30 @@ jobs:
       api_changed: ${{ needs.check-api.outputs.api_changed }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: actions/cache@v2
-        id: cache
+      - uses: actions/setup-node@v3
         with:
-          path: $WEB_DIRECTORY/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+          node-version: 18.x
+          cache: "yarn"
+          cache-dependency-path: ${{env.WEB_DIRECTORY}}/yarn.lock
+
+      # - uses: actions/cache@v2
+      #   id: cache
+      #   with:
+      #     path: $WEB_DIRECTORY/node_modules
+      #     key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
 
       - name: Build Web
+        working-directory: ${{env.WEB_DIRECTORY}}
         run: |
-          cd $WEB_DIRECTORY
           echo "REACT_APP_API_BASE_URL=${{ secrets.STAGING_BMC_API_URL }}" > .env.production
           yarn install
           yarn build --env publicPath=${{ secrets.STAGING_BMC_PUBLIC_PATH }}
 
       - name: Web changed
         run: |
+          ls
           echo "estela-api changed status: ${{ env.api_changed }}"
           echo "estela-web changed status: ${{ env.web_changed }}!"
           echo "API URL: ${{ secrets.STAGING_BMC_API_URL }}"
@@ -80,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Download built Web
         uses: actions/download-artifact@v3
