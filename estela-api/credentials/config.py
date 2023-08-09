@@ -6,8 +6,8 @@ from credentials.local import LocalCredentials
 def Credentials(plataform):
     credentials = {
         "aws": AWSCredentials,
+        "gcp": GCPCredentials,
         "local": LocalCredentials,
-        "gcp": GCPCredentials
     }
 
     return credentials[plataform]()

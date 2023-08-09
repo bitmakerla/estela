@@ -9,14 +9,14 @@ nodeSelector: ""
 
 ######## AWS ########
 
-AWS_ACCESS_KEY_ID: "" # values need from a AWS account
+AWS_ACCESS_KEY_ID: "" # values needed from an AWS account
 AWS_SECRET_ACCESS_KEY: ""
 AWS_DEFAULT_REGION: ""
 
 awsRegistry: ""
 imagePullSecrets: ""
 
-######## GPC ########
+######## GCP ########
 
 GOOGLE_APPLICATION_CREDENTIALS: ""
 GOOGLE_APPLICATION_LOCATION: ""
