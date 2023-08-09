@@ -41,4 +41,3 @@ module will take care of calling the appropriate methods to access both the regi
 are saved, fetching any required credentials (such as your `AWS_ACCESS_KEY_ID` for AWS). For more information on the
 currently supported credentials, refer to the [Credentials](https://bitmaker.la/docs/bitmaker-cloud/api/credentials.html)
 section in our official documentation.
-Changed
