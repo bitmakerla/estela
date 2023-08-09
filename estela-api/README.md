@@ -3,10 +3,11 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 The API consists of three main components:
+
 - Django API: Implements a REST API built with the Django REST framework toolkit, exposing several endpoints to manage
-    projects, spiders, and jobs.
+  projects, spiders, and jobs.
 - Celery worker and beat: Responsible for executing the tasks and periodic tasks ordered by the API.
-- Redis: Keeps a record of the tasks and periodic tasks to be executed.  It is needed by Celery.
+- Redis: Keeps a record of the tasks and periodic tasks to be executed. It is needed by Celery.
 
 These components have a corresponding Docker configuration file to build their images and run in Docker containers.
 
@@ -40,3 +41,4 @@ module will take care of calling the appropriate methods to access both the regi
 are saved, fetching any required credentials (such as your `AWS_ACCESS_KEY_ID` for AWS). For more information on the
 currently supported credentials, refer to the [Credentials](https://bitmaker.la/docs/bitmaker-cloud/api/credentials.html)
 section in our official documentation.
+Changed
