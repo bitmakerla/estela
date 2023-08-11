@@ -121,7 +121,11 @@ jobs:
       - name: Deploy to S3 Bucket
         run: aws s3 sync ./${{env.WEB_DIRECTORY}}/dist/ s3://${{env.BUCKET_NAME}} --delete
 
-      - name: Comment Website Direction
+      - name: Define preview metadata
+        run: |
+          echo "SHORT_COMMIT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "LAST_UPDATED="$(date -u +'%Y-%m-%d %H:%M:%S') UTC"" >> "$GITHUB_ENV"
+      - name: Comment Website Preview
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: Docs preview
@@ -129,9 +133,6 @@ jobs:
           message: |
             ## estela web preview
             You are viewing this message because you made a change in estela-web
-            | Tables   |      Are      |  Cool |
-            |----------|:-------------:|------:|
-            | col 1 is |  left-aligned | $1600 |
-            | col 2 is |    centered   |   $12 |
-            | col 3 is | right-aligned |    $1 |
-            Check out the docs preview [here](http://${{env.BUCKET_NAME}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com/index.html) :point_left:
+            | Commit  | Preview     | Last Updated            |
+            |---------|-------------|-------------------------|
+            | ${{env.SHORT_COMMIT_SHA}} | [See preview](http://${{env.BUCKET_NAME}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com){:target="_blank"} | ${{env.LAST_UPDATED}} |
