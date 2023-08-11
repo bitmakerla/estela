@@ -1,0 +1,25 @@
+name: Delete estela-web preview
+
+on:
+  pull_request:
+    types:
+      - closed
+  workflow_dispatch:
+
+jobs:
+  delete_bucket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Environment Variables
+        run: |
+          echo "BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Delete S3 Bucket
+        run: aws s3 rb s3://$BUCKET_NAME --force
