@@ -73,8 +73,6 @@ jobs:
     name: Deploy web to s3
     needs: build_web
     runs-on: ubuntu-latest
-    env:
-      bucket_name: estela-web-${{github.head_ref}}
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -94,6 +92,8 @@ jobs:
 
       - name: Defining bucket name and policies
         run: |
+          export _BUCKET_NAME=$(echo estela-docs-${{ github.head_ref }} | tr '[:upper:]' '[:lower:]')
+          echo "BUCKET_NAME=$_BUCKET_NAME" >> $GITHUB_ENV
           echo "{
             \"Version\": \"2012-10-17\",
             \"Statement\": [
@@ -102,24 +102,24 @@ jobs:
                 \"Effect\": \"Allow\",
                 \"Principal\": \"*\",
                 \"Action\": \"s3:GetObject\",
-                \"Resource\": \"arn:aws:s3:::${{env.bucket_name}}/*\"
+                \"Resource\": \"arn:aws:s3:::$_BUCKET_NAME/*\"
               }
             ]
           }" > bucket_policy.json
 
       - name: Create new S3 Bucket
         run: |
-          if ! aws s3api head-bucket --bucket ${{env.bucket_name}} 2>/dev/null; then \
-            aws s3 mb s3://${{env.bucket_name}}; \
+          if ! aws s3api head-bucket --bucket ${{env.BUCKET_NAME}} 2>/dev/null; then \
+            aws s3 mb s3://${{env.BUCKET_NAME}}; \
             cd ./${{env.WEB_DIRECTORY}}/dist/
-            aws s3 website s3://${{env.bucket_name}} --index-document index.html; \
+            aws s3 website s3://${{env.BUCKET_NAME}} --index-document index.html; \
             cd ../../
-            aws s3api put-public-access-block --bucket ${{env.bucket_name}} --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
-            aws s3api put-bucket-policy --bucket ${{env.bucket_name}} --policy file://bucket_policy.json; \
+            aws s3api put-public-access-block --bucket ${{env.BUCKET_NAME}} --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
+            aws s3api put-bucket-policy --bucket ${{env.BUCKET_NAME}} --policy file://bucket_policy.json; \
           fi
 
       - name: Deploy to S3 Bucket
-        run: aws s3 sync ./${{env.WEB_DIRECTORY}}/dist/ s3://${{env.bucket_name}} --delete
+        run: aws s3 sync ./${{env.WEB_DIRECTORY}}/dist/ s3://${{env.BUCKET_NAME}} --delete
 
       - name: Comment Website Direction
         uses: marocchino/sticky-pull-request-comment@v2
@@ -134,4 +134,4 @@ jobs:
             | col 1 is |  left-aligned | $1600 |
             | col 2 is |    centered   |   $12 |
             | col 3 is | right-aligned |    $1 |
-            Check out the docs preview [here](http://${{env.bucket_name}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com/index.html) :point_left:
+            Check out the docs preview [here](http://${{env.BUCKET_NAME}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com/index.html) :point_left:
