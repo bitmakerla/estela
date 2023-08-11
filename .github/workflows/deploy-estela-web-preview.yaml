@@ -135,4 +135,4 @@ jobs:
             You are viewing this message because you made a change in estela-web
             | Commit  | Preview     | Last Updated            |
             |---------|-------------|-------------------------|
-            | ${{env.SHORT_COMMIT_SHA}} | [See preview](http://${{env.BUCKET_NAME}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com){:target="_blank"} | ${{env.LAST_UPDATED}} |
+            | ${{env.SHORT_COMMIT_SHA}} | <a target="_blank" href="http://${{env.BUCKET_NAME}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com">See preview</a> | ${{env.LAST_UPDATED}} |
