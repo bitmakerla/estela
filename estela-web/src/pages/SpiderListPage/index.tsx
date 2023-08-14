@@ -1,19 +1,18 @@
-import React, { Component, Fragment, ReactElement } from "react";
-import { Col, Layout, Row, notification, Select } from "antd";
+import React, { Component, ReactElement } from "react";
+import { Link } from "react-router-dom";
+import { Col, Layout, Row, Button, Space, Typography, Table, Pagination } from "antd";
+import Add from "../../assets/icons/add.svg";
 import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService } from "../../services";
-import { SpidersStats, ApiProjectsSpidersListRequest, Spider } from "../../services/api";
-import { BytesMetric } from "../../utils";
-import FolderDotted from "../../assets/icons/folderDotted.svg";
-import { Spin, resourceNotAllowedNotification } from "../../shared";
-import { HeaderSection, ChartsSection, StatsTableSection } from "../../components";
-import type { RangePickerProps } from "antd/es/date-picker";
+import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
+import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
+import { ColumnsType } from "antd/lib/table";
 import moment from "moment";
 
 const { Content } = Layout;
-const { Option } = Select;
+const { Text } = Typography;
 
 interface SpiderList {
     key: number;
@@ -23,39 +22,24 @@ interface SpiderList {
 
 interface SpiderListPageState {
     spiders: SpiderList[];
-    spiderId: number | undefined;
-    spiderStats: SpidersStats[];
-    formattedNetwork: BytesMetric;
-    formattedStorage: BytesMetric;
-    processingTime: number;
+    current: number;
+    count: number;
     loaded: boolean;
-    loadedStats: boolean;
     statsStartDate: moment.Moment;
     statsEndDate: moment.Moment;
 }
 
 interface RouteParams {
     projectId: string;
-    spiderId: string;
 }
 
 export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, SpiderListPageState> {
-    PAGE_SIZE = 20;
+    PAGE_SIZE = 10;
     state: SpiderListPageState = {
         spiders: [],
-        spiderStats: [],
-        spiderId: undefined,
-        formattedNetwork: {
-            quantity: 0,
-            type: "",
-        },
-        formattedStorage: {
-            quantity: 0,
-            type: "",
-        },
-        processingTime: 0,
+        count: 0,
+        current: 0,
         loaded: false,
-        loadedStats: false,
         statsStartDate: moment().subtract(7, "days").startOf("day"),
         statsEndDate: moment(),
     };
@@ -63,10 +47,10 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     projectId: string = this.props.match.params.projectId;
 
     async componentDidMount(): Promise<void> {
-        this.getProjectSpiders(1);
+        await this.getProjectSpiders(1);
     }
 
-    getProjectSpiders = async (page: number): Promise<void> => {
+    async getProjectSpiders(page: number): Promise<void> {
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId, page, pageSize: this.PAGE_SIZE };
         this.apiService.apiProjectsSpidersList(requestParams).then(
             (response) => {
@@ -77,151 +61,102 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
                         sid: spider.sid,
                     };
                 });
-                if (spiders.length > 0) {
-                    this.getSpiderStatsAndUpdateDates(null, null, spiders[0].sid);
-                    this.setState({ spiderId: spiders[0].sid });
-                }
-                this.setState({ spiders: [...spiders], loaded: true });
+                this.setState({ spiders: [...spiders], count: response.count, current: page, loaded: true });
             },
             (error: unknown) => {
                 error;
                 resourceNotAllowedNotification();
             },
         );
-    };
+    }
 
-    getSpiderStatsAndUpdateDates = async (
-        startDate?: string | undefined | null,
-        endDate?: string | undefined | null,
-        sid?: number | undefined,
-    ): Promise<void> => {
-        this.setState({ loadedStats: false });
-        const { statsStartDate, statsEndDate } = this.state;
-        if (startDate && endDate) {
-            this.setState({
-                statsStartDate: moment.utc(startDate),
-                statsEndDate: moment.utc(endDate),
-            });
-        }
-        await this.apiService
-            .apiStatsSpiderList({
-                pid: this.projectId,
-                sid: String(sid),
-                startDate: !startDate ? statsStartDate.format("YYYY-MM-DD") : startDate,
-                endDate: !endDate ? statsEndDate.format("YYYY-MM-DD") : endDate,
-                offset: new Date().getTimezoneOffset(),
-            })
-            .then(
-                (response: SpidersStats[]) => {
-                    this.setState({
-                        spiderStats: [...response],
-                        loadedStats: true,
-                    });
-                },
-                (error: Error) => {
-                    notification.error({
-                        message: "No data",
-                        description: error.message,
-                    });
-                    this.setState({ loadedStats: true });
-                },
-            );
-    };
+    columns: ColumnsType<SpiderList> = [
+        {
+            title: "SPIDER",
+            dataIndex: "name",
+            key: "name",
+            render: (name: string, spider: SpiderList): ReactElement => (
+                <Link
+                    key={spider.key}
+                    to={`/projects/${this.projectId}/spiders/${spider.sid}`}
+                    className="text-estela-blue-medium"
+                >
+                    {name}
+                </Link>
+            ),
+        },
+        {
+            title: "LAST RUN",
+            dataIndex: "lastRun",
+            key: "lastRun",
+            render: (): ReactElement => <Text className="text-estela-black-medium text-xs">Not available</Text>,
+        },
+        {
+            title: "JOBS",
+            dataIndex: "jobs",
+            key: "jobs",
+            render: (): ReactElement => <Text className="text-estela-black-medium text-xs">-/-</Text>,
+        },
+    ];
 
-    onChangeDateRangeHandler: RangePickerProps["onChange"] = (_, dateStrings) => {
-        this.setState({ loadedStats: false });
-        const [startDateUTC, endDateUTC] = [
-            moment(dateStrings[0]).startOf("day").format("YYYY-MM-DD"),
-            moment(dateStrings[1]).endOf("day").format("YYYY-MM-DD"),
-        ];
-        this.getSpiderStatsAndUpdateDates(startDateUTC, endDateUTC, this.state.spiderId);
+    onPageChange = async (page: number): Promise<void> => {
+        this.setState({ loaded: false });
+        await this.getProjectSpiders(page);
     };
-
-    onRefreshEventHandler = async () => {
-        await this.getSpiderStatsAndUpdateDates(null, null, this.state.spiderId);
-    };
-
-    handleSpiderChange = (value: string | undefined) => {
-        this.getSpiderStatsAndUpdateDates(null, null, Number(value));
-        this.setState({ spiderId: Number(value) });
-    };
-
-    emptyText = (): ReactElement => (
-        <Content className="flex flex-col items-center justify-center text-estela-black-medium">
-            <FolderDotted className="w-20 h-20" />
-            <p>No spiders yet.</p>
-        </Content>
-    );
 
     render(): JSX.Element {
-        const {
-            loaded,
-            spiders,
-            formattedNetwork,
-            formattedStorage,
-            processingTime,
-            spiderStats,
-            loadedStats,
-            statsStartDate,
-            statsEndDate,
-        } = this.state;
+        const { loaded, spiders, count, current } = this.state;
         return (
-            <Layout className="bg-metal rounded-2xl">
+            <Content className="bg-metal rounded-2xl">
                 {loaded ? (
-                    <Fragment>
-                        <Row className="lg:m-8 m-4 justify-between">
-                            <Col className="">
+                    <div className="lg:m-10 md:mx-6 mx-2">
+                        <Row className="flow-root my-6">
+                            <Col className="float-left">
                                 <p className="text-xl font-medium text-silver float-left">SPIDERS</p>
                             </Col>
-                            {spiders.length > 0 && (
-                                <Col className="flex items-center order-last">
-                                    <p className="text-base text-estela-black-medium mr-2">Spider:</p>
-                                    <Select
-                                        className="w-40"
-                                        size="large"
-                                        defaultValue={spiders[0].name}
-                                        onChange={this.handleSpiderChange}
-                                    >
-                                        {spiders.map((spider: SpiderList) => (
-                                            <Option key={spider.sid} value={spider.sid}>
-                                                {spider.name}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </Col>
-                            )}
+                            <Col className="float-right">
+                                <Button
+                                    icon={<Add className="mr-2" width={19} />}
+                                    onClick={() => this.props.history.push(`/projects/${this.projectId}/deploys`)}
+                                    size="large"
+                                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                >
+                                    Deploy new spider
+                                </Button>
+                            </Col>
                         </Row>
-                        {spiders.length === 0 && this.emptyText()}
-                        {spiders.length > 0 && (
-                            <Row className="bg-metal-m-4">
-                                <Content className="bg-white rounded-2xl py-5 px-4 mx-4 w-full">
-                                    <HeaderSection
-                                        onRefreshEventHandler={this.onRefreshEventHandler}
-                                        onChangeDateRangeHandler={this.onChangeDateRangeHandler}
-                                        formattedNetwork={formattedNetwork}
-                                        formattedStorage={formattedStorage}
-                                        processingTime={processingTime}
-                                        stats={spiderStats}
-                                        loadedStats={loadedStats}
-                                        startDate={statsStartDate.local().format("ddd, DD MMM")}
-                                        endDate={statsEndDate.local().format("ddd, DD MMM")}
+                        <Row className="bg-white rounded-lg">
+                            <div className="m-4">
+                                <Space direction="vertical" className="">
+                                    <Table
+                                        tableLayout="fixed"
+                                        className="rounded-2xl"
+                                        columns={this.columns}
+                                        dataSource={spiders}
+                                        pagination={false}
+                                        size="middle"
+                                        locale={{ emptyText: "No spiders yet" }}
                                     />
-                                    <ChartsSection stats={spiderStats.slice().reverse()} loadedStats={loadedStats} />
-                                    <StatsTableSection
-                                        pid={this.projectId}
-                                        apiService={this.apiService}
-                                        stats={spiderStats}
-                                        loadedStats={loadedStats}
-                                        disabled={true}
-                                    />
-                                </Content>
-                            </Row>
-                        )}
-                    </Fragment>
+                                </Space>
+                            </div>
+                        </Row>
+                        <Row>
+                            <Pagination
+                                className="pagination"
+                                defaultCurrent={1}
+                                total={count}
+                                current={current}
+                                pageSize={this.PAGE_SIZE}
+                                onChange={this.onPageChange}
+                                showSizeChanger={false}
+                                itemRender={PaginationItem}
+                            />
+                        </Row>
+                    </div>
                 ) : (
                     <Spin />
                 )}
-            </Layout>
+            </Content>
         );
     }
 }
