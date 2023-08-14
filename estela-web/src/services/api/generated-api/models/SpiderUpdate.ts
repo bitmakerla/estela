@@ -33,7 +33,7 @@ export interface SpiderUpdate {
      */
     readonly sid?: string;
     /**
-     * Project env variables.
+     * Project environment variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof SpiderUpdate
      */

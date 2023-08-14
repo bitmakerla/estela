@@ -2076,7 +2076,7 @@ definitions:
         type: string
         format: uuid
       env_vars:
-        description: Spider env variables.
+        description: Spider environment variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'
@@ -2295,7 +2295,7 @@ definitions:
         format: uuid
         readOnly: true
       env_vars:
-        description: Project env variables.
+        description: Project environment variables.
         type: array
         items:
           $ref: '#/definitions/SpiderJobEnvVar'

@@ -10,53 +10,29 @@ from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
-from api.mixins import BaseViewSet, ActionHandlerMixin
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
+from api.mixins import ActionHandlerMixin, BaseViewSet
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
+    ActivitySerializer,
+    ProjectActivitySerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
     ProjectUsageSerializer,
     UsageRecordSerializer,
-    ProjectActivitySerializer,
-    ActivitySerializer,
 )
+from api.utils import update_env_vars
 from core.models import (
+    Activity,
     DataStatus,
     Permission,
     Project,
     Spider,
     SpiderCronJob,
-    SpiderJobEnvVar,
     SpiderJob,
     UsageRecord,
     User,
-    Activity,
 )
-
-
-def update_env_vars(instance, env_vars, level="project"):
-    env_vars_instance = instance.env_vars.all()
-    for env_var in env_vars:
-        if env_vars_instance.filter(**env_var).exists():
-            continue
-        elif env_var["masked"] is True and env_var["value"] == "__MASKED__":
-            continue
-        elif env_var["masked"] is False and env_var["value"] == "__MASKED__":
-            env_vars_instance.filter(name=env_var["name"]).update(masked=False)
-        elif env_var["name"] in [value.name for value in env_vars_instance]:
-            env_vars_instance.filter(name=env_var["name"]).update(
-                value=env_var["value"],
-                masked=env_var["masked"]
-            )
-        else:
-            if level == "project":
-                SpiderJobEnvVar.objects.create(project=instance, **env_var)
-            elif level == "spider":
-                SpiderJobEnvVar.objects.create(spider=instance, **env_var)
-    for env_var in env_vars_instance:
-        if env_var.name not in [value["name"] for value in env_vars]:
-            env_var.delete()
 
 
 class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):

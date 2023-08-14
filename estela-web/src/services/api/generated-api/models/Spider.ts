@@ -45,7 +45,7 @@ export interface Spider {
      */
     project: string;
     /**
-     * Spider env variables.
+     * Spider environment variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof Spider
      */
