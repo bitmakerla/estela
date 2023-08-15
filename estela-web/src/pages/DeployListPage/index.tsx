@@ -281,7 +281,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             </Button>
                                         </Row>
                                         <Button
-                                            icon={<Copy width={24} />}
+                                            icon={<Copy className="text-2xl" />}
                                             className="border-0 mx-4 hover:bg-button-hover stroke-black hover:stroke-estela"
                                             onClick={this.copy}
                                         />

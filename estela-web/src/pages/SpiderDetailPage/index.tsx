@@ -16,6 +16,7 @@ import {
 } from "antd";
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
+import { EnvVarsSetting } from "../../components/EnvVarsSettingsPage";
 
 import "./styles.scss";
 import CronjobCreateModal from "../CronjobCreateModal";
@@ -37,6 +38,7 @@ import {
     SpiderJob,
     SpiderJobArg,
     SpiderJobTag,
+    SpiderJobEnvVar,
 } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString, handleInvalidDataError } from "../../utils";
@@ -48,7 +50,8 @@ const waiting = 0;
 const queued = 1;
 const running = 2;
 const completed = 3;
-const withError = 4;
+const stopped = 4;
+const withError = 5;
 
 interface SpiderJobData {
     id: number | null | undefined;
@@ -73,6 +76,7 @@ interface SpiderDetailPageState {
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
+    stoppedJobs: SpiderJobData[];
     errorJobs: SpiderJobData[];
     scheduledJobsCount: number;
     spiderCreationDate: string;
@@ -80,6 +84,7 @@ interface SpiderDetailPageState {
     newDataStatus: SpiderUpdateDataStatusEnum | undefined;
     dataStatus: SpiderDataStatusEnum | SpiderUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
+    envVars: SpiderJobEnvVar[];
 }
 
 interface RouteParams {
@@ -106,6 +111,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             dataExpiryDays: 0,
             dataStatus: SpiderDataStatusEnum.Persistent,
         },
+        envVars: [],
         loaded: false,
         count: 0,
         current: 0,
@@ -114,6 +120,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
+        stoppedJobs: [],
         errorJobs: [],
         spiderCreationDate: "",
         scheduledJobsCount: 0,
@@ -202,11 +209,11 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         this.apiService.apiProjectsSpidersRead(requestParams).then(
             async (response: Spider) => {
                 const data = await this.getSpiderJobs(1);
-
                 const waitingJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "WAITING");
                 const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
                 const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
                 const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
+                const stoppedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "STOPPED");
                 const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
 
                 const scheduledJobsCount = data.data
@@ -221,15 +228,25 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     !(queueJobs.length === 0),
                     !(runningJobs.length === 0),
                     !(completedJobs.length === 0),
+                    !(stoppedJobs.length === 0),
                     !(errorJobs.length === 0),
                 ];
 
                 const jobs: SpiderJobData[] = data.data;
+                let envVars = response.envVars || [];
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
                 this.setState({
                     spider: response,
                     name: response.name,
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays,
+                    envVars: envVars,
                     jobs: [...jobs],
                     count: data.count,
                     current: data.current,
@@ -239,6 +256,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                     queueJobs: [...queueJobs],
                     runningJobs: [...runningJobs],
                     completedJobs: [...completedJobs],
+                    stoppedJobs: [...stoppedJobs],
                     errorJobs: [...errorJobs],
                     scheduledJobsCount: scheduledJobsCount,
                 });
@@ -294,7 +312,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
 
     changePersistence = (): void => {
         const requestData: SpiderUpdate = {
-            name: this.state.name,
             dataStatus: this.state.newDataStatus,
             dataExpiryDays: Number(this.state.dataExpiryDays),
         };
@@ -332,6 +349,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         const queueJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "IN_QUEUE");
         const runningJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "RUNNING");
         const completedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "COMPLETED");
+        const stoppedJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "STOPPED");
         const errorJobs = data.data.filter((job: SpiderJobData) => job.jobStatus === "ERROR");
 
         const tableStatus = [
@@ -339,6 +357,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             !(queueJobs.length === 0),
             !(runningJobs.length === 0),
             !(completedJobs.length === 0),
+            !(stoppedJobs.length === 0),
             !(errorJobs.length === 0),
         ];
 
@@ -353,6 +372,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             queueJobs: [...queueJobs],
             runningJobs: [...runningJobs],
             completedJobs: [...completedJobs],
+            stoppedJobs: [...stoppedJobs],
             errorJobs: [...errorJobs],
         });
     };
@@ -384,6 +404,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             queueJobs,
             runningJobs,
             completedJobs,
+            stoppedJobs,
             errorJobs,
             spiderCreationDate,
             scheduledJobsCount,
@@ -655,6 +676,56 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                 </Space>
                             </Row>
                         )}
+                        {tableStatus[stopped] && (
+                            <Row className="my-2 rounded-lg bg-white">
+                                <Row className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                    <Col className="float-left py-1">
+                                        <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                            Stopped
+                                        </Text>
+                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                            {stoppedJobs.length}
+                                        </Tag>
+                                    </Col>
+                                    <Col className="flex float-right">
+                                        <Button
+                                            disabled
+                                            icon={<Filter className="h-6 w-6 mr-2" />}
+                                            size="large"
+                                            className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                        >
+                                            Filter
+                                        </Button>
+                                        <Button
+                                            disabled
+                                            icon={<Setting className="h-6 w-6" />}
+                                            size="large"
+                                            className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                        ></Button>
+                                    </Col>
+                                </Row>
+                                <Content className="mx-4 my-1">
+                                    <Table
+                                        size="small"
+                                        rowSelection={{
+                                            type: "checkbox",
+                                        }}
+                                        columns={this.columns}
+                                        dataSource={stoppedJobs}
+                                        pagination={false}
+                                    />
+                                </Content>
+                                <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                <Space direction="horizontal" className="my-2 mx-4">
+                                    <Button
+                                        disabled
+                                        className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                    >
+                                        Run again
+                                    </Button>
+                                </Space>
+                            </Row>
+                        )}
                         {tableStatus[withError] && (
                             <Row className="my-2 rounded-lg bg-white">
                                 <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
@@ -769,6 +840,18 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                 </Checkbox>
                                 <br />
                                 <Checkbox
+                                    checked={stoppedJobs.length === 0 ? tableStatus[stopped] : true}
+                                    onChange={() => this.onChangeStatus(stopped, stoppedJobs.length)}
+                                >
+                                    <Space direction="horizontal">
+                                        <Text className="text-estela-black-medium font-medium text-sm">Stopped</Text>
+                                        <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                            {stoppedJobs.length}
+                                        </Tag>
+                                    </Space>
+                                </Checkbox>
+                                <br />
+                                <Checkbox
                                     checked={errorJobs.length == 0 ? tableStatus[withError] : true}
                                     onChange={() => this.onChangeStatus(withError, errorJobs.length)}
                                 >
@@ -798,7 +881,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     ];
 
     settings = (): React.ReactNode => {
-        const { dataStatus, dataExpiryDays, persistenceChanged } = this.state;
+        const { dataStatus, dataExpiryDays, persistenceChanged, envVars } = this.state;
         return (
             <Row justify="center" className="bg-white rounded-lg">
                 <Content className="content-padding">
@@ -843,6 +926,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                             </div>
                         </Col>
                     </Row>
+                    <EnvVarsSetting
+                        projectId={this.projectId}
+                        spiderId={this.spiderId}
+                        envVarsData={envVars}
+                        level="spider"
+                    />
                 </Content>
             </Row>
         );

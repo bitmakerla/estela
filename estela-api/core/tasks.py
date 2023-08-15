@@ -111,7 +111,7 @@ def check_and_update_job_status_errors():
             job_status.active is None and job_status.succeeded is None
         ):
             try:
-                update_stats_from_redis(job)
+                update_stats_from_redis(job, save_to_database=True)
                 delete_stats_from_redis(job)
             except:
                 pass

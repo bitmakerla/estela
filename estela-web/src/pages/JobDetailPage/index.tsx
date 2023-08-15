@@ -1046,7 +1046,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             const newEnvVars: EnvVars[] = [...this.state.envVars].map(
                                                 (envVar: SpiderJobEnvVar, id: number) => ({
                                                     name: envVar.name,
-                                                    value: envVar.masked ? "_" : envVar.value,
+                                                    value: envVar.masked ? "__MASKED__" : envVar.value,
                                                     masked: envVar.masked,
                                                     key: id,
                                                 }),

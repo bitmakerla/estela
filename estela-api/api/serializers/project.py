@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from core.models import DataStatus, Permission, Project, UsageRecord, Activity
+from api.serializers.job_specific import SpiderJobEnvVarSerializer
+from core.models import Activity, DataStatus, Permission, Project, UsageRecord
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -44,6 +45,9 @@ class ProjectSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Users with permissions on this project.",
     )
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Project env variables."
+    )
     container_image = serializers.CharField(
         read_only=True, help_text="Path of the project's container image."
     )
@@ -57,6 +61,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "framework",
             "container_image",
             "users",
+            "env_vars",
             "data_status",
             "data_expiry_days",
         )
@@ -120,6 +125,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."
     )
+    name = serializers.CharField(
+        write_only=True, required=False, help_text="Project name."
+    )
     users = UserDetailSerializer(many=True, required=False, help_text="Affected users.")
     email = serializers.EmailField(
         write_only=True, required=False, help_text="Email address."
@@ -138,6 +146,9 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         choices=Project.FRAMEWORK_CHOICES,
         required=False,
         help_text="Set project framework.",
+    )
+    env_vars = SpiderJobEnvVarSerializer(
+        many=True, required=False, help_text="Project env variables."
     )
     permission = serializers.ChoiceField(
         write_only=True,
@@ -166,6 +177,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "email",
             "action",
             "framework",
+            "env_vars",
             "permission",
             "data_status",
             "data_expiry_days",

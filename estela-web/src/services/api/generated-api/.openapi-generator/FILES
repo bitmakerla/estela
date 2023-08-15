@@ -45,6 +45,7 @@ models/SpiderCronJobUpdate.ts
 models/SpiderJob.ts
 models/SpiderJobArg.ts
 models/SpiderJobCreate.ts
+models/SpiderJobCreateEnvVar.ts
 models/SpiderJobEnvVar.ts
 models/SpiderJobStats.ts
 models/SpiderJobTag.ts
