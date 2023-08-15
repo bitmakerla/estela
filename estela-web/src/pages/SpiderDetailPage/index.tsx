@@ -17,6 +17,7 @@ import {
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 import { EnvVarsSetting } from "../../components/EnvVarsSettingsPage";
+import { ProxySettings } from "../../components/ProxySettingsPage";
 
 import "./styles.scss";
 import CronjobCreateModal from "../CronjobCreateModal";
@@ -927,6 +928,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                         </Col>
                     </Row>
                     <EnvVarsSetting
+                        projectId={this.projectId}
+                        spiderId={this.spiderId}
+                        envVarsData={envVars}
+                        level="spider"
+                    />
+                    <ProxySettings
                         projectId={this.projectId}
                         spiderId={this.spiderId}
                         envVarsData={envVars}

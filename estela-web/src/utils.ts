@@ -1,4 +1,5 @@
 import { invalidDataNotification } from "./shared";
+import { SpiderJobEnvVar } from "./services";
 
 export interface BytesMetric {
     quantity: number;
@@ -132,4 +133,16 @@ export function handleInvalidDataError(error: unknown): void {
     } else {
         console.error("Unexpected error", error);
     }
+}
+
+export function getFilteredEnvVars(envVars: SpiderJobEnvVar[]): SpiderJobEnvVar[] {
+    const reservedEnvVars: Array<string> = [
+        "ESTELA_PROXY_URL",
+        "ESTELA_PROXY_PORT",
+        "ESTELA_PROXY_USER",
+        "ESTELA_PROXY_PASS",
+        "ESTELA_PROXY_NAME",
+        "CUSTOM_PROXIES_ENABLED",
+    ];
+    return envVars.filter((envVar: SpiderJobEnvVar) => !reservedEnvVars.includes(envVar.name));
 }

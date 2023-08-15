@@ -14,7 +14,7 @@ import {
     ApiProjectsSpidersUpdateRequest,
 } from "../../services/api";
 import { invalidDataNotification } from "../../shared";
-import { handleInvalidDataError } from "../../utils";
+import { handleInvalidDataError, getFilteredEnvVars } from "../../utils";
 
 interface ProjectEnvVar {
     projectId: string;
@@ -371,7 +371,7 @@ export const EnvVarsSetting: React.FC<ProjectEnvVar> = ({ projectId, spiderId, e
                     Environment variables will be set to all jobs in this project.
                 </p>
                 <Space direction="horizontal">
-                    {envVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                    {getFilteredEnvVars(envVars).map((envVar: SpiderJobEnvVar, id: number) =>
                         envVar.masked ? (
                             <Tooltip title="Masked variable" showArrow={false} overlayClassName="tooltip" key={id}>
                                 <>
