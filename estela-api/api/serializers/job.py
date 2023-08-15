@@ -179,7 +179,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                 else:
                     if instance.status == SpiderJob.RUNNING_STATUS:
                         try:
-                            update_stats_from_redis(instance)
+                            update_stats_from_redis(instance, save_to_database=True)
                             delete_stats_from_redis(instance)
                         except Exception:
                             pass
