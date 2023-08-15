@@ -17,4 +17,17 @@ $estela-blue-low: #F6FAFD;
 
 .button-spacing {
     margin-right: 10px; /* Ajusta el valor según la separación deseada */
-  }
+}
+
+.estela-border-proxy:hover {
+    border-radius: 8px;
+    border: 2px solid var(--estela-blue-full, #4D47C3);
+    background: var(--estela-blue-low, #F6FAFD);
+}
+
+.input-proxy-form {
+    height: 60px;
+    font-size: 14;
+    border-radius: 8px;
+    color: "gray";
+}
