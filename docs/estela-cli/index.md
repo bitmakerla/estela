@@ -7,7 +7,7 @@ has_children: false
 
 # estela CLI
 
-The **estela CLI** is a command line client designed to interact with the estela API. It enables users to perform various actions:
+The **estela CLI** is a command line interface designed to interact with the estela API. It enables users to perform various actions:
 
 - Link a Scrapy project with a project in estela.
 - Create projects, jobs, and cronjobs in estela.
