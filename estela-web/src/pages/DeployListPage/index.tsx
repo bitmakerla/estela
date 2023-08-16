@@ -184,11 +184,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                     </Paragraph>
                                     <Paragraph className="font-bold text-lg">
                                         Check all our documentation&nbsp;
-                                        <a
-                                            target="_blank"
-                                            href="https://estela-cli.bitmaker.la/"
-                                            rel="noreferrer"
-                                        >
+                                        <a target="_blank" href="https://estela-cli.bitmaker.la/" rel="noreferrer">
                                             <Text className="text-estela underline">here!</Text>
                                         </a>
                                     </Paragraph>
