@@ -173,7 +173,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         Install the
                                         <a
                                             target="_blank"
-                                            href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                            href="https://estela-cli.bitmaker.la/installation/"
                                             rel="noreferrer"
                                         >
                                             <Text className="text-estela underline mx-1">estela CLI</Text>
@@ -184,11 +184,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                     </Paragraph>
                                     <Paragraph className="font-bold text-lg">
                                         Check all our documentation&nbsp;
-                                        <a
-                                            target="_blank"
-                                            href="https://estela.bitmaker.la/docs/estela-cli/install.html"
-                                            rel="noreferrer"
-                                        >
+                                        <a target="_blank" href="https://estela-cli.bitmaker.la/" rel="noreferrer">
                                             <Text className="text-estela underline">here!</Text>
                                         </a>
                                     </Paragraph>
@@ -206,7 +202,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                 </Button>
                                 <Button
                                     target="_blank"
-                                    href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                    href="https://estela-cli.bitmaker.la/installation/"
                                     className="w-96 h-14 px-10 bg-estela-blue-full border-estela text-white rounded-lg flex flex-col justify-center"
                                     onClick={this.handleCloseModal}
                                 >
@@ -239,7 +235,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                     Install the
                                                     <a
                                                         target="_blank"
-                                                        href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                                        href="https://estela-cli.bitmaker.la/installation/"
                                                         rel="noreferrer"
                                                     >
                                                         <Text strong className="text-estela underline mx-1">

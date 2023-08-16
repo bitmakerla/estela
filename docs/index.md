@@ -48,4 +48,4 @@ data to a data storage (e.g., [MongoDB](https://www.mongodb.com/)).
 From here, we recommend reading through the following docs:
 
 - Set up the [estela API]({% link estela/api/api.md %}).
-- [Install the estela CLI]({% link estela-cli/install.md %}).
+- [Install the estela CLI](https://estela-cli.bitmaker.la/installation/).
