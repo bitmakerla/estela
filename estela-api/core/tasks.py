@@ -3,16 +3,17 @@ from collections import defaultdict
 from datetime import timedelta
 from typing import List
 
-from api.serializers.job import SpiderJobCreateSerializer
-from api.utils import delete_stats_from_redis, update_stats_from_redis
 from celery import chain
 from celery.exceptions import TaskError
-from config.celery import app as celery_app
-from config.job_manager import job_manager, spiderdata_db_client
-from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
+
+from api.serializers.job import SpiderJobCreateSerializer
+from api.utils import delete_stats_from_redis, update_stats_from_redis
+from config.celery import app as celery_app
+from config.job_manager import job_manager, spiderdata_db_client
+from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
 
 
 def get_default_token(job):
@@ -110,7 +111,7 @@ def check_and_update_job_status_errors():
             job_status.active is None and job_status.succeeded is None
         ):
             try:
-                update_stats_from_redis(job)
+                update_stats_from_redis(job, save_to_database=True)
                 delete_stats_from_redis(job)
             except:
                 pass

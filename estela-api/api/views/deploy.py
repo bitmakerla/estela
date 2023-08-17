@@ -1,16 +1,19 @@
-from api import errors
-from api.mixins import ActionHandlerMixin, BaseViewSet
-from api.serializers.deploy import (DeployCreateSerializer, DeploySerializer,
-                                    DeployUpdateSerializer)
-from config.job_manager import credentials
-from core.models import Deploy, Project
-from core.views import launch_deploy_job
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
-from rest_framework.exceptions import (APIException, ParseError,
-                                       PermissionDenied)
+from rest_framework.exceptions import APIException, ParseError, PermissionDenied
 from rest_framework.response import Response
+
+from api import errors
+from api.mixins import ActionHandlerMixin, BaseViewSet
+from api.serializers.deploy import (
+    DeployCreateSerializer,
+    DeploySerializer,
+    DeployUpdateSerializer,
+)
+from config.job_manager import credentials
+from core.models import Deploy, Project
+from core.views import launch_deploy_job
 
 
 class DeployViewSet(

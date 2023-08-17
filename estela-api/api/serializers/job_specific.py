@@ -1,5 +1,6 @@
-from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 from rest_framework import serializers
+
+from core.models import SpiderJobArg, SpiderJobEnvVar, SpiderJobTag
 
 
 class SpiderJobArgSerializer(serializers.ModelSerializer):
@@ -11,7 +12,7 @@ class SpiderJobArgSerializer(serializers.ModelSerializer):
 class SpiderJobEnvVarSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpiderJobEnvVar
-        fields = ("name", "value", "masked")
+        fields = ("evid", "name", "value", "masked")
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

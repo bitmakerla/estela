@@ -1,18 +1,5 @@
 from datetime import datetime, timedelta
 
-from api import errors
-from api.mixins import ActionHandlerMixin, BaseViewSet
-from api.serializers.cronjob import (ProjectCronJobSerializer,
-                                     SpiderCronJobSerializer)
-from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
-from api.serializers.project import (ActivitySerializer,
-                                     ProjectActivitySerializer,
-                                     ProjectSerializer,
-                                     ProjectUpdateSerializer,
-                                     ProjectUsageSerializer,
-                                     UsageRecordSerializer)
-from core.models import (Activity, DataStatus, Permission, Project, Spider,
-                         SpiderCronJob, SpiderJob, UsageRecord, User)
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
@@ -21,6 +8,31 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
 from rest_framework.response import Response
+
+from api import errors
+from api.mixins import ActionHandlerMixin, BaseViewSet
+from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
+from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
+from api.serializers.project import (
+    ActivitySerializer,
+    ProjectActivitySerializer,
+    ProjectSerializer,
+    ProjectUpdateSerializer,
+    ProjectUsageSerializer,
+    UsageRecordSerializer,
+)
+from api.utils import update_env_vars
+from core.models import (
+    Activity,
+    DataStatus,
+    Permission,
+    Project,
+    Spider,
+    SpiderCronJob,
+    SpiderJob,
+    UsageRecord,
+    User,
+)
 
 
 class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
@@ -89,6 +101,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         data_expiry_days = serializer.validated_data.pop("data_expiry_days", 0)
         description = ""
         framework = serializer.validated_data.pop("framework", "")
+        env_vars = serializer.validated_data.pop("env_vars", None)
 
         if name:
             old_name = instance.name
@@ -98,6 +111,9 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         if framework and framework != instance.framework:
             instance.framework = framework
             description = f"changed the framework to {framework}."
+
+        if env_vars is not None:
+            update_env_vars(instance, env_vars, level="project")
 
         user = request.user
         is_superuser = user.is_superuser or user.is_staff

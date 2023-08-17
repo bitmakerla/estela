@@ -1,14 +1,15 @@
-import logging
 import os
 import sys
+import logging
 import threading
 import time
-from queue import Queue
 
+from queue import Queue
 from config.database_manager import db_client
-from estela_queue_adapter import get_consumer_interface
 from inserter import Inserter
 from utils import jsonify
+from estela_queue_adapter import get_consumer_interface
+
 
 WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
 HEARTBEAT_TICK = int(os.getenv("HEARTBEAT_TICK", "300"))

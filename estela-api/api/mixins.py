@@ -1,10 +1,11 @@
-from api.permissions import IsAdminOrReadOnly, IsProjectUser
-from core.models import Activity, Notification
 from django.conf import settings
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+
+from api.permissions import IsAdminOrReadOnly, IsProjectUser
+from core.models import Notification, Activity
 
 
 class APIPageNumberPagination(PageNumberPagination):

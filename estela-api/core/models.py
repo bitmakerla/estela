@@ -2,11 +2,12 @@ import uuid
 from datetime import timedelta
 from urllib.parse import urlparse
 
-from config.job_manager import job_manager
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+from config.job_manager import job_manager
 
 
 class DataStatus:
@@ -371,6 +372,20 @@ class SpiderJobEnvVar(models.Model):
         related_name="cenv_vars",
         null=True,
         help_text="Cron job cjid.",
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="env_vars",
+        null=True,
+        help_text="Project pid.",
+    )
+    spider = models.ForeignKey(
+        Spider,
+        on_delete=models.CASCADE,
+        related_name="env_vars",
+        null=True,
+        help_text="Spider sid.",
     )
     name = models.CharField(max_length=1000, help_text="Env variable name.")
     value = models.CharField(max_length=1000, help_text="Env variable value.")

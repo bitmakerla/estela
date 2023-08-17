@@ -1,10 +1,13 @@
-from api.mixins import BaseViewSet
-from api.serializers.notification import (NotificationSerializer,
-                                          NotificationUpdateSerializer)
-from core.models import Notification
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+
+from api.mixins import BaseViewSet
+from api.serializers.notification import (
+    NotificationSerializer,
+    NotificationUpdateSerializer,
+)
+from core.models import Notification
 
 
 class NotificationViewSet(BaseViewSet, viewsets.ModelViewSet):

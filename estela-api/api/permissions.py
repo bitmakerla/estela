@@ -1,6 +1,7 @@
-from core.models import Permission, Project
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import User
-from rest_framework.permissions import SAFE_METHODS, BasePermission
+
+from core.models import Project, Permission
 
 
 class IsProjectUser(BasePermission):

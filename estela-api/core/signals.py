@@ -1,9 +1,9 @@
-from core.models import SpiderJob
-from core.tasks import (get_chain_to_process_usage_data,
-                        record_job_coverage_event)
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from core.models import SpiderJob
+from core.tasks import get_chain_to_process_usage_data, record_job_coverage_event
 
 
 @receiver(post_save, sender=SpiderJob, dispatch_uid="update_usage")

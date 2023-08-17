@@ -1,15 +1,21 @@
-from datetime import timedelta
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 
 from api import errors
-from api.serializers.job_specific import (SpiderJobArgSerializer,
-                                          SpiderJobEnvVarSerializer,
-                                          SpiderJobTagSerializer)
+from api.serializers.job_specific import (
+    SpiderJobArgSerializer,
+    SpiderJobEnvVarSerializer,
+    SpiderJobTagSerializer,
+)
 from api.utils import delete_stats_from_redis, update_stats_from_redis
 from config.job_manager import job_manager
-from core.models import (DataStatus, SpiderJob, SpiderJobArg, SpiderJobEnvVar,
-                         SpiderJobTag)
-from django.conf import settings
-from rest_framework import serializers
+from core.models import (
+    DataStatus,
+    SpiderJob,
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    SpiderJobTag,
+)
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -50,9 +56,18 @@ class SpiderJobSerializer(serializers.ModelSerializer):
         return {"sid": instance.spider.sid, "name": instance.spider.name}
 
 
+class SpiderJobCreateEnvVarSerializer(serializers.Serializer):
+    evid = serializers.IntegerField(required=False, help_text="Env var id.")
+    name = serializers.CharField(required=True, help_text="Env var name.")
+    value = serializers.CharField(required=True, help_text="Env var value.")
+    masked = serializers.BooleanField(
+        required=False, default=False, help_text="Env var masked."
+    )
+
+
 class SpiderJobCreateSerializer(serializers.ModelSerializer):
     args = SpiderJobArgSerializer(many=True, required=False, help_text="Job arguments.")
-    env_vars = SpiderJobEnvVarSerializer(
+    env_vars = SpiderJobCreateEnvVarSerializer(
         many=True, required=False, help_text="Job env variables."
     )
     tags = SpiderJobTagSerializer(many=True, required=False, help_text="Job tags.")
@@ -91,14 +106,23 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             SpiderJobArg.objects.create(job=job, **arg)
 
         for env_var in env_vars_data:
-            SpiderJobEnvVar.objects.create(job=job, **env_var)
+            evid = env_var.get("evid", None)
+            if not evid:
+                SpiderJobEnvVar.objects.create(job=job, **env_var)
+            elif evid > 0:
+                env = get_object_or_404(SpiderJobEnvVar, evid=evid)
+                SpiderJobEnvVar.objects.create(
+                    job=job,
+                    name=env.name,
+                    value=env.value,
+                    masked=env.masked,
+                )
 
         for tag_data in tags_data:
             tag, _ = SpiderJobTag.objects.get_or_create(**tag_data)
             job.tags.add(tag)
 
         job.save()
-
         return job
 
 
@@ -155,9 +179,9 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                 else:
                     if instance.status == SpiderJob.RUNNING_STATUS:
                         try:
-                            update_stats_from_redis(instance)
+                            update_stats_from_redis(instance, save_to_database=True)
                             delete_stats_from_redis(instance)
-                        except:
+                        except Exception:
                             pass
                         instance.save()
                     job_manager.delete_job(instance.name)
