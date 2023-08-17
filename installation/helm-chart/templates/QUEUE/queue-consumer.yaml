@@ -28,15 +28,15 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
-        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        {{- if or .Values.CONSUMERS_CPU_LIMIT .Values.CONSUMERS_MEM_LIMIT }}
         resources:
-          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- if .Values.CONSUMERS_CPU_LIMIT }}
           limits:
-            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+            cpu: {{ .Values.CONSUMERS_CPU_LIMIT }}
           {{- end }}
-          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- if .Values.CONSUMERS_MEM_LIMIT }}
           limits:
-            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+            memory: {{ .Values.CONSUMERS_MEM_LIMIT }}
           {{- end }}
         {{- end }}
 ---
@@ -70,15 +70,15 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
-        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        {{- if or .Values.CONSUMERS_CPU_LIMIT .Values.CONSUMERS_MEM_LIMIT }}
         resources:
-          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- if .Values.CONSUMERS_CPU_LIMIT }}
           limits:
-            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+            cpu: {{ .Values.CONSUMERS_CPU_LIMIT }}
           {{- end }}
-          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- if .Values.CONSUMERS_MEM_LIMIT }}
           limits:
-            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+            memory: {{ .Values.CONSUMERS_MEM_LIMIT }}
           {{- end }}
         {{- end }}
 ---
@@ -112,15 +112,15 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
-        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        {{- if or .Values.CONSUMERS_CPU_LIMIT .Values.CONSUMERS_MEM_LIMIT }}
         resources:
-          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- if .Values.CONSUMERS_CPU_LIMIT }}
           limits:
-            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+            cpu: {{ .Values.CONSUMERS_CPU_LIMIT }}
           {{- end }}
-          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- if .Values.CONSUMERS_MEM_LIMIT }}
           limits:
-            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+            memory: {{ .Values.CONSUMERS_MEM_LIMIT }}
           {{- end }}
         {{- end }}
 ---
@@ -154,14 +154,14 @@ spec:
             name: queue-secrets
         - configMapRef:
             name: queue-config
-        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        {{- if or .Values.CONSUMERS_CPU_LIMIT .Values.CONSUMERS_MEM_LIMIT }}
         resources:
-          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- if .Values.CONSUMERS_CPU_LIMIT }}
           limits:
-            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+            cpu: {{ .Values.CONSUMERS_CPU_LIMIT }}
           {{- end }}
-          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- if .Values.CONSUMERS_MEM_LIMIT }}
           limits:
-            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+            memory: {{ .Values.CONSUMERS_MEM_LIMIT }}
           {{- end }}
         {{- end }}
