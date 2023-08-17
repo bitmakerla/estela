@@ -1,6 +1,7 @@
-from api import errors
 from rest_framework import status
 from rest_framework.exceptions import APIException
+
+from api import errors
 
 
 class DataBaseError(APIException):
