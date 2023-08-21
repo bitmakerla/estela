@@ -1,4 +1,5 @@
 from drf_yasg.utils import swagger_auto_schema
+from django.db import models
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -18,7 +19,10 @@ class NotificationViewSet(BaseViewSet, viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request is None:
             return Notification.objects.none()
-        return Notification.objects.filter(user=self.request.user).order_by(
+        return Notification.objects.filter(
+            ~models.Q(activity__user=self.request.user),
+            user=self.request.user,
+        ).order_by(
             "-activity__created"
         )
 
