@@ -63,12 +63,18 @@ def get_spiders_from_logs(execution_id): #Recuperar credenciales
         if isinstance(entry,StructEntry):
             return entry.to_api_repr()["jsonPayload"]["spiders"]
         
+def make_env_queue_param():
+    result = []
+    for key, _value in settings.QUEUE_PARAMS.items():
+        result.append(EnvVar(name=key,value=_value))
+    return result
+
 def init_image(project_id,location,job_id,image):
     container = run_v2.Container(
         name="scrapy-project",
         image=image,
         command=["estela-describe-project"],
-        env=[EnvVar(name="QUEUE_PLATFORM_PORT",value="9092"),EnvVar(name="QUEUE_PLATFORM_LISTENERS",value="kafka"),EnvVar(name="QUEUE_PLATFORM",value="kafka")]
+        env=make_env_queue_param()
     )
     task_template = run_v2.TaskTemplate(containers=[container])
     template = run_v2.ExecutionTemplate(template=task_template)
