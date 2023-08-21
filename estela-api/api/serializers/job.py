@@ -55,7 +55,11 @@ class SpiderJobSerializer(serializers.ModelSerializer):
         )
 
     def get_spider(self, instance):
-        return {"sid": instance.spider.sid, "name": instance.spider.name}
+        return {
+            "sid": instance.spider.sid,
+            "name": instance.spider.name,
+            "deleted": instance.spider.deleted
+        }
 
 
 class SpiderJobCreateSerializer(serializers.ModelSerializer):

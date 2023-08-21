@@ -119,6 +119,7 @@ interface JobDetailPageState {
     spiders: Spider[];
     loadedSpiders: boolean;
     spiderName: string;
+    isDeleted: boolean;
     newSpiderId: string;
     newDataExpireDays: number;
     newDataStatus: string;
@@ -146,6 +147,12 @@ type ItemsMetadataProps = {
 interface MetadataField {
     field: string;
     type: string;
+}
+
+interface SpiderField {
+    sid: number;
+    name: string;
+    deleted: boolean;
 }
 
 class ItemsMetadata extends Component<ItemsMetadataProps> {
@@ -250,6 +257,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         spiders: [],
         loadedSpiders: false,
         spiderName: "",
+        isDeleted: false,
         newSpiderId: "",
         newDataExpireDays: 1,
         newDataStatus: "PENDING",
@@ -293,6 +301,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 const tags = response.tags || [];
                 const lifespan = parseDuration(response.lifespan);
                 this.setState({
+                    spiderName: (response.spider as unknown as SpiderField).name,
+                    isDeleted: (response.spider as unknown as SpiderField).deleted,
                     name: response.name,
                     lifespan: lifespan,
                     totalResponseBytes: response.totalResponseBytes,
@@ -307,6 +317,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                 });
+                const _spiderId = (response.spider as unknown as SpiderField).sid;
+                history.replace(`/projects/${this.projectId}/spiders/${_spiderId}/jobs/${this.jobId}`);
             },
             (error: unknown) => {
                 error;
@@ -325,12 +337,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (results.results.length == 0 || results.results == undefined) {
                     this.setState({ spiders: [], loadedSpiders: true });
                 } else {
-                    const spiderName = results.results.find(
-                        (spider: Spider) => String(spider?.sid) === this.spiderId,
-                    )?.name;
                     this.setState({
                         spiders: [...results.results],
-                        spiderName: spiderName || "",
                         newSpiderId: String(results.results[0].sid),
                         loadedSpiders: true,
                     });
@@ -354,12 +362,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (results.results.length == 0 || results.results == undefined) {
                     this.setState({ spiders: [], loadedSpiders: true });
                 } else {
-                    const spiderName = results.results.find(
-                        (spider: Spider) => String(spider?.sid) === this.spiderId,
-                    )?.name;
                     this.setState({
                         spiders: [...results.results],
-                        spiderName: spiderName || "",
                         newSpiderId: String(results.results[0].sid),
                         loadedSpiders: true,
                     });
@@ -657,6 +661,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             dataStatus,
             dataExpiryDays,
             spiderName,
+            isDeleted,
             totalResponseBytes,
             items,
             status,
@@ -727,12 +732,18 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Text className="font-bold">Spider</Text>
                             </Col>
                             <Col>
-                                <Link
-                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
-                                    className="text-estela-blue-medium px-2"
-                                >
-                                    {spiderName}
-                                </Link>
+                                {isDeleted ? (
+                                    <Text className="px-2">
+                                        {spiderName} <Tag color="volcano">DELETED</Tag>
+                                    </Text>
+                                ) : (
+                                    <Link
+                                        to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
+                                        className="text-estela-blue-medium px-2"
+                                    >
+                                        {spiderName}
+                                    </Link>
+                                )}
                             </Col>
                         </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
