@@ -659,7 +659,6 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
     useEffect(() => {
         getData("logs", 1, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];
-            console.log(response);
             setLogs(data);
             if (response.results?.length) {
                 const safe_data: unknown[] = response.results ?? [];
