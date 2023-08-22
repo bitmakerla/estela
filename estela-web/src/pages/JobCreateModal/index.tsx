@@ -177,6 +177,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
         )?.value;
         if (proxyName === "" && projectProxyName) {
+            console.log({ projectProxyName });
             setProxyName(projectProxyName || "");
             setNoProxy(false);
         }
@@ -239,7 +240,8 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                     const proxyName = envVars.find(
                         (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
                     )?.value;
-                    if (proxyName) {
+                    if (proxyName && proxyName !== "") {
+                        console.log("Aca entro al proxyname que si tiene valor del spider.");
                         setProxyName(proxyName || "");
                         setNoProxy(false);
                     }
@@ -462,9 +464,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
     };
 
     const handleRemoveProxy = (): void => {
-        console.log("Entre a remove Proxy");
-        console.log({ spiderEnvVars });
-        console.log({ projectEnvVars });
         setNoProxy(true);
     };
 
@@ -494,7 +493,9 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         const jobProxyName = jobData.envVars.find(
             (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
         )?.value;
-        if (jobProxyName !== "") {
+        if (jobProxyName && jobProxyName !== "") {
+            console.log("Entonces aca es.");
+            console.log({ jobProxyName });
             setProxyName(jobProxyName || "");
             setNoProxy(false);
         }
@@ -709,6 +710,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         className="w-90"
                         title={<p className="text-center text-base">New proxy configuration</p>}
                         onCancel={() => setNewProxyFormActivate(false)}
+                        footer={null}
                     >
                         <ProxySettings
                             projectId=""

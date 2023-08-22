@@ -25,5 +25,4 @@ export interface ProxySettingsProps {
 export interface ProxyTagProps {
     children: React.ReactNode;
     id: number;
-    proxySettings: SpiderJobEnvVar[];
 }

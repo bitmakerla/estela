@@ -1,9 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import React, { useEffect, useState } from "react";
-import { Row, Space, Button, Tag, Tooltip, Checkbox, Input, Popover, Modal, Form } from "antd";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
-import { Link } from "react-router-dom";
+import { Button, Input, Form } from "antd";
 
 import "./styles.scss";
 import { ApiService } from "../../services";
@@ -13,13 +9,10 @@ import {
     ProjectUpdate,
     SpiderUpdate,
     ApiProjectsSpidersUpdateRequest,
-    Spider,
 } from "../../services/api";
 import { ProjectEnvVar } from "./types";
-//import { invalidDataNotification } from "../../shared";
+
 import { handleInvalidDataError } from "../../utils";
-//import { Content } from "antd/lib/layout/layout";
-//import { env } from "process";
 
 const apiService = ApiService();
 

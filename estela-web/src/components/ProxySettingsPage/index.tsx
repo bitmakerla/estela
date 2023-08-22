@@ -1,12 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import React, { useEffect, useState } from "react";
-import { Row, Space, Button, Tag, Tooltip, Checkbox, Input, Popover, Modal, Form } from "antd";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
-import { Link } from "react-router-dom";
+import { Row, Space, Button, Tag, Popover, Modal } from "antd";
 
 import "./styles.scss";
-//import Add from "../../assets/icons/add.svg";
 import Menu from "../../assets/icons/menu.svg";
 import { ApiService } from "../../services";
 import {
@@ -17,11 +12,9 @@ import {
     ApiProjectsSpidersUpdateRequest,
 } from "../../services/api";
 import { ProxyForm } from "./ProxyForm";
-import { ProjectEnvVar, ProxySettingsProps, ProxyTagProps } from "./types";
-import { invalidDataNotification } from "../../shared";
+import { ProjectEnvVar } from "./types";
 import { handleInvalidDataError } from "../../utils";
 import { Content } from "antd/lib/layout/layout";
-import { env } from "process";
 
 export const ProxySettings: React.FC<ProjectEnvVar> = ({
     projectId,
@@ -30,44 +23,17 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
     level,
     setEnvVarsOnParent,
 }) => {
-    const [newEnvVarMasked, setNewEnvVarMasked] = useState(false);
-    const [newEnvVarName, setNewEnvVarName] = useState("");
-    const [newEnvVarValue, setNewEnvVarValue] = useState("");
     const [envVars, setEnvVars] = useState<SpiderJobEnvVar[]>(envVarsData);
-    const [submitted, setSubmitted] = useState(false);
     const [shouldDeleteEnvVars, setShouldDeleteEnvVars] = useState(false);
-    //const [proxyExist, setProxyExist] = useState(false);
     const [openProxyUserModal, setOpenProxyUserModal] = useState(false);
-    const [proxySettings, setProxySettings] = useState<ProxySettingsProps>({
-        ESTELA_PROXY_URL: "",
-        ESTELA_PROXY_PORT: "",
-        ESTELA_PROXY_USER: "",
-        ESTELA_PROXY_PASS: "",
-        ESTELA_PROXY_NAME: "",
-    });
-    const [openModal, setOpenModal] = useState(false);
-    const [activeUpdateButton, setActiveUpdateButton] = useState(false);
 
     const apiService = ApiService();
 
-    const ProxyTag: React.FC<ProxyTagProps> = ({ children, id, proxySettings }) => {
-        const [proxyEnvVars, setProxyEnvVars] = useState<SpiderJobEnvVar[]>(proxySettings);
+    const ProxyTag: React.FC<ProxyTagProps> = ({ children, id }) => {
         const [openEditModal, setOpenEditModal] = useState(false);
         const [openDeleteModal, setOpenDeleteModal] = useState(false);
         const [renderTag, setRenderTag] = useState(true);
         const [openPopover, setOpenPopover] = useState(false);
-
-        const handleChangeProxyEnv = (e: React.ChangeEvent<HTMLInputElement>): void => {
-            setProxyEnvVars({ ...proxyEnvVars, [e.target.name]: e.target.value });
-        };
-        //     console.log({ proxySettings });
-        //     console.log(proxySettings);
-        //     if (validProxySettings(proxySettings)) {
-        //         setActiveUpdateButton(true);
-        //     } else {
-        //         setActiveUpdateButton(false);
-        //     }
-        // };
 
         useEffect(() => {
             setEnvVarsOnParent && setEnvVarsOnParent(envVars);
@@ -152,7 +118,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
         );
 
         const tagStyle =
-            "w-1/2 h-24 flex items-center justify-between text-base pr-2 py-1 pl-3 border-estela-blue-low text-estela-blue-full bg-estela-blue-low hover:border-estela-blue-full rounded-xl";
+            "w-96 h-24 flex items-center justify-between text-base pr-2 py-1 pl-3 border-estela-blue-low text-estela-blue-full bg-estela-blue-low hover:border-estela-blue-full rounded-xl";
 
         return (
             <>
@@ -184,17 +150,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
         );
     };
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        const {
-            target: { value, name },
-        } = event;
-        if (name === "newEnvVarName") {
-            setNewEnvVarName(value);
-        } else if (name === "newEnvVarValue") {
-            setNewEnvVarValue(value);
-        }
-    };
-
     const getProxyValue = (envVarName: string): string => {
         const proxyNameObj = envVars.find((obj) => obj.name === envVarName);
         return proxyNameObj ? proxyNameObj.value : "";
@@ -207,92 +162,11 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
             "ESTELA_PROXY_PASS",
             "ESTELA_PROXY_NAME",
         ];
-        // console.log(envVars);
-        // console.log(propertiesToFind.every((property) => envVars.some((obj) => obj.name === property)));
         return propertiesToFind.every((property) => envVars.some((obj) => obj.name === property));
     };
 
-    const onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
-        setNewEnvVarMasked(e.target.checked);
-    };
-
-    const addEnvVar = (): void => {
-        if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({ name: newEnvVarName, value: newEnvVarValue, masked: newEnvVarMasked });
-            setEnvVars(envVars);
-            setNewEnvVarName("");
-            setNewEnvVarValue("");
-            setNewEnvVarMasked(false);
-            setOpenModal(false);
-            setActiveUpdateButton(true);
-        } else {
-            invalidDataNotification("Invalid environment variable name/value pair.");
-        }
-    };
-    // Debo validar que los proxies esten bien
-    const updateProxySettings = (): void => {
-        console.log("Nada");
-    };
-
-    const validProxySettings = (proxySettings: ProxySettingsProps): boolean => {
-        return (
-            proxySettings.ESTELA_PROXY_PASS != "" &&
-            proxySettings.ESTELA_PROXY_URL != "" &&
-            proxySettings.ESTELA_PROXY_PORT != "" &&
-            proxySettings.ESTELA_PROXY_USER != "" &&
-            proxySettings.ESTELA_PROXY_NAME != ""
-        );
-    };
-
-    const handleChangeProxy = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        setProxySettings({ ...proxySettings, [e.target.name]: e.target.value });
-        console.log({ proxySettings });
-        // console.log(proxySettings);
-        // if (validProxySettings(proxySettings)) {
-        //     setActiveUpdateButton(true);
-        // } else {
-        //     setActiveUpdateButton(false);
-        // }
-    };
-
-    const updateEnvVars = (): void => {
-        if (level === "project") {
-            updateProjectEnvVars();
-        } else if (level === "spider") {
-            updateSpiderEnvVars();
-        }
-    };
-
-    const updateSpiderEnvVars = (): void => {
-        const requestData: SpiderUpdate = {
-            envVars: envVars,
-        };
-        const request: ApiProjectsSpidersUpdateRequest = {
-            data: requestData,
-            pid: projectId,
-            sid: Number(spiderId),
-        };
-        apiService.apiProjectsSpidersUpdate(request).then(
-            (response: SpiderUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
-                setActiveUpdateButton(false);
-            },
-            (error: unknown) => {
-                console.error(error);
-            },
-        );
-    };
-
     const deleteProjectEnvVars = (): void => {
-        const requestData: SpiderUpdate = {
+        const requestData: ProjectUpdate = {
             envVars: envVars,
         };
         const request: ApiProjectsUpdateRequest = {
@@ -310,7 +184,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                     };
                 });
                 setEnvVars(envVars);
-                setActiveUpdateButton(true);
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
@@ -338,48 +211,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                     };
                 });
                 setEnvVars(envVars);
-                setActiveUpdateButton(true);
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
-    };
-
-    const updateProjectEnvVars = (): void => {
-        console.log({ proxySettings });
-        const envVarsList: SpiderJobEnvVar[] = Object.entries(proxySettings).map(([key, value]) => {
-            return {
-                name: key,
-                value: value,
-                masked: false,
-            };
-        });
-        envVarsList.push({
-            name: "CUSTOM_PROXIES_ENABLED",
-            value: "true",
-            masked: false,
-        });
-        console.log({ envVarsList });
-        const requestData: ProjectUpdate = {
-            envVars: envVarsList,
-        };
-        const request: ApiProjectsUpdateRequest = {
-            data: requestData,
-            pid: projectId,
-        };
-        apiService.apiProjectsUpdate(request).then(
-            (response: ProjectUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
-                setActiveUpdateButton(false);
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
@@ -397,7 +228,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
             "CUSTOM_PROXIES_ENABLED",
         ];
         const filteredEnvVars = envVars.filter((obj) => !propertiesToFind.includes(obj.name));
-        console.log({ filteredEnvVars });
         setEnvVars(filteredEnvVars);
         setShouldDeleteEnvVars(true);
     };
