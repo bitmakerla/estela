@@ -24,7 +24,8 @@ const waiting = 0;
 const queued = 1;
 const running = 2;
 const completed = 3;
-const withError = 4;
+const stopped = 4;
+const withError = 5;
 
 interface SpiderData {
     sid: number;
@@ -69,6 +70,7 @@ interface ProjectJobListPageState {
     queueJobs: SpiderJobData[];
     runningJobs: SpiderJobData[];
     completedJobs: SpiderJobData[];
+    stoppedJobs: SpiderJobData[];
     errorJobs: SpiderJobData[];
     loaded: boolean;
     count: number;
@@ -91,6 +93,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         queueJobs: [],
         runningJobs: [],
         completedJobs: [],
+        stoppedJobs: [],
         errorJobs: [],
         loading: false,
         tableStatus: new Array<boolean>(5).fill(true),
@@ -205,6 +208,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             const queueJobs = data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
             const runningJobs = data.filter((job: SpiderJobData) => job.status === "RUNNING");
             const completedJobs = data.filter((job: SpiderJobData) => job.status === "COMPLETED");
+            const stoppedJobs = data.filter((job: SpiderJobData) => job.status === "STOPPED");
             const errorJobs = data.filter((job: SpiderJobData) => job.status === "ERROR");
 
             const tableStatus = [
@@ -212,6 +216,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 queueJobs.length === 0 ? false : true,
                 runningJobs.length === 0 ? false : true,
                 completedJobs.length === 0 ? false : true,
+                stoppedJobs.length === 0 ? false : true,
                 errorJobs.length === 0 ? false : true,
             ];
 
@@ -219,6 +224,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 tableStatus: [...tableStatus],
                 errorJobs: [...errorJobs],
                 completedJobs: [...completedJobs],
+                stoppedJobs: [...stoppedJobs],
                 runningJobs: [...runningJobs],
                 waitingJobs: [...waitingJobs],
                 queueJobs: [...queueJobs],
@@ -242,8 +248,18 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     };
 
     render(): JSX.Element {
-        const { loaded, tableStatus, errorJobs, completedJobs, runningJobs, queueJobs, waitingJobs, count, current } =
-            this.state;
+        const {
+            loaded,
+            tableStatus,
+            errorJobs,
+            completedJobs,
+            stoppedJobs,
+            runningJobs,
+            queueJobs,
+            waitingJobs,
+            count,
+            current,
+        } = this.state;
         return (
             <Content>
                 {loaded ? (
@@ -475,6 +491,56 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Space>
                                         </Row>
                                     )}
+                                    {tableStatus[stopped] && (
+                                        <Row className="my-2 rounded-lg bg-white">
+                                            <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
+                                                <Col className="float-left py-1">
+                                                    <Text className="mr-2 text-estela-black-medium font-medium text-lg">
+                                                        Stopped
+                                                    </Text>
+                                                    <Tag className="rounded-2xl bg-estela-red-low text-estela-red-full border-estela-red-low">
+                                                        {stoppedJobs.length}
+                                                    </Tag>
+                                                </Col>
+                                                <Col className="flex float-right">
+                                                    <Button
+                                                        disabled={true}
+                                                        icon={<Filter className="h-6 w-6 mr-2" />}
+                                                        size="large"
+                                                        className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                                    >
+                                                        Filter
+                                                    </Button>
+                                                    <Button
+                                                        icon={<Setting className="h-6 w-6" />}
+                                                        size="large"
+                                                        className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
+                                                    ></Button>
+                                                </Col>
+                                            </Content>
+                                            <Content className="mx-4 my-1">
+                                                <Table
+                                                    size="small"
+                                                    rowSelection={{
+                                                        type: "checkbox",
+                                                    }}
+                                                    columns={this.columns}
+                                                    dataSource={stoppedJobs}
+                                                    pagination={false}
+                                                    locale={{ emptyText: "No jobs yet" }}
+                                                />
+                                            </Content>
+                                            <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                            <Space direction="horizontal" className="my-2 mx-4">
+                                                <Button
+                                                    disabled
+                                                    className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
+                                                >
+                                                    Run again
+                                                </Button>
+                                            </Space>
+                                        </Row>
+                                    )}
                                     {tableStatus[withError] && (
                                         <Row className="my-2 rounded-lg bg-white">
                                             <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
@@ -594,6 +660,20 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                                     </Text>
                                                     <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
                                                         {completedJobs.length}
+                                                    </Tag>
+                                                </Space>
+                                            </Checkbox>
+                                            <br />
+                                            <Checkbox
+                                                checked={stoppedJobs.length == 0 ? tableStatus[stopped] : true}
+                                                onChange={() => this.onChangeStatus(stopped, stoppedJobs.length)}
+                                            >
+                                                <Space direction="horizontal">
+                                                    <Text className="text-estela-black-medium font-medium text-sm">
+                                                        Stopped
+                                                    </Text>
+                                                    <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
+                                                        {stoppedJobs.length}
                                                     </Tag>
                                                 </Space>
                                             </Checkbox>

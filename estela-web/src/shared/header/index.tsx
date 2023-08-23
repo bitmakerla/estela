@@ -99,7 +99,6 @@ export class CustomHeader extends Component<unknown, HeaderState> {
 
     getFramework = (): React.ReactElement => {
         const framework = AuthService.getFramework();
-        // return framework;
         if (framework === "REQUESTS") {
             return <RequestTag />;
         } else if (framework === "SCRAPY") {

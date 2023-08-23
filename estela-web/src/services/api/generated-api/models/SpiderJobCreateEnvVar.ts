@@ -14,42 +14,42 @@
 
 import { exists, mapValues } from '../runtime';
 /**
- * Project env variables.
+ * Job env variables.
  * @export
- * @interface SpiderJobEnvVar
+ * @interface SpiderJobCreateEnvVar
  */
-export interface SpiderJobEnvVar {
+export interface SpiderJobCreateEnvVar {
     /**
-     * A unique integer value identifying this job env variable.
+     * Env var id.
      * @type {number}
-     * @memberof SpiderJobEnvVar
+     * @memberof SpiderJobCreateEnvVar
      */
-    readonly evid?: number;
+    evid?: number;
     /**
-     * Env variable name.
+     * Env var name.
      * @type {string}
-     * @memberof SpiderJobEnvVar
+     * @memberof SpiderJobCreateEnvVar
      */
     name: string;
     /**
-     * Env variable value.
+     * Env var value.
      * @type {string}
-     * @memberof SpiderJobEnvVar
+     * @memberof SpiderJobCreateEnvVar
      */
     value: string;
     /**
-     * Whether the env variable value is masked.
+     * Env var masked.
      * @type {boolean}
-     * @memberof SpiderJobEnvVar
+     * @memberof SpiderJobCreateEnvVar
      */
     masked?: boolean;
 }
 
-export function SpiderJobEnvVarFromJSON(json: any): SpiderJobEnvVar {
-    return SpiderJobEnvVarFromJSONTyped(json, false);
+export function SpiderJobCreateEnvVarFromJSON(json: any): SpiderJobCreateEnvVar {
+    return SpiderJobCreateEnvVarFromJSONTyped(json, false);
 }
 
-export function SpiderJobEnvVarFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpiderJobEnvVar {
+export function SpiderJobCreateEnvVarFromJSONTyped(json: any, ignoreDiscriminator: boolean): SpiderJobCreateEnvVar {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -62,7 +62,7 @@ export function SpiderJobEnvVarFromJSONTyped(json: any, ignoreDiscriminator: boo
     };
 }
 
-export function SpiderJobEnvVarToJSON(value?: SpiderJobEnvVar | null): any {
+export function SpiderJobCreateEnvVarToJSON(value?: SpiderJobCreateEnvVar | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -71,6 +71,7 @@ export function SpiderJobEnvVarToJSON(value?: SpiderJobEnvVar | null): any {
     }
     return {
         
+        'evid': value.evid,
         'name': value.name,
         'value': value.value,
         'masked': value.masked,

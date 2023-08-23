@@ -1320,17 +1320,17 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
         - name: offset
           in: query
-          description: Offset from UTC time in minutes.
+          description: Offset between your local timezone and UTC in 'minutes'.
           required: false
           type: integer
       responses:
@@ -1347,53 +1347,11 @@ paths:
         in: path
         required: true
         type: string
-  /api/stats/{pid}/jobs:
-    get:
-      operationId: api_stats_jobs
-      description: Retrieve all the jobs of a spider executed in a range of dates.
-      parameters:
-        - name: page
-          in: query
-          description: A page number within the paginated result set.
-          required: false
-          type: integer
-        - name: page_size
-          in: query
-          description: Number of results to return per page.
-          required: false
-          type: integer
-        - name: start_date
-          in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
-          required: true
-          type: string
-        - name: end_date
-          in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
-          required: true
-          type: string
-        - name: spider
-          in: query
-          description: The spider ID related to the jobs.
-          required: true
-          type: integer
-      responses:
-        '200':
-          description: Paginated jobs belonging to a spider in a range of time
-          schema:
-            $ref: '#/definitions/JobsPagination'
-      tags:
-        - api
-    parameters:
-      - name: pid
-        in: path
-        required: true
-        type: string
   /api/stats/{pid}/spider/{sid}:
     get:
       operationId: api_stats_spider_list
-      description: Retrieve stats of all jobs of a spider in a range of time, dates
-        must have the format YYYY-mm-dd.
+      description: Retrieve stats of all spider jobs in a time range, dates must be
+        in YYYY-mm-dd format.
       parameters:
         - name: page
           in: query
@@ -1407,17 +1365,17 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
         - name: offset
           in: query
-          description: Offset from UTC time in minutes.
+          description: Offset between your local timezone and UTC in 'minutes'.
           required: false
           type: integer
       responses:
@@ -1455,18 +1413,18 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
-        - name: spider
+        - name: offset
           in: query
-          description: The spider ID related to the jobs.
-          required: true
+          description: Offset between your local timezone and UTC in 'minutes'.
+          required: false
           type: integer
       responses:
         '200':
@@ -1501,14 +1459,19 @@ paths:
           type: integer
         - name: start_date
           in: query
-          description: Start of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-04-01T05%3A00%3A00.000Z).
+          description: Start of date in format [%Y-%m-%d] (e.g. 2023-04-01).
           required: true
           type: string
         - name: end_date
           in: query
-          description: End of date in UTC format [%Y-%m-%dT%H:%M:%S.%fZ] (e.g. 2023-06-02T04%3A59%3A59.999Z).
+          description: End of date in format [%Y-%m-%d] (e.g. 2023-06-02).
           required: true
           type: string
+        - name: offset
+          in: query
+          description: Offset between your local timezone and UTC in 'minutes'.
+          required: false
+          type: integer
       responses:
         '200':
           description: Paginated spiders launched in a range of time
@@ -1741,6 +1704,34 @@ definitions:
           - ADMIN
           - DEVELOPER
           - VIEWER
+  SpiderJobEnvVar:
+    description: Project env variables.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      evid:
+        title: Evid
+        description: A unique integer value identifying this job env variable.
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        description: Env variable name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      value:
+        title: Value
+        description: Env variable value.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      masked:
+        title: Masked
+        description: Whether the env variable value is masked.
+        type: boolean
   Project:
     required:
       - name
@@ -1788,6 +1779,11 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Permission'
+      env_vars:
+        description: Project env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: Data status.
@@ -1841,6 +1837,11 @@ definitions:
         enum:
           - SCRAPY
           - REQUESTS
+      env_vars:
+        description: Project env variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       permission:
         title: Permission
         description: New permission.
@@ -1894,29 +1895,6 @@ definitions:
         type: string
         maxLength: 1000
         minLength: 1
-  SpiderJobEnvVar:
-    description: Cron job env variables.
-    required:
-      - name
-      - value
-    type: object
-    properties:
-      name:
-        title: Name
-        description: Env variable name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      value:
-        title: Value
-        description: Env variable value.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      masked:
-        title: Masked
-        description: Whether the env variable value is masked.
-        type: boolean
   SpiderJobTag:
     description: Cron job tags.
     required:
@@ -2097,6 +2075,11 @@ definitions:
         description: Project UUID.
         type: string
         format: uuid
+      env_vars:
+        description: Spider environment variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: Data status.
@@ -2303,8 +2286,6 @@ definitions:
         description: Project jobs count.
         type: integer
   SpiderUpdate:
-    required:
-      - name
     type: object
     properties:
       sid:
@@ -2313,12 +2294,11 @@ definitions:
         type: string
         format: uuid
         readOnly: true
-      name:
-        title: Name
-        description: Spider's name.
-        type: string
-        maxLength: 1000
-        minLength: 1
+      env_vars:
+        description: Project environment variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
       data_status:
         title: Data status
         description: New data status.
@@ -2421,6 +2401,32 @@ definitions:
         maximum: 65535
         minimum: 0
         x-nullable: true
+  SpiderJobCreateEnvVar:
+    description: Job env variables.
+    required:
+      - name
+      - value
+    type: object
+    properties:
+      evid:
+        title: Evid
+        description: Env var id.
+        type: integer
+      name:
+        title: Name
+        description: Env var name.
+        type: string
+        minLength: 1
+      value:
+        title: Value
+        description: Env var value.
+        type: string
+        minLength: 1
+      masked:
+        title: Masked
+        description: Env var masked.
+        type: boolean
+        default: false
   SpiderJobCreate:
     required:
       - data_status
@@ -2446,7 +2452,7 @@ definitions:
         description: Job env variables.
         type: array
         items:
-          $ref: '#/definitions/SpiderJobEnvVar'
+          $ref: '#/definitions/SpiderJobCreateEnvVar'
       tags:
         description: Job tags.
         type: array
@@ -2771,6 +2777,18 @@ definitions:
         format: date
       stats:
         $ref: '#/definitions/Stats'
+  SpidersStats:
+    required:
+      - date
+      - stats
+    type: object
+    properties:
+      date:
+        title: Date
+        type: string
+        format: date
+      stats:
+        $ref: '#/definitions/Stats'
   SpiderJobStats:
     required:
       - stats
@@ -2887,18 +2905,6 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SpiderJobStats'
-  SpidersStats:
-    required:
-      - date
-      - stats
-    type: object
-    properties:
-      date:
-        title: Date
-        type: string
-        format: date
-      stats:
-        $ref: '#/definitions/Stats'
   SpidersPagination:
     required:
       - count

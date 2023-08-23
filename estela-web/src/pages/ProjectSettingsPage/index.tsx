@@ -3,6 +3,8 @@ import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, S
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
+import { EnvVarsSetting } from "../../components/EnvVarsSettingsPage";
+
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
@@ -16,6 +18,7 @@ import {
     ProjectCategoryEnum,
     ApiProjectsUpdateRequest,
     ApiProjectsDeleteRequest,
+    SpiderJobEnvVar,
 } from "../../services/api";
 import { resourceNotAllowedNotification } from "../../shared";
 import { Permission } from "../../services/api/generated-api/models/Permission";
@@ -27,6 +30,7 @@ interface ProjectSettingsPageState {
     name: string;
     user: string;
     users: Permission[];
+    envVars: SpiderJobEnvVar[];
     loaded: boolean;
     newUser: string;
     permission: ProjectUpdatePermissionEnum;
@@ -57,6 +61,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         name: "",
         user: "",
         users: [],
+        envVars: [],
         loaded: false,
         newUser: "",
         permission: ProjectUpdatePermissionEnum.Viewer,
@@ -86,17 +91,25 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {
-                let users = response.users;
-                if (users === undefined) {
-                    users = [];
-                }
+                let envVars = response.envVars || [];
+                const users = response.users || [];
+
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
+
                 this.setState({
                     name: response.name,
                     projectName: response.name,
-                    users: users,
+                    users: [...users],
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays,
                     loaded: true,
+                    envVars: [...envVars],
                     category: response.category,
                 });
             },
@@ -113,7 +126,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
 
     changeName = (): void => {
         const requestData: ProjectUpdate = {
-            permission: this.state.permission,
             name: this.state.name,
         };
         const request: ApiProjectsUpdateRequest = {
@@ -132,7 +144,6 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
 
     changePersistence = (): void => {
         const requestData: ProjectUpdate = {
-            name: this.state.projectName,
             dataStatus: this.state.newDataStatus,
             dataExpiryDays: Number(this.state.dataExpiryDays),
         };
@@ -209,7 +220,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     ];
 
     projectCategoryOptions = [
-        { label: "Not Specified", key: 1, value: ProjectCategoryEnum.NotEspecified },
+        { label: "Not Specified", key: 1, value: ProjectCategoryEnum.NotSpecified },
         { label: "E-commerce", key: 2, value: ProjectCategoryEnum.ECommerce },
         { label: "Logistics", key: 3, value: ProjectCategoryEnum.Logistics },
         { label: "Finance", key: 4, value: ProjectCategoryEnum.Finance },
@@ -219,8 +230,17 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
     ];
 
     render(): JSX.Element {
-        const { loaded, showModal, category, dataStatus, dataExpiryDays, detailsChanged, persistenceChanged } =
-            this.state;
+        const {
+            loaded,
+            name,
+            showModal,
+            category,
+            dataStatus,
+            dataExpiryDays,
+            detailsChanged,
+            persistenceChanged,
+            envVars,
+        } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
                 {loaded ? (
@@ -246,7 +266,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                                     <Input
                                                         style={{ fontSize: 14, borderRadius: 8 }}
                                                         size="large"
-                                                        placeholder={this.state.name}
+                                                        placeholder={name}
                                                         onChange={this.handleNameChange}
                                                         className="border-estela placeholder:text-estela-black-full"
                                                     />
@@ -284,7 +304,8 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 <p className="text-2xl text-black">Data persistence</p>
                                 <p className="text-sm my-2 text-estela-black-medium">
                                     New projects you create will have this data persistence by default to retain data in
-                                    Bitmaker Cloud
+                                    &nbsp;
+                                    <span className="font-bold text-estela-black-full text-base -ml-1">estela</span>
                                 </p>
                                 <Content>
                                     <Radio.Group
@@ -309,11 +330,12 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                         htmlType="submit"
                                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base  min-h-full"
                                     >
-                                        Save Changes
+                                        Save changes
                                     </Button>
                                 </div>
                             </Content>
                         </Row>
+                        <EnvVarsSetting projectId={this.projectId} spiderId="" envVarsData={envVars} level="project" />
                         <Row className="bg-white rounded-lg">
                             <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
                                 <Typography className="text-2xl text-black">Delete</Typography>

@@ -26,7 +26,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
-import { BytesMetric, formatSecondsToHHMMSS, formatBytes } from "../../utils";
+import { BytesMetric, parseDuration, durationToString, formatBytes } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
@@ -291,9 +291,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 const args = response.args || [];
                 const envVars = response.envVars || [];
                 const tags = response.tags || [];
-                const lifeSpanArr: string[] = String(response.lifespan ?? 0).split(":");
-                const lifespan: number =
-                    lifeSpanArr.length !== 3 ? 0 : +lifeSpanArr[0] * 3600 + +lifeSpanArr[1] * 60 + +lifeSpanArr[2];
+                const lifespan = parseDuration(response.lifespan);
                 this.setState({
                     name: response.name,
                     lifespan: lifespan,
@@ -946,7 +944,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">
-                                    {formatSecondsToHHMMSS(lifespan ?? 0)}
+                                    {durationToString(lifespan || 0)}
                                 </Text>
                             </Col>
                             <Col>
@@ -1048,7 +1046,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             const newEnvVars: EnvVars[] = [...this.state.envVars].map(
                                                 (envVar: SpiderJobEnvVar, id: number) => ({
                                                     name: envVar.name,
-                                                    value: envVar.masked ? "_" : envVar.value,
+                                                    value: envVar.masked ? "__MASKED__" : envVar.value,
                                                     masked: envVar.masked,
                                                     key: id,
                                                 }),

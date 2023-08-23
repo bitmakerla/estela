@@ -232,7 +232,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             Remember to install the&nbsp;
                                             <a
                                                 target="_blank"
-                                                href="https://estela.bitmaker.la/docs/estela-cli/install.html"
+                                                href="https://estela-cli.bitmaker.la/installation/"
                                                 rel="noreferrer"
                                             >
                                                 <Text className="text-estela underline">estela CLI</Text>

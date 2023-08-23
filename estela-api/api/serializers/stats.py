@@ -57,15 +57,11 @@ class StatsSerializer(serializers.Serializer):
     jobs = JobsStatsSerializer(required=False)
     pages = PagesStatsSerializer()
     items_count = serializers.IntegerField(default=0)
-    runtime = serializers.DurationField(default=timedelta(hours=0, minutes=0))
+    runtime = serializers.DurationField(default=timedelta(0))
     status_codes = StatusCodesStatsSerializer()
     success_rate = serializers.FloatField(default=0.0, required=False)
     logs = LogsStatsSerializer()
     coverage = CoverageStatsSerializer(required=False)
-
-
-class SpiderJobStatsSerializer(SpiderJobSerializer):
-    stats = StatsSerializer()
 
 
 class SpiderJobStatsSerializer(SpiderJobSerializer):

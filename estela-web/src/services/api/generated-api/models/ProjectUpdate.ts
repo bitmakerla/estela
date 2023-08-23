@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    SpiderJobEnvVar,
+    SpiderJobEnvVarFromJSON,
+    SpiderJobEnvVarFromJSONTyped,
+    SpiderJobEnvVarToJSON,
     UserDetail,
     UserDetailFromJSON,
     UserDetailFromJSONTyped,
@@ -62,6 +66,12 @@ export interface ProjectUpdate {
      * @memberof ProjectUpdate
      */
     framework?: ProjectUpdateFrameworkEnum;
+    /**
+     * Project env variables.
+     * @type {Array<SpiderJobEnvVar>}
+     * @memberof ProjectUpdate
+     */
+    envVars?: Array<SpiderJobEnvVar>;
     /**
      * New permission.
      * @type {string}
@@ -130,6 +140,7 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
         'email': !exists(json, 'email') ? undefined : json['email'],
         'action': !exists(json, 'action') ? undefined : json['action'],
         'framework': !exists(json, 'framework') ? undefined : json['framework'],
+        'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'permission': !exists(json, 'permission') ? undefined : json['permission'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
@@ -150,6 +161,7 @@ export function ProjectUpdateToJSON(value?: ProjectUpdate | null): any {
         'email': value.email,
         'action': value.action,
         'framework': value.framework,
+        'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'permission': value.permission,
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
