@@ -10,7 +10,6 @@ from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
 
 
-
 def launch_deploy_job(pid, did, container_image):
     deploy_user = User.objects.get(username="deploy_manager")
     deploy_user_token, _ = Token.objects.get_or_create(user=deploy_user)
@@ -26,8 +25,12 @@ def launch_deploy_job(pid, did, container_image):
         "DJANGO_EXTERNAL_APPS": ",".join(settings.DJANGO_EXTERNAL_APPS),
         "EXTERNAL_MIDDLEWARES": ",".join(settings.EXTERNAL_MIDDLEWARES),
     }
-    
-    volume = {"name": "docker-sock", "path": "/var/run"} if build_manager.name == "default" else {}
+
+    volume = (
+        {"name": "docker-sock", "path": "/var/run"}
+        if build_manager.name == "default"
+        else {}
+    )
 
     job_manager.create_job(
         name="deploy-project-{}".format(did),

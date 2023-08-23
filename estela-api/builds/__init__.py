@@ -1,3 +1,3 @@
-class Build():
-    name=""
-    filename=""
+class Build:
+    name = ""
+    filename = ""

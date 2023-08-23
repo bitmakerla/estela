@@ -19,9 +19,11 @@ from django.urls import include, path
 from django.http import HttpResponse
 from django.views import View
 
+
 class HealthCheckView(View):
     def get(self, request):
         return HttpResponse("OK")
+
 
 django_external_apps_url = []
 for external_app in settings.DJANGO_EXTERNAL_APPS:
@@ -32,6 +34,6 @@ for external_app in settings.DJANGO_EXTERNAL_APPS:
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
-    path('', HealthCheckView.as_view()),
+    path("", HealthCheckView.as_view()),
 ]
 urlpatterns = urlpatterns + django_external_apps_url

@@ -15,7 +15,6 @@ def modify_permission(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0019_auto_20220917_2149"),
     ]
