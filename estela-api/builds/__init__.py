@@ -1,0 +1,3 @@
+class Build:
+    name = ""
+    filename = ""

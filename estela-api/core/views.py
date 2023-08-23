@@ -1,3 +1,5 @@
+from api.tokens import account_reset_token
+from config.job_manager import job_manager, build_manager
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
@@ -6,9 +8,6 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
-
-from api.tokens import account_reset_token
-from config.job_manager import job_manager
 
 
 def launch_deploy_job(pid, did, container_image):
@@ -26,14 +25,20 @@ def launch_deploy_job(pid, did, container_image):
         "DJANGO_EXTERNAL_APPS": ",".join(settings.DJANGO_EXTERNAL_APPS),
         "EXTERNAL_MIDDLEWARES": ",".join(settings.EXTERNAL_MIDDLEWARES),
     }
-    volume = {"name": "docker-sock", "path": "/var/run"}
+
+    volume = (
+        {"name": "docker-sock", "path": "/var/run"}
+        if build_manager.name == "default"
+        else {}
+    )
+
     job_manager.create_job(
         name="deploy-project-{}".format(did),
         key=pid,
         job_env_vars=ENV_VARS,
         container_image=settings.BUILD_PROJECT_IMAGE,
         volume=volume,
-        command=["python", "estela-api/build_project/build.py"],
+        command=["python", f"estela-api/build_project/{build_manager.filename}"],
         isbuild=True,
     )
 

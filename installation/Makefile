@@ -5,6 +5,7 @@ API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].me
 API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.spec.clusterIP}')
 LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 RESOURCES = db registry minio zookeeper kafka
+PLATFORM ?= linux/$(shell uname -m)
 
 
 .PHONY: resources
@@ -31,13 +32,13 @@ delete-resources:
 .PHONY: build-all-images
 build-all-images:
 	-. ./local/.env && cd $(API_DIR) && \
-	 docker build .. --file docker-conf/Dockerfile-django-api --tag $${LOCAL_REGISTRY}/estela-django-api:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $${LOCAL_REGISTRY}/estela-celery-worker:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $${LOCAL_REGISTRY}/estela-celery-beat:latest && \
-	 docker build . --file docker-conf/Dockerfile-redis --tag $${LOCAL_REGISTRY}/estela-redis:latest && \
-	 docker build .. --file docker-conf/Dockerfile-build-project --tag $${LOCAL_REGISTRY}/estela-build-project:latest
+	 docker build .. --file docker-conf/Dockerfile-django-api --tag $${LOCAL_REGISTRY}/estela-django-api:latest  --platform $(PLATFORM) && \
+	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $${LOCAL_REGISTRY}/estela-celery-worker:latest --platform $(PLATFORM) && \
+	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $${LOCAL_REGISTRY}/estela-celery-beat:latest --platform $(PLATFORM) && \
+	 docker build . --file docker-conf/Dockerfile-redis --tag $${LOCAL_REGISTRY}/estela-redis:latest --platform $(PLATFORM) && \
+	 docker build .. --file docker-conf/Dockerfile-build-project --tag $${LOCAL_REGISTRY}/estela-build-project:latest --platform $(PLATFORM)
 	-. ./local/.env && cd $(QUEUING_DIR) && \
-	 docker build .. --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
+	 docker build .. --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest --platform $(PLATFORM)
 
 
 .PHONY: upload-all-images

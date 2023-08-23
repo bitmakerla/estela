@@ -29,6 +29,17 @@ spec:
             name: api-secrets
         - configMapRef:
             name: api-config
+        {{- if or .Values.API_CPU_LIMIT .Values.API_MEM_LIMIT }}
+        resources:
+          {{- if .Values.API_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.API_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.API_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.API_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -66,6 +77,17 @@ spec:
             name: api-secrets
         - configMapRef:
             name: api-config
+        {{- if or .Values.CELERY_BEAT_CPU_LIMIT .Values.CELERY_BEAT_MEM_LIMIT }}
+        resources:
+          {{- if .Values.CELERY_BEAT_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.CELERY_BEAT_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.CELERY_BEAT_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.CELERY_BEAT_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -103,6 +125,17 @@ spec:
             name: api-secrets
         - configMapRef:
             name: api-config
+        {{- if or .Values.CELERY_WORKER_CPU_LIMIT .Values.CELERY_WORKER_MEM_LIMIT }}
+        resources:
+          {{- if .Values.CELERY_WORKER_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.CELERY_WORKER_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.CELERY_WORKER_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.CELERY_WORKER_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -133,6 +166,17 @@ spec:
       containers:
       - name: estela-redis
         image: {{ .Values.registryHost }}/estela-redis:latest
+        {{- if or .Values.REDIS_CPU_LIMIT .Values.REDIS_MEM_LIMIT }}
+        resources:
+          {{- if .Values.REDIS_CPU_LIMIT }}
+          limits:
+            cpu: {{ .Values.REDIS_CPU_LIMIT }}
+          {{- end }}
+          {{- if .Values.REDIS_MEM_LIMIT }}
+          limits:
+            memory: {{ .Values.REDIS_MEM_LIMIT }}
+          {{- end }}
+        {{- end }}
       {{- if .Values.nodeSelector }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

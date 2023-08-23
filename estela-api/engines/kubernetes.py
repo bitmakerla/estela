@@ -1,4 +1,3 @@
-from distutils.command.build import build
 from json import dumps
 
 from django.conf import settings
@@ -91,7 +90,7 @@ class KubernetesEngine:
             ],
             volumes=[volume] if volume else None,
             node_selector={"role": self.SPIDER_NODE_ROLE}
-            if settings.MULTI_NODE_MODE
+            if settings.MULTI_NODE_MODE == "True"
             else None,
         )
         if not isbuild:
@@ -162,8 +161,8 @@ class KubernetesEngine:
             command,
             isbuild,
         )
-        api_response = api_instance.create_namespaced_job(namespace, body)
 
+        api_response = api_instance.create_namespaced_job(namespace, body)
         return self.Job(api_response)
 
     def delete_job(self, name, namespace="default", api_instance=None):
