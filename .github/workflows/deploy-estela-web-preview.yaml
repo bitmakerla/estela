@@ -1,0 +1,138 @@
+name: Build and Deploy estela-web preview
+on:
+  pull_request:
+
+env:
+  WEB_DIRECTORY: estela-web
+  API_DIRECTORY: estela-api
+
+jobs:
+  check-web:
+    runs-on: ubuntu-latest
+    name: Test if web files changed
+    outputs:
+      web_changed: ${{steps.changed-estela-web-files.outputs.any_changed}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check if estela-web directory changed
+        id: changed-estela-web-files
+        uses: tj-actions/changed-files@v37
+        with:
+          files: ${{env.WEB_DIRECTORY}}
+
+  check-api:
+    runs-on: ubuntu-latest
+    name: Test if api files changed
+    outputs:
+      api_changed: ${{steps.changed-estela-api-files.outputs.any_changed}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check if estela-api directory changed
+        id: changed-estela-api-files
+        uses: tj-actions/changed-files@v37
+        with:
+          files: ${{env.API_DIRECTORY}}
+
+  build_web:
+    if: needs.check-web.outputs.web_changed == 'true' && needs.check-api.outputs.api_changed == 'false'
+    name: Build web
+    needs: [check-web, check-api]
+    runs-on: ubuntu-latest
+    env:
+      web_changed: ${{needs.check-web.outputs.web_changed}}
+      api_changed: ${{needs.check-api.outputs.api_changed}}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: "yarn"
+          cache-dependency-path: ./${{env.WEB_DIRECTORY}}/yarn.lock
+
+      - name: Build Web
+        working-directory: ./${{env.WEB_DIRECTORY}}
+        run: |
+          echo "REACT_APP_API_BASE_URL=${{secrets.STAGING_BMC_API_URL}}" > .env.production
+          yarn install
+          yarn build --env publicPath=${{secrets.STAGING_BMC_PUBLIC_PATH}}
+
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-web
+          path: ${{env.WEB_DIRECTORY}}/dist/
+          retention-days: 1
+
+  deploy_to_s3:
+    name: Deploy web to s3
+    needs: build_web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Download built Web
+        uses: actions/download-artifact@v3
+        with:
+          name: build-web
+          path: ${{env.WEB_DIRECTORY}}/dist/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          aws-region: ${{secrets.AWS_DEFAULT_REGION}}
+
+      - name: Defining bucket name and policies
+        run: |
+          export _BUCKET_NAME=$(echo estela-web-${{ github.head_ref }} | tr '[:upper:]' '[:lower:]')
+          echo "BUCKET_NAME=$_BUCKET_NAME" >> $GITHUB_ENV
+          echo "{
+            \"Version\": \"2012-10-17\",
+            \"Statement\": [
+              {
+                \"Sid\": \"PublicReadGetObject\",
+                \"Effect\": \"Allow\",
+                \"Principal\": \"*\",
+                \"Action\": \"s3:GetObject\",
+                \"Resource\": \"arn:aws:s3:::$_BUCKET_NAME/*\"
+              }
+            ]
+          }" > bucket_policy.json
+
+      - name: Create new S3 Bucket
+        run: |
+          if ! aws s3api head-bucket --bucket ${{env.BUCKET_NAME}} 2>/dev/null; then \
+            aws s3 mb s3://${{env.BUCKET_NAME}}; \
+            cd ./${{env.WEB_DIRECTORY}}/dist/
+            aws s3 website s3://${{env.BUCKET_NAME}} --index-document index.html; \
+            cd ../../
+            aws s3api put-public-access-block --bucket ${{env.BUCKET_NAME}} --public-access-block-configuration "BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"; \
+            aws s3api put-bucket-policy --bucket ${{env.BUCKET_NAME}} --policy file://bucket_policy.json; \
+          fi
+
+      - name: Deploy to S3 Bucket
+        run: aws s3 sync ./${{env.WEB_DIRECTORY}}/dist/ s3://${{env.BUCKET_NAME}} --delete
+
+      - name: Define preview metadata
+        run: |
+          echo "SHORT_COMMIT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+          echo "LAST_UPDATED="$(date -u +'%Y-%m-%d %H:%M:%S') UTC"" >> "$GITHUB_ENV"
+      - name: Comment Website Preview
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Docs preview
+          recreate: true
+          message: |
+            ## estela web preview
+            You are viewing this message because you made a change in estela-web
+            | Commit  | Preview     | Last Updated            |
+            |---------|-------------|-------------------------|
+            | ${{env.SHORT_COMMIT_SHA}} | <a target="_blank" href="http://${{env.BUCKET_NAME}}.s3-website-${{secrets.AWS_DEFAULT_REGION}}.amazonaws.com">See preview</a> | ${{env.LAST_UPDATED}} |
