@@ -91,10 +91,6 @@ interface EnvVarsData {
 
 interface TagsData {
     name: string;
-}
-
-interface Tags {
-    name: string;
     key: number;
 }
 
@@ -111,7 +107,6 @@ interface Cronjob {
     newEnvVarValue: string;
     newEnvVarMasked: boolean;
     newTagName: string;
-    newTags: Tags[];
 }
 
 interface OptionDataRepeat {
@@ -193,7 +188,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         newEnvVarValue: "",
         newEnvVarMasked: false,
         newTagName: "",
-        newTags: [],
     });
     const [crontab, setCrontab] = useState<Crontab>({
         expression: "",
@@ -365,17 +359,20 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, args: [...args] });
     };
 
-    const addArgument = (): void => {
+    const addArgument = (): ArgsData | undefined => {
         const args = [...cronjobData.args];
         const newArgName = newCronjob.newArgName.trim();
         const newArgValue = newCronjob.newArgValue.trim();
         if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
-            args.push({ name: newArgName, value: newArgValue, key: countKey });
+            const arg = { name: newArgName, value: newArgValue, key: countKey };
+            args.push(arg);
             setCountKey(countKey + 1);
             setCronjobData({ ...cronjobData, args: [...args] });
             setNewCronjob({ ...newCronjob, newArgName: "", newArgValue: "" });
+            return arg;
         } else {
             invalidDataNotification("Invalid argument name/value pair.");
+            return;
         }
     };
 
@@ -414,22 +411,25 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         }
     };
 
-    const addEnvVar = (): void => {
+    const addEnvVar = (): EnvVarsData | undefined => {
         const envVars = [...cronjobData.envVars];
         const newEnvVarName = newCronjob.newEnvVarName.trim();
         const newEnvVarValue = newCronjob.newEnvVarValue.trim();
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({
+            const envVar = {
                 name: newEnvVarName,
                 value: newEnvVarValue,
                 masked: newCronjob.newEnvVarMasked,
                 key: countKey,
-            });
+            };
+            envVars.push(envVar);
             setCountKey(countKey + 1);
             setCronjobData({ ...cronjobData, envVars: [...envVars] });
             setNewCronjob({ ...newCronjob, newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
+            return envVar;
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
+            return;
         }
     };
 
@@ -439,18 +439,21 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, tags: [...tags] });
     };
 
-    const addTag = (): void => {
+    const addTag = (): TagsData | undefined => {
         const tags = [...cronjobData.tags];
-        const newTags = [...newCronjob.newTags];
+        // const newTags = [...newCronjob.newTags];
         const newTagName = newCronjob.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
-            newTags.push({ name: newTagName, key: countKey });
+            // newTags.push({ name: newTagName, key: countKey });
+            const tag = { name: newTagName, key: countKey };
             setCountKey(countKey + 1);
-            tags.push({ name: newTagName });
+            tags.push(tag);
             setCronjobData({ ...cronjobData, tags: [...tags] });
-            setNewCronjob({ ...newCronjob, newTags: [...newTags], newTagName: "" });
+            setNewCronjob({ ...newCronjob, newTagName: "" });
+            return tag;
         } else {
             invalidDataNotification("Invalid tag name.");
+            return;
         }
     };
 
@@ -556,9 +559,35 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             expression = getExpression();
         }
 
-        const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
-            return envVar;
-        });
+        const newEnvVarName = newCronjob.newEnvVarName.trim();
+        if (newEnvVarName && newEnvVarName.indexOf(" ") == -1) {
+            const newEnvVar = addEnvVar();
+            if (!newEnvVar) {
+                return;
+            }
+            cronjobData.envVars.push(newEnvVar);
+        }
+        const newArgName = newCronjob.newArgName.trim();
+        if (newArgName && newArgName.indexOf(" ") == -1) {
+            const newArg = addArgument();
+            if (!newArg) {
+                return;
+            }
+            cronjobData.args.push(newArg);
+        }
+        const newTagName = newCronjob.newTagName.trim();
+        if (newTagName && newTagName.indexOf(" ") == -1) {
+            const newTag = addTag();
+            if (!newTag) {
+                return;
+            }
+            cronjobData.tags.push(newTag);
+        }
+
+        // const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
+        //     return envVar;
+        // });
+        const envVarsData = [...projectEnvVars];
         spiderEnvVars.map((envVar: SpiderJobEnvVar) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
@@ -567,7 +596,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                 envVarsData.push(envVar);
             }
         });
-
         cronjobData.envVars.map((envVar: EnvVarsData) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
@@ -839,7 +867,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 </Space>
                             </Space>
                         </Content>
-                        <Content>
+                        <Space direction="vertical" className="my-2">
                             <p className="text-base my-2">Tags</p>
                             <Space direction="horizontal">
                                 {cronjobData.tags.map((tag: TagsData, id) => (
@@ -870,7 +898,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                     onClick={addTag}
                                 ></Button>
                             </Space>
-                        </Content>
+                        </Space>
                     </Col>
                     <Col className="schedule mx-4">
                         <p className="text-base">Select a period</p>

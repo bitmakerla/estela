@@ -297,11 +297,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         const newArgName = variable.newArgName.trim();
         const newArgValue = variable.newArgValue.trim();
         if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
-            const arg = {
-                name: newArgName,
-                value: newArgValue,
-                key: countKey,
-            };
+            const arg = { name: newArgName, value: newArgValue, key: countKey };
             args.push(arg);
             setCountKey(countKey + 1);
             setJobData({ ...jobData, args: [...args] });
@@ -403,9 +399,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         const { args, tags, dataStatus, dataExpiryDays } = jobData;
         const { pid, sid } = request;
 
-        const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
-            return envVar;
-        });
+        const envVarsData = [...projectEnvVars];
         spiderEnvVars.map((envVar: SpiderJobEnvVar) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
@@ -414,7 +408,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                 envVarsData.push(envVar);
             }
         });
-
         jobData.envVars.map((envVar: EnvVarsData) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
