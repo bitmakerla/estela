@@ -51,11 +51,6 @@ interface TagsData {
     name: string;
 }
 
-interface Tags {
-    name: string;
-    key: number;
-}
-
 interface JobData {
     args: ArgsData[];
     envVars: EnvVarsData[];
@@ -71,7 +66,6 @@ interface Variable {
     newEnvVarValue: string;
     newEnvVarMasked: boolean;
     newTagName: string;
-    newTags: Tags[];
 }
 
 interface Request {
@@ -119,7 +113,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         newEnvVarValue: "",
         newEnvVarMasked: false,
         newTagName: "",
-        newTags: [],
     });
     const [request, setRequest] = useState<Request>({
         pid: projectId,
@@ -299,51 +292,62 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         setJobData({ ...jobData, tags: [...tags] });
     };
 
-    const addArgument = (): void => {
+    const addArgument = (): ArgsData | undefined => {
         const args = [...jobData.args];
         const newArgName = variable.newArgName.trim();
         const newArgValue = variable.newArgValue.trim();
         if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
-            args.push({ name: newArgName, value: newArgValue, key: countKey });
+            const arg = {
+                name: newArgName,
+                value: newArgValue,
+                key: countKey,
+            };
+            args.push(arg);
             setCountKey(countKey + 1);
             setJobData({ ...jobData, args: [...args] });
             setVariable({ ...variable, newArgName: "", newArgValue: "" });
+            return arg;
         } else {
             invalidDataNotification("Invalid argument name/value pair.");
+            return;
         }
     };
 
-    const addEnvVar = (): void => {
+    const addEnvVar = (): EnvVarsData | undefined => {
         const envVars = [...jobData.envVars];
         const newEnvVarName = variable.newEnvVarName.trim();
         const newEnvVarValue = variable.newEnvVarValue.trim();
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({
+            const newEnvVar = {
                 name: newEnvVarName,
                 value: newEnvVarValue,
                 masked: variable.newEnvVarMasked,
                 key: countKey,
-            });
+            };
+            envVars.push(newEnvVar);
             setCountKey(countKey + 1);
             setJobData({ ...jobData, envVars: [...envVars] });
             setVariable({ ...variable, newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
+            return newEnvVar;
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
+            return;
         }
     };
 
-    const addTag = (): void => {
+    const addTag = (): TagsData | undefined => {
         const tags = [...jobData.tags];
-        const newTags = [...variable.newTags];
         const newTagName = variable.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
-            newTags.push({ name: newTagName, key: countKey });
+            const tag = { name: newTagName, key: countKey };
+            tags.push(tag);
             setCountKey(countKey + 1);
-            tags.push({ name: newTagName });
             setJobData({ ...jobData, tags: [...tags] });
-            setVariable({ ...variable, newTags: [...newTags], newTagName: "" });
+            setVariable({ ...variable, newTagName: "" });
+            return tag;
         } else {
             invalidDataNotification("Invalid tag name.");
+            return;
         }
     };
 
@@ -371,6 +375,31 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
 
     const handleSubmit = (): void => {
         setLoading(true);
+        const newEnvVarName = variable.newEnvVarName.trim();
+        if (newEnvVarName && newEnvVarName.indexOf(" ") == -1) {
+            const newEnvVar = addEnvVar();
+            if (!newEnvVar) {
+                return;
+            }
+            jobData.envVars.push(newEnvVar);
+        }
+        const newArgName = variable.newArgName.trim();
+        if (newArgName && newArgName.indexOf(" ") == -1) {
+            const newArg = addArgument();
+            if (!newArg) {
+                return;
+            }
+            jobData.args.push(newArg);
+        }
+        const newTagName = variable.newTagName.trim();
+        if (newTagName && newTagName.indexOf(" ") == -1) {
+            const newTag = addTag();
+            if (!newTag) {
+                return;
+            }
+            jobData.tags.push(newTag);
+        }
+
         const { args, tags, dataStatus, dataExpiryDays } = jobData;
         const { pid, sid } = request;
 

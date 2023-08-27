@@ -291,7 +291,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 const args = response.args || [];
                 const envVars = response.envVars || [];
                 const tags = response.tags || [];
-                const lifespan = parseDuration(response.lifespan);
+                const lifespan = response.lifespan;
                 this.setState({
                     name: response.name,
                     lifespan: lifespan,
@@ -753,7 +753,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                             <Col className="col-span-2 px-2">{date}</Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2">
                             <Col className="col-span-1">
                                 <Text className="font-bold">Scheduled job</Text>
                             </Col>
@@ -770,7 +770,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 )}
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                        <Row className="grid grid-cols-3 py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Tags</Text>
                             </Col>
@@ -790,7 +790,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Environment variables</Text>
                             </Col>
@@ -822,7 +822,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                        <Row className="grid grid-cols-3 py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Arguments</Text>
                             </Col>
@@ -855,7 +855,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             )}
                             {status == "WAITING" && (
                                 <Col className="col-span-2 px-2">
-                                    <Tag className="bg-estela-yellow-low text-estela-blue-full border-estela-blue-full rounded-md">
+                                    <Tag className="bg-white text-estela-yellow border-estela-yellow rounded-md">
                                         {status}
                                     </Tag>
                                 </Col>
@@ -943,7 +943,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
                                 <Text className="font-bold text-estela-black-full text-lg">
-                                    {durationToString(lifespan || 0)}
+                                    {durationToString(parseDuration(String(lifespan || 0)))}
                                 </Text>
                             </Col>
                             <Col>
