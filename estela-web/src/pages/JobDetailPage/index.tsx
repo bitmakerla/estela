@@ -1122,16 +1122,16 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 padding: 0,
                                             }}
                                             centered
-                                            width={681}
+                                            width={460}
                                             open={modalClone}
                                             title={<p className="text-xl text-center mt-2 font-normal">NEW JOB</p>}
                                             onCancel={() => this.setState({ modalClone: false })}
                                             footer={null}
                                         >
                                             <Row className="grid sm:grid-cols-1">
-                                                <Col className="mx-4">
+                                                <Col className="mx-2">
                                                     <Content>
-                                                        <p className="my-2 text-base">Spider</p>
+                                                        <p className="mb-2 text-base">Spider</p>
                                                         <Select
                                                             style={{ borderRadius: 16 }}
                                                             size="large"
@@ -1241,9 +1241,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                             </Space>
                                                         </Space>
                                                     </Content>
-                                                    <Content>
-                                                        <p className="text-base my-2">Environment Variables</p>
-                                                        <Space className="mb-2" direction="horizontal">
+                                                    <Space direction="vertical" className="my-2">
+                                                        <p className="text-base">Environment Variables</p>
+                                                        <Space direction="horizontal">
                                                             {newEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
                                                                 envVar.masked ? (
                                                                     <AntdTooltip
@@ -1274,12 +1274,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                             )}
                                                         </Space>
                                                         <Space direction="horizontal">
-                                                            <Checkbox
-                                                                checked={newEnvVarMasked}
-                                                                onChange={this.onChangeEnvVarMasked}
-                                                            >
-                                                                Masked
-                                                            </Checkbox>
                                                             <Input
                                                                 size="large"
                                                                 className="border-estela-blue-full rounded-l-lg"
@@ -1296,6 +1290,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                 value={newEnvVarValue}
                                                                 onChange={this.handleInputChange}
                                                             />
+                                                            <Checkbox
+                                                                checked={newEnvVarMasked}
+                                                                onChange={this.onChangeEnvVarMasked}
+                                                            >
+                                                                Masked
+                                                            </Checkbox>
                                                             <Button
                                                                 shape="circle"
                                                                 size="small"
@@ -1304,20 +1304,20 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                                 onClick={this.addEnvVar}
                                                             ></Button>
                                                         </Space>
-                                                    </Content>
+                                                    </Space>
                                                 </Col>
                                             </Row>
-                                            <Row justify="center" className="mt-4">
+                                            <Row className="flow-root mt-4">
                                                 <Button
                                                     onClick={this.handleSubmit}
                                                     size="large"
-                                                    className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                                    className="float-left w-48 h-12 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
                                                 >
                                                     Confirm
                                                 </Button>
                                                 <Button
                                                     size="large"
-                                                    className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                                    className="float-right w-48 h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
                                                     onClick={() => this.setState({ modalClone: false })}
                                                 >
                                                     Cancel

@@ -339,9 +339,9 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     emptyText = (): ReactElement => (
-        <Content className="flex w-full h-80 flex-col items-center justify-center text-estela-black-medium">
+        <Content className="flex w-full h-52 flex-col items-center justify-center text-estela-black-medium">
             <FolderDotted className="w-20 h-20" />
-            <p>No jobs yet.</p>
+            <p>No cronjobs yet.</p>
         </Content>
     );
 

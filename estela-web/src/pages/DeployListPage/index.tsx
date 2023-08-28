@@ -69,14 +69,35 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                 <>
                     {spiders.length === 0 ? (
                         "-/-"
-                    ) : spiders.length > 1 ? (
+                    ) : spiders.length > 2 ? (
                         <>
-                            <span className="text-estela-blue-full font-medium">{spiders[0].name}&nbsp;</span>
-                            <Tag className="bg-estela-blue-low rounded-lg border-estela-blue-full text-estela">+1</Tag>
+                            {spiders.map((spider: Spider, id: number) => {
+                                if (id > 1) {
+                                    return;
+                                }
+                                return (
+                                    <Tag
+                                        key={id}
+                                        className="text-estela-blue-full font-normal bg-estela-blue-low border-0 text-base rounded-md"
+                                    >
+                                        {spider.name}
+                                    </Tag>
+                                );
+                            })}
+                            <Tag className="bg-estela-blue-low rounded-lg text-estela border-estela-blue-full">
+                                +{spiders.length - 2}
+                            </Tag>
                         </>
                     ) : (
                         <>
-                            <span className="text-estela-blue-full font-medium">{spiders[0].name}</span>
+                            {spiders.map((spider: Spider, id: number) => (
+                                <Tag
+                                    key={id}
+                                    className="text-estela-blue-full font-normal bg-estela-blue-low border-0 text-base rounded-md"
+                                >
+                                    {spider.name}
+                                </Tag>
+                            ))}
                         </>
                     )}
                 </>

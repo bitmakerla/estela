@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
+import { Modal, Layout, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import {
     ApiProjectsSpidersJobsCreateRequest,
@@ -20,6 +20,7 @@ import { checkExternalError } from "../../defaultComponents";
 import Run from "../../assets/icons/play.svg";
 import Add from "../../assets/icons/add.svg";
 
+const { Content } = Layout;
 const { Option } = Select;
 
 interface JobCreateModalProps {
@@ -560,51 +561,55 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         </Space>
                     </Space>
                 </Row>
-                <Row>
+                <Content>
                     <p className="text-base my-2">Environment Variables</p>
-                    <Space direction="vertical">
-                        <div className="flex gap-2 mt-1">
-                            {projectEnvVars.length > 0 && <p className="text-sm">Project</p>}
-                            <div className="flex gap-2">
-                                {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                    envVar.masked ? (
-                                        <MaskedTag key={id} id={id} level={true}>
-                                            {envVar.name}
-                                        </MaskedTag>
-                                    ) : (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={id}
-                                            onClose={() => handleRemoveProjectEnvVar(id, true)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ),
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex gap-2 my-2">
-                            {spiderEnvVars.length > 0 && <p className="text-sm">Spider</p>}
-                            <div className="flex gap-2">
-                                {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                    envVar.masked ? (
-                                        <MaskedTag key={id} id={id} level={false}>
-                                            {envVar.name}
-                                        </MaskedTag>
-                                    ) : (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={id}
-                                            onClose={() => handleRemoveProjectEnvVar(id, false)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ),
-                                )}
-                            </div>
-                        </div>
+                    <Space direction="vertical" className="flex">
+                        {projectEnvVars.length > 0 && (
+                            <Content className="flex">
+                                <p className="text-sm">Project</p>
+                                <div className="flex gap-2">
+                                    {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                        envVar.masked ? (
+                                            <MaskedTag key={id} id={id} level={true}>
+                                                {envVar.name}
+                                            </MaskedTag>
+                                        ) : (
+                                            <Tag
+                                                className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                closable
+                                                key={id}
+                                                onClose={() => handleRemoveProjectEnvVar(id, true)}
+                                            >
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
+                                </div>
+                            </Content>
+                        )}
+                        {spiderEnvVars.length > 0 && (
+                            <>
+                                <p className="text-sm">Spider</p>
+                                <div className="flex gap-2">
+                                    {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                        envVar.masked ? (
+                                            <MaskedTag key={id} id={id} level={false}>
+                                                {envVar.name}
+                                            </MaskedTag>
+                                        ) : (
+                                            <Tag
+                                                className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                closable
+                                                key={id}
+                                                onClose={() => handleRemoveProjectEnvVar(id, false)}
+                                            >
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
+                                </div>
+                            </>
+                        )}
                         <Space direction="horizontal" className="mb-2">
                             {jobData.envVars.map((envVar: EnvVarsData, id: number) =>
                                 envVar.masked ? (
@@ -658,7 +663,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                             ></Button>
                         </Space>
                     </Space>
-                </Row>
+                </Content>
                 <Space direction="vertical" className="my-2">
                     <p className="text-base">Tags</p>
                     <Space direction="horizontal">

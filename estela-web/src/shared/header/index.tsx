@@ -4,7 +4,13 @@ import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
-import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
+import {
+    AuthService,
+    ApiService,
+    ApiNotificationsListRequest,
+    ApiNotificationsUpdateRequest,
+    Notification,
+} from "../../services";
 import { UserContext, UserContextProps } from "../../context";
 import { RequestTag, ScrapyTag } from "../../components/FrameworkTag";
 
@@ -22,7 +28,6 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 interface HeaderState {
     notifications: Notification[];
-    loaded: boolean;
     path: string;
     news: boolean;
 }
@@ -30,7 +35,6 @@ interface HeaderState {
 export class CustomHeader extends Component<unknown, HeaderState> {
     state: HeaderState = {
         notifications: [],
-        loaded: false,
         path: "",
         news: false,
     };
@@ -74,7 +78,6 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         this.apiService.apiNotificationsList(requestParams).then((response) => {
             this.setState({ news: false });
             if (response.count === 0) {
-                this.setState({ loaded: true });
                 return;
             }
             let change = false;
@@ -84,7 +87,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                 }
             });
             this.setState({ news: change });
-            this.setState({ notifications: response.results, loaded: true });
+            this.setState({ notifications: response.results });
         });
     };
 
@@ -179,7 +182,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         },
     ];
 
-    changeNotificationStatus(nid: number): void {
+    changeNotificationStatus(nid: number | undefined): void {
         const notifications = this.state.notifications;
         const index = notifications.findIndex((notification) => notification.nid == nid);
         if (notifications[index].seen) return;
@@ -188,7 +191,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             seen: true,
         };
         const requestParams: ApiNotificationsUpdateRequest = {
-            nid: nid,
+            nid: Number(nid),
             data: requestData,
         };
 
@@ -230,7 +233,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                     : " has "}
                                 {notification.activity.description}
                                 <p className="text-xs text-estela-black-low">
-                                    {notification.createdAt?.toDateString()}
+                                    {notification.activity.created?.toDateString()}
                                 </p>
                             </div>
                         </div>
@@ -282,50 +285,44 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     ];
 
     render(): JSX.Element {
-        const { path, loaded, notifications, news } = this.state;
+        const { path, notifications, news } = this.state;
         return (
-            <>
-                {loaded ? (
-                    <Header className="h-[72px] bg-white py-1">
-                        <Row justify="center" align="middle" className="flex justify-between">
-                            <Col className="flex gap-4 justify-center items-center">
-                                <Link to="/" className=" text-xl hover:text-estela">
-                                    estela
-                                </Link>
-                                {this.getFramework()}
-                            </Col>
-                            <Col className="flex">
-                                <Dropdown
-                                    menu={{
-                                        items: notifications.length ? this.notificationItems() : this.noNotifications(),
-                                    }}
-                                    trigger={["click"]}
-                                >
-                                    {this.renderNotificationIcon(path === "/notifications/inbox", news)}
-                                </Dropdown>
-                                <Dropdown menu={{ items: this.itemsUser }} trigger={["click"]}>
-                                    <a className="flex hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full h-14 px-5 rounded-lg">
-                                        <div className="flex gap-5">
-                                            <User className="stroke-estela rounded-full bg-white h-9 w-9 p-1 my-auto" />
-                                            <Row className="grid grid-cols-1 my-auto" align="middle">
-                                                <Col className="font-medium text-base h-6">{this.getUser()}</Col>
-                                                {this.getUserRole() !== "" && (
-                                                    <Col className="text-estela-black-medium capitalize text-sm h-6">
-                                                        {this.getUserRole()}
-                                                    </Col>
-                                                )}
-                                            </Row>
-                                            <ArrowDown className="stroke-estela h-5 w-4 my-auto" />
-                                        </div>
-                                    </a>
-                                </Dropdown>
-                            </Col>
-                        </Row>
-                    </Header>
-                ) : (
-                    <></>
-                )}
-            </>
+            <Header className="h-[72px] bg-white py-1">
+                <Row justify="center" align="middle" className="flex justify-between">
+                    <Col className="flex gap-4 justify-center items-center">
+                        <Link to="/" className=" text-xl hover:text-estela">
+                            estela
+                        </Link>
+                        {this.getFramework()}
+                    </Col>
+                    <Col className="flex">
+                        <Dropdown
+                            menu={{
+                                items: notifications.length ? this.notificationItems() : this.noNotifications(),
+                            }}
+                            trigger={["click"]}
+                        >
+                            {this.renderNotificationIcon(path === "/notifications/inbox", news)}
+                        </Dropdown>
+                        <Dropdown menu={{ items: this.itemsUser }} trigger={["click"]}>
+                            <a className="flex hover:bg-estela-blue-low hover:text-estela-blue-full text-estela-blue-full h-14 px-5 rounded-lg">
+                                <div className="flex gap-5">
+                                    <User className="stroke-estela rounded-full bg-white h-9 w-9 p-1 my-auto" />
+                                    <Row className="grid grid-cols-1 my-auto" align="middle">
+                                        <Col className="font-medium text-base h-6">{this.getUser()}</Col>
+                                        {this.getUserRole() !== "" && (
+                                            <Col className="text-estela-black-medium capitalize text-sm h-6">
+                                                {this.getUserRole()}
+                                            </Col>
+                                        )}
+                                    </Row>
+                                    <ArrowDown className="stroke-estela h-5 w-4 my-auto" />
+                                </div>
+                            </a>
+                        </Dropdown>
+                    </Col>
+                </Row>
+            </Header>
         );
     }
 }

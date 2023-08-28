@@ -441,10 +441,8 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
 
     const addTag = (): TagsData | undefined => {
         const tags = [...cronjobData.tags];
-        // const newTags = [...newCronjob.newTags];
         const newTagName = newCronjob.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
-            // newTags.push({ name: newTagName, key: countKey });
             const tag = { name: newTagName, key: countKey };
             setCountKey(countKey + 1);
             tags.push(tag);
@@ -584,9 +582,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             cronjobData.tags.push(newTag);
         }
 
-        // const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
-        //     return envVar;
-        // });
         const envVarsData = [...projectEnvVars];
         spiderEnvVars.map((envVar: SpiderJobEnvVar) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
@@ -617,7 +612,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             cronjobData.dataStatus == SpiderDataStatusEnum.Persistent
                 ? SpiderCronJobCreateDataStatusEnum.Persistent
                 : SpiderCronJobCreateDataStatusEnum.Pending;
-
         const requestData = {
             cargs: [...cronjobData.args],
             cenvVars: [...envVarsData],
@@ -771,48 +765,52 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         <Content>
                             <p className="text-base my-2">Environment Variables</p>
                             <Space direction="vertical" className="flex">
-                                <div className="flex">
-                                    {projectEnvVars.length > 0 ? <p className="text-sm mr-2">Project:</p> : <></>}
-                                    <div className="flex gap-2">
-                                        {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                            envVar.masked ? (
-                                                <MaskedTag key={id} id={id} level={true}>
-                                                    {envVar.name}
-                                                </MaskedTag>
-                                            ) : (
-                                                <Tag
-                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                    closable
-                                                    key={id}
-                                                    onClose={() => handleRemoveProjectEnvVar(id, true)}
-                                                >
-                                                    {envVar.name}: {envVar.value}
-                                                </Tag>
-                                            ),
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex">
-                                    {spiderEnvVars.length > 0 ? <p className="text-sm mr-2">Spider:</p> : <></>}
-                                    <div className="flex gap-2">
-                                        {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                            envVar.masked ? (
-                                                <MaskedTag key={id} id={id} level={false}>
-                                                    {envVar.name}
-                                                </MaskedTag>
-                                            ) : (
-                                                <Tag
-                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                    closable
-                                                    key={id}
-                                                    onClose={() => handleRemoveProjectEnvVar(id, false)}
-                                                >
-                                                    {envVar.name}: {envVar.value}
-                                                </Tag>
-                                            ),
-                                        )}
-                                    </div>
-                                </div>
+                                {projectEnvVars.length > 0 && (
+                                    <Content className="flex">
+                                        <p className="text-sm mr-2">Project:</p>
+                                        <div className="flex gap-2">
+                                            {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                                envVar.masked ? (
+                                                    <MaskedTag key={id} id={id} level={true}>
+                                                        {envVar.name}
+                                                    </MaskedTag>
+                                                ) : (
+                                                    <Tag
+                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                        closable
+                                                        key={id}
+                                                        onClose={() => handleRemoveProjectEnvVar(id, true)}
+                                                    >
+                                                        {envVar.name}: {envVar.value}
+                                                    </Tag>
+                                                ),
+                                            )}
+                                        </div>
+                                    </Content>
+                                )}
+                                {spiderEnvVars.length > 0 && (
+                                    <Content className="flex">
+                                        <p className="text-sm mr-2">Spider:</p>
+                                        <div className="flex gap-2">
+                                            {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                                envVar.masked ? (
+                                                    <MaskedTag key={id} id={id} level={false}>
+                                                        {envVar.name}
+                                                    </MaskedTag>
+                                                ) : (
+                                                    <Tag
+                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                        closable
+                                                        key={id}
+                                                        onClose={() => handleRemoveProjectEnvVar(id, false)}
+                                                    >
+                                                        {envVar.name}: {envVar.value}
+                                                    </Tag>
+                                                ),
+                                            )}
+                                        </div>
+                                    </Content>
+                                )}
                                 <Space direction="horizontal">
                                     {cronjobData.envVars.map((envVar: EnvVarsData, id: number) =>
                                         envVar.masked ? (
@@ -868,7 +866,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                             </Space>
                         </Content>
                         <Space direction="vertical" className="my-2">
-                            <p className="text-base my-2">Tags</p>
+                            <p className="text-base">Tags</p>
                             <Space direction="horizontal">
                                 {cronjobData.tags.map((tag: TagsData, id) => (
                                     <Tag

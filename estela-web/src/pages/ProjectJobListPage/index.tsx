@@ -252,7 +252,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     };
 
     emptyText = (): ReactElement => (
-        <Content className="flex w-full h-96 flex-col items-center justify-center text-estela-black-medium">
+        <Content className="flex w-full h-80 flex-col items-center justify-center text-estela-black-medium">
             <FolderDotted className="w-20 h-20" />
             <p>No jobs yet.</p>
         </Content>
