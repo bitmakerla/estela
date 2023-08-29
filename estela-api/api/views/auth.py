@@ -102,22 +102,23 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             )
         user = user.get()
         if account_reset_token.check_token(user, token):
-            user.is_active = True
-            user.save()
-            mail_subject = "New User Registered."
-            message = render_to_string(
-                "alert_new_user.html",
-                {
-                    "user": user,
-                },
-            )
-            email = EmailMessage(
-                mail_subject,
-                message,
-                from_email=settings.VERIFICATION_EMAIL,
-                to=settings.EMAILS_TO_ALERT.split(","),
-            )
-            email.send()
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+                mail_subject = "New User Registered."
+                message = render_to_string(
+                    "alert_new_user.html",
+                    {
+                        "user": user,
+                    },
+                )
+                email = EmailMessage(
+                    mail_subject,
+                    message,
+                    from_email=settings.VERIFICATION_EMAIL,
+                    to=settings.EMAILS_TO_ALERT.split(","),
+                )
+                email.send()
             return redirect(
                 "".join([settings.CORS_ORIGIN_WHITELIST[0], "/activatedAccount"]),
                 {
@@ -125,6 +126,15 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
                 },
             )
         else:
+            if user.is_active:
+                return redirect(
+                    "".join(
+                        [settings.CORS_ORIGIN_WHITELIST[0],
+                         "/activatedAccount"]
+                    ),
+                    {"message": "Account already activated!"},
+                )
+
             self.retry_send_verification_email(user, request)
             return redirect(
                 settings.CORS_ORIGIN_WHITELIST[0],
