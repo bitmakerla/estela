@@ -151,6 +151,14 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
                 instance.users.remove(affected_user)
                 description = f"removed user {user_email}."
             elif action == "update":
+                if permission == Permission.OWNER_PERMISSION:
+                    old_owner = instance.users.filter(
+                        permission__permission=Permission.OWNER_PERMISSION
+                    ).get()
+                    instance.users.remove(old_owner)
+                    instance.users.add(
+                        old_owner, through_defaults={"permission": Permission.ADMIN_PERMISSION}
+                    )
                 instance.users.remove(affected_user)
                 instance.users.add(
                     affected_user, through_defaults={"permission": permission}

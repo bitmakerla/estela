@@ -73,7 +73,8 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "password"]
+        fields = ["username", "email", "password", "is_superuser"]
+        read_only_fields = ["is_superuser"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
