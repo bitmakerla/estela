@@ -1,4 +1,4 @@
-import React, { Component, ReactElement } from "react";
+import React, { Component } from "react";
 import moment from "moment";
 import {
     Layout,
@@ -10,13 +10,11 @@ import {
     Tabs,
     Tag,
     Modal,
-    Table,
     Switch,
     Button,
     InputNumber,
     DatePicker,
     TimePicker,
-    Pagination,
     Select,
     Radio,
     Checkbox,
@@ -33,8 +31,6 @@ import { ApiService } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import Run from "../../assets/icons/play.svg";
 import Edit from "../../assets/icons/edit.svg";
-import Filter from "../../assets/icons/filter.svg";
-import Setting from "../../assets/icons/setting.svg";
 import Pause from "../../assets/icons/pause.svg";
 import {
     ApiProjectsSpidersCronjobsUpdateRequest,
@@ -48,20 +44,17 @@ import {
     SpiderCronJobDataStatusEnum,
     SpiderCronJobUpdate,
     SpiderCronJobUpdateDataStatusEnum,
+    SpiderJobTag,
+    SpiderJobArg,
 } from "../../services/api";
-import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
+import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
+
+import { JobsList } from "../../components/JobsList";
 
 const { Option } = Select;
 const { Content } = Layout;
 const { Text } = Typography;
-
-const waiting = 0;
-const queued = 1;
-const running = 2;
-const completed = 3;
-const stopped = 4;
-const withError = 5;
 
 interface ArgsData {
     name: string;
@@ -77,15 +70,19 @@ interface SpiderData {
     name: string;
 }
 
-interface SpiderJobData {
-    id: number | undefined;
+interface BaseInfo {
+    jid: number | undefined;
     spider: SpiderData;
+    cid?: number | null | undefined;
+}
+
+interface SpiderJobData {
+    info: BaseInfo;
     key: number | undefined;
     date: string;
     status: string | undefined;
-    cronjob: number | null | undefined;
-    tags: TagsData[] | undefined;
-    args: ArgsData[] | undefined;
+    tags: SpiderJobTag[] | undefined;
+    args: SpiderJobArg[] | undefined;
 }
 
 interface OptionDataRepeat {
@@ -101,13 +98,13 @@ interface OptionDataPersistance {
 }
 
 interface CronJobDetailPageState {
+    spiderName: string;
     loaded: boolean;
     name: string | undefined;
     args: ArgsData[];
     envVars: SpiderJobEnvVar[];
     tags: TagsData[];
     status: string | undefined;
-    jobs: SpiderJobData[];
     created: string;
     currentDay: number;
     modalVisible: boolean;
@@ -143,15 +140,15 @@ interface RouteParams {
 }
 
 export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams>, CronJobDetailPageState> {
-    PAGE_SIZE = 10;
+    PAGE_SIZE = 2;
     initial_schedule = "";
     state = {
+        spiderName: "",
         loaded: false,
         name: "",
         args: [],
         envVars: [],
         tags: [],
-        jobs: [],
         currentDay: 1,
         date: moment(),
         expression: "",
@@ -223,65 +220,6 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         { label: "S", key: 6, value: 6 },
     ];
 
-    columns = [
-        {
-            title: "SPIDER",
-            dataIndex: "spider",
-            key: "spider",
-            render: (spider: SpiderData): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`} className="text-estela-blue-medium">
-                    {spider.name}
-                </Link>
-            ),
-        },
-        {
-            title: "JOB",
-            dataIndex: "id",
-            key: "id",
-            render: (jobID: number): ReactElement => (
-                <Link
-                    to={`/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${jobID}`}
-                    className="text-estela-blue-medium"
-                >
-                    Job-{jobID}
-                </Link>
-            ),
-        },
-        {
-            title: "LAUNCH DATE",
-            dataIndex: "date",
-            key: "date",
-        },
-        {
-            title: "ARGUMENTS",
-            dataIndex: "args",
-            key: "args",
-            render: (args: ArgsData[]): ReactElement => (
-                <Content>
-                    {args.map((arg: ArgsData, id: number) => (
-                        <Tag key={id} className="text-xs text-estela border-estela rounded bg-button-hover">
-                            {arg.name}: {arg.value}
-                        </Tag>
-                    ))}
-                </Content>
-            ),
-        },
-        {
-            title: "TAGS",
-            dataIndex: "tags",
-            key: "tags",
-            render: (tags: TagsData[]): ReactElement => (
-                <Content>
-                    {tags.map((tag: TagsData, id) => (
-                        <Tag key={id} className="text-estela border-estela rounded bg-button-hover">
-                            {tag.name}
-                        </Tag>
-                    ))}
-                </Content>
-            ),
-        },
-    ];
-
     async componentDidMount(): Promise<void> {
         const requestParams: ApiProjectsSpidersCronjobsReadRequest = {
             pid: this.projectId,
@@ -296,29 +234,14 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 this.initial_schedule = response.schedule || "";
 
                 const data = await this.getJobs(1);
-                const waitingJobs = data.data.filter((job: SpiderJobData) => job.status === "WAITING");
-                const queueJobs = data.data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
-                const runningJobs = data.data.filter((job: SpiderJobData) => job.status === "RUNNING");
-                const completedJobs = data.data.filter((job: SpiderJobData) => job.status === "COMPLETED");
-                const stoppedJobs = data.data.filter((job: SpiderJobData) => job.status === "STOPPED");
-                const errorJobs = data.data.filter((job: SpiderJobData) => job.status === "ERROR");
-
-                const tableStatus = [
-                    waitingJobs.length === 0 ? false : true,
-                    queueJobs.length === 0 ? false : true,
-                    runningJobs.length === 0 ? false : true,
-                    completedJobs.length === 0 ? false : true,
-                    stoppedJobs.length === 0 ? false : true,
-                    errorJobs.length === 0 ? false : true,
-                ];
+                this.updateJobs(data, 1);
 
                 const weekDays = this.state.weekDays;
                 weekDays[moment().day() % 7] = true;
 
-                const jobs: SpiderJobData[] = data.data;
                 this.setState({
                     name: response.name,
-                    spiderName: response.spider.name,
+                    spiderName: (response.spider as unknown as SpiderData).name,
                     args: [...args],
                     envVars: [...envVars],
                     tags: [...tags],
@@ -326,19 +249,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     schedule: response.schedule,
                     created: convertDateToString(response.created),
                     unique_collection: response.uniqueCollection,
-                    jobs: [...jobs],
                     count: data.count,
                     current: data.current,
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                     loaded: true,
-                    errorJobs: [...errorJobs],
-                    completedJobs: [...completedJobs],
-                    stoppedJobs: [...stoppedJobs],
-                    runningJobs: [...runningJobs],
-                    waitingJobs: [...waitingJobs],
-                    queueJobs: [...queueJobs],
-                    tableStatus: [...tableStatus],
                     currentDay: moment().day(),
                     weekDays: weekDays,
                 });
@@ -416,21 +331,21 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         const response = await this.apiService.apiProjectsSpidersJobsList(requestParams);
         const data = response.results.map((job: SpiderJob, iterator: number) => ({
             key: iterator,
-            id: job.jid,
-            spider: job.spider,
+            info: {
+                jid: job.jid,
+                spider: job.spider as unknown as SpiderData,
+                cid: job.cronjob,
+            },
             args: job.args,
             date: convertDateToString(job.created),
             status: job.jobStatus,
             tags: job.tags,
-            cronjob: job.cronjob,
         }));
         return { data: data, count: response.count, current: page };
     };
 
-    onPageChange = async (page: number): Promise<void> => {
-        const data = await this.getJobs(page);
+    updateJobs = (data: { data: SpiderJobData[]; count: number; current: number }, page: number) => {
         const jobs: SpiderJobData[] = data.data;
-
         const waitingJobs = jobs.filter((job: SpiderJobData) => job.status === "WAITING");
         const queueJobs = jobs.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
         const runningJobs = jobs.filter((job: SpiderJobData) => job.status === "RUNNING");
@@ -447,17 +362,21 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             errorJobs.length === 0 ? false : true,
         ];
         this.setState({
-            jobs: [...jobs],
+            tableStatus: [...tableStatus],
             errorJobs: [...errorJobs],
             completedJobs: [...completedJobs],
             stoppedJobs: [...stoppedJobs],
             runningJobs: [...runningJobs],
             waitingJobs: [...waitingJobs],
             queueJobs: [...queueJobs],
-            tableStatus: [...tableStatus],
             count: data.count,
-            current: data.current,
+            current: page,
         });
+    };
+
+    onPageChange = async (page: number): Promise<void> => {
+        const data = await this.getJobs(page);
+        this.updateJobs(data, page);
     };
 
     onChangeDataPersistence = ({ target: { value } }: RadioChangeEvent): void => {
@@ -490,8 +409,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             async (response: SpiderCronJob) => {
                 response;
                 const data = await this.getJobs(1);
-                const jobs: SpiderJobData[] = data.data;
-                this.setState({ jobs: [...jobs] });
+                this.updateJobs(data, 1);
             },
             (error: unknown) => {
                 error;
@@ -975,416 +893,21 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             See all
                         </Button>
                     </Row>
-                    <Content className="grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
-                        <Col className="float-left col-span-4">
-                            {tableStatus[waiting] && (
-                                <Row className="my-2 rounded-lg bg-white">
-                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
-                                        <Col className="float-left py-1">
-                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
-                                                Waiting
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {waitingJobs.length}
-                                            </Tag>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Filter className="h-6 w-6 mr-2" />}
-                                                size="large"
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Filter
-                                            </Button>
-                                            <Button
-                                                icon={<Setting className="h-6 w-6" />}
-                                                size="large"
-                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                            ></Button>
-                                        </Col>
-                                    </Content>
-                                    <Content className="mx-4 my-1">
-                                        <Table
-                                            scroll={{}}
-                                            size="small"
-                                            rowSelection={{
-                                                type: "checkbox",
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={waitingJobs}
-                                            pagination={false}
-                                        />
-                                    </Content>
-                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
-                                    <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button
-                                            disabled
-                                            className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
-                                        >
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            disabled
-                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
-                                        >
-                                            Edit
-                                        </Button>
-                                    </Space>
-                                </Row>
-                            )}
-                            {tableStatus[queued] && (
-                                <Row className="my-2 rounded-lg bg-white">
-                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
-                                        <Col className="float-left py-1">
-                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
-                                                In queue
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {queueJobs.length}
-                                            </Tag>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Filter className="h-6 w-6 mr-2" />}
-                                                size="large"
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Filter
-                                            </Button>
-                                            <Button
-                                                icon={<Setting className="h-6 w-6" />}
-                                                size="large"
-                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                            ></Button>
-                                        </Col>
-                                    </Content>
-                                    <Content className="mx-4 my-1">
-                                        <Table
-                                            scroll={{}}
-                                            size="small"
-                                            rowSelection={{
-                                                type: "checkbox",
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={queueJobs}
-                                            pagination={false}
-                                        />
-                                    </Content>
-                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
-                                    <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button
-                                            disabled
-                                            className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
-                                        >
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            disabled
-                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
-                                        >
-                                            Edit
-                                        </Button>
-                                    </Space>
-                                </Row>
-                            )}
-                            {tableStatus[running] && (
-                                <Row className="my-2 rounded-lg bg-white">
-                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
-                                        <Col className="float-left py-1">
-                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
-                                                Running
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {runningJobs.length}
-                                            </Tag>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Filter className="h-6 w-6 mr-2" />}
-                                                size="large"
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Filter
-                                            </Button>
-                                            <Button
-                                                icon={<Setting className="h-6 w-6" />}
-                                                size="large"
-                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                            ></Button>
-                                        </Col>
-                                    </Content>
-                                    <Content className="mx-4 my-1">
-                                        <Table
-                                            size="small"
-                                            rowSelection={{
-                                                type: "checkbox",
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={runningJobs}
-                                            pagination={false}
-                                        />
-                                    </Content>
-                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
-                                    <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button
-                                            disabled
-                                            className="bg-estela-red-low border-estela-red-low text-estela-red-full hover:bg-estela-red-low hover:text-estela-red-full hover:border-estela-red-full rounded-2xl"
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </Space>
-                                </Row>
-                            )}
-                            {tableStatus[completed] && (
-                                <Row className="my-2 rounded-lg bg-white">
-                                    <Row className="flow-root lg:m-4 mx-4 my-2 w-full">
-                                        <Col className="float-left py-1">
-                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
-                                                Completed
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {completedJobs.length}
-                                            </Tag>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Filter className="h-6 w-6 mr-2" />}
-                                                size="large"
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Filter
-                                            </Button>
-                                            <Button
-                                                icon={<Setting className="h-6 w-6" />}
-                                                size="large"
-                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                            ></Button>
-                                        </Col>
-                                    </Row>
-                                    <Content className="mx-4 my-1">
-                                        <Table
-                                            size="small"
-                                            rowSelection={{
-                                                type: "checkbox",
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={completedJobs}
-                                            pagination={false}
-                                        />
-                                    </Content>
-                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
-                                    <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button
-                                            disabled
-                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
-                                        >
-                                            Run again
-                                        </Button>
-                                    </Space>
-                                </Row>
-                            )}
-                            {tableStatus[stopped] && (
-                                <Row className="my-2 rounded-lg bg-white">
-                                    <Row className="flow-root lg:m-4 mx-4 my-2 w-full">
-                                        <Col className="float-left py-1">
-                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
-                                                Stopped
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {stoppedJobs.length}
-                                            </Tag>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Filter className="h-6 w-6 mr-2" />}
-                                                size="large"
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Filter
-                                            </Button>
-                                            <Button
-                                                icon={<Setting className="h-6 w-6" />}
-                                                size="large"
-                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                            ></Button>
-                                        </Col>
-                                    </Row>
-                                    <Content className="mx-4 my-1">
-                                        <Table
-                                            size="small"
-                                            rowSelection={{
-                                                type: "checkbox",
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={stoppedJobs}
-                                            pagination={false}
-                                        />
-                                    </Content>
-                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
-                                    <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button
-                                            disabled
-                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
-                                        >
-                                            Run again
-                                        </Button>
-                                    </Space>
-                                </Row>
-                            )}
-                            {tableStatus[withError] && (
-                                <Row className="my-2 rounded-lg bg-white">
-                                    <Content className="flow-root lg:m-4 mx-4 my-2 w-full">
-                                        <Col className="float-left py-1">
-                                            <Text className="mr-2 text-estela-black-medium font-medium text-lg">
-                                                Error
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {errorJobs.length}
-                                            </Tag>
-                                        </Col>
-                                        <Col className="flex float-right">
-                                            <Button
-                                                disabled={true}
-                                                icon={<Filter className="h-6 w-6 mr-2" />}
-                                                size="large"
-                                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                                            >
-                                                Filter
-                                            </Button>
-                                            <Button
-                                                icon={<Setting className="h-6 w-6" />}
-                                                size="large"
-                                                className="flex items-center justify-center stroke-estela-black-medium border-none hover:stroke-estela bg-white"
-                                            ></Button>
-                                        </Col>
-                                    </Content>
-                                    <Content className="mx-4 my-1">
-                                        <Table
-                                            size="small"
-                                            rowSelection={{
-                                                type: "checkbox",
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={errorJobs}
-                                            pagination={false}
-                                        />
-                                    </Content>
-                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
-                                    <Space direction="horizontal" className="my-2 mx-4">
-                                        <Button
-                                            disabled
-                                            className="bg-estela-blue-low border-estela-blue-low text-estela-blue-full hover:bg-estela-blue-low hover:text-estela-blue-full hover:border-estela-blue-full rounded-2xl"
-                                        >
-                                            Run again
-                                        </Button>
-                                    </Space>
-                                </Row>
-                            )}
-                            <Row>
-                                <Pagination
-                                    className="pagination"
-                                    defaultCurrent={1}
-                                    total={count}
-                                    current={current}
-                                    pageSize={this.PAGE_SIZE}
-                                    onChange={this.onPageChange}
-                                    showSizeChanger={false}
-                                    itemRender={PaginationItem}
-                                />
-                            </Row>
-                        </Col>
-                        <Col className="float-right my-2 col-span-1 rounded-lg w-48 bg-white">
-                            <Content className="my-2 mx-3">
-                                <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
-                                <Content className="my-2">
-                                    <Checkbox
-                                        checked={waitingJobs.length == 0 ? tableStatus[waiting] : true}
-                                        onChange={() => this.onChangeStatus(waiting, waitingJobs.length)}
-                                    >
-                                        <Space direction="horizontal">
-                                            <Text className="text-estela-black-medium font-medium text-sm">
-                                                Waiting
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {waitingJobs.length}
-                                            </Tag>
-                                        </Space>
-                                    </Checkbox>
-                                    <br />
-                                    <Checkbox
-                                        checked={queueJobs.length == 0 ? tableStatus[queued] : true}
-                                        onChange={() => this.onChangeStatus(queued, queueJobs.length)}
-                                    >
-                                        <Space direction="horizontal">
-                                            <Text className="text-estela-black-medium font-medium text-sm">Queue</Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {queueJobs.length}
-                                            </Tag>
-                                        </Space>
-                                    </Checkbox>
-                                    <br />
-                                    <Checkbox
-                                        checked={runningJobs.length == 0 ? tableStatus[running] : true}
-                                        onChange={() => this.onChangeStatus(running, runningJobs.length)}
-                                    >
-                                        <Space direction="horizontal">
-                                            <Text className="text-estela-black-medium font-medium text-sm">
-                                                Running
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {runningJobs.length}
-                                            </Tag>
-                                        </Space>
-                                    </Checkbox>
-                                    <br />
-                                    <Checkbox
-                                        checked={completedJobs.length == 0 ? tableStatus[completed] : true}
-                                        onChange={() => this.onChangeStatus(completed, completedJobs.length)}
-                                    >
-                                        <Space direction="horizontal">
-                                            <Text className="text-estela-black-medium font-medium text-sm">
-                                                Completed
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {completedJobs.length}
-                                            </Tag>
-                                        </Space>
-                                    </Checkbox>
-                                    <br />
-                                    <Checkbox
-                                        checked={stoppedJobs.length == 0 ? tableStatus[stopped] : true}
-                                        onChange={() => this.onChangeStatus(stopped, stoppedJobs.length)}
-                                    >
-                                        <Space direction="horizontal">
-                                            <Text className="text-estela-black-medium font-medium text-sm">
-                                                Stopped
-                                            </Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {stoppedJobs.length}
-                                            </Tag>
-                                        </Space>
-                                    </Checkbox>
-                                    <br />
-                                    <Checkbox
-                                        checked={errorJobs.length == 0 ? tableStatus[withError] : true}
-                                        onChange={() => this.onChangeStatus(withError, errorJobs.length)}
-                                    >
-                                        <Space direction="horizontal">
-                                            <Text className="text-estela-black-medium font-medium text-sm">Error</Text>
-                                            <Tag className="rounded-2xl bg-estela-white-medium text-estela-black-low border-estela-white-medium">
-                                                {errorJobs.length}
-                                            </Tag>
-                                        </Space>
-                                    </Checkbox>
-                                </Content>
-                            </Content>
-                        </Col>
-                    </Content>
+                    <JobsList
+                        projectId={this.projectId}
+                        tableStatus={tableStatus}
+                        waitingJobs={waitingJobs}
+                        queueJobs={queueJobs}
+                        runningJobs={runningJobs}
+                        completedJobs={completedJobs}
+                        stoppedJobs={stoppedJobs}
+                        errorJobs={errorJobs}
+                        count={count}
+                        current={current}
+                        pageSize={this.PAGE_SIZE}
+                        onPageChange={this.onPageChange}
+                        onChangeStatus={this.onChangeStatus}
+                    />
                 </Content>
             </>
         );

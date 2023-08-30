@@ -1,6 +1,6 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Pagination, Row, Space, Table, Col, Button, Switch, Tag, message, ConfigProvider } from "antd";
-import { Link, RouteComponentProps } from "react-router-dom";
+import { Layout, Row, Col, message, Switch, ConfigProvider, Table, Space, Button, Pagination, Tag } from "antd";
+import { RouteComponentProps, Link } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
@@ -10,21 +10,18 @@ import {
     ApiProjectsSpidersCronjobsRunOnceRequest,
     SpiderCronJobUpdateStatusEnum,
     ApiProjectsCronjobsRequest,
-    SpiderCronJobStatusEnum,
     ApiProjectsReadRequest,
     ProjectCronJob,
     SpiderCronJob,
+    SpiderJobArg,
+    SpiderJobTag,
     Project,
+    SpiderCronJobStatusEnum,
 } from "../../services/api";
-import {
-    resourceNotAllowedNotification,
-    incorrectDataNotification,
-    Spin,
-    PaginationItem,
-    RouteParams,
-} from "../../shared";
+import { resourceNotAllowedNotification, incorrectDataNotification, Spin, RouteParams } from "../../shared";
 import CronjobCreateModal from "../CronjobCreateModal";
 import { convertDateToString } from "../../utils";
+import { PaginationItem } from "../../components";
 
 const { Content } = Layout;
 
@@ -33,30 +30,17 @@ interface SpiderData {
     name: string;
 }
 
-interface BaseInfo {
-    spider: SpiderData;
-    cid: number | undefined;
-}
-
-interface TagsData {
-    name: string;
-}
-
-interface Args {
-    name: string;
-    value: string;
-}
-
 interface SpiderCronJobData {
-    id: BaseInfo;
+    cjid: number | undefined;
+    spider: SpiderData;
     key: number | undefined;
     date: string;
     status: string | undefined;
     schedule: string | undefined;
     dataExpiryDays: number | undefined | null;
     dataStatus: string | undefined;
-    tags: TagsData[] | undefined;
-    args: Args[] | undefined;
+    tags: SpiderJobTag[] | undefined;
+    args: SpiderJobArg[] | undefined;
 }
 
 interface ProjectCronJobListPageState {
@@ -125,88 +109,6 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         { label: "S", key: 6, value: 6 },
     ];
 
-    columns = [
-        {
-            title: "ENABLED",
-            key: "status",
-            dataIndex: "status",
-            render: (status: string, cronjob: SpiderCronJobData) => {
-                return (
-                    <Switch
-                        size="small"
-                        className="bg-estela-white-low"
-                        checked={status === SpiderCronJobStatusEnum.Active}
-                        onChange={() => this.updateStatus(cronjob)}
-                    />
-                );
-            },
-        },
-        {
-            title: "SCHEDULED JOB",
-            dataIndex: "info",
-            key: "info",
-            render: (info: BaseInfo): ReactElement => (
-                <Link
-                    to={`/projects/${this.projectId}/spiders/${info.spider.sid}/cronjobs/${info.cid}`}
-                    className="text-estela-blue-medium"
-                >
-                    Sche-Job-{info.cid}
-                </Link>
-            ),
-        },
-        {
-            title: "SPIDER",
-            dataIndex: "info",
-            key: "info",
-            render: (info: BaseInfo): ReactElement => (
-                <Link to={`/projects/${this.projectId}/spiders/${info.spider.sid}`} className="text-estela-blue-medium">
-                    {info.spider.name}
-                </Link>
-            ),
-        },
-        {
-            title: "ARGUMENTS",
-            dataIndex: "args",
-            key: "args",
-            render: (args: Args[]): ReactElement => (
-                <Content>
-                    {args.map((arg: Args, id: number) => (
-                        <Tag key={id} className="text-xs text-estela border-estela rounded bg-button-hover">
-                            {arg.name}: {arg.value}
-                        </Tag>
-                    ))}
-                </Content>
-            ),
-        },
-        {
-            title: "EXPRESSION",
-            key: "schedule",
-            dataIndex: "schedule",
-        },
-        {
-            title: "TAGS",
-            key: "tags",
-            dataIndex: "tags",
-            render: (tags: TagsData[]): ReactElement => (
-                <Content>
-                    {tags.map((tag: TagsData, id) => (
-                        <Tag key={id} className="text-estela border-estela rounded bg-button-hover">
-                            {tag.name}
-                        </Tag>
-                    ))}
-                </Content>
-            ),
-        },
-        {
-            title: "PERSISTENCE",
-            key: "dataExpiryDays",
-            dataIndex: "dataExpiryDays",
-            render: (dataExpiryDays: number, cronjob: SpiderCronJobData): ReactElement => (
-                <p>{cronjob.dataStatus == "PENDING" ? `${dataExpiryDays} days` : "Forever"}</p>
-            ),
-        },
-    ];
-
     async componentDidMount(): Promise<void> {
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
@@ -230,8 +132,9 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
 
         await this.apiService.apiProjectsCronjobs(requestParams).then((response: ProjectCronJob) => {
             const data = response.results.map((cronjob: SpiderCronJob, iterator: number) => ({
+                cjid: cronjob.cjid,
                 key: iterator,
-                info: { spider: cronjob.spider, cid: cronjob.cjid },
+                spider: cronjob.spider as unknown as SpiderData,
                 date: convertDateToString(cronjob.created),
                 status: cronjob.status,
                 schedule: cronjob.schedule,
@@ -251,8 +154,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 ? SpiderCronJobUpdateStatusEnum.Active
                 : SpiderCronJobUpdateStatusEnum.Disabled;
         const request: ApiProjectsSpidersCronjobsUpdateRequest = {
-            cjid: Number(cronjob.info.cid),
-            sid: String(cronjob.info.spider.sid),
+            cjid: Number(cronjob.cjid),
+            sid: String(cronjob.spider.sid),
             pid: this.projectId,
             data: {
                 status: _status,
@@ -293,14 +196,14 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     };
 
     editCronjob = (cronjob: SpiderCronJobData): void => {
-        history.push(`/projects/${this.projectId}/spiders/${cronjob.info.spider.sid}/cronjobs/${cronjob.info.cid}`);
+        history.push(`/projects/${this.projectId}/spiders/${cronjob.spider.sid}/cronjobs/${cronjob.cjid}`);
     };
 
     runOnce = (cronjob: SpiderCronJobData): void => {
         const requestParams: ApiProjectsSpidersCronjobsRunOnceRequest = {
             pid: this.projectId,
-            sid: String(cronjob.info.spider.sid),
-            cjid: Number(cronjob.info.cid),
+            sid: String(cronjob.spider.sid),
+            cjid: Number(cronjob.cjid),
         };
         this.apiService.apiProjectsSpidersCronjobsRunOnce(requestParams).then(
             async (response: SpiderCronJob) => {
@@ -315,8 +218,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
     deleteCronjob = (cronjob: SpiderCronJobData): void => {
         const requestParams: ApiProjectsSpidersCronjobsDeleteRequest = {
             pid: this.projectId,
-            sid: String(cronjob.info.spider.sid),
-            cjid: Number(cronjob.info.cid),
+            sid: String(cronjob.spider.sid),
+            cjid: Number(cronjob.cjid),
         };
         this.apiService.apiProjectsSpidersCronjobsDelete(requestParams).then(
             () => {
@@ -333,6 +236,88 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             this.setState({ selectedRows: selectedRows });
         },
     };
+
+    columns = [
+        {
+            title: "ENABLED",
+            key: "status",
+            dataIndex: "status",
+            render: (status: string, cronjob: SpiderCronJobData) => {
+                return (
+                    <Switch
+                        size="small"
+                        className="bg-estela-white-low"
+                        checked={status === SpiderCronJobStatusEnum.Active}
+                        onChange={() => this.updateStatus(cronjob)}
+                    />
+                );
+            },
+        },
+        {
+            title: "SCHEDULED JOB",
+            dataIndex: "cjid",
+            key: "cjid",
+            render: (cjid: number, record: SpiderCronJobData): ReactElement => (
+                <Link
+                    to={`/projects/${this.projectId}/spiders/${record.spider.sid}/cronjobs/${cjid}`}
+                    className="text-estela-blue-medium"
+                >
+                    Sche-Job-{cjid}
+                </Link>
+            ),
+        },
+        {
+            title: "SPIDER",
+            dataIndex: "spider",
+            key: "spider",
+            render: (spider: SpiderData): ReactElement => (
+                <Link to={`/projects/${this.projectId}/spiders/${spider.sid}`} className="text-estela-blue-medium">
+                    {spider.name}
+                </Link>
+            ),
+        },
+        {
+            title: "ARGUMENTS",
+            dataIndex: "args",
+            key: "args",
+            render: (args: SpiderJobArg[]): ReactElement => (
+                <Content>
+                    {args.map((arg: SpiderJobArg, id: number) => (
+                        <Tag key={id} className="text-xs text-estela border-estela rounded bg-button-hover">
+                            {arg.name}: {arg.value}
+                        </Tag>
+                    ))}
+                </Content>
+            ),
+        },
+        {
+            title: "EXPRESSION",
+            key: "schedule",
+            dataIndex: "schedule",
+        },
+        {
+            title: "TAGS",
+            key: "tags",
+            dataIndex: "tags",
+            render: (tags: SpiderJobTag[]): ReactElement => (
+                <Content>
+                    {tags.map((tag: SpiderJobTag, id) => (
+                        <Tag key={id} className="text-estela border-estela rounded bg-button-hover">
+                            {tag.name}
+                        </Tag>
+                    ))}
+                </Content>
+            ),
+        },
+        {
+            title: "PERSISTENCE",
+            key: "dataExpiryDays",
+            dataIndex: "dataExpiryDays",
+            render: (dataExpiryDays: number, cronjob: SpiderCronJobData): ReactElement => (
+                <p>{cronjob.dataStatus == "PENDING" ? `${dataExpiryDays} days` : "Forever"}</p>
+            ),
+        },
+    ];
 
     render(): JSX.Element {
         const { loadedCronjobs, cronjobs, selectedRows, count, current } = this.state;
@@ -354,22 +339,24 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                         />
                                     </Col>
                                 </Row>
-                                <Content className="bg-white rounded-lg p-4">
+                                <Content className="bg-white rounded-lg">
                                     <ConfigProvider renderEmpty={() => <p>No scheduled jobs yet.</p>}>
-                                        <Table
-                                            rowSelection={{
-                                                type: "checkbox",
-                                                ...this.rowSelection,
-                                            }}
-                                            columns={this.columns}
-                                            dataSource={cronjobs}
-                                            pagination={false}
-                                            size="small"
-                                        />
+                                        <Content className="mx-4 my-1">
+                                            <Table
+                                                className="py-4 table-cronjoblist"
+                                                rowSelection={{
+                                                    type: "checkbox",
+                                                    ...this.rowSelection,
+                                                }}
+                                                columns={this.columns}
+                                                dataSource={cronjobs}
+                                                pagination={false}
+                                                size="small"
+                                            />
+                                        </Content>
                                     </ConfigProvider>
-                                </Content>
-                                <Row className="my-2">
-                                    <Space direction="horizontal">
+                                    <Row className="w-full h-6 bg-estela-white-low"></Row>
+                                    <Space direction="horizontal" className="my-2 mx-4">
                                         <Button
                                             disabled={selectedRows.length === 0}
                                             onClick={this.deleteRows}
@@ -392,7 +379,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                             Run once
                                         </Button>
                                     </Space>
-                                </Row>
+                                </Content>
                                 <Pagination
                                     className="pagination"
                                     defaultCurrent={1}
