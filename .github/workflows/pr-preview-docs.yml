@@ -71,7 +71,7 @@ jobs:
           fi
 
       - name: Deploy to S3 Bucket
-        run: aws s3 sync ./docs/_site/ s3://$BUCKET_NAME/docs/ --delete
+        run: aws s3 sync ./docs/_site/ s3://$BUCKET_NAME/ --delete
 
       - name: Comment Website Direction
         uses: marocchino/sticky-pull-request-comment@v2
