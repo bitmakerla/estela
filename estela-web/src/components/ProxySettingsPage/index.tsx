@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useEffect, useState } from "react";
 import { Row, Space, Button, Tag, Popover, Modal } from "antd";
 
@@ -10,11 +11,20 @@ import {
     SpiderUpdate,
     SpiderJobEnvVar,
     ApiProjectsSpidersUpdateRequest,
+    ProxyProviderUpdate,
+    ApiProxyProviderUpdateRequest,
+    ProxyProviderResponse,
 } from "../../services/api";
 import { ProxyForm } from "./ProxyForm";
 import { ProjectEnvVar } from "./types";
 import { handleInvalidDataError } from "../../utils";
 import { Content } from "antd/lib/layout/layout";
+
+interface bmcProxyProps {
+    name: string;
+    description: string;
+    id: string;
+}
 
 export const ProxySettings: React.FC<ProjectEnvVar> = ({
     projectId,
@@ -26,6 +36,8 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
     const [envVars, setEnvVars] = useState<SpiderJobEnvVar[]>(envVarsData);
     const [shouldDeleteEnvVars, setShouldDeleteEnvVars] = useState(false);
     const [openProxyUserModal, setOpenProxyUserModal] = useState(false);
+    const [openBMCModal, setOpenBMCModal] = useState(false);
+    const [bmcProxies, setBMCProxies] = useState<bmcProxyProps[]>([]);
 
     const apiService = ApiService();
 
@@ -232,6 +244,30 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
         setShouldDeleteEnvVars(true);
     };
 
+    const handleBMCProxies = (): void => {
+        const request = {};
+        const newBMCProxies: bmcProxyProps[] = [];
+        apiService.apiProxyProviderList(request).then((response: any) => {
+            console.log({ response });
+            response.results.forEach((item: any) => {
+                newBMCProxies.push({
+                    name: item.name,
+                    description: item.description,
+                    id: item.proxyid,
+                });
+            });
+            setBMCProxies(newBMCProxies);
+        });
+        console.log({ bmcProxies });
+    };
+
+    useEffect(() => {
+        if (bmcProxies.length > 0) {
+            console.log({ bmcProxies });
+            setOpenBMCModal(true);
+        }
+    }, [bmcProxies]);
+
     useEffect(() => {
         if (shouldDeleteEnvVars) {
             if (level == "project") {
@@ -242,6 +278,37 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
             setShouldDeleteEnvVars(false);
         }
     }, [envVars, shouldDeleteEnvVars]);
+
+    const useBMCProxy = (proxyID: number): void => {
+        console.log(projectId);
+        console.log(proxyID);
+        const projectOrSpiderId = level ===  "project" ? projectId : Number(spiderId);
+        const provider_update: ProxyProviderUpdate = {
+            projectOrSpiderId: projectOrSpiderId,
+            level: level
+        }
+        const request: ApiProxyProviderUpdateRequest = {
+            data: provider_update,
+            proxyid: proxyID,
+        }
+        apiService.apiProxyProviderUpdate(request).then((response: ProxyProviderResponse) => {
+            if (response.success != true){
+                console.log("Not valid")
+            } else {
+                let envVars = response.envVars || [];
+                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                    return {
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    };
+                });
+                setEnvVars(envVars);
+            }
+        })
+        
+        // apiService.apiProxyProviderUpdate(request)    
+    }
 
     return (
         <div>
@@ -281,6 +348,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                             <p className="text-xs text-estela-black-full">Configure your own proxy</p>
                                         </Button>
                                         <Button
+                                            onClick={() => handleBMCProxies()}
                                             size="large"
                                             className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
                                         >
@@ -293,7 +361,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                         className="w-1/2"
                                         title={<p className="text-center text-base">New proxy configuration</p>}
                                         onCancel={() => setOpenProxyUserModal(false)}
-                                        footer={null}
+                                        //footer={null}
                                     >
                                         <div className="bg-white my-4">
                                             <Content>
@@ -308,6 +376,48 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                                 ></ProxyForm>
                                             </Content>
                                         </div>
+                                    </Modal>
+                                    <Modal
+                                        open={openBMCModal}
+                                        className="w-1/2"
+                                        title={<p className="text-center text-base">Select pre-configured Proxy</p>}
+                                        onCancel={() => setOpenBMCModal(false)}
+                                        footer={null}
+                                    >
+                                        {bmcProxies.map((item: any) => {
+                                            console.log({item});
+                                            return (
+                                                <Button
+                                                    key={item.id}
+                                                    onClick={() => {
+                                                        useBMCProxy(item.id);
+                                                    }}
+                                                    size="large"
+                                                    className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy mb-4"
+                                                >
+                                                    <span className="text-center font-semibold">{item.name}</span>
+                                                    <p className="text-xs text-estela-black-full">{item.description}</p>
+                                                </Button>
+                                            );
+                                        })}
+                                        {/* <Button
+                                            onClick={() => {
+                                                setOpenProxyUserModal(true);
+                                            }}
+                                            size="large"
+                                            className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
+                                        >
+                                            <span className="text-center font-semibold">Manual configuration</span>
+                                            <p className="text-xs text-estela-black-full">Configure your own proxy</p>
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleBMCProxies()}
+                                            size="large"
+                                            className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
+                                        >
+                                            <span className="text-center font-semibold">BMC Proxy</span>
+                                            <p className="text-xs text-estela-black-full">Recommended</p>
+                                        </Button> */}
                                     </Modal>
                                 </div>
                             </div>

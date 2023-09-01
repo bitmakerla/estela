@@ -9,7 +9,7 @@ from config.job_manager import spiderdata_db_client
 from core.models import SpiderJobEnvVar
 
 
-def update_env_vars(instance, env_vars, level="project"):
+def update_env_vars(instance, env_vars, level="project", delete=True):
     env_vars_instance = instance.env_vars.all()
     for env_var in env_vars:
         if env_vars_instance.filter(**env_var).exists():
@@ -29,9 +29,10 @@ def update_env_vars(instance, env_vars, level="project"):
             elif level == "spider":
                 SpiderJobEnvVar.objects.create(spider=instance, **env_var)
 
-    for env_var in env_vars_instance:
-        if env_var.name not in [value["name"] for value in env_vars]:
-            env_var.delete()
+    if delete:
+        for env_var in env_vars_instance:
+            if env_var.name not in [value["name"] for value in env_vars]:
+                env_var.delete()
 
 
 def update_stats_from_redis(job, save_to_database=False):

@@ -359,6 +359,9 @@ class SpiderJobEnvVar(models.Model):
         primary_key=True,
         help_text="A unique integer value identifying this job env variable.",
     )
+    def __str__(self):
+        return f"EnvVar ID: {self.evid}, Name: {self.name}, Value: {self.value}, Masked: {self.masked}"
+    
     job = models.ForeignKey(
         SpiderJob,
         on_delete=models.CASCADE,
@@ -487,3 +490,42 @@ class Notification(models.Model):
     seen = models.BooleanField(
         default=False, help_text="Whether the notification was seen."
     )
+
+class ProxyProvider(models.Model):
+    proxyid = models.AutoField(primary_key=True, help_text="A unique integer value identifying this proxy.")
+    username = models.CharField(
+        max_length=255,
+        help_text="The username for the proxy"
+    )
+    password = models.CharField(
+        max_length=255,
+        help_text="The password for the proxy"
+    )
+    host = models.CharField(
+        max_length=255,
+        help_text="The host for the proxy"
+    )
+    port = models.CharField(
+        max_length=5,
+        help_text="The port for the proxy"
+    )
+    name = models.CharField(
+        max_length=255,
+        help_text="A name to identify the proxy"
+    )
+
+    description = models.CharField(
+        max_length=1000,
+        help_text="A description for the proxy"
+    )
+
+    # You can add a brief help text for the entire model here.
+    help_text = "A model to store proxy information for your application."
+
+    # Define the on_delete behavior for ForeignKey relationships.
+    # Since there are no ForeignKey fields in this model, we'll omit this.
+
+    # on_delete=models.CASCADE (example)
+
+    def __str__(self):
+        return self.name

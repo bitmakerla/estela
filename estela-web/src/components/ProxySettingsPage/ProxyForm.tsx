@@ -85,7 +85,7 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
             {
                 name: "CUSTOM_PROXIES_ENABLED",
                 value: "true",
-                masked: false,
+                masked: true,
             },
         ];
         const newEnvVars = mergeArrays(envVars, mergeArrays(proxyEnvVars, enableProxies));
@@ -125,7 +125,7 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
             {
                 name: "CUSTOM_PROXIES_ENABLED",
                 value: "true",
-                masked: false,
+                masked: true,
             },
         ];
         const newEnvVars = mergeArrays(envVars, mergeArrays(proxyEnvVars, enableProxies));
@@ -180,7 +180,7 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
         const proxyEnvVar = {
             name: e.target.name,
             value: e.target.value,
-            masked: false,
+            masked: e.target.name !== "ESTELA_PROXY_NAME" ? false : false,
         };
         const nameExists = proxyEnvVars.some((envVar) => envVar.name === proxyEnvVar.name);
 
@@ -190,7 +190,6 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
             : [...proxyEnvVars, proxyEnvVar];
 
         setProxyEnvVars(updatedProxyEnvVars);
-        //console.log({ proxyEnvVars });
     };
 
     return (

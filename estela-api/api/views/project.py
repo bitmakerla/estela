@@ -178,6 +178,8 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
 
         serializer.save()
         headers = self.get_success_headers(serializer.data)
+        print("Project serializer: ")
+        print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
     @swagger_auto_schema(

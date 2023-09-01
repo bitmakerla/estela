@@ -5,7 +5,7 @@ API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].me
 API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.spec.clusterIP}')
 LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 RESOURCES = db registry minio zookeeper kafka
-
+SERVICES ?= django-api celery-worker celery-beat redis build-project
 
 .PHONY: resources
 resources:
@@ -30,25 +30,16 @@ delete-resources:
 
 .PHONY: build-all-images
 build-all-images:
-	-. ./local/.env && cd $(API_DIR) && \
-	 docker build .. --file docker-conf/Dockerfile-django-api --tag $${LOCAL_REGISTRY}/estela-django-api:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $${LOCAL_REGISTRY}/estela-celery-worker:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $${LOCAL_REGISTRY}/estela-celery-beat:latest && \
-	 docker build . --file docker-conf/Dockerfile-redis --tag $${LOCAL_REGISTRY}/estela-redis:latest && \
-	 docker build .. --file docker-conf/Dockerfile-build-project --tag $${LOCAL_REGISTRY}/estela-build-project:latest
-	-. ./local/.env && cd $(QUEUING_DIR) && \
-	 docker build .. --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
-
+	-. ./local/.env && for service in $(SERVICES); do \
+		cd $(API_DIR) && docker build .. --file docker-conf/Dockerfile-$$service --tag $${LOCAL_REGISTRY}/estela-$$service:latest; \
+	done
+	-. ./local/.env && cd $(QUEUING_DIR) && docker build .. --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
 
 .PHONY: upload-all-images
 upload-all-images:
-	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-django-api:latest
-	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-celery-beat:latest
-	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-celery-worker:latest
-	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-redis:latest
-	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-build-project:latest
-	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-consumer:latest
-
+	-. ./local/.env && for image in $(SERVICES); do \
+		docker push $${LOCAL_REGISTRY}/estela-$$image:latest; \
+	done
 
 .PHONY: images
 images: build-all-images upload-all-images
