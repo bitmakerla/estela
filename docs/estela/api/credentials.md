@@ -21,6 +21,7 @@ define a new credentials as a class. Add your credentials in `credentials/config
 def Credentials(plataform):
     credentials = {
         "aws": AWSCredentials,
+        "gcp": GCPCredentials,
         "local": LocalCredentials,
         "your_credentials": YourCredentials,
     }

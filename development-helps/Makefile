@@ -7,6 +7,7 @@ INSTALLATION_DIR = ../installation
 REGISTRY_HOST = localhost:5001
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
+PLATFORM ?= linux/$(shell uname -m)
 
 .PHONY: start
 start:
@@ -21,15 +22,15 @@ stop:
 .PHONY: update-api-image
 update-api-image:
 	-cd $(API_DIR) && \
-	 docker build .. --file docker-conf/Dockerfile-django-api --tag  $(REGISTRY_HOST)/estela-django-api:latest
+	 docker build .. --file docker-conf/Dockerfile-django-api --tag  $(REGISTRY_HOST)/estela-django-api:latest  --platform $(PLATFORM)
 	-docker push $(REGISTRY_HOST)/estela-django-api:latest
 
 
 .PHONY: update-celery-image
 update-celery-image:
 	-cd $(API_DIR) && \
-	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $(REGISTRY_HOST)/estela-celery-beat:latest && \
-	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $(REGISTRY_HOST)/estela-celery-worker:latest
+	 docker build .. --file docker-conf/Dockerfile-celery-beat --tag $(REGISTRY_HOST)/estela-celery-beat:latest  --platform $(PLATFORM) && \
+	 docker build .. --file docker-conf/Dockerfile-celery-worker --tag $(REGISTRY_HOST)/estela-celery-worker:latest  --platform $(PLATFORM)
 	-docker push $(REGISTRY_HOST)/estela-celery-beat:latest
 	-docker push $(REGISTRY_HOST)/estela-celery-worker:latest
 
@@ -37,21 +38,21 @@ update-celery-image:
 .PHONY: update-redis-image
 update-redis-image:
 	-cd $(API_DIR) && \
-	 docker build . --file docker-conf/Dockerfile-redis --tag $(REGISTRY_HOST)/estela-redis:latest
+	 docker build . --file docker-conf/Dockerfile-redis --tag $(REGISTRY_HOST)/estela-redis:latest  --platform $(PLATFORM)
 	-docker push $(REGISTRY_HOST)/estela-redis:latest
 
 
 .PHONY: update-build-project-image
 update-build-project-image:
 	-cd $(API_DIR) && \
-	 docker build .. --file docker-conf/Dockerfile-build-project --tag $(REGISTRY_HOST)/estela-build-project:latest
+	 docker build .. --file docker-conf/Dockerfile-build-project --tag $(REGISTRY_HOST)/estela-build-project:latest  --platform $(PLATFORM)
 	-docker push $(REGISTRY_HOST)/estela-build-project:latest
 
 
 .PHONY: update-consumer-image
 update-consumer-image:
 	-cd $(QUEUING_DIR) && \
-	 docker build .. --file Dockerfile --tag $(REGISTRY_HOST)/estela-consumer:latest
+	 docker build .. --file Dockerfile --tag $(REGISTRY_HOST)/estela-consumer:latest  --platform $(PLATFORM)
 	-docker push $(REGISTRY_HOST)/estela-consumer:latest
 
 
