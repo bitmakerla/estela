@@ -28,7 +28,9 @@ class ActionHandlerMixin:
             user=user, project=project, description=description
         )
 
-        notifications = []
-        for _user in project.users.all():
-            notifications.append(Notification(user=_user, activity=activity))
+        users_to_notify = project.users.exclude(id=user.id)
+
+        notifications = [
+            Notification(user=_user, activity=activity) for _user in users_to_notify
+        ]
         Notification.objects.bulk_create(notifications)

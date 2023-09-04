@@ -121,7 +121,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 pid: project.pid,
                 role:
                     project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
-                    "Admin",
+                    "ADMIN",
                 key: id,
             };
         });
@@ -192,7 +192,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 framework: project.framework,
                 role:
                     project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
-                    "Admin",
+                    "ADMIN",
                 key: id,
             };
         });
