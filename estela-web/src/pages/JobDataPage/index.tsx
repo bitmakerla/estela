@@ -663,7 +663,6 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                 const safe_data: unknown[] = response.results ?? [];
                 data = safe_data as Dictionary[];
                 setLogs(data);
-                setLoaded(true);
                 setCurrent(1);
                 setCount(response.count);
             }
@@ -679,7 +678,6 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                 const safe_data: unknown[] = response.results ?? [];
                 data = safe_data as Dictionary[];
                 setLogs(data);
-                setLoaded(true);
                 setCurrent(page);
                 setCount(response.count);
             }
@@ -790,17 +788,6 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             </Col>
                         </Row>
                         {logs.map((log: Dictionary, index: number) => {
-                            let logContent = <Text className="text-estela-black-medium">{log.log ?? "No data"}</Text>;
-                            if ((log.log ?? "").length > 300) {
-                                logContent = (
-                                    <Paragraph
-                                        className="text-estela-black-medium"
-                                        ellipsis={{ rows: 2, expandable: true, symbol: "more" }}
-                                    >
-                                        {log.log}
-                                    </Paragraph>
-                                );
-                            }
                             const logDate = log.datetime
                                 ? new Date(parseFloat(log.datetime) * 1000).toDateString()
                                 : "no date";
@@ -823,7 +810,14 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                     <Col className="col-span-2">
                                         <Text className="text-estela-black-medium">INFO</Text>
                                     </Col>
-                                    <Col className="col-span-6">{logContent}</Col>
+                                    <Col className="col-span-6">
+                                        <Paragraph
+                                            className="text-estela-black-medium mt-2.5"
+                                            ellipsis={{ rows: 2, expandable: true, symbol: "more" }}
+                                        >
+                                            {log.log ?? "No data."}
+                                        </Paragraph>
+                                    </Col>
                                 </Row>
                             );
                         })}
