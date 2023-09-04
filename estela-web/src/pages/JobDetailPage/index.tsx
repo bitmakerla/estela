@@ -726,12 +726,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Spider</Text>
                             </Col>
-                            <Col>
-                                <Link
-                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
-                                    className="text-estela-blue-medium px-2"
-                                >
-                                    {spiderName}
+                            <Col className="col-span-2">
+                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>
+                                    <Text ellipsis={true} className="text-estela-blue-medium px-2">
+                                        {spiderName}
+                                    </Text>
                                 </Link>
                             </Col>
                         </Row>
@@ -775,8 +774,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Tags</Text>
                             </Col>
-                            <Col className="px-2">
-                                <Space direction="horizontal">
+                            <Col className="col-span-2 px-2">
+                                <Space direction="horizontal" className="flex flex-wrap">
                                     {tags.map((tag: TagsData, id) => (
                                         <Tag
                                             className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
@@ -795,8 +794,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Environment variables</Text>
                             </Col>
-                            <Col className="px-2">
-                                <Space direction="vertical">
+                            <Col className="col-span-2 px-2">
+                                <Space direction="vertical" className="flex flex-wrap">
                                     {envVars.map((envVar: SpiderJobEnvVar, id) =>
                                         envVar.masked ? (
                                             <AntdTooltip
@@ -827,8 +826,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Arguments</Text>
                             </Col>
-                            <Col className="px-2">
-                                <Space direction="horizontal">
+                            <Col className="col-span-2 px-2">
+                                <Space direction="horizontal" className="flex flex-wrap">
                                     {args.map((arg: ArgsData, id) => (
                                         <Tag
                                             className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
@@ -843,7 +842,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                        <Row className="grid grid-cols-3 py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Job Status</Text>
                             </Col>
@@ -897,7 +896,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Col>
                             )}
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Data Persistence</Text>
                             </Col>
