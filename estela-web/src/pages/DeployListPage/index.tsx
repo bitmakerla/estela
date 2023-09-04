@@ -222,7 +222,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                     <Text strong>Want to know more about estela?</Text> Access our
                                                     <a
                                                         target="_blank"
-                                                        href="https://estela.bitmaker.la/docs/"
+                                                        href="https://estela.bitmaker.la/"
                                                         rel="noreferrer"
                                                     >
                                                         <Text strong className="text-estela underline mx-1">

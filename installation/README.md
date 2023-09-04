@@ -11,4 +11,4 @@ Currently, estela is a kubernetes application, but it can be installed on differ
 architectures (soon).
 
 To install estela, refer to our official 
-[installation guide](https://estela.bitmaker.la/docs/estela/installation/main-guide.html).
+[installation guide](https://estela.bitmaker.la/estela/installation/main-guide.html).
