@@ -5,7 +5,7 @@ from api.serializers.job_specific import SpiderJobEnvVarSerializer
 class ProxyProviderSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProxyProvider
-        fields = ['name', 'description', "proxyid"]
+        fields = ['name', 'description', 'proxyid']
 
 
 class ProxyProviderUpdateSerializer(serializers.Serializer):

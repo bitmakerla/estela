@@ -715,7 +715,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         <ProxySettings
                             projectId=""
                             spiderId=""
-                            level="project"
+                            level="spider"
                             envVarsData={[]}
                             setEnvVarsOnParent={handleJobCreateProxy}
                         />

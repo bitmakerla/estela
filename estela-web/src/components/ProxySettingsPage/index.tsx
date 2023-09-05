@@ -12,12 +12,14 @@ import {
     SpiderJobEnvVar,
     ApiProjectsSpidersUpdateRequest,
     ProxyProviderUpdate,
+    ApiProxyProviderReadRequest,
+    ProxyProvider,
     ApiProxyProviderUpdateRequest,
     ProxyProviderResponse,
 } from "../../services/api";
 import { ProxyForm } from "./ProxyForm";
-import { ProjectEnvVar } from "./types";
-import { handleInvalidDataError } from "../../utils";
+import { ProjectEnvVar, ProxyTagProps } from "./types";
+import { handleInvalidDataError, mergeArrays } from "../../utils";
 import { Content } from "antd/lib/layout/layout";
 
 interface bmcProxyProps {
@@ -38,6 +40,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
     const [openProxyUserModal, setOpenProxyUserModal] = useState(false);
     const [openBMCModal, setOpenBMCModal] = useState(false);
     const [bmcProxies, setBMCProxies] = useState<bmcProxyProps[]>([]);
+    const [debug, setDebug] = useState<[]>([]);
 
     const apiService = ApiService();
 
@@ -168,10 +171,10 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
     };
     const checkIfProxyExist = (): boolean => {
         const propertiesToFind: Array<string> = [
-            "ESTELA_PROXY_URL",
-            "ESTELA_PROXY_PORT",
-            "ESTELA_PROXY_USER",
-            "ESTELA_PROXY_PASS",
+            // "ESTELA_PROXY_URL",
+            // "ESTELA_PROXY_PORT",
+            // "ESTELA_PROXY_USER",
+            // "ESTELA_PROXY_PASS",
             "ESTELA_PROXY_NAME",
         ];
         return propertiesToFind.every((property) => envVars.some((obj) => obj.name === property));
@@ -282,32 +285,47 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
     const useBMCProxy = (proxyID: number): void => {
         console.log(projectId);
         console.log(proxyID);
-        const projectOrSpiderId = level ===  "project" ? projectId : Number(spiderId);
-        const provider_update: ProxyProviderUpdate = {
-            projectOrSpiderId: projectOrSpiderId,
-            level: level
-        }
-        const request: ApiProxyProviderUpdateRequest = {
-            data: provider_update,
-            proxyid: proxyID,
-        }
-        apiService.apiProxyProviderUpdate(request).then((response: ProxyProviderResponse) => {
-            if (response.success != true){
-                console.log("Not valid")
-            } else {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
+        if (projectId == "" && spiderId == "") {
+            const request: ApiProxyProviderReadRequest = {
+                proxyid: proxyID,
             }
-        })
-        
-        // apiService.apiProxyProviderUpdate(request)    
+            apiService.apiProxyProviderRead(request).then((response: any) => {
+                console.log({response});
+                let proxyEnvVars = {
+                    name: "ESTELA_PROXY_NAME",
+                    value: response.name,
+                    masked: false,
+                }
+                setEnvVars([...envVars, proxyEnvVars]);
+            })
+        } else {
+            const projectOrSpiderId = level ===  "project" ? projectId : Number(spiderId);
+            const provider_update: ProxyProviderUpdate = {
+                projectOrSpiderId: projectOrSpiderId,
+                level: level
+            }
+            const request: ApiProxyProviderUpdateRequest = {
+                data: provider_update,
+                proxyid: proxyID,
+            }
+            apiService.apiProxyProviderUpdate(request).then((response: ProxyProviderResponse) => {
+                if (response.success != true){
+                    console.log("Not valid")
+                } else {
+                    let envVars = response.envVars || [];
+                    envVars = envVars.map((envVar: SpiderJobEnvVar) => {
+                        return {
+                            name: envVar.name,
+                            value: envVar.masked ? "__MASKED__" : envVar.value,
+                            masked: envVar.masked,
+                        };
+                    });
+                    setEnvVars(envVars);
+                }
+            })
+            
+            apiService.apiProxyProviderUpdate(request)    
+        }
     }
 
     return (
@@ -361,7 +379,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                         className="w-1/2"
                                         title={<p className="text-center text-base">New proxy configuration</p>}
                                         onCancel={() => setOpenProxyUserModal(false)}
-                                        //footer={null}
+                                        footer={null}
                                     >
                                         <div className="bg-white my-4">
                                             <Content>
@@ -400,24 +418,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                                 </Button>
                                             );
                                         })}
-                                        {/* <Button
-                                            onClick={() => {
-                                                setOpenProxyUserModal(true);
-                                            }}
-                                            size="large"
-                                            className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
-                                        >
-                                            <span className="text-center font-semibold">Manual configuration</span>
-                                            <p className="text-xs text-estela-black-full">Configure your own proxy</p>
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleBMCProxies()}
-                                            size="large"
-                                            className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
-                                        >
-                                            <span className="text-center font-semibold">BMC Proxy</span>
-                                            <p className="text-xs text-estela-black-full">Recommended</p>
-                                        </Button> */}
                                     </Modal>
                                 </div>
                             </div>

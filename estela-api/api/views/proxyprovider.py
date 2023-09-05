@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework import serializers
-from core.models import ProxyProvider, Project, Spider, SpiderJobEnvVar
+from core.models import ProxyProvider, Project, Spider, SpiderJobEnvVar,  SpiderJob
 from api.serializers.proxyprovider import ProxyProviderUpdateSerializer, ProxyProviderSerializer, ProxyProviderResponseSerializer
 from api.serializers.job_specific import SpiderJobEnvVarSerializer
 from api.mixins import BaseViewSet, ActionHandlerMixin
@@ -17,7 +17,7 @@ class ProxyProviderViewSet(
 ):
     queryset = ProxyProvider.objects.all()
     serializer_class = ProxyProviderSerializer
-
+    
     @swagger_auto_schema(
         request_body=ProxyProviderUpdateSerializer,  # Especifica el serializer para la solicitud
         responses={status.HTTP_200_OK: ProxyProviderResponseSerializer()},  # Define las respuestas
@@ -29,7 +29,7 @@ class ProxyProviderViewSet(
         if serializer.validated_data["level"] == "project":
             instance = Project.objects.get(pk=serializer.validated_data["project_or_spider_id"])
         elif serializer.validated_data["level"] == "spider":
-             instance = Spider.objects.get(pk=serializer.validated_data["project_or_spider_id"])
+             instance = SpiderJob.objects.get(pk=serializer.validated_data["project_or_spider_id"])
         proxy_provider = self.get_object()
         proxy_attrs = [
             "username",

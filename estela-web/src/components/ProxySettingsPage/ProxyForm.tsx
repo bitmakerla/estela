@@ -12,7 +12,7 @@ import {
 } from "../../services/api";
 import { ProjectEnvVar } from "./types";
 
-import { handleInvalidDataError } from "../../utils";
+import { handleInvalidDataError, mergeArrays } from "../../utils";
 
 const apiService = ApiService();
 
@@ -47,23 +47,6 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
     const [proxyEnvVars, setProxyEnvVars] = useState<SpiderJobEnvVar[]>(
         envVarsData.filter((envVar) => propertiesToFind.includes(envVar.name)),
     );
-    const mergeArrays = (array1: SpiderJobEnvVar[], array2: SpiderJobEnvVar[]): SpiderJobEnvVar[] => {
-        // Create a map to hold the merged values
-        const mergedMap = new Map<string, SpiderJobEnvVar>();
-
-        // Add all items from the first array to the map
-        array1.forEach((item) => {
-            mergedMap.set(item.name, item);
-        });
-
-        // Add all items from the second array to the map, updating any that have the same name
-        array2.forEach((item) => {
-            mergedMap.set(item.name, item); // This will overwrite any existing item with the same name
-        });
-
-        // Convert the map values to an array and return
-        return Array.from(mergedMap.values());
-    };
 
     // Update proxyEnvVars whenever envVarsData changes
     useEffect(() => {
