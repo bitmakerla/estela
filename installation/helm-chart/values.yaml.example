@@ -38,7 +38,7 @@ QUEUE_PARAMETERS:
   QUEUE_PLATFORM: kafka
   QUEUE_PLATFORM_LISTENERS: "" # kafka
   QUEUE_PLATFORM_PORT: "" # 9092
-  # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/docs/estela/queueing.html#estela-queue-adapter
+  # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/estela/queueing.html#estela-queue-adapter
 
 # Redis scrapy stats
 REDIS_URL: redis://estela-redis-service

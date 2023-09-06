@@ -4,7 +4,7 @@ color_scheme: "estela"
 title: estela Documentation
 description: Documentation for estela
 url: "https://estela.bitmaker.la"
-baseurl: "/docs"
+baseurl: ""
 
 
 search_enabled: true
