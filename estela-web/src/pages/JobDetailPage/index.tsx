@@ -644,6 +644,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         return [dataChartProportions, colorChartArray];
     };
 
+    dashboard = (): React.ReactNode => {
+        return (
+            <>
+                <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
+                    {/* Chart section goes here */}
+                    {/* Job consumption goes here */}
+                </Content>
+            </>
+        );
+    };
+
     overview = (): React.ReactNode => {
         const {
             cronjob,
@@ -1342,8 +1353,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     defaultActiveKey={"1"}
                                     items={[
                                         {
-                                            label: "Overview",
+                                            label: "Dashboard",
                                             key: "1",
+                                            children: this.dashboard(),
+                                        },
+                                        {
+                                            label: "Overview",
+                                            key: "6",
                                             children: this.overview(),
                                         },
                                         {
