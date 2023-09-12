@@ -59,6 +59,29 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             else self.request.user.project_set.filter(deleted=False)
         )
 
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=[
+            openapi.Parameter(
+                "search",
+                openapi.IN_QUERY,
+                description="Search for a project by name.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            )
+        ],
+        responses={status.HTTP_200_OK: ProjectSerializer(many=True)},
+    )
+    @action(methods=["GET"], detail=False)
+    def search(self, request, *args, **kwargs):
+        search = request.query_params.get("search", None)
+        projects = self.get_queryset()
+        if search:
+            projects = projects.filter(name__icontains=search)
+
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.users.add(
