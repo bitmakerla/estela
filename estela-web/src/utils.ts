@@ -135,7 +135,7 @@ export function handleInvalidDataError(error: unknown): void {
     }
 }
 
-export function getFilteredEnvVars(envVars: SpiderJobEnvVar[]): SpiderJobEnvVar[] {
+export function getFilteredEnvVars(envVars: SpiderJobEnvVar[], filter = true): SpiderJobEnvVar[] {
     const reservedEnvVars: Array<string> = [
         "ESTELA_PROXY_URL",
         "ESTELA_PROXY_PORT",
@@ -144,7 +144,11 @@ export function getFilteredEnvVars(envVars: SpiderJobEnvVar[]): SpiderJobEnvVar[
         "ESTELA_PROXY_NAME",
         "CUSTOM_PROXIES_ENABLED",
     ];
-    return envVars.filter((envVar: SpiderJobEnvVar) => !reservedEnvVars.includes(envVar.name));
+    if (filter) {
+        return envVars.filter((envVar: SpiderJobEnvVar) => !reservedEnvVars.includes(envVar.name));
+    } else {
+        return envVars.filter((envVar: SpiderJobEnvVar) => reservedEnvVars.includes(envVar.name));
+    }
 }
 
 export const mergeArrays = (array1: SpiderJobEnvVar[], array2: SpiderJobEnvVar[]): SpiderJobEnvVar[] => {

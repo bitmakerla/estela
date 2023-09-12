@@ -2,37 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Button, Input, Form } from "antd";
 
 import "./styles.scss";
-import { ApiService } from "../../services";
-import {
-    ApiProjectsUpdateRequest,
-    SpiderJobEnvVar,
-    ProjectUpdate,
-    SpiderUpdate,
-    ApiProjectsSpidersUpdateRequest,
-} from "../../services/api";
+import { SpiderJobEnvVar } from "../../services/api";
 import { ProjectEnvVar } from "./types";
-
-import { handleInvalidDataError, mergeArrays } from "../../utils";
-
-const apiService = ApiService();
 
 interface FormType {
     type: string;
     closeModal: () => void;
-    setParentEnvVars: (value: SpiderJobEnvVar[]) => void;
 }
 
 interface ProxyFormProps extends ProjectEnvVar, FormType {}
 
-export const ProxyForm: React.FC<ProxyFormProps> = ({
-    projectId,
-    spiderId,
-    envVarsData,
-    level,
-    type,
-    closeModal,
-    setParentEnvVars,
-}) => {
+export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type, closeModal }) => {
     const propertiesToFind: Array<string> = [
         "ESTELA_PROXY_URL",
         "ESTELA_PROXY_PORT",
@@ -41,19 +21,18 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
         "ESTELA_PROXY_NAME",
     ];
 
-    const [envVars, setEnvVars] = useState<SpiderJobEnvVar[]>(envVarsData);
     const [activeUpdateButton, setActiveUpdateButton] = useState(false);
     // Initialize the state with the filtered envVarsData
     const [proxyEnvVars, setProxyEnvVars] = useState<SpiderJobEnvVar[]>(
-        envVarsData.filter((envVar) => propertiesToFind.includes(envVar.name)),
+        envVars.filter((envVar) => propertiesToFind.includes(envVar.name)),
     );
 
     // Update proxyEnvVars whenever envVarsData changes
-    useEffect(() => {
-        const filteredProxyEnvVars = envVarsData.filter((envVar) => propertiesToFind.includes(envVar.name));
-        setProxyEnvVars(filteredProxyEnvVars);
-        setParentEnvVars(envVars);
-    }, [envVars]);
+    // useEffect(() => {
+    //     const filteredProxyEnvVars = envVars.filter((envVar) => propertiesToFind.includes(envVar.name));
+    //     setProxyEnvVars(filteredProxyEnvVars);
+    //     setEnvVars(envVars);
+    // }, [envVars]);
 
     useEffect(() => {
         if (validProxySettings()) {
@@ -63,97 +42,12 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
         }
     }, [proxyEnvVars]);
 
-    const updateProjectEnvVars = (): void => {
-        const enableProxies: SpiderJobEnvVar[] = [
-            {
-                name: "CUSTOM_PROXIES_ENABLED",
-                value: "true",
-                masked: true,
-            },
-        ];
-        const newEnvVars = mergeArrays(envVars, mergeArrays(proxyEnvVars, enableProxies));
-        const requestData: ProjectUpdate = {
-            envVars: newEnvVars,
-        };
-        const request: ApiProjectsUpdateRequest = {
-            data: requestData,
-            pid: projectId,
-        };
-        if (projectId === "") {
-            setEnvVars(newEnvVars);
-            setActiveUpdateButton(true);
-            return;
-        }
-        apiService.apiProjectsUpdate(request).then(
-            (response: ProjectUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
-                setActiveUpdateButton(false);
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
-    };
-
-    const updateSpiderEnvVars = (): void => {
-        const enableProxies: SpiderJobEnvVar[] = [
-            {
-                name: "CUSTOM_PROXIES_ENABLED",
-                value: "true",
-                masked: true,
-            },
-        ];
-        const newEnvVars = mergeArrays(envVars, mergeArrays(proxyEnvVars, enableProxies));
-        const requestData: SpiderUpdate = {
-            envVars: newEnvVars,
-        };
-        const request: ApiProjectsSpidersUpdateRequest = {
-            data: requestData,
-            pid: projectId,
-            sid: Number(spiderId),
-        };
-        apiService.apiProjectsSpidersUpdate(request).then(
-            (response: SpiderUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
-                setActiveUpdateButton(false);
-            },
-            (error: unknown) => {
-                console.error(error);
-            },
-        );
-    };
-
-    const updateEnvVars = (): void => {
-        if (level === "project") {
-            updateProjectEnvVars();
-        } else if (level === "spider") {
-            updateSpiderEnvVars();
-        }
-    };
-
     const getProxyValue = (envVarName: string): string => {
         const proxyNameObj = envVars.find((obj) => obj.name === envVarName);
         return proxyNameObj ? proxyNameObj.value : "";
     };
 
     const validProxySettings = (): boolean => {
-        console.log({ proxyEnvVars });
         return propertiesToFind.every((property) =>
             proxyEnvVars.some((obj) => obj.name === property && obj.value != ""),
         );
@@ -173,6 +67,11 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({
             : [...proxyEnvVars, proxyEnvVar];
 
         setProxyEnvVars(updatedProxyEnvVars);
+    };
+
+    const updateEnvVars = (): void => {
+        setEnvVars([...envVars, ...proxyEnvVars]);
+        closeModal();
     };
 
     return (

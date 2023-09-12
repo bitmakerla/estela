@@ -124,8 +124,6 @@ class SpiderJobViewSet(
             # Añadir Proxies y cobrar si es necesario
             proxy_provider_names = [(proxy.name, proxy.proxyid) for proxy in ProxyProvider.objects.all()]
             proxy_name = job_env_vars.get("ESTELA_PROXY_NAME")
-            print("Proxy Name:")
-            print(proxy_name)
 
             if proxy_name:
                 proxy_id = next((tup[1] for tup in proxy_provider_names if proxy_name in tup), None)
@@ -137,7 +135,6 @@ class SpiderJobViewSet(
                         env_var["name"]: env_var["value"] for env_var in proxy_env_vars
                     })
             
-            print(job_env_vars)
 
             token = request.auth.key if request.auth else None
             job_manager.create_job(

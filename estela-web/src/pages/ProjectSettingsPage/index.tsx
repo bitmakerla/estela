@@ -125,6 +125,28 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         this.updateInfo();
     }
 
+    async componentDidUpdate(
+        prevProps: Readonly<RouteComponentProps>,
+        prevState: Readonly<ProjectSettingsPageState>,
+    ): Promise<void> {
+        if (prevState.envVars !== this.state.envVars) {
+            this.updateProjectEnvVars();
+        }
+    }
+
+    updateProjectEnvVars = (): void => {
+        const requestData: ProjectUpdate = {
+            envVars: this.state.envVars,
+        };
+        const request: ApiProjectsUpdateRequest = {
+            data: requestData,
+            pid: this.projectId,
+        };
+        this.apiService.apiProjectsUpdate(request).then((error: unknown) => {
+            handleInvalidDataError(error);
+        });
+    };
+
     changeName = (): void => {
         const requestData: ProjectUpdate = {
             name: this.state.name,
@@ -229,6 +251,10 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         { label: "Technology", key: 6, value: ProjectCategoryEnum.Technology },
         { label: "Other Category", key: 7, value: ProjectCategoryEnum.OtherCategory },
     ];
+
+    updateEnvVars = (envVars: SpiderJobEnvVar[]): void => {
+        this.setState({ envVars: envVars });
+    };
 
     render(): JSX.Element {
         const {
@@ -337,7 +363,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                             </Content>
                         </Row>
                         <EnvVarsSetting projectId={this.projectId} spiderId="" envVarsData={envVars} level="project" />
-                        <ProxySettings projectId={this.projectId} spiderId="" envVarsData={envVars} level="project" />
+                        <ProxySettings envVars={envVars} setEnvVars={this.updateEnvVars} />
                         <Row className="bg-white rounded-lg">
                             <Space direction="vertical" className="lg:m-8 md:mx-6 m-4">
                                 <Typography className="text-2xl text-black">Delete</Typography>

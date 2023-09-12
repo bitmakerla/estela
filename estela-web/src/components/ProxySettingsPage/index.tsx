@@ -5,18 +5,7 @@ import { Row, Space, Button, Tag, Popover, Modal } from "antd";
 import "./styles.scss";
 import Menu from "../../assets/icons/menu.svg";
 import { ApiService } from "../../services";
-import {
-    ApiProjectsUpdateRequest,
-    ProjectUpdate,
-    SpiderUpdate,
-    SpiderJobEnvVar,
-    ApiProjectsSpidersUpdateRequest,
-    ProxyProviderUpdate,
-    ApiProxyProviderReadRequest,
-    ProxyProvider,
-    ApiProxyProviderUpdateRequest,
-    ProxyProviderResponse,
-} from "../../services/api";
+
 import { ProxyForm } from "./ProxyForm";
 import { ProjectEnvVar, ProxyTagProps } from "./types";
 import { handleInvalidDataError, mergeArrays } from "../../utils";
@@ -25,22 +14,17 @@ import { Content } from "antd/lib/layout/layout";
 interface bmcProxyProps {
     name: string;
     description: string;
-    id: string;
+    id: number;
 }
 
 export const ProxySettings: React.FC<ProjectEnvVar> = ({
-    projectId,
-    spiderId,
-    envVarsData,
-    level,
-    setEnvVarsOnParent,
+    envVars,
+    setEnvVars,
 }) => {
-    const [envVars, setEnvVars] = useState<SpiderJobEnvVar[]>(envVarsData);
-    const [shouldDeleteEnvVars, setShouldDeleteEnvVars] = useState(false);
+//    const [shouldDeleteEnvVars, setShouldDeleteEnvVars] = useState(false);
     const [openProxyUserModal, setOpenProxyUserModal] = useState(false);
     const [openBMCModal, setOpenBMCModal] = useState(false);
     const [bmcProxies, setBMCProxies] = useState<bmcProxyProps[]>([]);
-    const [debug, setDebug] = useState<[]>([]);
 
     const apiService = ApiService();
 
@@ -49,10 +33,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
         const [openDeleteModal, setOpenDeleteModal] = useState(false);
         const [renderTag, setRenderTag] = useState(true);
         const [openPopover, setOpenPopover] = useState(false);
-
-        useEffect(() => {
-            setEnvVarsOnParent && setEnvVarsOnParent(envVars);
-        }, [envVars]);
 
         const SettingContent = (
             <div className="grid">
@@ -76,13 +56,10 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                     <div className="bg-white my-4">
                         <Content>
                             <ProxyForm
-                                projectId={projectId}
-                                spiderId={spiderId}
-                                envVarsData={envVars}
-                                level={level}
+                                envVars={envVars}
                                 type="Edit"
                                 closeModal={() => setOpenEditModal(false)}
-                                setParentEnvVars={setEnvVars}
+                                setEnvVars={setEnvVars}
                             ></ProxyForm>
                         </Content>
                     </div>
@@ -171,66 +148,9 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
     };
     const checkIfProxyExist = (): boolean => {
         const propertiesToFind: Array<string> = [
-            // "ESTELA_PROXY_URL",
-            // "ESTELA_PROXY_PORT",
-            // "ESTELA_PROXY_USER",
-            // "ESTELA_PROXY_PASS",
             "ESTELA_PROXY_NAME",
         ];
         return propertiesToFind.every((property) => envVars.some((obj) => obj.name === property));
-    };
-
-    const deleteProjectEnvVars = (): void => {
-        const requestData: ProjectUpdate = {
-            envVars: envVars,
-        };
-        const request: ApiProjectsUpdateRequest = {
-            data: requestData,
-            pid: projectId,
-        };
-        apiService.apiProjectsUpdate(request).then(
-            (response: ProjectUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
-    };
-
-    const deleteSpiderEnvVars = (): void => {
-        const requestData: SpiderUpdate = {
-            envVars: envVars,
-        };
-        const request: ApiProjectsSpidersUpdateRequest = {
-            data: requestData,
-            pid: projectId,
-            sid: Number(spiderId),
-        };
-        apiService.apiProjectsSpidersUpdate(request).then(
-            (response: SpiderUpdate) => {
-                let envVars = response.envVars || [];
-                envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                    return {
-                        name: envVar.name,
-                        value: envVar.masked ? "__MASKED__" : envVar.value,
-                        masked: envVar.masked,
-                    };
-                });
-                setEnvVars(envVars);
-            },
-            (error: unknown) => {
-                handleInvalidDataError(error);
-            },
-        );
     };
 
     const handleRemoveProxy = (): void => {
@@ -244,14 +164,12 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
         ];
         const filteredEnvVars = envVars.filter((obj) => !propertiesToFind.includes(obj.name));
         setEnvVars(filteredEnvVars);
-        setShouldDeleteEnvVars(true);
     };
 
     const handleBMCProxies = (): void => {
         const request = {};
         const newBMCProxies: bmcProxyProps[] = [];
         apiService.apiProxyProviderList(request).then((response: any) => {
-            console.log({ response });
             response.results.forEach((item: any) => {
                 newBMCProxies.push({
                     name: item.name,
@@ -261,72 +179,23 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
             });
             setBMCProxies(newBMCProxies);
         });
-        console.log({ bmcProxies });
     };
 
     useEffect(() => {
         if (bmcProxies.length > 0) {
-            console.log({ bmcProxies });
             setOpenBMCModal(true);
         }
     }, [bmcProxies]);
 
-    useEffect(() => {
-        if (shouldDeleteEnvVars) {
-            if (level == "project") {
-                deleteProjectEnvVars();
-            } else if (level === "spider") {
-                deleteSpiderEnvVars();
-            }
-            setShouldDeleteEnvVars(false);
-        }
-    }, [envVars, shouldDeleteEnvVars]);
-
-    const useBMCProxy = (proxyID: number): void => {
-        console.log(projectId);
-        console.log(proxyID);
-        if (projectId == "" && spiderId == "") {
-            const request: ApiProxyProviderReadRequest = {
-                proxyid: proxyID,
-            }
-            apiService.apiProxyProviderRead(request).then((response: any) => {
-                console.log({response});
-                let proxyEnvVars = {
-                    name: "ESTELA_PROXY_NAME",
-                    value: response.name,
-                    masked: false,
-                }
-                setEnvVars([...envVars, proxyEnvVars]);
-            })
-        } else {
-            const projectOrSpiderId = level ===  "project" ? projectId : Number(spiderId);
-            const provider_update: ProxyProviderUpdate = {
-                projectOrSpiderId: projectOrSpiderId,
-                level: level
-            }
-            const request: ApiProxyProviderUpdateRequest = {
-                data: provider_update,
-                proxyid: proxyID,
-            }
-            apiService.apiProxyProviderUpdate(request).then((response: ProxyProviderResponse) => {
-                if (response.success != true){
-                    console.log("Not valid")
-                } else {
-                    let envVars = response.envVars || [];
-                    envVars = envVars.map((envVar: SpiderJobEnvVar) => {
-                        return {
-                            name: envVar.name,
-                            value: envVar.masked ? "__MASKED__" : envVar.value,
-                            masked: envVar.masked,
-                        };
-                    });
-                    setEnvVars(envVars);
-                }
-            })
-            
-            apiService.apiProxyProviderUpdate(request)    
-        }
-    }
+    const useBMCProxy = (proxyId: number): void => {
+        const proxySelected = bmcProxies.find((item) => item.id === proxyId);
+        setEnvVars([...envVars, {
+            name: "ESTELA_PROXY_NAME",
+            value: proxySelected ? proxySelected.name : "",
+            masked: false,
+        }])
+        setOpenBMCModal(false);
+    };
 
     return (
         <div>
@@ -338,7 +207,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                             <p className="text-estela-black-medium text-sm">
                                 Control and configure your proxies effortlessly.
                             </p>
-                            <ProxyTag key="123" id={123} proxySettings={envVars}>
+                            <ProxyTag key="123" id={123}>
                                 {getProxyValue("ESTELA_PROXY_NAME")}
                             </ProxyTag>
                         </div>
@@ -384,13 +253,10 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                         <div className="bg-white my-4">
                                             <Content>
                                                 <ProxyForm
-                                                    projectId={projectId}
-                                                    spiderId={spiderId}
-                                                    envVarsData={envVars}
-                                                    level={level}
+                                                    envVars={envVars}
                                                     type="Add"
                                                     closeModal={() => setOpenProxyUserModal(false)}
-                                                    setParentEnvVars={setEnvVars}
+                                                    setEnvVars={setEnvVars}
                                                 ></ProxyForm>
                                             </Content>
                                         </div>
@@ -403,7 +269,6 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                         footer={null}
                                     >
                                         {bmcProxies.map((item: any) => {
-                                            console.log({item});
                                             return (
                                                 <Button
                                                     key={item.id}

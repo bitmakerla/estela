@@ -105,7 +105,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
     const [countKey, setCountKey] = useState(0);
     const [spiders, setSpiders] = useState<Spider[]>([]);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
-    const [proxyName, setProxyName] = useState("");
     const [jobData, setJobData] = useState<JobData>({
         args: [],
         envVars: [],
@@ -117,7 +116,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
     const [newProxyFormActivate, setNewProxyFormActivate] = useState<boolean>(false);
     const [projectEnvVars, setProjectEnvVars] = useState<SpiderJobEnvVar[]>([]);
     const [spiderEnvVars, setSpiderEnvVars] = useState<SpiderJobEnvVar[]>([]);
-    const [newJobProxy, setNewJobProxy] = useState<SpiderJobEnvVar[]>([]);
+    const [jobProxy, setJobProxy] = useState<SpiderJobEnvVar[]>([]);
     const [variable, setVariable] = useState<Variable>({
         newArgName: "",
         newArgValue: "",
@@ -170,19 +169,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         );
     }, []);
 
-    useEffect(() => {
-        console.log("entro aca, al effect del proxyName");
-        console.log(proxyName === "");
-        const projectProxyName = projectEnvVars.find(
-            (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
-        )?.value;
-        if (proxyName === "" && projectProxyName) {
-            console.log({ projectProxyName });
-            setProxyName(projectProxyName || "");
-            setNoProxy(false);
-        }
-    }, [proxyName, projectEnvVars]);
-
     const getSpiderEnvVars = (sid: number) => {
         const requestParams: ApiProjectsSpidersReadRequest = { pid: request.pid, sid: sid };
         apiService.apiProjectsSpidersRead(requestParams).then(
@@ -198,6 +184,9 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         };
                     }),
                 );
+                // setProxyName(
+                //     envVars.find((envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME")?.value || "",
+                // );
             },
             (error: unknown) => {
                 error;
@@ -226,7 +215,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                     }
                     setRequest({ ...request, sid: String(spiderList[index].sid) });
                     const envVars = spiderList[index].envVars || [];
-                    console.log({ envVars });
                     setSpiderEnvVars(
                         envVars.map((envVar: SpiderJobEnvVar) => {
                             return {
@@ -237,15 +225,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                             };
                         }),
                     );
-                    const proxyName = envVars.find(
-                        (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
-                    )?.value;
-                    if (proxyName && proxyName !== "") {
-                        console.log("Aca entro al proxyname que si tiene valor del spider.");
-                        setProxyName(proxyName || "");
-                        setNoProxy(false);
-                    }
-                    console.log(proxyName);
                     setJobData({
                         ...jobData,
                         dataStatus: spiderList[index].dataStatus,
@@ -465,19 +444,26 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
 
     const handleRemoveProxy = (): void => {
         setNoProxy(true);
+        const filteredProjectEnvVars = getFilteredEnvVars(projectEnvVars);
+        const filteredSpiderEnvVars = getFilteredEnvVars(spiderEnvVars);
+        const filteredJobEnvVars = getFilteredEnvVars(jobData.envVars);
+        const newEnvVars: EnvVarsData[] = filteredJobEnvVars.map((envVar) => {
+            setCountKey(countKey + 1); // Increment the key
+            return {
+                name: envVar.name,
+                value: envVar.value,
+                key: countKey,
+                masked: envVar.masked ? envVar.masked : false, // If 'masked' is not defined, default to false
+            };
+        });
+        setProjectEnvVars(filteredProjectEnvVars);
+        setSpiderEnvVars(filteredSpiderEnvVars);
+        setJobData({ ...jobData, envVars: newEnvVars });
     };
 
     const handleJobCreateProxy = (envVars: SpiderJobEnvVar[]): void => {
-        console.log("Entre a create Proxy");
-        setNewJobProxy(envVars);
-    };
-    const addNewProxy = (): void => {
-        console.log("New proxy");
-        setNewProxyFormActivate(true);
-    };
-
-    useEffect(() => {
-        const newEnvVars: EnvVarsData[] = newJobProxy.map((envVar) => {
+        const proxyEnvVars: SpiderJobEnvVar[] = getFilteredEnvVars(envVars, false);
+        const newEnvVars: EnvVarsData[] = proxyEnvVars.map((envVar) => {
             setCountKey(countKey + 1); // Increment the key
             return {
                 name: envVar.name,
@@ -487,19 +473,39 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             };
         });
         setJobData({ ...jobData, envVars: [...jobData.envVars, ...newEnvVars] });
-    }, [newJobProxy]);
+        setNewProxyFormActivate(false);
+    };
+    const addNewProxy = (): void => {
+        setNewProxyFormActivate(true);
+    };
 
     useEffect(() => {
-        const jobProxyName = jobData.envVars.find(
-            (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
-        )?.value;
-        if (jobProxyName && jobProxyName !== "") {
-            console.log("Entonces aca es.");
-            console.log({ jobProxyName });
-            setProxyName(jobProxyName || "");
+        const getProxyEnvVars = (): SpiderJobEnvVar[] => {
+            const jobProxyName = jobData.envVars.find(
+                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+            )?.value;
+            const spiderProxyName = spiderEnvVars.find(
+                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+            )?.value;
+            const projectProxyName = projectEnvVars.find(
+                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+            )?.value;
+            return jobProxyName
+                ? getFilteredEnvVars(jobData.envVars, false)
+                : spiderProxyName
+                ? getFilteredEnvVars(spiderEnvVars, false)
+                : projectProxyName
+                ? getFilteredEnvVars(projectEnvVars, false)
+                : [];
+        };
+        const newProxyJob: SpiderJobEnvVar[] = getProxyEnvVars();
+        if (newProxyJob.length > 0) {
             setNoProxy(false);
+            setJobProxy(newProxyJob);
+        } else {
+            setNoProxy(true);
         }
-    }, [jobData]);
+    }, [projectEnvVars, spiderEnvVars, jobData]);
 
     return (
         <>
@@ -712,13 +718,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         onCancel={() => setNewProxyFormActivate(false)}
                         footer={null}
                     >
-                        <ProxySettings
-                            projectId=""
-                            spiderId=""
-                            level="spider"
-                            envVarsData={[]}
-                            setEnvVarsOnParent={handleJobCreateProxy}
-                        />
+                        <ProxySettings envVars={[]} setEnvVars={handleJobCreateProxy} />
                     </Modal>
                     <Space direction="horizontal">
                         <p className="text-base">Proxy</p>
@@ -739,7 +739,10 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                                             closable
                                             onClose={() => handleRemoveProxy()}
                                         >
-                                            proxy_name: {proxyName}
+                                            proxy_name:{" "}
+                                            {jobProxy.find(
+                                                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+                                            )?.value || "none"}
                                         </Tag>
                                     </div>
                                 </div>

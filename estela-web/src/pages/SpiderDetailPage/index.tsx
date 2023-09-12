@@ -881,6 +881,33 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         { label: "Forever", key: 7, value: 720 },
     ];
 
+    updateEnvVars = (envVars: SpiderJobEnvVar[]): void => {
+        this.setState({ envVars: envVars });
+    };
+
+    updateSpiderEnvVars = (): void => {
+        const requestData: SpiderUpdate = {
+            envVars: this.state.envVars,
+        };
+        const request: ApiProjectsSpidersUpdateRequest = {
+            data: requestData,
+            pid: this.projectId,
+            sid: Number(this.spiderId),
+        };
+        this.apiService.apiProjectsSpidersUpdate(request).then((error: unknown) => {
+            handleInvalidDataError(error);
+        });
+    };
+
+    async componentDidUpdate(
+        prevProps: Readonly<RouteComponentProps>,
+        prevState: Readonly<SpiderDetailPageState>,
+    ): Promise<void> {
+        if (prevState.envVars !== this.state.envVars) {
+            this.updateSpiderEnvVars();
+        }
+    }
+
     settings = (): React.ReactNode => {
         const { dataStatus, dataExpiryDays, persistenceChanged, envVars } = this.state;
         return (
@@ -933,12 +960,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                         envVarsData={envVars}
                         level="spider"
                     />
-                    <ProxySettings
-                        projectId={this.projectId}
-                        spiderId={this.spiderId}
-                        envVarsData={envVars}
-                        level="spider"
-                    />
+                    <ProxySettings envVars={envVars} setEnvVars={this.updateEnvVars} />
                 </Content>
             </Row>
         );

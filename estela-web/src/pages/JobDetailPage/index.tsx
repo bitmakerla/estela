@@ -26,7 +26,7 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
 import { ApiService } from "../../services";
-import { BytesMetric, parseDuration, durationToString, formatBytes } from "../../utils";
+import { BytesMetric, parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
 import Add from "../../assets/icons/add.svg";
@@ -661,6 +661,10 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             items,
             status,
         } = this.state;
+        const getProxyTag = (): string => {
+            const desiredItem = envVars.find((item) => item.name === "ESTELA_PROXY_NAME");
+            return desiredItem ? desiredItem.value : "";
+        };
         const bandwidth: BytesMetric = formatBytes(Number(totalResponseBytes));
         const [dataChartProportions, colorChartArray] = this.chartConfigs(bandwidth);
         const lifespanPercentage: number = Math.round(100 * (Math.log(lifespan ?? 1) / Math.log(3600)));
@@ -754,7 +758,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                             <Col className="col-span-2 px-2">{date}</Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col className="col-span-1">
                                 <Text className="font-bold">Scheduled job</Text>
                             </Col>
@@ -771,7 +775,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 )}
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                        <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Tags</Text>
                             </Col>
@@ -791,13 +795,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Environment variables</Text>
                             </Col>
                             <Col className="px-2">
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: SpiderJobEnvVar, id) =>
+                                    {getFilteredEnvVars(envVars).map((envVar: SpiderJobEnvVar, id) =>
                                         envVar.masked ? (
                                             <AntdTooltip
                                                 title="Masked variable"
@@ -823,6 +827,22 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
+                        <Row className="grid grid-cols-3 py-1 px-2">
+                            <Col>
+                                <Text className="font-bold">Proxy</Text>
+                            </Col>
+                            <Col className="px-2">
+                                <Space direction="vertical">
+                                    {getProxyTag() === "" ? (
+                                        <Text className="text-estela-black-medium text-xs">No Proxy</Text>
+                                    ) : (
+                                        <Tag className="proxy" key="1">
+                                            {getProxyTag()}
+                                        </Tag>
+                                    )}
+                                </Space>
+                            </Col>
+                        </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Arguments</Text>
@@ -843,7 +863,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                        <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Job Status</Text>
                             </Col>
@@ -897,7 +917,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Col>
                             )}
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-2">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Data Persistence</Text>
                             </Col>
@@ -1245,33 +1265,36 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     <Content>
                                                         <p className="text-base my-2">Environment Variables</p>
                                                         <Space className="mb-2" direction="horizontal">
-                                                            {newEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                                                envVar.masked ? (
-                                                                    <AntdTooltip
-                                                                        title="Masked variable"
-                                                                        showArrow={false}
-                                                                        overlayClassName="tooltip"
-                                                                        key={id}
-                                                                    >
+                                                            {getFilteredEnvVars(newEnvVars).map(
+                                                                (envVar: SpiderJobEnvVar, id: number) =>
+                                                                    envVar.masked ? (
+                                                                        <AntdTooltip
+                                                                            title="Masked variable"
+                                                                            showArrow={false}
+                                                                            overlayClassName="tooltip"
+                                                                            key={id}
+                                                                        >
+                                                                            <Tag
+                                                                                closable
+                                                                                onClose={() =>
+                                                                                    this.handleRemoveEnvVar(id)
+                                                                                }
+                                                                                className="environment-variables"
+                                                                                key={id}
+                                                                            >
+                                                                                {envVar.name}
+                                                                            </Tag>
+                                                                        </AntdTooltip>
+                                                                    ) : (
                                                                         <Tag
                                                                             closable
                                                                             onClose={() => this.handleRemoveEnvVar(id)}
                                                                             className="environment-variables"
                                                                             key={id}
                                                                         >
-                                                                            {envVar.name}
+                                                                            {envVar.name}: {envVar.value}
                                                                         </Tag>
-                                                                    </AntdTooltip>
-                                                                ) : (
-                                                                    <Tag
-                                                                        closable
-                                                                        onClose={() => this.handleRemoveEnvVar(id)}
-                                                                        className="environment-variables"
-                                                                        key={id}
-                                                                    >
-                                                                        {envVar.name}: {envVar.value}
-                                                                    </Tag>
-                                                                ),
+                                                                    ),
                                                             )}
                                                         </Space>
                                                         <Space direction="horizontal">

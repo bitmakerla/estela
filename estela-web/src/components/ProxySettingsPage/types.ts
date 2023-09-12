@@ -7,11 +7,8 @@ import { Link } from "react-router-dom";
 import { SpiderJobEnvVar } from "../../services";
 
 export interface ProjectEnvVar {
-    projectId: string;
-    spiderId: string;
-    envVarsData: SpiderJobEnvVar[];
-    level: string;
-    setEnvVarsOnParent?: (envVars: SpiderJobEnvVar[]) => void;
+    envVars: SpiderJobEnvVar[];
+    setEnvVars: (envVars: SpiderJobEnvVar[]) => void;
 }
 
 export interface ProxySettingsProps {
