@@ -1,0 +1,9 @@
+$estela-background: #FBFCFD;
+
+.table-joblist .ant-table .ant-table-container .ant-table-content table thead.ant-table-thead {
+    border-radius: 8px;
+}
+
+.table-joblist .ant-table .ant-table-container .ant-table-content table thead.ant-table-thead .ant-table-cell {
+    background-color: $estela-background;
+}
