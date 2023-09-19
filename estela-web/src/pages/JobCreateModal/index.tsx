@@ -293,7 +293,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         setJobData({ ...jobData, tags: [...tags] });
     };
 
-    const addArgument = (): ArgsData | undefined => {
+    const addArgument = (): ArgsData | null => {
         const args = [...jobData.args];
         const newArgName = variable.newArgName.trim();
         const newArgValue = variable.newArgValue.trim();
@@ -306,11 +306,11 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             return arg;
         } else {
             invalidDataNotification("Invalid argument name/value pair.");
-            return;
+            return null;
         }
     };
 
-    const addEnvVar = (): EnvVarsData | undefined => {
+    const addEnvVar = (): EnvVarsData | null => {
         const envVars = [...jobData.envVars];
         const newEnvVarName = variable.newEnvVarName.trim();
         const newEnvVarValue = variable.newEnvVarValue.trim();
@@ -328,11 +328,11 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             return newEnvVar;
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
-            return;
+            return null;
         }
     };
 
-    const addTag = (): TagsData | undefined => {
+    const addTag = (): TagsData | null => {
         const tags = [...jobData.tags];
         const newTagName = variable.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
@@ -344,7 +344,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             return tag;
         } else {
             invalidDataNotification("Invalid tag name.");
-            return;
+            return null;
         }
     };
 
@@ -370,31 +370,36 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         setVariable({ ...variable, newEnvVarMasked: checked });
     };
 
+    const addPendingFormElement = (
+        elementName: string,
+        elementValue: string,
+        addElementFunction: callable,
+        elementList: Array,
+    ): boolean => {
+        elementName = elementName.trim();
+        elementValue = elementValue.trim();
+        if (elementName || elementValue) {
+            const element = addElementFunction();
+            if (!element) {
+                return false;
+            }
+            elementList.push(element);
+        }
+        return true;
+    };
+
     const handleSubmit = (): void => {
         setLoading(true);
-        const newEnvVarName = variable.newEnvVarName.trim();
-        if (newEnvVarName && newEnvVarName.indexOf(" ") == -1) {
-            const newEnvVar = addEnvVar();
-            if (!newEnvVar) {
-                return;
-            }
-            jobData.envVars.push(newEnvVar);
-        }
-        const newArgName = variable.newArgName.trim();
-        if (newArgName && newArgName.indexOf(" ") == -1) {
-            const newArg = addArgument();
-            if (!newArg) {
-                return;
-            }
-            jobData.args.push(newArg);
-        }
-        const newTagName = variable.newTagName.trim();
-        if (newTagName && newTagName.indexOf(" ") == -1) {
-            const newTag = addTag();
-            if (!newTag) {
-                return;
-            }
-            jobData.tags.push(newTag);
+
+        if (
+            !(
+                addPendingFormElement(variable.newArgName, variable.newArgValue, addArgument, jobData.args) &&
+                addPendingFormElement(variable.newEnvVarName, variable.newEnvVarValue, addEnvVar, jobData.envVars) &&
+                addPendingFormElement(variable.newTagName, "", addTag, jobData.tags)
+            )
+        ) {
+            setLoading(false);
+            return;
         }
 
         const { args, tags, dataStatus, dataExpiryDays } = jobData;

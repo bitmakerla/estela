@@ -359,7 +359,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, args: [...args] });
     };
 
-    const addArgument = (): ArgsData | undefined => {
+    const addArgument = (): ArgsData | null => {
         const args = [...cronjobData.args];
         const newArgName = newCronjob.newArgName.trim();
         const newArgValue = newCronjob.newArgValue.trim();
@@ -372,7 +372,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             return arg;
         } else {
             invalidDataNotification("Invalid argument name/value pair.");
-            return;
+            return null;
         }
     };
 
@@ -411,7 +411,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         }
     };
 
-    const addEnvVar = (): EnvVarsData | undefined => {
+    const addEnvVar = (): EnvVarsData | null => {
         const envVars = [...cronjobData.envVars];
         const newEnvVarName = newCronjob.newEnvVarName.trim();
         const newEnvVarValue = newCronjob.newEnvVarValue.trim();
@@ -429,7 +429,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             return envVar;
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
-            return;
+            return null;
         }
     };
 
@@ -439,7 +439,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, tags: [...tags] });
     };
 
-    const addTag = (): TagsData | undefined => {
+    const addTag = (): TagsData | null => {
         const tags = [...cronjobData.tags];
         const newTagName = newCronjob.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
@@ -451,7 +451,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             return tag;
         } else {
             invalidDataNotification("Invalid tag name.");
-            return;
+            return null;
         }
     };
 
@@ -539,8 +539,27 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setNewCronjob({ ...newCronjob, newEnvVarMasked: checked });
     };
 
+    const addPendingFormElement = (
+        elementName: string,
+        elementValue: string,
+        addElementFunction: callable,
+        elementList: Array,
+    ): boolean => {
+        elementName = elementName.trim();
+        elementValue = elementValue.trim();
+        if (elementName || elementValue) {
+            const element = addElementFunction();
+            if (!element) {
+                return false;
+            }
+            elementList.push(element);
+        }
+        return true;
+    };
+
     const handleSubmit = (): void => {
         setLoading(true);
+
         let expression = "";
         if (schedulesFlag[0]) {
             if (crontab.expression == "") {
@@ -557,29 +576,20 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             expression = getExpression();
         }
 
-        const newEnvVarName = newCronjob.newEnvVarName.trim();
-        if (newEnvVarName && newEnvVarName.indexOf(" ") == -1) {
-            const newEnvVar = addEnvVar();
-            if (!newEnvVar) {
-                return;
-            }
-            cronjobData.envVars.push(newEnvVar);
-        }
-        const newArgName = newCronjob.newArgName.trim();
-        if (newArgName && newArgName.indexOf(" ") == -1) {
-            const newArg = addArgument();
-            if (!newArg) {
-                return;
-            }
-            cronjobData.args.push(newArg);
-        }
-        const newTagName = newCronjob.newTagName.trim();
-        if (newTagName && newTagName.indexOf(" ") == -1) {
-            const newTag = addTag();
-            if (!newTag) {
-                return;
-            }
-            cronjobData.tags.push(newTag);
+        if (
+            !(
+                addPendingFormElement(newCronjob.newArgName, newCronjob.newArgValue, addArgument, cronjobData.args) &&
+                addPendingFormElement(
+                    newCronjob.newEnvVarName,
+                    newCronjob.newEnvVarValue,
+                    addEnvVar,
+                    cronjobData.envVars,
+                ) &&
+                addPendingFormElement(newCronjob.newTagName, "", addTag, cronjobData.tags)
+            )
+        ) {
+            setLoading(false);
+            return;
         }
 
         const envVarsData = [...projectEnvVars];
