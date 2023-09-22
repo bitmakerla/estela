@@ -42,7 +42,7 @@ export interface SpiderJobEnvVar {
      * @type {boolean}
      * @memberof SpiderJobEnvVar
      */
-    masked?: boolean;
+    masked: boolean;
 }
 
 export function SpiderJobEnvVarFromJSON(json: any): SpiderJobEnvVar {
@@ -58,7 +58,7 @@ export function SpiderJobEnvVarFromJSONTyped(json: any, ignoreDiscriminator: boo
         'evid': !exists(json, 'evid') ? undefined : json['evid'],
         'name': json['name'],
         'value': json['value'],
-        'masked': !exists(json, 'masked') ? undefined : json['masked'],
+        'masked': json['masked'],
     };
 }
 

@@ -284,7 +284,16 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                     </Text>
                                 </Col>
                                 <Col className="float-right">
-                                    <JobCreateModal projectId={this.projectId} openModal={false} spider={null} />
+                                    <JobCreateModal
+                                        projectId={this.projectId}
+                                        openModal={false}
+                                        spider={null}
+                                        argsProps={[]}
+                                        envVarsProps={[]}
+                                        tagsProps={[]}
+                                    >
+                                        Run new job
+                                    </JobCreateModal>
                                 </Col>
                             </Row>
                             <Row className="my-4 grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">

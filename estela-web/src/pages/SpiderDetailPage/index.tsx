@@ -961,7 +961,12 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                                             openModal={false}
                                             spider={this.state.spider}
                                             projectId={this.projectId}
-                                        />
+                                            argsProps={[]}
+                                            envVarsProps={[]}
+                                            tagsProps={[]}
+                                        >
+                                            Run this spider
+                                        </JobCreateModal>
                                     </Col>
                                 </Row>
                                 <Tabs

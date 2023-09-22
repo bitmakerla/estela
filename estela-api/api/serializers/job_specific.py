@@ -10,6 +10,11 @@ class SpiderJobArgSerializer(serializers.ModelSerializer):
 
 
 class SpiderJobEnvVarSerializer(serializers.ModelSerializer):
+    masked = serializers.BooleanField(
+        required=True,
+        help_text="Whether the env variable value is masked.",
+    )
+
     class Meta:
         model = SpiderJobEnvVar
         fields = ("evid", "name", "value", "masked")

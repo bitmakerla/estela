@@ -14,6 +14,10 @@
 
 import { exists, mapValues } from '../runtime';
 import {
+    Spider,
+    SpiderFromJSON,
+    SpiderFromJSONTyped,
+    SpiderToJSON,
     SpiderJobArg,
     SpiderJobArgFromJSON,
     SpiderJobArgFromJSONTyped,
@@ -46,10 +50,10 @@ export interface SpiderJobStats {
     readonly jid?: number;
     /**
      * 
-     * @type {string}
+     * @type {Spider}
      * @memberof SpiderJobStats
      */
-    readonly spider?: string;
+    spider: Spider;
     /**
      * Job creation date.
      * @type {Date}
@@ -157,7 +161,7 @@ export function SpiderJobStatsFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'jid': !exists(json, 'jid') ? undefined : json['jid'],
-        'spider': !exists(json, 'spider') ? undefined : json['spider'],
+        'spider': SpiderFromJSON(json['spider']),
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
         'name': !exists(json, 'name') ? undefined : json['name'],
         'lifespan': !exists(json, 'lifespan') ? undefined : json['lifespan'],
@@ -184,6 +188,7 @@ export function SpiderJobStatsToJSON(value?: SpiderJobStats | null): any {
     }
     return {
         
+        'spider': SpiderToJSON(value.spider),
         'lifespan': value.lifespan,
         'total_response_bytes': value.totalResponseBytes,
         'item_count': value.itemCount,

@@ -1709,6 +1709,7 @@ definitions:
     required:
       - name
       - value
+      - masked
     type: object
     properties:
       evid:
@@ -2184,6 +2185,8 @@ definitions:
           minLength: 1
   SpiderJob:
     description: Project jobs.
+    required:
+      - spider
     type: object
     properties:
       jid:
@@ -2192,9 +2195,7 @@ definitions:
         type: integer
         readOnly: true
       spider:
-        title: Spider
-        type: string
-        readOnly: true
+        $ref: '#/definitions/Spider'
       created:
         title: Created
         description: Job creation date.
@@ -2791,6 +2792,7 @@ definitions:
         $ref: '#/definitions/Stats'
   SpiderJobStats:
     required:
+      - spider
       - stats
     type: object
     properties:
@@ -2800,9 +2802,7 @@ definitions:
         type: integer
         readOnly: true
       spider:
-        title: Spider
-        type: string
-        readOnly: true
+        $ref: '#/definitions/Spider'
       created:
         title: Created
         description: Job creation date.

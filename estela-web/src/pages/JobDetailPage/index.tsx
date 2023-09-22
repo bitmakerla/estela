@@ -1,73 +1,36 @@
 import React, { Component } from "react";
-import moment from "moment";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, LinearScale } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
-import {
-    Layout,
-    Typography,
-    Row,
-    Col,
-    Space,
-    Tag,
-    Button,
-    DatePickerProps,
-    Tabs,
-    Card,
-    Modal,
-    Select,
-    Input,
-    Tooltip as AntdTooltip,
-    Checkbox,
-} from "antd";
-import type { RangePickerProps } from "antd/es/date-picker";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
+import JobCreateModal from "../JobCreateModal";
+import { Layout, Typography, Row, Col, Space, Tag, Button, Tabs, Card, Modal, Tooltip as AntdTooltip } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
-import history from "../../history";
 import { ApiService } from "../../services";
 import { BytesMetric, parseDuration, durationToString, formatBytes } from "../../utils";
-import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
-import Add from "../../assets/icons/add.svg";
 
 import {
     ApiProjectsSpidersJobsReadRequest,
     SpiderJobUpdateStatusEnum,
-    ApiProjectsSpidersJobsCreateRequest,
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
-    ApiProjectsSpidersListRequest,
     SpiderJob,
-    SpiderJobCreate,
     SpiderJobEnvVar,
-    SpiderJobUpdate,
-    SpiderJobUpdateDataStatusEnum,
-    Spider,
+    SpiderJobArg,
+    SpiderJobTag,
 } from "../../services/api";
 import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../JobDataPage";
-import { resourceNotAllowedNotification, incorrectDataNotification, invalidDataNotification, Spin } from "../../shared";
+import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
 const { Text } = Typography;
-const { Option } = Select;
 
 ChartJS.register(ArcElement, LinearScale, Tooltip, Legend);
 
 interface Dictionary {
     [Key: string]: string;
-}
-
-interface OptionDataPersistence {
-    label: string;
-    key: number;
-    value: number;
-}
-
-interface ArgsData {
-    name: string;
-    value: string;
 }
 
 interface Args {
@@ -79,12 +42,8 @@ interface Args {
 interface EnvVars {
     name: string;
     value: string;
-    masked: boolean | undefined;
+    masked: boolean;
     key: number;
-}
-
-interface TagsData {
-    name: string;
 }
 
 interface Tags {
@@ -97,9 +56,9 @@ interface JobDetailPageState {
     name: string | undefined;
     lifespan: number | undefined;
     totalResponseBytes: number | undefined;
-    args: ArgsData[];
+    args: SpiderJobArg[];
     envVars: SpiderJobEnvVar[];
-    tags: TagsData[];
+    tags: SpiderJobTag[];
     date: string;
     activeKey: string;
     created: string | undefined;
@@ -113,24 +72,12 @@ interface JobDetailPageState {
     dataStatus: string | undefined;
     dataExpiryDays: number | undefined;
     loading_status: boolean;
-    modified: boolean;
     modalStop: boolean;
     modalClone: boolean;
-    spiders: Spider[];
-    loadedSpiders: boolean;
     spiderName: string;
-    newSpiderId: string;
-    newDataExpireDays: number;
-    newDataStatus: string;
     newTags: Tags[];
-    newTagName: string;
     newArgs: Args[];
-    newArgName: string;
-    newArgValue: string;
     newEnvVars: EnvVars[];
-    newEnvVarName: string;
-    newEnvVarValue: string;
-    newEnvVarMasked: boolean;
 }
 
 interface RouteParams {
@@ -244,24 +191,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         dataStatus: "",
         dataExpiryDays: 0,
         loading_status: false,
-        modified: false,
         modalStop: false,
         modalClone: false,
-        spiders: [],
-        loadedSpiders: false,
         spiderName: "",
-        newSpiderId: "",
-        newDataExpireDays: 1,
-        newDataStatus: "PENDING",
         newTags: [],
-        newTagName: "",
         newArgs: [],
-        newArgName: "",
-        newArgValue: "",
         newEnvVars: [],
-        newEnvVarName: "",
-        newEnvVarValue: "",
-        newEnvVarMasked: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -289,16 +224,35 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.apiService.apiProjectsSpidersJobsRead(requestParams).then(
             async (response: SpiderJob) => {
                 const args = response.args || [];
+                const newArgs = args.map((arg: SpiderJobArg, id: number) => {
+                    return { name: arg.name, value: arg.value, key: id };
+                });
                 const envVars = response.envVars || [];
+                const newEnvVars = envVars.map((envVar: SpiderJobEnvVar, id: number) => {
+                    return {
+                        evid: envVar.evid,
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                        key: id,
+                    };
+                });
                 const tags = response.tags || [];
+                const newTags = tags.map((tag: SpiderJobTag, id: number) => {
+                    return { name: tag.name, key: id };
+                });
                 const lifespan = response.lifespan;
                 this.setState({
                     name: response.name,
                     lifespan: lifespan,
                     totalResponseBytes: response.totalResponseBytes,
                     args: [...args],
+                    newArgs: [...newArgs],
                     envVars: [...envVars],
+                    newEnvVars: [...newEnvVars],
                     tags: [...tags],
+                    newTags: [...newTags],
+                    spiderName: response.spider.name,
                     date: convertDateToString(response.created),
                     created: `${response.created}`,
                     status: response.jobStatus,
@@ -313,243 +267,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 resourceNotAllowedNotification();
             },
         );
-        this.getProjectSpiders();
         await this.getItems(1);
         this.setState({ loadedItemsFirstTime: true });
     }
-
-    getProjectSpiders = async (): Promise<void> => {
-        const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId };
-        this.apiService.apiProjectsSpidersList(requestParams).then(
-            (results) => {
-                if (results.results.length == 0 || results.results == undefined) {
-                    this.setState({ spiders: [], loadedSpiders: true });
-                } else {
-                    const spiderName = results.results.find(
-                        (spider: Spider) => String(spider?.sid) === this.spiderId,
-                    )?.name;
-                    this.setState({
-                        spiders: [...results.results],
-                        spiderName: spiderName || "",
-                        newSpiderId: String(results.results[0].sid),
-                        loadedSpiders: true,
-                    });
-                }
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
-    };
-
-    getData = async (): Promise<void> => {
-        const requestParams: ApiProjectsSpidersJobsDataListRequest = {
-            pid: this.projectId,
-            sid: this.spiderId,
-            jid: `${this.jobId}`,
-        };
-        this.apiService.apiProjectsSpidersList(requestParams).then(
-            (results) => {
-                if (results.results.length == 0 || results.results == undefined) {
-                    this.setState({ spiders: [], loadedSpiders: true });
-                } else {
-                    const spiderName = results.results.find(
-                        (spider: Spider) => String(spider?.sid) === this.spiderId,
-                    )?.name;
-                    this.setState({
-                        spiders: [...results.results],
-                        spiderName: spiderName || "",
-                        newSpiderId: String(results.results[0].sid),
-                        loadedSpiders: true,
-                    });
-                }
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
-    };
-
-    handlePersistenceChange = (value: number): void => {
-        if (value == 720) {
-            this.setState({ newDataStatus: "PERSISTENT" });
-        } else {
-            this.setState({ newDataExpireDays: value });
-        }
-    };
-
-    handleRemoveTag = (id: number): void => {
-        const newTags = [...this.state.newTags];
-        newTags.splice(id, 1);
-        this.setState({ newTags: [...newTags] });
-    };
-
-    handleRemoveArg = (id: number): void => {
-        const newArgs = [...this.state.newArgs];
-        newArgs.splice(id, 1);
-        this.setState({ newArgs: [...newArgs] });
-    };
-
-    handleRemoveEnvVar = (id: number): void => {
-        const newEnvVars = [...this.state.newEnvVars];
-        newEnvVars.splice(id, 1);
-        this.setState({ newEnvVars: [...newEnvVars] });
-    };
-
-    onChangeEnvVarMasked = (e: CheckboxChangeEvent) => {
-        this.setState({ newEnvVarMasked: e.target.checked });
-    };
-
-    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-        const {
-            target: { value, name },
-        } = event;
-        if (name === "newArgName") {
-            this.setState({ newArgName: value });
-        } else if (name === "newArgValue") {
-            this.setState({ newArgValue: value });
-        } else if (name === "newEnvVarName") {
-            this.setState({ newEnvVarName: value });
-        } else if (name === "newEnvVarValue") {
-            this.setState({ newEnvVarValue: value });
-        } else if (name === "newTagName") {
-            this.setState({ newTagName: value });
-        }
-    };
-
-    handleSubmit = (): void => {
-        const futureDate: Date = new Date();
-        futureDate.setDate(futureDate.getDate() + this.state.newDataExpireDays);
-        const requestData = {
-            args: [...this.state.newArgs],
-            envVars: [...this.state.newEnvVars],
-            tags: [...this.state.newTags],
-            dataStatus: this.state.newDataStatus,
-            dataExpiryDays: this.state.newDataExpireDays,
-        };
-        const request: ApiProjectsSpidersJobsCreateRequest = {
-            data: requestData,
-            pid: this.projectId,
-            sid: this.state.newSpiderId,
-        };
-        this.apiService.apiProjectsSpidersJobsCreate(request).then(
-            (response: SpiderJobCreate) => {
-                history.push(`/projects/${this.projectId}/spiders/${this.state.newSpiderId}/jobs/${response.jid}`);
-                location.reload();
-            },
-            (error: unknown) => {
-                error;
-                incorrectDataNotification();
-            },
-        );
-    };
-
-    handleSpiderChange = (value: string): void => {
-        const spiderId = this.state.spiders.find((spider) => {
-            return spider.name === value;
-        });
-        this.setState({ newSpiderId: String(spiderId?.sid) });
-    };
-
-    addTag = (): void => {
-        const newTags = [...this.state.newTags];
-        const newTagName = this.state.newTagName.trim();
-        if (newTagName && newTagName.indexOf(" ") == -1) {
-            newTags.push({ name: newTagName, key: this.countKey++ });
-            this.setState({ newTags: [...newTags], newTagName: "" });
-        } else {
-            invalidDataNotification("Invalid tag name.");
-        }
-    };
-
-    addArgument = (): void => {
-        const newArgs = [...this.state.newArgs];
-        const newArgName = this.state.newArgName.trim();
-        const newArgValue = this.state.newArgValue.trim();
-        if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
-            newArgs.push({ name: newArgName, value: newArgValue, key: this.countKey++ });
-            this.setState({ newArgs: [...newArgs], newArgName: "", newArgValue: "" });
-        } else {
-            invalidDataNotification("Invalid argument name/value pair.");
-        }
-    };
-
-    addEnvVar = (): void => {
-        const newEnvVars = [...this.state.newEnvVars];
-        const newEnvVarName = this.state.newEnvVarName.trim();
-        const newEnvVarValue = this.state.newEnvVarValue.trim();
-        const newEnvVarMasked = this.state.newEnvVarMasked;
-        if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            newEnvVars.push({
-                name: newEnvVarName,
-                value: newEnvVarValue,
-                masked: newEnvVarMasked,
-                key: this.countKey++,
-            });
-            this.setState({
-                newEnvVars: [...newEnvVars],
-                newEnvVarName: "",
-                newEnvVarValue: "",
-                newEnvVarMasked: false,
-            });
-        } else {
-            invalidDataNotification("Invalid environment variable name/value pair.");
-        }
-    };
-
-    stopJob = (): void => {
-        const request: ApiProjectsSpidersJobsUpdateRequest = {
-            jid: this.jobId,
-            sid: this.spiderId,
-            pid: this.projectId,
-            data: {
-                jid: this.jobId,
-                status: SpiderJobUpdateStatusEnum.Stopped,
-            },
-        };
-        this.apiService.apiProjectsSpidersJobsUpdate(request).then(
-            (response: SpiderJobUpdate) => {
-                this.setState({ status: response.status });
-            },
-            (error: unknown) => {
-                error;
-                incorrectDataNotification();
-            },
-        );
-    };
-
-    updateDataExpiry = (): void => {
-        this.setState({ loading_status: true });
-        const requestData: SpiderJobUpdate = {
-            dataStatus:
-                this.state.dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
-                    ? this.state.dataStatus
-                    : SpiderJobUpdateDataStatusEnum.Pending,
-            dataExpiryDays: this.state.dataExpiryDays,
-        };
-        const request: ApiProjectsSpidersJobsUpdateRequest = {
-            jid: this.jobId,
-            pid: this.projectId,
-            sid: this.spiderId,
-            data: requestData,
-        };
-        this.apiService.apiProjectsSpidersJobsUpdate(request).then(
-            (response: SpiderJobUpdate) => {
-                this.setState({
-                    dataStatus: response.dataStatus,
-                    dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
-                    modified: false,
-                    loading_status: false,
-                });
-            },
-            (error: unknown) => {
-                error;
-                incorrectDataNotification();
-            },
-        );
-    };
 
     updateStatus = (_status: SpiderJobUpdateStatusEnum): void => {
         this.setState({ loading_status: true });
@@ -570,27 +290,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 incorrectDataNotification();
             },
         );
-    };
-
-    onChangeData = (): void => {
-        const _dataStatus =
-            this.state.dataStatus == SpiderJobUpdateDataStatusEnum.Persistent
-                ? SpiderJobUpdateDataStatusEnum.Pending
-                : SpiderJobUpdateDataStatusEnum.Persistent;
-        this.setState({ dataStatus: _dataStatus, modified: true });
-    };
-
-    onChangeDay = (value: number): void => {
-        this.setState({ dataExpiryDays: value, modified: true });
-    };
-
-    disabledDate: RangePickerProps["disabledDate"] = (current) => {
-        return current && current < moment().endOf("day");
-    };
-
-    onChangeDate: DatePickerProps["onChange"] = (date) => {
-        const days = moment.duration(moment(date, "llll").diff(moment(this.state.created, "llll"))).asDays();
-        this.setState({ dataExpiryDays: days, modified: true });
     };
 
     getItems = async (page: number, pageSize?: number): Promise<void> => {
@@ -774,9 +473,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Tags</Text>
                             </Col>
-                            <Col className="col-span-2 px-2">
-                                <Space direction="horizontal" className="flex flex-wrap">
-                                    {tags.map((tag: TagsData, id) => (
+                            <Col className="px-2">
+                                <Space direction="horizontal">
+                                    {tags.map((tag: SpiderJobTag, id) => (
                                         <Tag
                                             className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
                                             key={id}
@@ -826,9 +525,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Col>
                                 <Text className="font-bold">Arguments</Text>
                             </Col>
-                            <Col className="col-span-2 px-2">
-                                <Space direction="horizontal" className="flex flex-wrap">
-                                    {args.map((arg: ArgsData, id) => (
+                            <Col className="px-2">
+                                <Space direction="horizontal">
+                                    {args.map((arg: SpiderJobArg, id) => (
                                         <Tag
                                             className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
                                             key={id}
@@ -996,28 +695,19 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     render(): JSX.Element {
         const {
             loaded,
-            newTagName,
-            status,
             modalStop,
-            modalClone,
-            spiders,
             activeKey,
-            loadedSpiders,
             newTags,
             newArgs,
-            newArgName,
-            newArgValue,
             newEnvVars,
-            newEnvVarName,
-            newEnvVarValue,
-            newEnvVarMasked,
             itemsCurrent,
             loadedItems,
             loadedItemsFirstTime,
+            status,
         } = this.state;
         return (
             <Content className="content-padding">
-                {loaded && loadedSpiders ? (
+                {loaded ? (
                     <Layout className="white-background">
                         <Content className="bg-metal rounded-2xl">
                             <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
@@ -1027,42 +717,16 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     </Text>
                                 </Col>
                                 <Col className="float-right flex gap-1">
-                                    <Button
-                                        onClick={() => {
-                                            const newTags: Tags[] = [...this.state.tags].map(
-                                                (tag: TagsData, id: number) => ({
-                                                    name: tag.name,
-                                                    key: id,
-                                                }),
-                                            );
-                                            const newArgs: Args[] = [...this.state.args].map(
-                                                (arg: ArgsData, id: number) => ({
-                                                    name: arg.name,
-                                                    value: arg.value,
-                                                    key: id,
-                                                }),
-                                            );
-                                            const newEnvVars: EnvVars[] = [...this.state.envVars].map(
-                                                (envVar: SpiderJobEnvVar, id: number) => ({
-                                                    name: envVar.name,
-                                                    value: envVar.masked ? "__MASKED__" : envVar.value,
-                                                    masked: envVar.masked,
-                                                    key: id,
-                                                }),
-                                            );
-                                            this.setState({
-                                                modalClone: true,
-                                                newTags: [...newTags],
-                                                newArgs: [...newArgs],
-                                                newEnvVars: [...newEnvVars],
-                                            });
-                                        }}
-                                        icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
-                                        size="large"
-                                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    <JobCreateModal
+                                        projectId={this.projectId}
+                                        openModal={false}
+                                        spider={null}
+                                        argsProps={newArgs}
+                                        envVarsProps={newEnvVars}
+                                        tagsProps={newTags}
                                     >
                                         Clone this job
-                                    </Button>
+                                    </JobCreateModal>
                                     <Button
                                         disabled={!(status == SpiderJobUpdateStatusEnum.Running)}
                                         icon={<Pause className="h-6 w-6 mr-2 text-sm" />}
@@ -1074,257 +738,43 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     >
                                         Stop this job
                                     </Button>
-                                    {modalStop && (
-                                        <Modal
-                                            style={{
-                                                overflow: "hidden",
-                                                padding: 0,
-                                            }}
-                                            centered
-                                            width={681}
-                                            open={modalStop}
-                                            title={
-                                                <p className="text-xl text-center mt-2 font-normal">CONFIRM ACTION</p>
-                                            }
-                                            onCancel={() => this.setState({ modalStop: false })}
-                                            footer={null}
-                                        >
-                                            <Row className="grid sm:grid-cols-1" justify="center">
-                                                <Col className="text-center text-estela-black-full">
-                                                    Are you sure you want to stop this job?
-                                                </Col>
-                                            </Row>
-                                            <Row justify="center" className="mt-4">
-                                                <Button
-                                                    size="large"
-                                                    className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
-                                                    onClick={() => {
-                                                        this.updateStatus(SpiderJobUpdateStatusEnum.Stopped);
-                                                        this.setState({ modalStop: false });
-                                                    }}
-                                                >
-                                                    Confirm
-                                                </Button>
-                                                <Button
-                                                    size="large"
-                                                    className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                    onClick={() => this.setState({ modalStop: false })}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            </Row>
-                                        </Modal>
-                                    )}
-                                    {modalClone && (
-                                        <Modal
-                                            style={{
-                                                overflow: "hidden",
-                                                padding: 0,
-                                            }}
-                                            centered
-                                            width={460}
-                                            open={modalClone}
-                                            title={<p className="text-xl text-center mt-2 font-normal">NEW JOB</p>}
-                                            onCancel={() => this.setState({ modalClone: false })}
-                                            footer={null}
-                                        >
-                                            <Row className="grid sm:grid-cols-1">
-                                                <Col className="mx-2">
-                                                    <Content>
-                                                        <p className="mb-2 text-base">Spider</p>
-                                                        <Select
-                                                            style={{ borderRadius: 16 }}
-                                                            size="large"
-                                                            className="w-full"
-                                                            defaultValue={spiders[0] ? spiders[0].name : ""}
-                                                            onChange={this.handleSpiderChange}
-                                                        >
-                                                            {spiders.map((spider: Spider) => (
-                                                                <Option key={spider.sid} value={spider.name}>
-                                                                    {spider.name}
-                                                                </Option>
-                                                            ))}
-                                                        </Select>
-                                                    </Content>
-                                                    <Content>
-                                                        <p className="text-base my-2">Data persistence</p>
-                                                        <Select
-                                                            onChange={this.handlePersistenceChange}
-                                                            className="w-full"
-                                                            size="large"
-                                                            defaultValue={this.dataPersistenceOptions[0].value}
-                                                        >
-                                                            {this.dataPersistenceOptions.map(
-                                                                (option: OptionDataPersistence) => (
-                                                                    <Option
-                                                                        className="text-sm"
-                                                                        key={option.key}
-                                                                        value={option.value}
-                                                                    >
-                                                                        {option.label}
-                                                                    </Option>
-                                                                ),
-                                                            )}
-                                                        </Select>
-                                                    </Content>
-                                                    <Content>
-                                                        <p className="text-base my-2">Tags</p>
-                                                        <Space direction="horizontal">
-                                                            {newTags.map((tag: Tags, id: number) => {
-                                                                return (
-                                                                    <Tag
-                                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                        closable
-                                                                        key={tag.key}
-                                                                        onClose={() => this.handleRemoveTag(id)}
-                                                                    >
-                                                                        {tag.name}
-                                                                    </Tag>
-                                                                );
-                                                            })}
-                                                        </Space>
-                                                        <Space direction="horizontal">
-                                                            <Input
-                                                                size="large"
-                                                                className="border-estela-blue-full rounded-lg"
-                                                                name="newTagName"
-                                                                placeholder="name"
-                                                                value={newTagName}
-                                                                onChange={this.handleInputChange}
-                                                            />
-                                                            <Button
-                                                                shape="circle"
-                                                                size="small"
-                                                                icon={<Add />}
-                                                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                onClick={this.addTag}
-                                                            ></Button>
-                                                        </Space>
-                                                    </Content>
-                                                    <Content>
-                                                        <p className="text-base my-2">Arguments</p>
-                                                        <Space direction="vertical">
-                                                            {newArgs.map((arg: Args, id) => (
-                                                                <Tag
-                                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                                    closable
-                                                                    key={arg.key}
-                                                                    onClose={() => this.handleRemoveArg(id)}
-                                                                >
-                                                                    {arg.name}: {arg.value}
-                                                                </Tag>
-                                                            ))}
-                                                            <Space direction="horizontal">
-                                                                <Input
-                                                                    size="large"
-                                                                    className="border-estela-blue-full rounded-l-lg"
-                                                                    name="newArgName"
-                                                                    placeholder="name"
-                                                                    value={newArgName}
-                                                                    onChange={this.handleInputChange}
-                                                                />
-                                                                <Input
-                                                                    size="large"
-                                                                    className="border-estela-blue-full rounded-r-lg"
-                                                                    name="newArgValue"
-                                                                    placeholder="value"
-                                                                    value={newArgValue}
-                                                                    onChange={this.handleInputChange}
-                                                                />
-                                                                <Button
-                                                                    shape="circle"
-                                                                    size="small"
-                                                                    icon={<Add />}
-                                                                    className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                    onClick={this.addArgument}
-                                                                ></Button>
-                                                            </Space>
-                                                        </Space>
-                                                    </Content>
-                                                    <Space direction="vertical" className="my-2">
-                                                        <p className="text-base">Environment Variables</p>
-                                                        <Space direction="horizontal">
-                                                            {newEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                                                envVar.masked ? (
-                                                                    <AntdTooltip
-                                                                        title="Masked variable"
-                                                                        showArrow={false}
-                                                                        overlayClassName="tooltip"
-                                                                        key={id}
-                                                                    >
-                                                                        <Tag
-                                                                            closable
-                                                                            onClose={() => this.handleRemoveEnvVar(id)}
-                                                                            className="environment-variables"
-                                                                            key={id}
-                                                                        >
-                                                                            {envVar.name}
-                                                                        </Tag>
-                                                                    </AntdTooltip>
-                                                                ) : (
-                                                                    <Tag
-                                                                        closable
-                                                                        onClose={() => this.handleRemoveEnvVar(id)}
-                                                                        className="environment-variables"
-                                                                        key={id}
-                                                                    >
-                                                                        {envVar.name}: {envVar.value}
-                                                                    </Tag>
-                                                                ),
-                                                            )}
-                                                        </Space>
-                                                        <Space direction="horizontal">
-                                                            <Input
-                                                                size="large"
-                                                                className="border-estela-blue-full rounded-l-lg"
-                                                                name="newEnvVarName"
-                                                                placeholder="name"
-                                                                value={newEnvVarName}
-                                                                onChange={this.handleInputChange}
-                                                            />
-                                                            <Input
-                                                                size="large"
-                                                                className="border-estela-blue-full rounded-r-lg"
-                                                                name="newEnvVarValue"
-                                                                placeholder="value"
-                                                                value={newEnvVarValue}
-                                                                onChange={this.handleInputChange}
-                                                            />
-                                                            <Checkbox
-                                                                checked={newEnvVarMasked}
-                                                                onChange={this.onChangeEnvVarMasked}
-                                                            >
-                                                                Masked
-                                                            </Checkbox>
-                                                            <Button
-                                                                shape="circle"
-                                                                size="small"
-                                                                icon={<Add />}
-                                                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
-                                                                onClick={this.addEnvVar}
-                                                            ></Button>
-                                                        </Space>
-                                                    </Space>
-                                                </Col>
-                                            </Row>
-                                            <Row className="flow-root mt-4">
-                                                <Button
-                                                    onClick={this.handleSubmit}
-                                                    size="large"
-                                                    className="float-left w-48 h-12 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
-                                                >
-                                                    Confirm
-                                                </Button>
-                                                <Button
-                                                    size="large"
-                                                    className="float-right w-48 h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                    onClick={() => this.setState({ modalClone: false })}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            </Row>
-                                        </Modal>
-                                    )}
+                                    <Modal
+                                        style={{
+                                            overflow: "hidden",
+                                            padding: 0,
+                                        }}
+                                        centered
+                                        width={681}
+                                        open={modalStop}
+                                        title={<p className="text-xl text-center mt-2 font-normal">CONFIRM ACTION</p>}
+                                        onCancel={() => this.setState({ modalStop: false })}
+                                        footer={null}
+                                    >
+                                        <Row className="grid sm:grid-cols-1" justify="center">
+                                            <Col className="text-center text-estela-black-full">
+                                                Are you sure you want to stop this job?
+                                            </Col>
+                                        </Row>
+                                        <Row justify="center" className="mt-4">
+                                            <Button
+                                                size="large"
+                                                className="w-48 h-12 mr-1 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                                                onClick={() => {
+                                                    this.updateStatus(SpiderJobUpdateStatusEnum.Stopped);
+                                                    this.setState({ modalStop: false });
+                                                }}
+                                            >
+                                                Confirm
+                                            </Button>
+                                            <Button
+                                                size="large"
+                                                className="w-48 h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                                                onClick={() => this.setState({ modalStop: false })}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </Row>
+                                    </Modal>
                                 </Col>
                             </Row>
                             <Row className="lg:mx-10 mx-6">
