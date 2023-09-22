@@ -218,6 +218,11 @@ def record_project_usage_after_job_event(job_id):
     logs_data_size = spiderdata_db_client.get_collection_size(
         str(project.pid), logs_collection_name
     )
+    proxy_details = {}
+    for proxy_name, proxy_usage_name in settings.RESERVED_PROXY_NAMES:
+        proxy_details.update({
+            proxy_usage_name: job.proxy_usage_data["bytes"] if proxy_name in job.proxy_usage_data.get("proxy_name") else 0,
+        })
 
     updated_values = {
         "processing_time": job.lifespan,
@@ -226,6 +231,7 @@ def record_project_usage_after_job_event(job_id):
         "request_count": job.request_count,
         "requests_data_size": requests_data_size,
         "logs_data_size": logs_data_size,
+        **proxy_details,
     }
     last_usage_record = UsageRecord.objects.filter(project=project).first()
     if last_usage_record:

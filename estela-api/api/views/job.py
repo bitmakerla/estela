@@ -129,8 +129,6 @@ class SpiderJobViewSet(
                 proxy_id = next((tup[1] for tup in proxy_provider_names if proxy_name in tup), None)
                 if proxy_id:
                     proxy_env_vars = get_proxy_provider_envs(proxy_id)
-                    print("Proxy env vars:")
-                    print(proxy_env_vars)
                     job_env_vars.update({
                         env_var["name"]: env_var["value"] for env_var in proxy_env_vars
                     })

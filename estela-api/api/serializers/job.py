@@ -142,7 +142,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         SpiderJob.RUNNING_STATUS,
     ]
 
-    job_fields = ["lifespan", "total_response_bytes", "item_count", "request_count"]
+    job_fields = ["lifespan", "total_response_bytes", "item_count",
+                  "request_count", "residential_proxy_usage", "datacenter_proxy_usage"]
 
     class Meta:
         model = SpiderJob
@@ -155,6 +156,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             "request_count",
             "data_status",
             "data_expiry_days",
+            "residential_proxy_usage",
+            "datacenter_proxy_usage",
         )
 
     def update(self, instance, validated_data):

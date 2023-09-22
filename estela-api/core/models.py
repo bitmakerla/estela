@@ -301,6 +301,9 @@ class SpiderJob(models.Model):
     request_count = models.PositiveBigIntegerField(
         default=0, help_text="The number of requests made by the spider job."
     )
+    proxy_usage_data = models.JSONField(
+        default=dict, help_text="Proxy Usage data.",
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -434,6 +437,15 @@ class UsageRecord(models.Model):
     items_data_size = models.PositiveBigIntegerField(
         help_text="Amount in bytes occupied by items in the database"
     )
+    residential_proxy_usage = models.PositiveBigIntegerField(
+        default=0,
+        help_text="Amount in bytes occupied by residential proxy responses in the database",
+    )
+    datacenter_proxy_usage = models.PositiveBigIntegerField(
+        default=0,
+        help_text="Amount in bytes occupied by datacenter proxy responses in the database",
+    )
+
     requests_data_size = models.PositiveBigIntegerField(
         help_text="Amount in bytes occupied by requests in the database"
     )
