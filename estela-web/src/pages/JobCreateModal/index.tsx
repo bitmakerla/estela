@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
+import { Modal, Layout, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import {
     ApiProjectsSpidersJobsCreateRequest,
@@ -20,12 +20,17 @@ import { checkExternalError } from "../../defaultComponents";
 import Run from "../../assets/icons/play.svg";
 import Add from "../../assets/icons/add.svg";
 
+const { Content } = Layout;
 const { Option } = Select;
 
 interface JobCreateModalProps {
     openModal: boolean;
     spider: Spider | null;
     projectId: string;
+    envVarsProps: SpiderJobEnvVar[];
+    argsProps: ArgsData[];
+    tagsProps: TagsData[];
+    children: React.ReactNode;
 }
 
 interface MaskedTagProps {
@@ -40,25 +45,14 @@ interface ArgsData {
     key: number;
 }
 
-interface EnvVarsData {
-    name: string;
-    value: string;
-    key: number;
-    masked: boolean;
-}
-
 interface TagsData {
-    name: string;
-}
-
-interface Tags {
     name: string;
     key: number;
 }
 
 interface JobData {
     args: ArgsData[];
-    envVars: EnvVarsData[];
+    envVars: SpiderJobEnvVar[];
     tags: TagsData[];
     dataStatus: SpiderDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
@@ -71,7 +65,6 @@ interface Variable {
     newEnvVarValue: string;
     newEnvVarMasked: boolean;
     newTagName: string;
-    newTags: Tags[];
 }
 
 interface Request {
@@ -95,7 +88,15 @@ const dataPersistenceOptions = [
     { label: "Forever", key: 7, value: 720 },
 ];
 
-export default function JobCreateModal({ openModal, spider, projectId }: JobCreateModalProps) {
+export default function JobCreateModal({
+    openModal,
+    spider,
+    projectId,
+    envVarsProps,
+    argsProps,
+    tagsProps,
+    children,
+}: JobCreateModalProps) {
     const PAGE_SIZE = 15;
     const apiService = ApiService();
     const [open, setOpen] = useState(openModal);
@@ -104,9 +105,9 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
     const [spiders, setSpiders] = useState<Spider[]>([]);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
     const [jobData, setJobData] = useState<JobData>({
-        args: [],
-        envVars: [],
-        tags: [],
+        args: argsProps,
+        envVars: envVarsProps,
+        tags: tagsProps,
         dataStatus: spider ? spider.dataStatus : undefined,
         dataExpiryDays: spider ? spider.dataExpiryDays : 1,
     });
@@ -119,7 +120,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         newEnvVarValue: "",
         newEnvVarMasked: false,
         newTagName: "",
-        newTags: [],
     });
     const [request, setRequest] = useState<Request>({
         pid: projectId,
@@ -299,51 +299,57 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         setJobData({ ...jobData, tags: [...tags] });
     };
 
-    const addArgument = (): void => {
+    const addArgument = (): ArgsData | null => {
         const args = [...jobData.args];
         const newArgName = variable.newArgName.trim();
         const newArgValue = variable.newArgValue.trim();
         if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
-            args.push({ name: newArgName, value: newArgValue, key: countKey });
+            const arg = { name: newArgName, value: newArgValue, key: countKey };
+            args.push(arg);
             setCountKey(countKey + 1);
             setJobData({ ...jobData, args: [...args] });
             setVariable({ ...variable, newArgName: "", newArgValue: "" });
+            return arg;
         } else {
             invalidDataNotification("Invalid argument name/value pair.");
+            return null;
         }
     };
 
-    const addEnvVar = (): void => {
+    const addEnvVar = (): SpiderJobEnvVar | null => {
         const envVars = [...jobData.envVars];
         const newEnvVarName = variable.newEnvVarName.trim();
         const newEnvVarValue = variable.newEnvVarValue.trim();
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({
+            const newEnvVar = {
                 name: newEnvVarName,
                 value: newEnvVarValue,
                 masked: variable.newEnvVarMasked,
-                key: countKey,
-            });
+            };
+            envVars.push(newEnvVar);
             setCountKey(countKey + 1);
             setJobData({ ...jobData, envVars: [...envVars] });
             setVariable({ ...variable, newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
+            return newEnvVar;
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
+            return null;
         }
     };
 
-    const addTag = (): void => {
+    const addTag = (): TagsData | null => {
         const tags = [...jobData.tags];
-        const newTags = [...variable.newTags];
         const newTagName = variable.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
-            newTags.push({ name: newTagName, key: countKey });
+            const tag = { name: newTagName, key: countKey };
+            tags.push(tag);
             setCountKey(countKey + 1);
-            tags.push({ name: newTagName });
             setJobData({ ...jobData, tags: [...tags] });
-            setVariable({ ...variable, newTags: [...newTags], newTagName: "" });
+            setVariable({ ...variable, newTagName: "" });
+            return tag;
         } else {
             invalidDataNotification("Invalid tag name.");
+            return null;
         }
     };
 
@@ -369,14 +375,42 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         setVariable({ ...variable, newEnvVarMasked: checked });
     };
 
+    const addPendingFormElement = (
+        elementName: string,
+        elementValue: string,
+        addElementFunction: CallableFunction,
+        elementList: Array<ArgsData | SpiderJobEnvVar | TagsData>,
+    ): boolean => {
+        elementName = elementName.trim();
+        elementValue = elementValue.trim();
+        if (elementName || elementValue) {
+            const element = addElementFunction();
+            if (!element) {
+                return false;
+            }
+            elementList.push(element);
+        }
+        return true;
+    };
+
     const handleSubmit = (): void => {
         setLoading(true);
+
+        if (
+            !(
+                addPendingFormElement(variable.newArgName, variable.newArgValue, addArgument, jobData.args) &&
+                addPendingFormElement(variable.newEnvVarName, variable.newEnvVarValue, addEnvVar, jobData.envVars) &&
+                addPendingFormElement(variable.newTagName, "", addTag, jobData.tags)
+            )
+        ) {
+            setLoading(false);
+            return;
+        }
+
         const { args, tags, dataStatus, dataExpiryDays } = jobData;
         const { pid, sid } = request;
 
-        const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
-            return envVar;
-        });
+        const envVarsData = [...projectEnvVars];
         spiderEnvVars.map((envVar: SpiderJobEnvVar) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
@@ -385,11 +419,11 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                 envVarsData.push(envVar);
             }
         });
-
-        jobData.envVars.map((envVar: EnvVarsData) => {
+        jobData.envVars.map((envVar: SpiderJobEnvVar) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
                 envVarsData[index] = {
+                    evid: envVar.evid,
                     name: envVar.name,
                     value: envVar.value,
                     masked: envVar.masked,
@@ -415,10 +449,12 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             pid: pid,
             sid: sid,
         };
+
         apiService.apiProjectsSpidersJobsCreate(requests).then(
             (response: SpiderJobCreate) => {
                 setLoading(false);
                 history.push(`/projects/${pid}/spiders/${sid}/jobs/${response.jid}`);
+                location.reload();
             },
             async (error) => {
                 setLoading(false);
@@ -450,7 +486,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                     }
                 }}
             >
-                Run new job
+                {children}
             </Button>
             {externalComponent}
             <Modal
@@ -538,53 +574,57 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         </Space>
                     </Space>
                 </Row>
-                <Row>
+                <Content>
                     <p className="text-base my-2">Environment Variables</p>
-                    <Space direction="vertical">
-                        <div className="flex gap-2 mt-1">
-                            {projectEnvVars.length > 0 && <p className="text-sm">Project</p>}
-                            <div className="flex gap-2">
-                                {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                    envVar.masked ? (
-                                        <MaskedTag key={id} id={id} level={true}>
-                                            {envVar.name}
-                                        </MaskedTag>
-                                    ) : (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={id}
-                                            onClose={() => handleRemoveProjectEnvVar(id, true)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ),
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex gap-2 my-2">
-                            {spiderEnvVars.length > 0 && <p className="text-sm">Spider</p>}
-                            <div className="flex gap-2">
-                                {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                    envVar.masked ? (
-                                        <MaskedTag key={id} id={id} level={false}>
-                                            {envVar.name}
-                                        </MaskedTag>
-                                    ) : (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={id}
-                                            onClose={() => handleRemoveProjectEnvVar(id, false)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ),
-                                )}
-                            </div>
-                        </div>
+                    <Space direction="vertical" className="flex">
+                        {projectEnvVars.length > 0 && (
+                            <Content className="flex">
+                                <p className="text-sm mr-2">Project</p>
+                                <div className="flex gap-2">
+                                    {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                        envVar.masked ? (
+                                            <MaskedTag key={id} id={id} level={true}>
+                                                {envVar.name}
+                                            </MaskedTag>
+                                        ) : (
+                                            <Tag
+                                                className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                closable
+                                                key={id}
+                                                onClose={() => handleRemoveProjectEnvVar(id, true)}
+                                            >
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
+                                </div>
+                            </Content>
+                        )}
+                        {spiderEnvVars.length > 0 && (
+                            <Content className="flex">
+                                <p className="text-sm mr-2">Spider</p>
+                                <div className="flex gap-2">
+                                    {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                        envVar.masked ? (
+                                            <MaskedTag key={id} id={id} level={false}>
+                                                {envVar.name}
+                                            </MaskedTag>
+                                        ) : (
+                                            <Tag
+                                                className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                closable
+                                                key={id}
+                                                onClose={() => handleRemoveProjectEnvVar(id, false)}
+                                            >
+                                                {envVar.name}: {envVar.value}
+                                            </Tag>
+                                        ),
+                                    )}
+                                </div>
+                            </Content>
+                        )}
                         <Space direction="horizontal" className="mb-2">
-                            {jobData.envVars.map((envVar: EnvVarsData, id: number) =>
+                            {jobData.envVars.map((envVar: SpiderJobEnvVar, id: number) =>
                                 envVar.masked ? (
                                     <Tooltip key={id} placement="top" title="Masked variable" showArrow={false}>
                                         <Tag
@@ -636,7 +676,7 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                             ></Button>
                         </Space>
                     </Space>
-                </Row>
+                </Content>
                 <Space direction="vertical" className="my-2">
                     <p className="text-base">Tags</p>
                     <Space direction="horizontal">

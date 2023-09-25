@@ -216,19 +216,19 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                             <Modal
                                 open={modalWelcome}
                                 footer={false}
-                                width={990}
+                                width={880}
                                 onCancel={() => {
                                     this.setState({ modalWelcome: false });
                                 }}
                             >
-                                <Row className="py-8 px-4" align="middle">
+                                <Row className="p-6" align="middle" justify="center">
                                     <Col span={16}>
                                         <Text className="text-estela font-bold text-4xl">WELCOME SCRAPER!</Text>
                                         <Paragraph className="text-xl mt-6">
                                             Start by creating a <Text strong>project</Text> to be able to deploy your
                                             spiders and start with your scraping.
                                         </Paragraph>
-                                        <Paragraph className="text-lg font-bold">
+                                        <Paragraph className="text-xl font-semibold">
                                             Remember to install the&nbsp;
                                             <a
                                                 target="_blank"
@@ -240,7 +240,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             &nbsp;to be able to deploy your spiders!
                                         </Paragraph>
                                         <Button
-                                            className="mt-6 w-96 h-14 rounded-md bg-estela text-white hover:border-estela hover:text-estela"
+                                            className="w-96 h-14 mt-2 text-lg rounded-lg bg-estela text-white hover:border-estela hover:text-estela"
                                             onClick={() => {
                                                 this.setState({ modalWelcome: false, modalNewProject: true });
                                             }}

@@ -7,6 +7,7 @@ from api.serializers.job_specific import (
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
+from api.serializers.spider import SpiderSerializer
 from api.utils import delete_stats_from_redis, update_stats_from_redis
 from config.job_manager import job_manager
 from core.models import (
@@ -30,7 +31,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
     job_status = serializers.CharField(
         required=False, read_only=True, help_text="Current job status."
     )
-    spider = serializers.SerializerMethodField("get_spider")
+    spider = SpiderSerializer(required=True, help_text="Job spider.")
 
     class Meta:
         model = SpiderJob

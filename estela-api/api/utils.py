@@ -70,5 +70,5 @@ def delete_stats_from_redis(job):
     redis_conn = redis.from_url(settings.REDIS_URL)
     try:
         redis_conn.delete(f"scrapy_stats_{job.key}")
-    except:
+    except Exception:
         pass

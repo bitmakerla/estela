@@ -235,7 +235,7 @@ export const EnvVarsSetting: React.FC<ProjectEnvVar> = ({ projectId, spiderId, e
             setNewEnvVarValue("");
             setNewEnvVarMasked(false);
             setOpenModal(false);
-            setActiveUpdateButton(true);
+            updateEnvVars();
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
         }
@@ -394,7 +394,7 @@ export const EnvVarsSetting: React.FC<ProjectEnvVar> = ({ projectId, spiderId, e
                         onClick={() => updateEnvVars()}
                         className="border-estela bg-estela hover:border-estela hover:text-estela text-white rounded-md text-base h-full"
                     >
-                        Save variables
+                        Save changes
                     </Button>
                 </div>
             </Space>

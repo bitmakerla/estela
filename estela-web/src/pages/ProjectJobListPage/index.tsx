@@ -5,6 +5,7 @@ import "./styles.scss";
 import { ApiService } from "../../services";
 import Filter from "../../assets/icons/filter.svg";
 import Setting from "../../assets/icons/setting.svg";
+import FolderDotted from "../../assets/icons/folderDotted.svg";
 import JobCreateModal from "../JobCreateModal";
 import {
     ApiProjectsReadRequest,
@@ -76,6 +77,7 @@ interface ProjectJobListPageState {
     count: number;
     current: number;
     loading: boolean;
+    isEmpty: boolean;
 }
 
 interface StateType {
@@ -100,6 +102,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         loaded: false,
         count: 0,
         current: 0,
+        isEmpty: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -203,6 +206,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 status: job.jobStatus,
                 tags: job.tags,
             }));
+            response.results.length === 0 ? this.setState({ isEmpty: true }) : this.setState({ isEmpty: false });
 
             const waitingJobs = data.filter((job: SpiderJobData) => job.status === "WAITING");
             const queueJobs = data.filter((job: SpiderJobData) => job.status === "IN_QUEUE");
@@ -247,6 +251,13 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         }
     };
 
+    emptyText = (): ReactElement => (
+        <Content className="flex w-full h-80 flex-col items-center justify-center text-estela-black-medium">
+            <FolderDotted className="w-20 h-20" />
+            <p>No jobs yet.</p>
+        </Content>
+    );
+
     render(): JSX.Element {
         const {
             loaded,
@@ -259,6 +270,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             waitingJobs,
             count,
             current,
+            isEmpty,
         } = this.state;
         return (
             <Content>
@@ -272,7 +284,16 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                     </Text>
                                 </Col>
                                 <Col className="float-right">
-                                    <JobCreateModal projectId={this.projectId} openModal={false} spider={null} />
+                                    <JobCreateModal
+                                        projectId={this.projectId}
+                                        openModal={false}
+                                        spider={null}
+                                        argsProps={[]}
+                                        envVarsProps={[]}
+                                        tagsProps={[]}
+                                    >
+                                        Run new job
+                                    </JobCreateModal>
                                 </Col>
                             </Row>
                             <Row className="my-4 grid gap-2 grid-cols-1 lg:grid-cols-5 items-start w-full">
@@ -591,6 +612,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Space>
                                         </Row>
                                     )}
+                                    <Row>{isEmpty && this.emptyText()}</Row>
                                     <Row>
                                         <Pagination
                                             className="pagination"
@@ -609,6 +631,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                         <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
                                         <Content className="my-2">
                                             <Checkbox
+                                                disabled={isEmpty}
                                                 checked={waitingJobs.length == 0 ? tableStatus[waiting] : true}
                                                 onChange={() => this.onChangeStatus(waiting, waitingJobs.length)}
                                             >
@@ -623,6 +646,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
+                                                disabled={isEmpty}
                                                 checked={queueJobs.length == 0 ? tableStatus[queued] : true}
                                                 onChange={() => this.onChangeStatus(queued, queueJobs.length)}
                                             >
@@ -637,6 +661,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
+                                                disabled={isEmpty}
                                                 checked={runningJobs.length == 0 ? tableStatus[running] : true}
                                                 onChange={() => this.onChangeStatus(running, runningJobs.length)}
                                             >
@@ -651,6 +676,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
+                                                disabled={isEmpty}
                                                 checked={completedJobs.length == 0 ? tableStatus[completed] : true}
                                                 onChange={() => this.onChangeStatus(completed, completedJobs.length)}
                                             >
@@ -665,6 +691,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
+                                                disabled={isEmpty}
                                                 checked={stoppedJobs.length == 0 ? tableStatus[stopped] : true}
                                                 onChange={() => this.onChangeStatus(stopped, stoppedJobs.length)}
                                             >
@@ -679,6 +706,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
+                                                disabled={isEmpty}
                                                 checked={errorJobs.length == 0 ? tableStatus[withError] : true}
                                                 onChange={() => this.onChangeStatus(withError, errorJobs.length)}
                                             >

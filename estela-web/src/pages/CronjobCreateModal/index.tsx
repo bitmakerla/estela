@@ -91,10 +91,6 @@ interface EnvVarsData {
 
 interface TagsData {
     name: string;
-}
-
-interface Tags {
-    name: string;
     key: number;
 }
 
@@ -111,7 +107,6 @@ interface Cronjob {
     newEnvVarValue: string;
     newEnvVarMasked: boolean;
     newTagName: string;
-    newTags: Tags[];
 }
 
 interface OptionDataRepeat {
@@ -193,7 +188,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         newEnvVarValue: "",
         newEnvVarMasked: false,
         newTagName: "",
-        newTags: [],
     });
     const [crontab, setCrontab] = useState<Crontab>({
         expression: "",
@@ -365,17 +359,20 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, args: [...args] });
     };
 
-    const addArgument = (): void => {
+    const addArgument = (): ArgsData | null => {
         const args = [...cronjobData.args];
         const newArgName = newCronjob.newArgName.trim();
         const newArgValue = newCronjob.newArgValue.trim();
         if (newArgName && newArgValue && newArgName.indexOf(" ") == -1) {
-            args.push({ name: newArgName, value: newArgValue, key: countKey });
+            const arg = { name: newArgName, value: newArgValue, key: countKey };
+            args.push(arg);
             setCountKey(countKey + 1);
             setCronjobData({ ...cronjobData, args: [...args] });
             setNewCronjob({ ...newCronjob, newArgName: "", newArgValue: "" });
+            return arg;
         } else {
             invalidDataNotification("Invalid argument name/value pair.");
+            return null;
         }
     };
 
@@ -414,22 +411,25 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         }
     };
 
-    const addEnvVar = (): void => {
+    const addEnvVar = (): EnvVarsData | null => {
         const envVars = [...cronjobData.envVars];
         const newEnvVarName = newCronjob.newEnvVarName.trim();
         const newEnvVarValue = newCronjob.newEnvVarValue.trim();
         if (newEnvVarName && newEnvVarValue && newEnvVarName.indexOf(" ") == -1) {
-            envVars.push({
+            const envVar = {
                 name: newEnvVarName,
                 value: newEnvVarValue,
                 masked: newCronjob.newEnvVarMasked,
                 key: countKey,
-            });
+            };
+            envVars.push(envVar);
             setCountKey(countKey + 1);
             setCronjobData({ ...cronjobData, envVars: [...envVars] });
             setNewCronjob({ ...newCronjob, newEnvVarName: "", newEnvVarValue: "", newEnvVarMasked: false });
+            return envVar;
         } else {
             invalidDataNotification("Invalid environment variable name/value pair.");
+            return null;
         }
     };
 
@@ -439,18 +439,19 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setCronjobData({ ...cronjobData, tags: [...tags] });
     };
 
-    const addTag = (): void => {
+    const addTag = (): TagsData | null => {
         const tags = [...cronjobData.tags];
-        const newTags = [...newCronjob.newTags];
         const newTagName = newCronjob.newTagName.trim();
         if (newTagName && newTagName.indexOf(" ") == -1) {
-            newTags.push({ name: newTagName, key: countKey });
+            const tag = { name: newTagName, key: countKey };
             setCountKey(countKey + 1);
-            tags.push({ name: newTagName });
+            tags.push(tag);
             setCronjobData({ ...cronjobData, tags: [...tags] });
-            setNewCronjob({ ...newCronjob, newTags: [...newTags], newTagName: "" });
+            setNewCronjob({ ...newCronjob, newTagName: "" });
+            return tag;
         } else {
             invalidDataNotification("Invalid tag name.");
+            return null;
         }
     };
 
@@ -538,8 +539,27 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         setNewCronjob({ ...newCronjob, newEnvVarMasked: checked });
     };
 
+    const addPendingFormElement = (
+        elementName: string,
+        elementValue: string,
+        addElementFunction: callable,
+        elementList: Array,
+    ): boolean => {
+        elementName = elementName.trim();
+        elementValue = elementValue.trim();
+        if (elementName || elementValue) {
+            const element = addElementFunction();
+            if (!element) {
+                return false;
+            }
+            elementList.push(element);
+        }
+        return true;
+    };
+
     const handleSubmit = (): void => {
         setLoading(true);
+
         let expression = "";
         if (schedulesFlag[0]) {
             if (crontab.expression == "") {
@@ -556,9 +576,23 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             expression = getExpression();
         }
 
-        const envVarsData = projectEnvVars.map((envVar: SpiderJobEnvVar) => {
-            return envVar;
-        });
+        if (
+            !(
+                addPendingFormElement(newCronjob.newArgName, newCronjob.newArgValue, addArgument, cronjobData.args) &&
+                addPendingFormElement(
+                    newCronjob.newEnvVarName,
+                    newCronjob.newEnvVarValue,
+                    addEnvVar,
+                    cronjobData.envVars,
+                ) &&
+                addPendingFormElement(newCronjob.newTagName, "", addTag, cronjobData.tags)
+            )
+        ) {
+            setLoading(false);
+            return;
+        }
+
+        const envVarsData = [...projectEnvVars];
         spiderEnvVars.map((envVar: SpiderJobEnvVar) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
@@ -567,7 +601,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                 envVarsData.push(envVar);
             }
         });
-
         cronjobData.envVars.map((envVar: EnvVarsData) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
             if (index != -1) {
@@ -589,7 +622,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             cronjobData.dataStatus == SpiderDataStatusEnum.Persistent
                 ? SpiderCronJobCreateDataStatusEnum.Persistent
                 : SpiderCronJobCreateDataStatusEnum.Pending;
-
         const requestData = {
             cargs: [...cronjobData.args],
             cenvVars: [...envVarsData],
@@ -743,48 +775,52 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         <Content>
                             <p className="text-base my-2">Environment Variables</p>
                             <Space direction="vertical" className="flex">
-                                <div className="flex">
-                                    {projectEnvVars.length > 0 ? <p className="text-sm mr-2">Project:</p> : <></>}
-                                    <div className="flex gap-2">
-                                        {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                            envVar.masked ? (
-                                                <MaskedTag key={id} id={id} level={true}>
-                                                    {envVar.name}
-                                                </MaskedTag>
-                                            ) : (
-                                                <Tag
-                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                    closable
-                                                    key={id}
-                                                    onClose={() => handleRemoveProjectEnvVar(id, true)}
-                                                >
-                                                    {envVar.name}: {envVar.value}
-                                                </Tag>
-                                            ),
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="flex">
-                                    {spiderEnvVars.length > 0 ? <p className="text-sm mr-2">Spider:</p> : <></>}
-                                    <div className="flex gap-2">
-                                        {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
-                                            envVar.masked ? (
-                                                <MaskedTag key={id} id={id} level={false}>
-                                                    {envVar.name}
-                                                </MaskedTag>
-                                            ) : (
-                                                <Tag
-                                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                                    closable
-                                                    key={id}
-                                                    onClose={() => handleRemoveProjectEnvVar(id, false)}
-                                                >
-                                                    {envVar.name}: {envVar.value}
-                                                </Tag>
-                                            ),
-                                        )}
-                                    </div>
-                                </div>
+                                {projectEnvVars.length > 0 && (
+                                    <Content className="flex">
+                                        <p className="text-sm mr-2">Project:</p>
+                                        <div className="flex gap-2">
+                                            {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                                envVar.masked ? (
+                                                    <MaskedTag key={id} id={id} level={true}>
+                                                        {envVar.name}
+                                                    </MaskedTag>
+                                                ) : (
+                                                    <Tag
+                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                        closable
+                                                        key={id}
+                                                        onClose={() => handleRemoveProjectEnvVar(id, true)}
+                                                    >
+                                                        {envVar.name}: {envVar.value}
+                                                    </Tag>
+                                                ),
+                                            )}
+                                        </div>
+                                    </Content>
+                                )}
+                                {spiderEnvVars.length > 0 && (
+                                    <Content className="flex">
+                                        <p className="text-sm mr-2">Spider:</p>
+                                        <div className="flex gap-2">
+                                            {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                                envVar.masked ? (
+                                                    <MaskedTag key={id} id={id} level={false}>
+                                                        {envVar.name}
+                                                    </MaskedTag>
+                                                ) : (
+                                                    <Tag
+                                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                                        closable
+                                                        key={id}
+                                                        onClose={() => handleRemoveProjectEnvVar(id, false)}
+                                                    >
+                                                        {envVar.name}: {envVar.value}
+                                                    </Tag>
+                                                ),
+                                            )}
+                                        </div>
+                                    </Content>
+                                )}
                                 <Space direction="horizontal">
                                     {cronjobData.envVars.map((envVar: EnvVarsData, id: number) =>
                                         envVar.masked ? (
@@ -839,8 +875,8 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 </Space>
                             </Space>
                         </Content>
-                        <Content>
-                            <p className="text-base my-2">Tags</p>
+                        <Space direction="vertical" className="my-2">
+                            <p className="text-base">Tags</p>
                             <Space direction="horizontal">
                                 {cronjobData.tags.map((tag: TagsData, id) => (
                                     <Tag
@@ -870,7 +906,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                     onClick={addTag}
                                 ></Button>
                             </Space>
-                        </Content>
+                        </Space>
                     </Col>
                     <Col className="schedule mx-4">
                         <p className="text-base">Select a period</p>

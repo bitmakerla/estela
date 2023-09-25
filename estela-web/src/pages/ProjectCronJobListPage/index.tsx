@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Pagination, Row, Space, Table, Col, Button, Switch, Tag, message, ConfigProvider } from "antd";
+import { Layout, Pagination, Row, Space, Table, Col, Button, Switch, Tag, message } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import history from "../../history";
@@ -24,6 +24,7 @@ import {
     RouteParams,
 } from "../../shared";
 import CronjobCreateModal from "../CronjobCreateModal";
+import FolderDotted from "../../assets/icons/folderDotted.svg";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -68,6 +69,7 @@ interface ProjectCronJobListPageState {
     current: number;
     loading: boolean;
     page: number;
+    isEmpty: boolean;
 }
 
 export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteParams>, ProjectCronJobListPageState> {
@@ -81,6 +83,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         current: 0,
         loading: false,
         page: 1,
+        isEmpty: false,
     };
 
     apiService = ApiService();
@@ -240,6 +243,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 tags: cronjob.ctags,
                 args: cronjob.cargs,
             }));
+            response.results.length === 0 ? this.setState({ isEmpty: true }) : this.setState({ isEmpty: false });
             const cronjobs: SpiderCronJobData[] = data;
             this.setState({ cronjobs: [...cronjobs], loadedCronjobs: true, count: response.count, current: page });
         });
@@ -334,6 +338,13 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
         },
     };
 
+    emptyText = (): ReactElement => (
+        <Content className="flex w-full h-52 flex-col items-center justify-center text-estela-black-medium">
+            <FolderDotted className="w-20 h-20" />
+            <p>No cronjobs yet.</p>
+        </Content>
+    );
+
     render(): JSX.Element {
         const { loadedCronjobs, cronjobs, selectedRows, count, current } = this.state;
         return (
@@ -354,8 +365,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                         />
                                     </Col>
                                 </Row>
-                                <Content className="bg-white rounded-lg p-4">
-                                    <ConfigProvider renderEmpty={() => <p>No scheduled jobs yet.</p>}>
+                                {this.state.isEmpty ? (
+                                    <Row>{this.emptyText()}</Row>
+                                ) : (
+                                    <Content className="bg-white rounded-lg p-4">
                                         <Table
                                             rowSelection={{
                                                 type: "checkbox",
@@ -366,8 +379,8 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                                             pagination={false}
                                             size="small"
                                         />
-                                    </ConfigProvider>
-                                </Content>
+                                    </Content>
+                                )}
                                 <Row className="my-2">
                                     <Space direction="horizontal">
                                         <Button
