@@ -446,12 +446,12 @@ paths:
           in: query
           description: A page number within the paginated result set.
           required: false
-          type: integer
+          type: number
         - name: page_size
           in: query
           description: Number of results to return per page.
           required: false
-          type: integer
+          type: number
         - name: search
           in: query
           description: Search for a project by name.
@@ -461,9 +461,7 @@ paths:
         '200':
           description: ''
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Project'
+            $ref: '#/definitions/ProjectSearch'
       tags:
         - api
     parameters: []
@@ -1827,6 +1825,21 @@ definitions:
         type: integer
         maximum: 65535
         minimum: 0
+  ProjectSearch:
+    required:
+      - results
+      - count
+    type: object
+    properties:
+      results:
+        description: Project search results.
+        type: array
+        items:
+          $ref: '#/definitions/Project'
+      count:
+        title: Count
+        description: Project search results count.
+        type: integer
   ProjectUpdate:
     type: object
     properties:

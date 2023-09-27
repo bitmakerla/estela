@@ -84,6 +84,9 @@ import {
     ProjectJob,
     ProjectJobFromJSON,
     ProjectJobToJSON,
+    ProjectSearch,
+    ProjectSearchFromJSON,
+    ProjectSearchToJSON,
     ProjectStats,
     ProjectStatsFromJSON,
     ProjectStatsToJSON,
@@ -1695,7 +1698,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSearchRaw(requestParameters: ApiProjectsSearchRequest): Promise<runtime.ApiResponse<Array<Project>>> {
+    async apiProjectsSearchRaw(requestParameters: ApiProjectsSearchRequest): Promise<runtime.ApiResponse<ProjectSearch>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -1722,12 +1725,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ProjectFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectSearchFromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSearch(requestParameters: ApiProjectsSearchRequest): Promise<Array<Project>> {
+    async apiProjectsSearch(requestParameters: ApiProjectsSearchRequest): Promise<ProjectSearch> {
         const response = await this.apiProjectsSearchRaw(requestParameters);
         return await response.value();
     }

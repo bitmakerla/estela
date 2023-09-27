@@ -17,6 +17,7 @@ from api.serializers.project import (
     ActivitySerializer,
     ProjectActivitySerializer,
     ProjectSerializer,
+    ProjectSearchSerializer,
     ProjectUpdateSerializer,
     ProjectUsageSerializer,
     UsageRecordSerializer,
@@ -63,24 +64,48 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         methods=["GET"],
         manual_parameters=[
             openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="A page number within the paginated result set.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
+                "page_size",
+                openapi.IN_QUERY,
+                description="Number of results to return per page.",
+                type=openapi.TYPE_NUMBER,
+                required=False,
+            ),
+            openapi.Parameter(
                 "search",
                 openapi.IN_QUERY,
                 description="Search for a project by name.",
                 type=openapi.TYPE_STRING,
                 required=False,
-            )
+            ),
         ],
-        responses={status.HTTP_200_OK: ProjectSerializer(many=True)},
+        responses={status.HTTP_200_OK: ProjectSearchSerializer()},
     )
     @action(methods=["GET"], detail=False)
     def search(self, request, *args, **kwargs):
+        page, page_size = self.get_parameters(request)
+        if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
+        if page < 1:
+            raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         search = request.query_params.get("search", None)
         projects = self.get_queryset()
         if search:
             projects = projects.filter(name__icontains=search)
 
-        serializer = ProjectSerializer(projects, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator_result = Paginator(projects, page_size)
+        page_result = paginator_result.page(page)
+        serializer = ProjectSerializer(page_result, many=True)
+        return Response(
+            {"results": serializer.data, "count": projects.count()},
+            status=status.HTTP_200_OK,
+        )
 
     def perform_create(self, serializer):
         instance = serializer.save()
