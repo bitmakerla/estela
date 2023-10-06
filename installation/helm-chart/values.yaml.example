@@ -91,3 +91,7 @@ QUEUE_MAX_TIMEOUT: ""
 SIZE_THRESHOLD: ""
 INSERT_TIME_THRESHOLD: ""
 ACTIVITY_TIME_THRESHOLD: ""
+
+
+########## Proxies #####
+RESERVED_PROXY_NAMES: "" # Proxies to track

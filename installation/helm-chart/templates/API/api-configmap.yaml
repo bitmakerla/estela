@@ -40,4 +40,5 @@ data:
   {{- end }}
   DJANGO_EXTERNAL_APPS: {{ .Values.DJANGO_EXTERNAL_APPS | quote }}
   EXTERNAL_MIDDLEWARES: {{ .Values.EXTERNAL_MIDDLEWARES | quote }}
-
+  RESERVED_PROXY_NAMES: {{ .Values.RESERVED_PROXY_NAMES | quote }}
+  

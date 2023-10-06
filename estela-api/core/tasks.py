@@ -218,6 +218,7 @@ def record_project_usage_after_job_event(job_id):
     logs_data_size = spiderdata_db_client.get_collection_size(
         str(project.pid), logs_collection_name
     )
+    # Tracking Proxy Usage
     proxy_details = {}
     for proxy_name, proxy_usage_name in settings.RESERVED_PROXY_NAMES:
         proxy_usage_data = json.loads(job.proxy_usage_data)
