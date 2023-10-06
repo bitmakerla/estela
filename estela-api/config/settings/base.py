@@ -272,7 +272,10 @@ TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
 ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
 SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
-RESERVED_PROXY_NAMES = [("Residential Proxy", "residential_proxy_usage"), ("Datacenter Proxy", "datacenter_proxy_usage")]
+RESERVED_PROXY_NAMES = [
+    ("Residential Proxy", "residential_proxy_usage"),
+    ("Datacenter Proxy", "datacenter_proxy_usage"),
+]
 
 # Spiderdata Database settings
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")

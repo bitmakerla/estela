@@ -9,9 +9,10 @@ import { ApiService } from "../../services";
 import { ProxyForm } from "./ProxyForm";
 import { ProjectEnvVar, ProxyTagProps } from "./types";
 import { handleInvalidDataError, mergeArrays } from "../../utils";
+import { ESTELA_PROXIES } from "../../constants"; 
 import { Content } from "antd/lib/layout/layout";
 
-interface bmcProxyProps {
+interface estelaProxyProps {
     name: string;
     description: string;
     id: number;
@@ -24,7 +25,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
 //    const [shouldDeleteEnvVars, setShouldDeleteEnvVars] = useState(false);
     const [openProxyUserModal, setOpenProxyUserModal] = useState(false);
     const [openBMCModal, setOpenBMCModal] = useState(false);
-    const [bmcProxies, setBMCProxies] = useState<bmcProxyProps[]>([]);
+    const [estelaProxies, setEstelaProxies] = useState<estelaProxyProps[]>([]);
 
     const apiService = ApiService();
 
@@ -166,29 +167,28 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
         setEnvVars(filteredEnvVars);
     };
 
-    const handleBMCProxies = (): void => {
+
+    const getEstelaProxies = (): void => {
         const request = {};
-        const newBMCProxies: bmcProxyProps[] = [];
+        const newEstelaProxies: estelaProxyProps[] = [];
         apiService.apiProxyProviderList(request).then((response: any) => {
             response.results.forEach((item: any) => {
-                newBMCProxies.push({
+                newEstelaProxies.push({
                     name: item.name,
                     description: item.description,
                     id: item.proxyid,
                 });
             });
-            setBMCProxies(newBMCProxies);
-        });
-    };
+            setEstelaProxies(newEstelaProxies);
+        });        
+    }
 
     useEffect(() => {
-        if (bmcProxies.length > 0) {
-            setOpenBMCModal(true);
-        }
-    }, [bmcProxies]);
+        getEstelaProxies();
+    }, []);
 
-    const useBMCProxy = (proxyId: number): void => {
-        const proxySelected = bmcProxies.find((item) => item.id === proxyId);
+    const useEstelaProxy = (proxyId: number): void => {
+        const proxySelected = estelaProxies.find((item) => item.id === proxyId);
         setEnvVars([...envVars, {
             name: "ESTELA_PROXY_NAME",
             value: proxySelected ? proxySelected.name : "",
@@ -234,14 +234,15 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                             <span className="text-center font-semibold">Manual configuration</span>
                                             <p className="text-xs text-estela-black-full">Configure your own proxy</p>
                                         </Button>
-                                        <Button
-                                            onClick={() => handleBMCProxies()}
-                                            size="large"
-                                            className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
-                                        >
-                                            <span className="text-center font-semibold">BMC Proxy</span>
-                                            <p className="text-xs text-estela-black-full">Recommended</p>
-                                        </Button>
+                                        {estelaProxies.length > 0 && (
+                                            <Button
+                                                onClick={() => setOpenBMCModal(true)}
+                                                size="large"
+                                                className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy"
+                                            >
+                                                <span className="text-center font-semibold">{ESTELA_PROXIES}</span>
+                                                <p className="text-xs text-estela-black-full">Recommended</p>
+                                            </Button> )}
                                     </Row>
                                     <Modal
                                         open={openProxyUserModal}
@@ -268,12 +269,12 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
                                         onCancel={() => setOpenBMCModal(false)}
                                         footer={null}
                                     >
-                                        {bmcProxies.map((item: any) => {
+                                        {estelaProxies.map((item: any) => {
                                             return (
                                                 <Button
                                                     key={item.id}
                                                     onClick={() => {
-                                                        useBMCProxy(item.id);
+                                                        useEstelaProxy(item.id);
                                                     }}
                                                     size="large"
                                                     className="text-estela-blue-full w-96 h-24 border-0 bg-estela-blue-low text-base rounded estela-border-proxy mb-4"

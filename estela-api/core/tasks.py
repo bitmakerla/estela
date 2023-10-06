@@ -220,11 +220,14 @@ def record_project_usage_after_job_event(job_id):
     )
     proxy_details = {}
     for proxy_name, proxy_usage_name in settings.RESERVED_PROXY_NAMES:
-        print(job.proxy_usage_data)
         proxy_usage_data = json.loads(job.proxy_usage_data)
-        proxy_details.update({
-            proxy_usage_name: proxy_usage_data["bytes"] if proxy_name in proxy_usage_data.get("proxy_name") else 0,
-        })
+        proxy_details.update(
+            {
+                proxy_usage_name: proxy_usage_data["bytes"]
+                if proxy_name in proxy_usage_data.get("proxy_name")
+                else 0,
+            }
+        )
 
     updated_values = {
         "processing_time": job.lifespan,

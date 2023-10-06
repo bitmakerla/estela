@@ -1,5 +1,13 @@
-from core.models import (Project, ProxyProvider, Spider, SpiderJob,
-                         SpiderJobArg, SpiderJobEnvVar, UsageRecord)
+from core.models import (
+    Project,
+    ProxyProvider,
+    Spider,
+    SpiderJob,
+    SpiderJobArg,
+    SpiderJobEnvVar,
+    UsageRecord,
+    Permission
+)
 from django.contrib import admin
 
 
@@ -7,6 +15,9 @@ from django.contrib import admin
 class ProjectAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(Permission)
+class PermissionAdmin(admin.ModelAdmin):
+    pass
 
 @admin.register(Spider)
 class SpiderAdmin(admin.ModelAdmin):

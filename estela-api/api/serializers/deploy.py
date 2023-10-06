@@ -25,7 +25,7 @@ class DeployCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Deploy
-        fields = ["did", "status", "created", "project_zip"]    
+        fields = ["did", "status", "created", "project_zip"]
 
 
 class DeployUpdateSerializer(serializers.ModelSerializer):

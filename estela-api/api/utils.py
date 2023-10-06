@@ -74,6 +74,7 @@ def delete_stats_from_redis(job):
     except:
         pass
 
+
 def get_proxy_provider_envs(proxy_id):
     proxy_provider = ProxyProvider.objects.get(pk=proxy_id)
     proxy_attrs = [
@@ -93,18 +94,18 @@ def get_proxy_provider_envs(proxy_id):
     for field, value in fields_and_values.items():
         if field in proxy_attrs:
             name = replaces.get(field, field).upper()
-            if name != "NAME": 
+            if name != "NAME":
                 masked = True
             else:
                 masked = False
-            env_vars.append({
-                "name": f"ESTELA_PROXY_{name}",
-                "value": value,
-                "masked": masked
-            })
-    env_vars.append({
-        "name": "CUSTOM_PROXIES_ENABLED",
-        "value": "True",
-        "masked": False,
-    })
+            env_vars.append(
+                {"name": f"ESTELA_PROXY_{name}", "value": value, "masked": masked}
+            )
+    env_vars.append(
+        {
+            "name": "CUSTOM_PROXIES_ENABLED",
+            "value": "True",
+            "masked": False,
+        }
+    )
     return env_vars

@@ -120,19 +120,24 @@ class SpiderJobViewSet(
             job_env_vars = {
                 env_var.name: env_var.value for env_var in job.env_vars.all()
             }
-            
-            # Añadir Proxies y cobrar si es necesario
-            proxy_provider_names = [(proxy.name, proxy.proxyid) for proxy in ProxyProvider.objects.all()]
+
+            proxy_provider_names = [
+                (proxy.name, proxy.proxyid) for proxy in ProxyProvider.objects.all()
+            ]
             proxy_name = job_env_vars.get("ESTELA_PROXY_NAME")
 
             if proxy_name:
-                proxy_id = next((tup[1] for tup in proxy_provider_names if proxy_name in tup), None)
+                proxy_id = next(
+                    (tup[1] for tup in proxy_provider_names if proxy_name in tup), None
+                )
                 if proxy_id:
                     proxy_env_vars = get_proxy_provider_envs(proxy_id)
-                    job_env_vars.update({
-                        env_var["name"]: env_var["value"] for env_var in proxy_env_vars
-                    })
-            
+                    job_env_vars.update(
+                        {
+                            env_var["name"]: env_var["value"]
+                            for env_var in proxy_env_vars
+                        }
+                    )
 
             token = request.auth.key if request.auth else None
             job_manager.create_job(
