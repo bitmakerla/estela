@@ -149,7 +149,7 @@ class StatsMixin:
         for job in jobs_set:
             date_str = jobs_offset[job.jid]
             stats_results[date_str]["jobs"]["total_jobs"] += 1
-            for (key, value) in self.stats_mapping["jobs"].items():
+            for key, value in self.stats_mapping["jobs"].items():
                 stats_results[date_str]["jobs"][key] += int(job.status == value)
             stats_results[date_str]["runtime"] += job.lifespan
 
@@ -320,7 +320,7 @@ class ProjectStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         global_stats_results = self.summarize_stats_results(stats_set, jobs_set, offset)
 
         response_schema = []
-        for (date_stat, stat_result) in global_stats_results.items():
+        for date_stat, stat_result in global_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid(raise_exception=True):
                 response_schema.append(
@@ -477,7 +477,7 @@ class SpidersJobsStatsViewSet(BaseViewSet, StatsMixin, mixins.ListModelMixin):
         )
 
         response_schema = []
-        for (date_stat, stat_result) in spider_jobs_stats_results.items():
+        for date_stat, stat_result in spider_jobs_stats_results.items():
             stat_serializer = StatsSerializer(data=stat_result)
             if stat_serializer.is_valid():
                 response_schema.append(

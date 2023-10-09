@@ -77,16 +77,19 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     def register(self, request, *args, **kwargs):
         if not settings.REGISTER == "True":
             raise MethodNotAllowed({"error": "This action is disabled"})
+
         serializer: AuthTokenSerializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         user.is_active = False
         user.save()
         update_last_login(None, user)
+
         try:
             send_verification_email(user, request)
         except Exception:
             raise EmailServiceError({"error": errors.ERROR_SENDING_VERIFICATION_EMAIL})
+
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
 
@@ -95,13 +98,20 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         token = request.query_params.get("token", "")
         user_id_base64 = request.query_params.get("pair", "")
         user_id = force_text(urlsafe_base64_decode(user_id_base64))
+
         user = User.objects.filter(pk=user_id)
         if not user:
             return redirect(
                 settings.CORS_ORIGIN_WHITELIST[0], {"error": "User does not exist."}
             )
+
         user = user.get()
-        if account_reset_token.check_token(user, token):
+        if user.is_active:
+            return redirect(
+                "".join([settings.CORS_ORIGIN_WHITELIST[0], "/activatedAccount"]),
+                {"message": "Account already activated!"},
+            )
+        elif account_reset_token.check_token(user, token):
             user.is_active = True
             user.save()
             mail_subject = "New User Registered."

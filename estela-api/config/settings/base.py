@@ -14,9 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import environ
-
 from estela_queue_adapter import get_queue_env_vars
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -46,9 +44,13 @@ env = environ.Env(
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_DEFAULT_REGION=(str, "us-east-2"),
     AWS_STORAGE_BUCKET_NAME=(str, "estela-django-api"),
+    GOOGLE_APPLICATION_CREDENTIALS=(str, "dummy"),
+    GOOGLE_APPLICATION_LOCATION=(str, "dummy"),
+    MULTI_NODE_MODE=(str, "False"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
+    BUILD=(str, "default"),
     STAGE=(str, "DEVELOPMENT"),
     SPIDERDATA_DB_ENGINE=(str, "dummy"),
     SPIDERDATA_DB_CONNECTION=(str, "dummy"),
@@ -59,7 +61,7 @@ env = environ.Env(
     EMAILS_TO_ALERT=(str, "dummy"),
     REGISTER=(str, "dummy"),
     EMAIL_HOST=(str, "dummy"),
-    EMAIL_PORT=(str, "dummy"),
+    EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
 )
 environ.Env.read_env(env_file=".env")
@@ -242,7 +244,7 @@ REDIS_STATS_INTERVAL = env("REDIS_STATS_INTERVAL")
 
 
 # Cluster settings
-MULTI_NODE_MODE = False
+MULTI_NODE_MODE = env("MULTI_NODE_MODE")
 
 SWAGGER_SETTINGS = {
     "DEFAULT_INFO": "docs.settings.api_info",
@@ -254,6 +256,10 @@ SWAGGER_SETTINGS = {
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
 AWS_DEFAULT_REGION = env("AWS_DEFAULT_REGION")
+
+# GCP configurations
+GOOGLE_APPLICATION_CREDENTIALS = env("GOOGLE_APPLICATION_CREDENTIALS")
+GOOGLE_APPLICATION_LOCATION = env("GOOGLE_APPLICATION_LOCATION")
 
 # S3 Bucket for projects
 PROJECT_BUCKET = env("BUCKET_NAME_PROJECTS")
@@ -269,6 +275,7 @@ TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
 )
 
 # Engine
+BUILD = env("BUILD")
 ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
 SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")

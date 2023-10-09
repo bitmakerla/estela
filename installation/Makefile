@@ -6,6 +6,8 @@ API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --ou
 LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 RESOURCES = db registry minio zookeeper kafka
 SERVICES ?= django-api celery-worker celery-beat redis build-project
+PLATFORM ?= linux/$(shell uname -m)
+
 
 .PHONY: resources
 resources:

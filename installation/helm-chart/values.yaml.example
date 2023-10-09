@@ -9,12 +9,17 @@ nodeSelector: ""
 
 ######## AWS ########
 
-AWS_ACCESS_KEY_ID: "" # values need from a AWS account
+AWS_ACCESS_KEY_ID: "" # values needed from an AWS account
 AWS_SECRET_ACCESS_KEY: ""
 AWS_DEFAULT_REGION: ""
 
 awsRegistry: ""
 imagePullSecrets: ""
+
+######## GCP ########
+
+GOOGLE_APPLICATION_CREDENTIALS: ""
+GOOGLE_APPLICATION_LOCATION: ""
 
 #################### ESTELA VARIABLES ####################
 
@@ -33,7 +38,7 @@ QUEUE_PARAMETERS:
   QUEUE_PLATFORM: kafka
   QUEUE_PLATFORM_LISTENERS: "" # kafka
   QUEUE_PLATFORM_PORT: "" # 9092
-  # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/docs/estela/queueing.html#estela-queue-adapter
+  # Fill in any additional variables needed for the selected queue platform, visit: https://estela.bitmaker.la/estela/queueing.html#estela-queue-adapter
 
 # Redis scrapy stats
 REDIS_URL: redis://estela-redis-service
@@ -61,9 +66,12 @@ ENGINE: "" # kubernetes
 CREDENTIALS: "" # local
 CORS_ORIGIN_WHITELIST: ""
 DJANGO_API_HOST: dummy
+DJANGO_ALLOWED_HOSTS: ""
 DJANGO_EXTERNAL_APPS: "" # "app_1,app_2,..."
 EXTERNAL_APP_KEYS: "" # "key_1,key_2,..."
 EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
+MULTINODE: "" # "False"
+BUILD: "" # "default"
 
 # Celery
 CELERY_BROKER_URL: redis://estela-redis-service
@@ -92,6 +100,16 @@ SIZE_THRESHOLD: ""
 INSERT_TIME_THRESHOLD: ""
 ACTIVITY_TIME_THRESHOLD: ""
 
-
 ########## Proxies #####
 RESERVED_PROXY_NAMES: "" # Proxies to track
+
+
+############ RESOURCES LIMITS #############
+API_CPU_LIMIT: "" # "250m"
+API_MEM_LIMIT: "" # "1Gi"
+CELERY_WORKER_CPU_LIMIT: "" # "100m"
+CELERY_WORKER_MEM_LIMIT: "" # "500Mi"
+CELERY_BEAT_CPU_LIMIT: "" # "100m"
+CELERY_BEAT_MEM_LIMIT: "" # "250Mi"
+CONSUMERS_CPU_LIMIT: "" # "250m"
+CONSUMERS_MEM_LIMIT: "" # "750Mi"

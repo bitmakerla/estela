@@ -9,6 +9,7 @@ import { ApiAuthLoginRequest, Token } from "../../services/api";
 import { handleInvalidDataError } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
 import { EstelaBanner } from "../../components";
+import { REGISTER_PAGE_ENABLED } from "../../constants";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -105,14 +106,16 @@ export class LoginPage extends Component<unknown, LoginState> {
                         >
                             Log in
                         </Button>
-                        <Content className="text-center text-base m-5">
-                            <p>If you don&apos;t have an account. You can</p>
-                            <p>
-                                <Link className="text-estela text-base font-bold underline" to="/register">
-                                    register here
-                                </Link>
-                            </p>
-                        </Content>
+                        {REGISTER_PAGE_ENABLED && (
+                            <Content className="text-center text-base m-5">
+                                <p>If you don&apos;t have an account. You can</p>
+                                <p>
+                                    <Link className="text-estela text-base font-bold underline" to="/register">
+                                        register here
+                                    </Link>
+                                </p>
+                            </Content>
+                        )}
                     </Form>
                 </Content>
             </Content>

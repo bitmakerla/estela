@@ -862,12 +862,11 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
                             <Col>Spider</Col>
-                            <Col>
-                                <Link
-                                    to={`/projects/${this.projectId}/spiders/${this.spiderId}`}
-                                    className="text-estela-blue-medium"
-                                >
-                                    {spiderName}
+                            <Col className="col-span-2">
+                                <Link to={`/projects/${this.projectId}/spiders/${this.spiderId}`}>
+                                    <Text ellipsis={true} className="text-estela-blue-medium">
+                                        {spiderName}
+                                    </Text>
                                 </Link>
                             </Col>
                         </Row>
@@ -905,8 +904,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4">
                             <Col>Tags</Col>
-                            <Col>
-                                <Space direction="horizontal">
+                            <Col className="col-span-2">
+                                <Space direction="horizontal" className="flex flex-wrap">
                                     {tags.map((tag: TagsData, id) => (
                                         <Tag
                                             className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"
@@ -967,8 +966,8 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-4 rounded-lg">
                             <Col>Arguments</Col>
-                            <Col>
-                                <Space direction="horizontal">
+                            <Col className="col-span-2">
+                                <Space direction="horizontal" className="flex flex-wrap">
                                     {args.map((arg: ArgsData, id) => (
                                         <Tag
                                             className="border-estela-blue-full bg-estela-blue-low text-estela-blue-full rounded-md"

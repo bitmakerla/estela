@@ -13,7 +13,6 @@ def update_spiderjobs_status(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0027_spiderjobenvvar_masked"),
     ]
