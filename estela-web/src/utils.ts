@@ -142,7 +142,7 @@ export function getFilteredEnvVars(envVars: SpiderJobEnvVar[], filter = true): S
         "ESTELA_PROXY_USER",
         "ESTELA_PROXY_PASS",
         "ESTELA_PROXY_NAME",
-        "CUSTOM_PROXIES_ENABLED",
+        "ESTELA_PROXIES_ENABLED",
     ];
     if (filter) {
         return envVars.filter((envVar: SpiderJobEnvVar) => !reservedEnvVars.includes(envVar.name));

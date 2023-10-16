@@ -161,7 +161,7 @@ export const ProxySettings: React.FC<ProjectEnvVar> = ({
             "ESTELA_PROXY_USER",
             "ESTELA_PROXY_PASS",
             "ESTELA_PROXY_NAME",
-            "CUSTOM_PROXIES_ENABLED",
+            "ESTELA_PROXIES_ENABLED",
         ];
         const filteredEnvVars = envVars.filter((obj) => !propertiesToFind.includes(obj.name));
         setEnvVars(filteredEnvVars);

@@ -103,7 +103,7 @@ def get_proxy_provider_envs(proxy_id):
             )
     env_vars.append(
         {
-            "name": "CUSTOM_PROXIES_ENABLED",
+            "name": "ESTELA_PROXIES_ENABLED",
             "value": "True",
             "masked": False,
         }
