@@ -301,16 +301,15 @@ class SpiderJob(models.Model):
     request_count = models.PositiveBigIntegerField(
         default=0, help_text="The number of requests made by the spider job."
     )
-    # proy_usage_data follows this format: 
-    #{
+    # proxy_usage_data follows this format:
+    # {
     #   "proxy_name": <proxy_name>,
     #   "bytes": <bytes>,
-    #}
+    # }
     proxy_usage_data = models.JSONField(
         default=dict,
         help_text="Proxy Usage data.",
     )
-
 
     class Meta:
         ordering = ["-created"]

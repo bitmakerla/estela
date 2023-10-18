@@ -300,4 +300,11 @@ REGISTER = env("REGISTER")
 VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
 
 # Proxy (Optional)Settings
-RESERVED_PROXY_NAMES = [] if env("RESERVED_PROXY_NAMES") == "" else [(name.replace("_", " ").title(), f"{name}_usage") for name in env("RESERVED_PROXY_NAMES").split(",")]
+RESERVED_PROXY_NAMES = (
+    []
+    if env("RESERVED_PROXY_NAMES") == ""
+    else [
+        (name.replace("_", " ").title(), f"{name}_usage")
+        for name in env("RESERVED_PROXY_NAMES").split(",")
+    ]
+)

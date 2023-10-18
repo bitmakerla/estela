@@ -6,7 +6,7 @@ from core.models import (
     SpiderJobArg,
     SpiderJobEnvVar,
     UsageRecord,
-    Permission
+    Permission,
 )
 from django.contrib import admin
 
@@ -15,9 +15,11 @@ from django.contrib import admin
 class ProjectAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(Spider)
 class SpiderAdmin(admin.ModelAdmin):
