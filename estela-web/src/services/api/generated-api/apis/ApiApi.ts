@@ -60,6 +60,9 @@ import {
     InlineResponse2008,
     InlineResponse2008FromJSON,
     InlineResponse2008ToJSON,
+    InlineResponse2009,
+    InlineResponse2009FromJSON,
+    InlineResponse2009ToJSON,
     InlineResponse401,
     InlineResponse401FromJSON,
     InlineResponse401ToJSON,
@@ -93,6 +96,15 @@ import {
     ProjectUsage,
     ProjectUsageFromJSON,
     ProjectUsageToJSON,
+    ProxyProvider,
+    ProxyProviderFromJSON,
+    ProxyProviderToJSON,
+    ProxyProviderResponse,
+    ProxyProviderResponseFromJSON,
+    ProxyProviderResponseToJSON,
+    ProxyProviderUpdate,
+    ProxyProviderUpdateFromJSON,
+    ProxyProviderUpdateToJSON,
     ResetPasswordConfirm,
     ResetPasswordConfirmFromJSON,
     ResetPasswordConfirmToJSON,
@@ -436,6 +448,33 @@ export interface ApiProjectsUsageRequest {
     pid: string;
     startDate?: string;
     endDate?: string;
+}
+
+export interface ApiProxyProviderCreateRequest {
+    data: ProxyProvider;
+}
+
+export interface ApiProxyProviderDeleteRequest {
+    proxyid: number;
+}
+
+export interface ApiProxyProviderListRequest {
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProxyProviderPartialUpdateRequest {
+    proxyid: number;
+    data: ProxyProvider;
+}
+
+export interface ApiProxyProviderReadRequest {
+    proxyid: number;
+}
+
+export interface ApiProxyProviderUpdateRequest {
+    proxyid: number;
+    data: ProxyProviderUpdate;
 }
 
 export interface ApiStatsListRequest {
@@ -2597,6 +2636,214 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsUsage(requestParameters: ApiProjectsUsageRequest): Promise<Array<UsageRecord>> {
         const response = await this.apiProjectsUsageRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProxyProviderCreateRaw(requestParameters: ApiProxyProviderCreateRequest): Promise<runtime.ApiResponse<ProxyProvider>> {
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProxyProviderCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/proxy_provider`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ProxyProviderToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProxyProviderFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProxyProviderCreate(requestParameters: ApiProxyProviderCreateRequest): Promise<ProxyProvider> {
+        const response = await this.apiProxyProviderCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProxyProviderDeleteRaw(requestParameters: ApiProxyProviderDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.proxyid === null || requestParameters.proxyid === undefined) {
+            throw new runtime.RequiredError('proxyid','Required parameter requestParameters.proxyid was null or undefined when calling apiProxyProviderDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/proxy_provider/{proxyid}`.replace(`{${"proxyid"}}`, encodeURIComponent(String(requestParameters.proxyid))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiProxyProviderDelete(requestParameters: ApiProxyProviderDeleteRequest): Promise<void> {
+        await this.apiProxyProviderDeleteRaw(requestParameters);
+    }
+
+    /**
+     */
+    async apiProxyProviderListRaw(requestParameters: ApiProxyProviderListRequest): Promise<runtime.ApiResponse<InlineResponse2009>> {
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/proxy_provider`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2009FromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProxyProviderList(requestParameters: ApiProxyProviderListRequest): Promise<InlineResponse2009> {
+        const response = await this.apiProxyProviderListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProxyProviderPartialUpdateRaw(requestParameters: ApiProxyProviderPartialUpdateRequest): Promise<runtime.ApiResponse<ProxyProvider>> {
+        if (requestParameters.proxyid === null || requestParameters.proxyid === undefined) {
+            throw new runtime.RequiredError('proxyid','Required parameter requestParameters.proxyid was null or undefined when calling apiProxyProviderPartialUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProxyProviderPartialUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/proxy_provider/{proxyid}`.replace(`{${"proxyid"}}`, encodeURIComponent(String(requestParameters.proxyid))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ProxyProviderToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProxyProviderFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProxyProviderPartialUpdate(requestParameters: ApiProxyProviderPartialUpdateRequest): Promise<ProxyProvider> {
+        const response = await this.apiProxyProviderPartialUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProxyProviderReadRaw(requestParameters: ApiProxyProviderReadRequest): Promise<runtime.ApiResponse<ProxyProvider>> {
+        if (requestParameters.proxyid === null || requestParameters.proxyid === undefined) {
+            throw new runtime.RequiredError('proxyid','Required parameter requestParameters.proxyid was null or undefined when calling apiProxyProviderRead.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/proxy_provider/{proxyid}`.replace(`{${"proxyid"}}`, encodeURIComponent(String(requestParameters.proxyid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProxyProviderFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProxyProviderRead(requestParameters: ApiProxyProviderReadRequest): Promise<ProxyProvider> {
+        const response = await this.apiProxyProviderReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * In the request we should specify spider, project or job
+     */
+    async apiProxyProviderUpdateRaw(requestParameters: ApiProxyProviderUpdateRequest): Promise<runtime.ApiResponse<ProxyProviderResponse>> {
+        if (requestParameters.proxyid === null || requestParameters.proxyid === undefined) {
+            throw new runtime.RequiredError('proxyid','Required parameter requestParameters.proxyid was null or undefined when calling apiProxyProviderUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProxyProviderUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/proxy_provider/{proxyid}`.replace(`{${"proxyid"}}`, encodeURIComponent(String(requestParameters.proxyid))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ProxyProviderUpdateToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProxyProviderResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * In the request we should specify spider, project or job
+     */
+    async apiProxyProviderUpdate(requestParameters: ApiProxyProviderUpdateRequest): Promise<ProxyProviderResponse> {
+        const response = await this.apiProxyProviderUpdateRaw(requestParameters);
         return await response.value();
     }
 

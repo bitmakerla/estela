@@ -63,6 +63,7 @@ env = environ.Env(
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
+    RESERVED_PROXY_NAMES=(str, ""),
 )
 environ.Env.read_env(env_file=".env")
 
@@ -298,3 +299,13 @@ REGISTER = env("REGISTER")
 
 # Verification Email
 VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
+
+# Proxy (Optional)Settings
+RESERVED_PROXY_NAMES = (
+    []
+    if env("RESERVED_PROXY_NAMES") == ""
+    else [
+        (name.replace("_", " ").title(), f"{name}_usage")
+        for name in env("RESERVED_PROXY_NAMES").split(",")
+    ]
+)

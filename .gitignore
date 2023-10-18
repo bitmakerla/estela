@@ -19,3 +19,5 @@ __pycache__/
 
 # Certificates
 *.crt
+
+bitmaker_billing/

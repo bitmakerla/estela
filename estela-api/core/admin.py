@@ -1,17 +1,23 @@
-from django.contrib import admin
-
 from core.models import (
     Project,
+    ProxyProvider,
     Spider,
     SpiderJob,
     SpiderJobArg,
     SpiderJobEnvVar,
     UsageRecord,
+    Permission,
 )
+from django.contrib import admin
 
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Permission)
+class PermissionAdmin(admin.ModelAdmin):
     pass
 
 
@@ -38,4 +44,9 @@ class SpiderJobAdmin(admin.ModelAdmin):
 
 @admin.register(UsageRecord)
 class UsageRecordAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ProxyProvider)
+class ProxyProviderAdmin(admin.ModelAdmin):
     pass

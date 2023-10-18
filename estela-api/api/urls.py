@@ -10,6 +10,7 @@ from api.views import (
     job_data as job_data_views,
     stats as stats_views,
     notification as notification_views,
+    proxyprovider as proxyprovider_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -57,6 +58,10 @@ router.register(
     prefix=r"stats/(?P<pid>[0-9a-z-]+)/spider/(?P<sid>\d+)",
     viewset=stats_views.SpidersJobsStatsViewSet,
     basename="spider-stats",
+)
+router.register(
+    prefix=r"proxy_provider",
+    viewset=proxyprovider_views.ProxyProviderViewSet,
 )
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 router.register(

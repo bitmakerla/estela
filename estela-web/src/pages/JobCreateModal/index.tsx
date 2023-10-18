@@ -12,8 +12,10 @@ import {
     Project,
     Spider,
 } from "../../services/api";
+import { getFilteredEnvVars } from "../../utils";
 import history from "../../history";
 import { ApiService } from "../../services";
+import { ProxySettings } from "../../components/ProxySettingsPage";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
 import { checkExternalError } from "../../defaultComponents";
 
@@ -110,8 +112,11 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         dataStatus: spider ? spider.dataStatus : undefined,
         dataExpiryDays: spider ? spider.dataExpiryDays : 1,
     });
+    const [noProxy, setNoProxy] = useState<boolean>(true);
+    const [newProxyFormActivate, setNewProxyFormActivate] = useState<boolean>(false);
     const [projectEnvVars, setProjectEnvVars] = useState<SpiderJobEnvVar[]>([]);
     const [spiderEnvVars, setSpiderEnvVars] = useState<SpiderJobEnvVar[]>([]);
+    const [jobProxy, setJobProxy] = useState<SpiderJobEnvVar[]>([]);
     const [variable, setVariable] = useState<Variable>({
         newArgName: "",
         newArgValue: "",
@@ -179,6 +184,9 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                         };
                     }),
                 );
+                // setProxyName(
+                //     envVars.find((envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME")?.value || "",
+                // );
             },
             (error: unknown) => {
                 error;
@@ -186,7 +194,6 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
             },
         );
     };
-
     const getProjectSpiders = async (page: number): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
         apiService.apiProjectsSpidersList(requestParams).then(
@@ -435,6 +442,71 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
         );
     };
 
+    const handleRemoveProxy = (): void => {
+        setNoProxy(true);
+        const filteredProjectEnvVars = getFilteredEnvVars(projectEnvVars);
+        const filteredSpiderEnvVars = getFilteredEnvVars(spiderEnvVars);
+        const filteredJobEnvVars = getFilteredEnvVars(jobData.envVars);
+        const newEnvVars: EnvVarsData[] = filteredJobEnvVars.map((envVar) => {
+            setCountKey(countKey + 1); // Increment the key
+            return {
+                name: envVar.name,
+                value: envVar.value,
+                key: countKey,
+                masked: envVar.masked ? envVar.masked : false, // If 'masked' is not defined, default to false
+            };
+        });
+        setProjectEnvVars(filteredProjectEnvVars);
+        setSpiderEnvVars(filteredSpiderEnvVars);
+        setJobData({ ...jobData, envVars: newEnvVars });
+    };
+
+    const handleJobCreateProxy = (envVars: SpiderJobEnvVar[]): void => {
+        const proxyEnvVars: SpiderJobEnvVar[] = getFilteredEnvVars(envVars, false);
+        const newEnvVars: EnvVarsData[] = proxyEnvVars.map((envVar) => {
+            setCountKey(countKey + 1); // Increment the key
+            return {
+                name: envVar.name,
+                value: envVar.value,
+                key: countKey,
+                masked: envVar.masked ? envVar.masked : false, // If 'masked' is not defined, default to false
+            };
+        });
+        setJobData({ ...jobData, envVars: [...jobData.envVars, ...newEnvVars] });
+        setNewProxyFormActivate(false);
+    };
+    const addNewProxy = (): void => {
+        setNewProxyFormActivate(true);
+    };
+
+    useEffect(() => {
+        const getProxyEnvVars = (): SpiderJobEnvVar[] => {
+            const jobProxyName = jobData.envVars.find(
+                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+            )?.value;
+            const spiderProxyName = spiderEnvVars.find(
+                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+            )?.value;
+            const projectProxyName = projectEnvVars.find(
+                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+            )?.value;
+            return jobProxyName
+                ? getFilteredEnvVars(jobData.envVars, false)
+                : spiderProxyName
+                ? getFilteredEnvVars(spiderEnvVars, false)
+                : projectProxyName
+                ? getFilteredEnvVars(projectEnvVars, false)
+                : [];
+        };
+        const newProxyJob: SpiderJobEnvVar[] = getProxyEnvVars();
+        if (newProxyJob.length > 0) {
+            setNoProxy(false);
+            setJobProxy(newProxyJob);
+        } else {
+            setNoProxy(true);
+        }
+    }, [projectEnvVars, spiderEnvVars, jobData]);
+
     return (
         <>
             <Button
@@ -542,9 +614,9 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                     <p className="text-base my-2">Environment Variables</p>
                     <Space direction="vertical">
                         <div className="flex gap-2 mt-1">
-                            {projectEnvVars.length > 0 && <p className="text-sm">Project</p>}
+                            {getFilteredEnvVars(projectEnvVars).length > 0 && <p className="text-sm">Project</p>}
                             <div className="flex gap-2">
-                                {projectEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                {getFilteredEnvVars(projectEnvVars).map((envVar: SpiderJobEnvVar, id: number) =>
                                     envVar.masked ? (
                                         <MaskedTag key={id} id={id} level={true}>
                                             {envVar.name}
@@ -563,9 +635,9 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                             </div>
                         </div>
                         <div className="flex gap-2 my-2">
-                            {spiderEnvVars.length > 0 && <p className="text-sm">Spider</p>}
+                            {getFilteredEnvVars(spiderEnvVars).length > 0 && <p className="text-sm">Spider</p>}
                             <div className="flex gap-2">
-                                {spiderEnvVars.map((envVar: SpiderJobEnvVar, id: number) =>
+                                {getFilteredEnvVars(spiderEnvVars).map((envVar: SpiderJobEnvVar, id: number) =>
                                     envVar.masked ? (
                                         <MaskedTag key={id} id={id} level={false}>
                                             {envVar.name}
@@ -635,6 +707,47 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                                 onClick={addEnvVar}
                             ></Button>
                         </Space>
+                    </Space>
+                </Row>
+                <Row>
+                    <Modal
+                        open={newProxyFormActivate}
+                        width={600}
+                        className="w-90"
+                        title={<p className="text-center text-base">New proxy configuration</p>}
+                        onCancel={() => setNewProxyFormActivate(false)}
+                        footer={null}
+                    >
+                        <ProxySettings envVars={[]} setEnvVars={handleJobCreateProxy} />
+                    </Modal>
+                    <Space direction="horizontal">
+                        <p className="text-base">Proxy</p>
+                        {noProxy ? (
+                            <Button
+                                shape="circle"
+                                size="small"
+                                icon={<Add />}
+                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                onClick={addNewProxy}
+                            ></Button>
+                        ) : (
+                            <Space direction="vertical" className="my-2">
+                                <div className="flex gap-2 my-2">
+                                    <div className="flex gap-2">
+                                        <Tag
+                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
+                                            closable
+                                            onClose={() => handleRemoveProxy()}
+                                        >
+                                            proxy_name:{" "}
+                                            {jobProxy.find(
+                                                (envVar: SpiderJobEnvVar) => envVar.name === "ESTELA_PROXY_NAME",
+                                            )?.value || "none"}
+                                        </Tag>
+                                    </div>
+                                </div>
+                            </Space>
+                        )}
                     </Space>
                 </Row>
                 <Space direction="vertical" className="my-2">

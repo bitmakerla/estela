@@ -1,4 +1,5 @@
 import { invalidDataNotification } from "./shared";
+import { SpiderJobEnvVar } from "./services";
 
 export interface BytesMetric {
     quantity: number;
@@ -133,3 +134,37 @@ export function handleInvalidDataError(error: unknown): void {
         console.error("Unexpected error", error);
     }
 }
+
+export function getFilteredEnvVars(envVars: SpiderJobEnvVar[], filter = true): SpiderJobEnvVar[] {
+    const reservedEnvVars: Array<string> = [
+        "ESTELA_PROXY_URL",
+        "ESTELA_PROXY_PORT",
+        "ESTELA_PROXY_USER",
+        "ESTELA_PROXY_PASS",
+        "ESTELA_PROXY_NAME",
+        "ESTELA_PROXIES_ENABLED",
+    ];
+    if (filter) {
+        return envVars.filter((envVar: SpiderJobEnvVar) => !reservedEnvVars.includes(envVar.name));
+    } else {
+        return envVars.filter((envVar: SpiderJobEnvVar) => reservedEnvVars.includes(envVar.name));
+    }
+}
+
+export const mergeArrays = (array1: SpiderJobEnvVar[], array2: SpiderJobEnvVar[]): SpiderJobEnvVar[] => {
+    // Create a map to hold the merged values
+    const mergedMap = new Map<string, SpiderJobEnvVar>();
+
+    // Add all items from the first array to the map
+    array1.forEach((item) => {
+        mergedMap.set(item.name, item);
+    });
+
+    // Add all items from the second array to the map, updating any that have the same name
+    array2.forEach((item) => {
+        mergedMap.set(item.name, item); // This will overwrite any existing item with the same name
+    });
+
+    // Convert the map values to an array and return
+    return Array.from(mergedMap.values());
+};
