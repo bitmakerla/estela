@@ -63,6 +63,7 @@ env = environ.Env(
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
+    RESERVED_PROXY_NAMES=(str, ""),
 )
 environ.Env.read_env(env_file=".env")
 
