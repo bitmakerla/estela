@@ -119,7 +119,7 @@ class JobDataViewSet(
         elif request.META["HTTP_USER_AGENT"].startswith("estela-cli/"):
             chunk_size = max(
                 1,
-                settings.MAX_CHUNK_SIZE
+                settings.MAX_CLI_DOWNLOAD_CHUNK_SIZE
                 // spiderdata_db_client.get_estimated_document_size(
                     kwargs["pid"], job_collection_name
                 ),
@@ -207,7 +207,7 @@ class JobDataViewSet(
         else:
             docs_limit = max(
                 1,
-                (settings.MAX_WEB_DOWNLOAD_SIZE)
+                settings.MAX_WEB_DOWNLOAD_SIZE
                 // spiderdata_db_client.get_estimated_document_size(
                     kwargs["pid"], job_collection_name
                 ),

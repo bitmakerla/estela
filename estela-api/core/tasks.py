@@ -220,7 +220,7 @@ def record_project_usage_after_job_event(job_id):
     )
     # Tracking Proxy Usage
     proxy_details = {}
-    for proxy_name, proxy_usage_name in settings.RESERVED_PROXY_NAMES:
+    for proxy_name, proxy_usage_name in settings.PROXY_PROVIDERS_TO_TRACK:
         proxy_usage_data = json.loads(job.proxy_usage_data)
         proxy_details.update(
             {

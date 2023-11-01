@@ -87,6 +87,13 @@ EMAILS_TO_ALERT: ""
 VERIFICATION_EMAIL: ""
 REGISTER: "" # "True"
 
+# Data Downloads
+MAX_CLI_DOWNLOAD_CHUNK_MB: "2"
+MAX_WEB_DOWNLOAD_SIZE_MB: "1024"
+
+# Proxies
+PROXY_PROVIDERS_TO_TRACK: ""
+
 ############ QUEUEING ############
 
 CONSUMER_PRODUCTION: "" # "False"
@@ -99,10 +106,6 @@ QUEUE_MAX_TIMEOUT: ""
 SIZE_THRESHOLD: ""
 INSERT_TIME_THRESHOLD: ""
 ACTIVITY_TIME_THRESHOLD: ""
-
-########## Proxies #####
-RESERVED_PROXY_NAMES: "" # Proxies to track
-
 
 ############ RESOURCES LIMITS #############
 API_CPU_LIMIT: "" # "250m"
