@@ -372,7 +372,7 @@ export function JobItemsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             <Tooltip
                                 className="flex items-center mx-2"
                                 placement="left"
-                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                                title="Direct downloads from estela web are limited to 1GB. Please use the estela CLI to download all of your data in a more efficient way."
                             >
                                 <Dropdown
                                     disabled={items.length === 0}
@@ -573,7 +573,7 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             <Tooltip
                                 className="flex items-center mx-2"
                                 placement="left"
-                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                                title="Direct downloads from estela web are limited to 1GB. Please use the estela CLI to download all of your data in a more efficient way."
                             >
                                 <Dropdown
                                     disabled={requests.length === 0}
@@ -745,7 +745,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                             <Tooltip
                                 className="flex items-center mx-2"
                                 placement="left"
-                                title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                                title="Direct downloads from estela web are limited to 1GB. Please use the estela CLI to download all of your data in a more efficient way."
                             >
                                 <Dropdown
                                     disabled={logs.length === 0}
@@ -865,7 +865,7 @@ export function JobStatsData({ projectId, spiderId, jobId }: JobsDataProps) {
                         <Tooltip
                             className="flex items-center mx-2"
                             placement="left"
-                            title="Direct downloads from estela web are limited to 100MB. Please use the estela CLI to download all of your data in a more efficient way."
+                            title="Direct downloads from estela web are limited to 1GB. Please use the estela CLI to download all of your data in a more efficient way."
                         >
                             <Dropdown
                                 disabled={Object.keys(stats).length === 0}

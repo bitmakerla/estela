@@ -301,6 +301,15 @@ class SpiderJob(models.Model):
     request_count = models.PositiveBigIntegerField(
         default=0, help_text="The number of requests made by the spider job."
     )
+    # proxy_usage_data follows this format:
+    # {
+    #   "proxy_name": <proxy_name>,
+    #   "bytes": <bytes>,
+    # }
+    proxy_usage_data = models.JSONField(
+        default=dict,
+        help_text="Proxy Usage data.",
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -359,6 +368,10 @@ class SpiderJobEnvVar(models.Model):
         primary_key=True,
         help_text="A unique integer value identifying this job env variable.",
     )
+
+    def __str__(self):
+        return f"EnvVar ID: {self.evid}, Name: {self.name}, Value: {self.value}, Masked: {self.masked}"
+
     job = models.ForeignKey(
         SpiderJob,
         on_delete=models.CASCADE,
@@ -431,6 +444,15 @@ class UsageRecord(models.Model):
     items_data_size = models.PositiveBigIntegerField(
         help_text="Amount in bytes occupied by items in the database"
     )
+    residential_proxy_usage = models.PositiveBigIntegerField(
+        default=0,
+        help_text="Amount in bytes occupied by residential proxy responses in the database",
+    )
+    datacenter_proxy_usage = models.PositiveBigIntegerField(
+        default=0,
+        help_text="Amount in bytes occupied by datacenter proxy responses in the database",
+    )
+
     requests_data_size = models.PositiveBigIntegerField(
         help_text="Amount in bytes occupied by requests in the database"
     )
@@ -487,3 +509,29 @@ class Notification(models.Model):
     seen = models.BooleanField(
         default=False, help_text="Whether the notification was seen."
     )
+
+
+class ProxyProvider(models.Model):
+    proxyid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this proxy."
+    )
+    username = models.CharField(max_length=255, help_text="The username for the proxy")
+    password = models.CharField(max_length=255, help_text="The password for the proxy")
+    host = models.CharField(max_length=255, help_text="The host for the proxy")
+    port = models.CharField(max_length=5, help_text="The port for the proxy")
+    name = models.CharField(max_length=255, help_text="A name to identify the proxy")
+
+    description = models.CharField(
+        max_length=1000, help_text="A description for the proxy"
+    )
+
+    # You can add a brief help text for the entire model here.
+    help_text = "A model to store proxy information for your application."
+
+    # Define the on_delete behavior for ForeignKey relationships.
+    # Since there are no ForeignKey fields in this model, we'll omit this.
+
+    # on_delete=models.CASCADE (example)
+
+    def __str__(self):
+        return self.name

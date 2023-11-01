@@ -173,6 +173,22 @@ All the queue platform variables should be written as children of the _<QUEUE\_P
 {: .note }
 > The mailing configuration is used to send email regarding users creation on the estela system.
 
+#### Data Downloads
+* _<MAX\_CLI\_DOWNLOAD\_CHUNK\_MB>_ (Required): This is the maximum size of the chunks when downloading data
+  via the [estela-cli](https://estela-cli.bitmaker.la/). E.g., if this is set to a value of 2 and you download 1GB of data, 500 chunks would be
+  downloaded.
+* _<MAX\_WEB\_DOWNLOAD\_SIZE\_MB>_ (Required): This is the maximum download size via Estela's web interface.
+  We recommend not setting this value higher than 2GB, and you should update the timeout value for your API
+  according to the value you set here. E.g., if you use `gunicorn`, you would add the `timeout` flag:
+  `gunicorn config.wsgi --bind=0.0.0.0:8000 --timeout=600`. We nencourage you to use the estela-cli for bigger
+  downloads.
+
+#### Proxies
+
+* _<PROXY\_PROVIDERS\_TO\_TRACK>_ (Optional): In Estela, you can add custom proxy providers you
+  can configure and reutilize in your projects, spiders, jobs and cronjobs. In this variable,
+  set the names of the proxy providers you want to track. E.g., `my_custom_proxy,my_other_custom_proxy`.
+
 ### estela queueing variables
 
 * _<CONSUMER\_PRODUCTION>_ (Required): Set this value to `"False"` if the database

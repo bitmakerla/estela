@@ -142,7 +142,13 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         SpiderJob.RUNNING_STATUS,
     ]
 
-    job_fields = ["lifespan", "total_response_bytes", "item_count", "request_count"]
+    job_fields = [
+        "lifespan",
+        "total_response_bytes",
+        "item_count",
+        "request_count",
+        "proxy_usage_data",
+    ]
 
     class Meta:
         model = SpiderJob
@@ -155,6 +161,7 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             "request_count",
             "data_status",
             "data_expiry_days",
+            "proxy_usage_data",
         )
 
     def update(self, instance, validated_data):
@@ -188,7 +195,9 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         instance.status = status
 
         for field in self.job_fields:
-            if not getattr(instance, field):
+            if not getattr(instance, field) or getattr(
+                instance, field
+            ) != validated_data.get(field):
                 new_value = validated_data.get(field, getattr(instance, field))
                 setattr(instance, field, new_value)
 

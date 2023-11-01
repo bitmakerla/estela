@@ -20,6 +20,7 @@ models/InlineResponse2005.ts
 models/InlineResponse2006.ts
 models/InlineResponse2007.ts
 models/InlineResponse2008.ts
+models/InlineResponse2009.ts
 models/InlineResponse401.ts
 models/JobsPagination.ts
 models/JobsStats.ts
@@ -36,6 +37,9 @@ models/ProjectJob.ts
 models/ProjectStats.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts
+models/ProxyProvider.ts
+models/ProxyProviderResponse.ts
+models/ProxyProviderUpdate.ts
 models/ResetPasswordConfirm.ts
 models/ResetPasswordRequest.ts
 models/Spider.ts

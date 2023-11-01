@@ -6,10 +6,10 @@ from django.conf import settings
 from api import errors
 from api.exceptions import DataBaseError
 from config.job_manager import spiderdata_db_client
-from core.models import SpiderJobEnvVar
+from core.models import SpiderJobEnvVar, ProxyProvider
 
 
-def update_env_vars(instance, env_vars, level="project"):
+def update_env_vars(instance, env_vars, level="project", delete=True):
     env_vars_instance = instance.env_vars.all()
     for env_var in env_vars:
         if env_vars_instance.filter(**env_var).exists():
@@ -29,9 +29,10 @@ def update_env_vars(instance, env_vars, level="project"):
             elif level == "spider":
                 SpiderJobEnvVar.objects.create(spider=instance, **env_var)
 
-    for env_var in env_vars_instance:
-        if env_var.name not in [value["name"] for value in env_vars]:
-            env_var.delete()
+    if delete:
+        for env_var in env_vars_instance:
+            if env_var.name not in [value["name"] for value in env_vars]:
+                env_var.delete()
 
 
 def update_stats_from_redis(job, save_to_database=False):
@@ -72,3 +73,39 @@ def delete_stats_from_redis(job):
         redis_conn.delete(f"scrapy_stats_{job.key}")
     except:
         pass
+
+
+def get_proxy_provider_envs(proxy_id):
+    proxy_provider = ProxyProvider.objects.get(pk=proxy_id)
+    proxy_attrs = [
+        "username",
+        "password",
+        "host",
+        "port",
+        "name",
+    ]
+    fields_and_values = vars(proxy_provider)
+    replaces = {
+        "password": "pass",
+        "host": "url",
+        "username": "user",
+    }
+    env_vars = []
+    for field, value in fields_and_values.items():
+        if field in proxy_attrs:
+            name = replaces.get(field, field).upper()
+            if name != "NAME":
+                masked = True
+            else:
+                masked = False
+            env_vars.append(
+                {"name": f"ESTELA_PROXY_{name}", "value": value, "masked": masked}
+            )
+    env_vars.append(
+        {
+            "name": "ESTELA_PROXIES_ENABLED",
+            "value": "True",
+            "masked": False,
+        }
+    )
+    return env_vars

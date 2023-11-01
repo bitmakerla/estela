@@ -46,6 +46,8 @@ env = environ.Env(
     AWS_STORAGE_BUCKET_NAME=(str, "estela-django-api"),
     GOOGLE_APPLICATION_CREDENTIALS=(str, "dummy"),
     GOOGLE_APPLICATION_LOCATION=(str, "dummy"),
+    MAX_CLI_DOWNLOAD_CHUNK_MB=(int, 2),
+    MAX_WEB_DOWNLOAD_SIZE_MB=(int, 1024),
     MULTI_NODE_MODE=(str, "False"),
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
@@ -63,6 +65,7 @@ env = environ.Env(
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
+    PROXY_PROVIDERS_TO_TRACK=(str, ""),
 )
 environ.Env.read_env(env_file=".env")
 
@@ -210,8 +213,8 @@ STATIC_ROOT = "/static/"
 
 
 # API limit data download settings (bytes)
-MAX_CHUNK_SIZE = 2 * 1024 * 1024
-MAX_WEB_DOWNLOAD_SIZE = 100 * 1024 * 1024
+MAX_CLI_DOWNLOAD_CHUNK_SIZE = env("MAX_CLI_DOWNLOAD_CHUNK_MB") * 1024 * 1024
+MAX_WEB_DOWNLOAD_SIZE = env("MAX_WEB_DOWNLOAD_SIZE_MB") * 1024 * 1024
 
 # Pagination settings used in api_app
 API_PAGE_SIZE = 100  # Paginator page size
@@ -280,7 +283,7 @@ ENGINE = env("ENGINE")
 CREDENTIALS = env("CREDENTIALS")
 SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
 
-# Spiderdata Database settings
+# Spiderdata database settings
 SPIDERDATA_DB_CONNECTION = env("SPIDERDATA_DB_CONNECTION")
 SPIDERDATA_DB_PRODUCTION = True
 SPIDERDATA_DB_CERTIFICATE_PATH = env("SPIDERDATA_DB_CERTIFICATE_PATH")
@@ -293,8 +296,18 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = env("EMAIL_PORT")
 EMAILS_TO_ALERT = env("EMAILS_TO_ALERT")
 
-# Accept new Users
+# Enable/disable the user register endpoint
 REGISTER = env("REGISTER")
 
-# Verification Email
+# Verification email
 VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
+
+# Proxy Settings
+PROXY_PROVIDERS_TO_TRACK = (
+    []
+    if env("PROXY_PROVIDERS_TO_TRACK") == ""
+    else [
+        (name.replace("_", " ").title(), f"{name}_usage")
+        for name in env("PROXY_PROVIDERS_TO_TRACK").split(",")
+    ]
+)

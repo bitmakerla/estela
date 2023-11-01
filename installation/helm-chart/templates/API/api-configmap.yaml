@@ -45,4 +45,4 @@ data:
   {{- end }}
   DJANGO_EXTERNAL_APPS: {{ .Values.DJANGO_EXTERNAL_APPS | quote }}
   EXTERNAL_MIDDLEWARES: {{ .Values.EXTERNAL_MIDDLEWARES | quote }}
-
+  PROXY_PROVIDERS_TO_TRACK: {{ .Values.PROXY_PROVIDERS_TO_TRACK | quote }}

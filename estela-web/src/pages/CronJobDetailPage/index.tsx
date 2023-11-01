@@ -50,7 +50,7 @@ import {
     SpiderCronJobUpdateDataStatusEnum,
 } from "../../services/api";
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
-import { convertDateToString } from "../../utils";
+import { convertDateToString, getFilteredEnvVars } from "../../utils";
 
 const { Option } = Select;
 const { Content } = Layout;
@@ -637,6 +637,12 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             waitingJobs,
             queueJobs,
         } = this.state;
+        const getProxyTag = (): string => {
+            const desiredItem: SpiderJobEnvVar = envVars.find(
+                (item: SpiderJobEnvVar) => item.name === "ESTELA_PROXY_NAME",
+            );
+            return desiredItem ? desiredItem.value : "";
+        };
         return (
             <>
                 <Content className="grid lg:grid-cols-3 grid-cols-1 gap-4 items-start lg:w-full">
@@ -918,7 +924,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             <Col>Environment variables</Col>
                             <Col>
                                 <Space direction="vertical">
-                                    {envVars.map((envVar: SpiderJobEnvVar, id) =>
+                                    {getFilteredEnvVars(envVars).map((envVar: SpiderJobEnvVar, id) =>
                                         envVar.masked ? (
                                             <Tooltip
                                                 title="Masked variable"
@@ -945,6 +951,20 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                             </Col>
                         </Row>
                         <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4">
+                            <Col>Proxy</Col>
+                            <Col className="px-2">
+                                <Space direction="vertical">
+                                    {getProxyTag() === "" ? (
+                                        <Text className="text-estela-black-medium text-xs">No Proxy</Text>
+                                    ) : (
+                                        <Tag className="proxy" key="1">
+                                            {getProxyTag()}
+                                        </Tag>
+                                    )}
+                                </Space>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4 rounded-lg">
                             <Col>Arguments</Col>
                             <Col className="col-span-2">
                                 <Space direction="horizontal" className="flex flex-wrap">
