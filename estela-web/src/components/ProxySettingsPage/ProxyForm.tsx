@@ -27,13 +27,6 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type,
         envVars.filter((envVar) => propertiesToFind.includes(envVar.name)),
     );
 
-    // Update proxyEnvVars whenever envVarsData changes
-    // useEffect(() => {
-    //     const filteredProxyEnvVars = envVars.filter((envVar) => propertiesToFind.includes(envVar.name));
-    //     setProxyEnvVars(filteredProxyEnvVars);
-    //     setEnvVars(envVars);
-    // }, [envVars]);
-
     useEffect(() => {
         if (validProxySettings()) {
             setActiveUpdateButton(true);
@@ -57,7 +50,7 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type,
         const proxyEnvVar = {
             name: e.target.name,
             value: e.target.value,
-            masked: e.target.name !== "ESTELA_PROXY_NAME" ? false : false,
+            masked: false,
         };
         const nameExists = proxyEnvVars.some((envVar) => envVar.name === proxyEnvVar.name);
 
@@ -70,7 +63,13 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type,
     };
 
     const updateEnvVars = (): void => {
-        setEnvVars([...envVars, ...proxyEnvVars]);
+        // Enable proxies
+        const enableProxyEnvVar = {
+            name: "ESTELA_PROXIES_ENABLED",
+            value: "true",
+            masked: false,
+        };
+        setEnvVars([...envVars, ...proxyEnvVars, enableProxyEnvVar]);
         closeModal();
     };
 
