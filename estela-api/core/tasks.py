@@ -10,10 +10,21 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
 from api.serializers.job import SpiderJobCreateSerializer
-from api.utils import delete_stats_from_redis, update_stats_from_redis
+from api.utils import (
+    delete_stats_from_redis,
+    get_proxy_provider_envs,
+    update_stats_from_redis,
+)
 from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
-from core.models import DataStatus, Project, Spider, SpiderJob, UsageRecord
+from core.models import (
+    DataStatus,
+    Project,
+    ProxyProvider,
+    Spider,
+    SpiderJob,
+    UsageRecord,
+)
 
 
 def get_default_token(job):
@@ -86,6 +97,16 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
 
     job_args = {arg.name: arg.value for arg in job.args.all()}
     job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
+
+    proxy_name = job_env_vars.get("ESTELA_PROXY_NAME")
+    if proxy_name:
+        proxy_provider = ProxyProvider.objects.filter(name=proxy_name).first()
+        if proxy_provider:
+            proxy_env_vars = get_proxy_provider_envs(proxy_provider)
+            job_env_vars.update(
+                {env_var["name"]: env_var["value"] for env_var in proxy_env_vars}
+            )
+
     job_manager.create_job(
         job.name,
         job.key,
