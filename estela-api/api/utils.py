@@ -1,12 +1,12 @@
 from datetime import timedelta
 
-import redis
 from django.conf import settings
+import redis
 
 from api import errors
 from api.exceptions import DataBaseError
 from config.job_manager import spiderdata_db_client
-from core.models import SpiderJobEnvVar, ProxyProvider
+from core.models import SpiderJobEnvVar
 
 
 def update_env_vars(instance, env_vars, level="project", delete=True):
@@ -75,8 +75,7 @@ def delete_stats_from_redis(job):
         pass
 
 
-def get_proxy_provider_envs(proxy_id):
-    proxy_provider = ProxyProvider.objects.get(pk=proxy_id)
+def get_proxy_provider_envs(proxy_provider):
     proxy_attrs = [
         "username",
         "password",

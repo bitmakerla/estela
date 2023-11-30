@@ -7,15 +7,15 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderJobFilter
-from api.mixins import BaseViewSet, ActionHandlerMixin
+from api.mixins import ActionHandlerMixin, BaseViewSet
 from api.serializers.job import (
     SpiderJobCreateSerializer,
     SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
-from api.utils import update_stats_from_redis, get_proxy_provider_envs
+from api.utils import get_proxy_provider_envs, update_stats_from_redis
 from config.job_manager import job_manager
-from core.models import DataStatus, Project, Spider, SpiderJob, ProxyProvider
+from core.models import DataStatus, Project, ProxyProvider, Spider, SpiderJob
 
 
 class SpiderJobViewSet(
@@ -121,17 +121,11 @@ class SpiderJobViewSet(
                 env_var.name: env_var.value for env_var in job.env_vars.all()
             }
 
-            proxy_provider_names = [
-                (proxy.name, proxy.proxyid) for proxy in ProxyProvider.objects.all()
-            ]
             proxy_name = job_env_vars.get("ESTELA_PROXY_NAME")
-
             if proxy_name:
-                proxy_id = next(
-                    (tup[1] for tup in proxy_provider_names if proxy_name in tup), None
-                )
-                if proxy_id:
-                    proxy_env_vars = get_proxy_provider_envs(proxy_id)
+                proxy_provider = ProxyProvider.objects.filter(name=proxy_name).first()
+                if proxy_provider:
+                    proxy_env_vars = get_proxy_provider_envs(proxy_provider)
                     job_env_vars.update(
                         {
                             env_var["name"]: env_var["value"]
