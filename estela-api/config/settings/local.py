@@ -8,3 +8,7 @@ COUNTDOWN_RECORD_PROJECT_USAGE_AFTER_JOB_EVENT = 30
 COUNTDOWN_RECORD_COVERAGE_AFTER_JOB_EVENT = 30
 
 SPIDERDATA_DB_PRODUCTION = False
+
+if env("ENABLE_SENTRY"):
+    with sentry_sdk.configure_scope() as scope:
+        scope.set_tag("environment", "local")

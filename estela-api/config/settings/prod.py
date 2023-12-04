@@ -1,5 +1,6 @@
 from config.settings.base import *  # noqa: F401,F403,F405
 
+
 DEBUG = False
 
 RUN_JOBS_PER_LOT = 1000
@@ -20,3 +21,7 @@ STATICFILES_STORAGE = "config.storage_backends.StaticStorage"
 DEFAULT_FILE_STORAGE = "config.storage_backends.MediaStorage"
 STATIC_URL = "https://{}/{}/".format(AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
 MEDIA_URL = "https://{}/{}/".format(AWS_S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+
+if env("ENABLE_SENTRY"):
+    with sentry_sdk.configure_scope() as scope:
+        scope.set_tag("environment", "production")

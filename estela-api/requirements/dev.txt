@@ -53,6 +53,7 @@ certifi==2020.12.5
     #   kubernetes
     #   minio
     #   requests
+    #   sentry-sdk
 chardet==4.0.0
     # via
     #   -r test.txt
@@ -262,7 +263,9 @@ pyasn1-modules==0.2.8
     #   -r test.txt
     #   google-auth
 pymongo[srv]==3.12.0
-    # via -r test.txt
+    # via
+    #   -r test.txt
+    #   pymongo
 pyparsing==2.4.7
     # via
     #   -r test.txt
@@ -331,6 +334,8 @@ s3transfer==0.3.6
     #   -r test.txt
     #   awscli
     #   boto3
+sentry-sdk==1.9.0
+    # via -r test.txt
 six==1.15.0
     # via
     #   -r test.txt
@@ -362,6 +367,7 @@ urllib3==1.25.11
     #   kubernetes
     #   minio
     #   requests
+    #   sentry-sdk
 vine==5.0.0
     # via
     #   -r test.txt

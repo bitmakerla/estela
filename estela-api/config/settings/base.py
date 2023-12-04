@@ -15,6 +15,8 @@ from urllib.parse import urlparse
 
 import environ
 from estela_queue_adapter import get_queue_env_vars
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -66,6 +68,8 @@ env = environ.Env(
     EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
     PROXY_PROVIDERS_TO_TRACK=(str, ""),
+    ENABLE_SENTRY=(bool, False),
+    SENTRY_DSN=(str, ""),
 )
 environ.Env.read_env(env_file=".env")
 
@@ -311,3 +315,10 @@ PROXY_PROVIDERS_TO_TRACK = (
         for name in env("PROXY_PROVIDERS_TO_TRACK").split(",")
     ]
 )
+
+if env("ENABLE_SENTRY"):
+    sentry_sdk.init(
+        dsn="your_public_dsn",
+        integrations=[DjangoIntegration()],
+        send_default_pii=True,
+    )

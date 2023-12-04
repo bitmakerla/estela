@@ -19,6 +19,8 @@ from django.urls import include, path
 from django.http import HttpResponse
 from django.views import View
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
 
 class HealthCheckView(View):
     def get(self, request):
@@ -35,5 +37,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
     path("", HealthCheckView.as_view()),
+    path("sentry-debug/", trigger_error),
 ]
 urlpatterns = urlpatterns + django_external_apps_url

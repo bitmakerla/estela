@@ -35,6 +35,7 @@ certifi==2020.12.5
     #   kubernetes
     #   minio
     #   requests
+    #   sentry-sdk
 chardet==4.0.0
     # via requests
 click==7.1.2
@@ -207,6 +208,8 @@ s3transfer==0.3.6
     # via
     #   awscli
     #   boto3
+sentry-sdk==1.9.0
+    # via -r base.in
 six==1.15.0
     # via
     #   click-repl
@@ -229,6 +232,7 @@ urllib3==1.25.11
     #   kubernetes
     #   minio
     #   requests
+    #   sentry-sdk
 vine==5.0.0
     # via
     #   amqp
