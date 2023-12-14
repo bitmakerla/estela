@@ -1205,9 +1205,9 @@ paths:
           type: string
       responses:
         '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/DeleteJobData'
+          description: Deletion successful
+        '404':
+          description: Could not delete data
       tags:
         - api
     parameters:
@@ -2647,15 +2647,10 @@ definitions:
         title: Data expiry days
         description: Job data expiry days.
         type: integer
-  DeleteJobData:
-    required:
-      - count
-    type: object
-    properties:
-      count:
-        title: Count
-        description: Deleted items count.
-        type: integer
+      proxy_usage_data:
+        title: Proxy usage data
+        description: Proxy Usage data.
+        type: string
   UsageRecord:
     required:
       - processing_time

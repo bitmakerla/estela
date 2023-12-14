@@ -12,7 +12,6 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
-from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 from core.tasks import get_chain_to_process_usage_data
