@@ -2,7 +2,6 @@ export * from './Activity';
 export * from './AuthToken';
 export * from './ChangePassword';
 export * from './CoverageStats';
-export * from './DeleteJobData';
 export * from './Deploy';
 export * from './DeployCreate';
 export * from './DeployUpdate';

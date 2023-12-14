@@ -67,6 +67,12 @@ export interface SpiderJobUpdate {
      * @memberof SpiderJobUpdate
      */
     dataExpiryDays?: number;
+    /**
+     * Proxy Usage data.
+     * @type {string}
+     * @memberof SpiderJobUpdate
+     */
+    proxyUsageData?: string;
 }
 
 /**
@@ -108,6 +114,7 @@ export function SpiderJobUpdateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'requestCount': !exists(json, 'request_count') ? undefined : json['request_count'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'proxyUsageData': !exists(json, 'proxy_usage_data') ? undefined : json['proxy_usage_data'],
     };
 }
 
@@ -127,6 +134,7 @@ export function SpiderJobUpdateToJSON(value?: SpiderJobUpdate | null): any {
         'request_count': value.requestCount,
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
+        'proxy_usage_data': value.proxyUsageData,
     };
 }
 

@@ -21,9 +21,6 @@ import {
     ChangePassword,
     ChangePasswordFromJSON,
     ChangePasswordToJSON,
-    DeleteJobData,
-    DeleteJobDataFromJSON,
-    DeleteJobDataToJSON,
     Deploy,
     DeployFromJSON,
     DeployToJSON,
@@ -2071,7 +2068,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersJobsDataDeleteRaw(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<runtime.ApiResponse<DeleteJobData>> {
+    async apiProjectsSpidersJobsDataDeleteRaw(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<runtime.ApiResponse<void>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataDelete.');
         }
@@ -2106,14 +2103,13 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => DeleteJobDataFromJSON(jsonValue));
+        return new runtime.VoidApiResponse(response);
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataDelete(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<DeleteJobData> {
-        const response = await this.apiProjectsSpidersJobsDataDeleteRaw(requestParameters);
-        return await response.value();
+    async apiProjectsSpidersJobsDataDelete(requestParameters: ApiProjectsSpidersJobsDataDeleteRequest): Promise<void> {
+        await this.apiProjectsSpidersJobsDataDeleteRaw(requestParameters);
     }
 
     /**
