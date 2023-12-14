@@ -215,10 +215,6 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class DeleteJobDataSerializer(serializers.Serializer):
-    count = serializers.IntegerField(required=True, help_text="Deleted items count.")
-
-
 class ProjectJobSerializer(serializers.Serializer):
     results = SpiderJobSerializer(many=True, required=True, help_text="Project jobs.")
     count = serializers.IntegerField(required=True, help_text="Project jobs count.")

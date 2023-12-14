@@ -187,9 +187,8 @@ def record_project_usage_after_data_delete(project_id, job_id):
 @celery_app.task()
 def delete_job_data(job_key):
     jid, sid, pid = job_key.split(".")
-    delete_data(pid, sid, jid, "items")
-    delete_data(pid, sid, jid, "requests")
-    delete_data(pid, sid, jid, "logs")
+    for data_type in ["items", "requests", "logs"]:
+        delete_data(pid, sid, jid, data_type)
     SpiderJob.objects.filter(jid=jid).update(data_status=DataStatus.DELETED_STATUS)
     record_project_usage_after_data_delete(pid, int(jid))
 
