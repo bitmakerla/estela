@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import pymongo
 from bson.objectid import ObjectId
-from pymongo.errors import ConnectionFailure
+from pymongo.errors import ConnectionFailure, PyMongoError
 
 
 class InsertionResponse:
@@ -87,12 +87,12 @@ class MongoAdapter(DatabaseInterface):
 
     def delete_collection_data(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
-        count = collection.delete_many({}).deleted_count
         try:
             collection.drop()
+            return True
         except PyMongoError as ex:
             print(ex)
-        return count
+            return False
 
     def get_collection_data(self, database_name, collection_name, limit=10000):
         collection = self.client[database_name][collection_name]

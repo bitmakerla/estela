@@ -4,11 +4,7 @@ import { RouteComponentProps } from "react-router-dom";
 
 import "./styles.scss";
 import { ApiService } from "../../services";
-import {
-    ApiProjectsSpidersJobsDataListRequest,
-    ApiProjectsSpidersJobsDataDeleteRequest,
-    DeleteJobData,
-} from "../../services/api";
+import { ApiProjectsSpidersJobsDataListRequest, ApiProjectsSpidersJobsDataDeleteRequest } from "../../services/api";
 import { resourceNotAllowedNotification, dataDeletedNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
@@ -59,9 +55,9 @@ export class JobDataListPage extends Component<RouteComponentProps<RouteParams>,
             type: this.type,
         };
         this.apiService.apiProjectsSpidersJobsDataDelete(request).then(
-            (response: DeleteJobData) => {
+            () => {
                 this.setState({ data: [], count: 0, current: 0, loaded: true });
-                dataDeletedNotification(response.count);
+                dataDeletedNotification();
             },
             (error: unknown) => {
                 error;

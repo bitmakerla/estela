@@ -11,7 +11,6 @@ import {
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersJobsDataDeleteRequest,
     ApiProjectsSpidersJobsDataDownloadRequest,
-    DeleteJobData,
     InlineResponse2006,
     InlineResponse2008,
 } from "../../services/api";
@@ -43,8 +42,8 @@ const deleteSpiderJobData = (type_: string, projectId: string, spiderId: string,
         type: type_,
     };
     return apiService.apiProjectsSpidersJobsDataDelete(request).then(
-        (response: DeleteJobData) => {
-            dataDeletedNotification(response.count);
+        () => {
+            dataDeletedNotification();
             return true;
         },
         (error: unknown) => {
@@ -656,6 +655,7 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
     const [logs, setLogs] = useState<Dictionary[]>([]);
+
     useEffect(() => {
         getData("logs", 1, projectId, spiderId, jobId).then((response) => {
             let data: Dictionary[] = [];

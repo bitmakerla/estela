@@ -18,10 +18,10 @@ export const resourceNotAllowedNotification = (): void => {
     history.push("/");
 };
 
-export const dataDeletedNotification = (n: number): void => {
+export const dataDeletedNotification = (): void => {
     notification.open({
         message: "Data Successfully Deleted",
-        description: `${n} Items have been deleted`,
+        description: "All items have been deleted",
     });
 };
 

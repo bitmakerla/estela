@@ -12,7 +12,6 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
-from api.serializers.job import DeleteJobDataSerializer
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 from core.tasks import get_chain_to_process_usage_data
@@ -99,7 +98,7 @@ class JobDataViewSet(
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        job_collection_name = self.get_collection_name(job, data_type, **kwargs)
+        job_collection_name = self.get_collection_name(job, data_type)
 
         count = spiderdata_db_client.get_estimated_document_count(
             kwargs["pid"], job_collection_name
@@ -148,18 +147,18 @@ class JobDataViewSet(
             }
         )
 
-    def get_collection_name(self, job, data_type, **kwargs):
+    def get_collection_name(self, job, data_type):
         if (
             job.cronjob is not None
             and job.cronjob.unique_collection
             and data_type == "items"
         ):
             job_collection_name = "{}-scj{}-job_{}".format(
-                kwargs["sid"], job.cronjob.cjid, data_type
+                job.spider.sid, job.cronjob.cjid, data_type
             )
         else:
             job_collection_name = "{}-{}-job_{}".format(
-                kwargs["sid"], kwargs["jid"], data_type
+                job.spider.sid, job.jid, data_type
             )
 
         return job_collection_name
@@ -197,7 +196,7 @@ class JobDataViewSet(
         data_type = request.query_params.get("type", "items")
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        job_collection_name = self.get_collection_name(job, data_type, **kwargs)
+        job_collection_name = self.get_collection_name(job, data_type)
 
         data = []
         if data_type == "stats":
@@ -220,7 +219,12 @@ class JobDataViewSet(
 
     @swagger_auto_schema(
         methods=["POST"],
-        responses={status.HTTP_200_OK: DeleteJobDataSerializer()},
+        responses={
+            status.HTTP_200_OK: openapi.Response(description="Deletion successful"),
+            status.HTTP_404_NOT_FOUND: openapi.Response(
+                description="Could not delete data"
+            ),
+        },
         manual_parameters=[
             openapi.Parameter(
                 "type",
@@ -238,10 +242,8 @@ class JobDataViewSet(
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
-        job_collection_name = self.get_collection_name(
-            job, data_type, kwargs["sid"], kwargs["jid"]
-        )
-        count = spiderdata_db_client.delete_collection_data(
+        job_collection_name = self.get_collection_name(job, data_type)
+        deleted_data = spiderdata_db_client.delete_collection_data(
             kwargs["pid"], job_collection_name
         )
         chain_of_usage_process = get_chain_to_process_usage_data(
@@ -249,9 +251,7 @@ class JobDataViewSet(
         )
         chain_of_usage_process.apply_async()
 
-        return Response(
-            {
-                "count": count,
-            },
-            status=status.HTTP_200_OK,
-        )
+        if deleted_data:
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
