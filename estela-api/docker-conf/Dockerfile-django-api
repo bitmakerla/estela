@@ -1,11 +1,19 @@
 FROM python:3.9
 
 WORKDIR /home/estela
+ARG M1_LOCAL=false
 
 COPY estela-api/requirements ./requirements
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
+# If M1 chip is used, install pyodbc and unixodbc-dev
+RUN if [ "$M1_LOCAL" = "true" ]; then \
+        apt-get update && apt-get install -y unixodbc-dev && \
+        pip install --no-binary :all: pyodbc && \
+        sed -i '/pyodbc/d' requirements/test.txt; \
+    fi
 
 RUN pip install -r requirements/test.txt
 RUN if test -f "requirements/externalApps.txt"; then pip install -r requirements/externalApps.txt; fi

@@ -62,7 +62,7 @@ def update_stats_from_redis(job, save_to_database=False):
 
         job_collection_name = "{}-{}-job_stats".format(job.spider.sid, job.jid)
         job_stats["_id"] = job_collection_name
-        spiderdata_db_client.insert_one_to_collection(
+        spiderdata_db_client.insert_one_to_dataset(
             str(job.spider.project.pid), "job_stats", job_stats
         )
 

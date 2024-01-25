@@ -71,7 +71,7 @@ def delete_data(pid, sid, jid, data_type):
     else:
         job_collection_name = "{}-{}-job_{}".format(sid, jid, data_type)
 
-    spiderdata_db_client.delete_collection_data(pid, job_collection_name)
+    spiderdata_db_client.delete_dataset_data(pid, job_collection_name)
 
 
 @celery_app.task(name="core.tasks.launch_job")
@@ -226,16 +226,16 @@ def record_project_usage_after_job_event(job_id):
         unique_collection = True
     else:
         items_collection_name = "{}-{}-job_items".format(job.spider.sid, job.jid)
-        items_data_size = spiderdata_db_client.get_collection_size(
+        items_data_size = spiderdata_db_client.get_dataset_size(
             str(project.pid), items_collection_name
         )
         unique_collection = False
     requests_collection_name = "{}-{}-job_requests".format(job.spider.sid, job.jid)
-    requests_data_size = spiderdata_db_client.get_collection_size(
+    requests_data_size = spiderdata_db_client.get_dataset_size(
         str(project.pid), requests_collection_name
     )
     logs_collection_name = "{}-{}-job_logs".format(job.spider.sid, job.jid)
-    logs_data_size = spiderdata_db_client.get_collection_size(
+    logs_data_size = spiderdata_db_client.get_dataset_size(
         str(project.pid), logs_collection_name
     )
     # Tracking Proxy Usage
@@ -309,7 +309,7 @@ def record_job_coverage_event(job_id):
     pid = job.spider.project.pid
     sid = job.spider.sid
     items_collection_name = f"{sid}-{job.jid}-job_items"
-    items: List[dict] = spiderdata_db_client.get_all_collection_data(
+    items: List[dict] = spiderdata_db_client.get_all_dataset_data(
         str(pid), items_collection_name
     )
     total_items = len(items)

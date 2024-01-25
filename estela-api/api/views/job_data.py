@@ -100,7 +100,7 @@ class JobDataViewSet(
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         job_collection_name = self.get_collection_name(job, data_type)
 
-        count = spiderdata_db_client.get_estimated_document_count(
+        count = spiderdata_db_client.get_estimated_item_count(
             kwargs["pid"], job_collection_name
         )
 
@@ -119,12 +119,12 @@ class JobDataViewSet(
             chunk_size = max(
                 1,
                 settings.MAX_CLI_DOWNLOAD_CHUNK_SIZE
-                // spiderdata_db_client.get_estimated_document_size(
+                // spiderdata_db_client.get_estimated_item_size(
                     kwargs["pid"], job_collection_name
                 ),
             )
             current_chunk = request.query_params.get("current_chunk", None)
-            result, next_chunk = spiderdata_db_client.get_chunked_collection_data(
+            result, next_chunk = spiderdata_db_client.get_chunked_dataset_data(
                 kwargs["pid"], job_collection_name, chunk_size, current_chunk
             )
             response = {"count": count, "results": result}
@@ -132,7 +132,7 @@ class JobDataViewSet(
                 response["next_chunk"] = next_chunk
             return Response(response)
         else:
-            result = spiderdata_db_client.get_paginated_collection_data(
+            result = spiderdata_db_client.get_paginated_dataset_data(
                 kwargs["pid"], job_collection_name, page, page_size
             )
 
@@ -207,11 +207,11 @@ class JobDataViewSet(
             docs_limit = max(
                 1,
                 settings.MAX_WEB_DOWNLOAD_SIZE
-                // spiderdata_db_client.get_estimated_document_size(
+                // spiderdata_db_client.get_estimated_item_size(
                     kwargs["pid"], job_collection_name
                 ),
             )
-            data = spiderdata_db_client.get_collection_data(
+            data = spiderdata_db_client.get_dataset_data(
                 kwargs["pid"], job_collection_name, docs_limit
             )
 
@@ -243,7 +243,7 @@ class JobDataViewSet(
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         job_collection_name = self.get_collection_name(job, data_type)
-        deleted_data = spiderdata_db_client.delete_collection_data(
+        deleted_data = spiderdata_db_client.delete_dataset_data(
             kwargs["pid"], job_collection_name
         )
         chain_of_usage_process = get_chain_to_process_usage_data(

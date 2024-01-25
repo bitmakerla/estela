@@ -1,4 +1,5 @@
 pip-tools
 pymongo[srv]
+pyodbc
 black
 git+https://github.com/bitmakerla/estela-queue-adapter.git
