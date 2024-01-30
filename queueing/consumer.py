@@ -14,7 +14,7 @@ from estela_queue_adapter import get_consumer_interface
 WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
 HEARTBEAT_TICK = int(os.getenv("HEARTBEAT_TICK", "300"))
 QUEUE_BASE_TIMEOUT = int(os.getenv("QUEUE_BASE_TIMEOUT", "5"))
-QUEUE_MAX_TIMEOUT = int(os.getenv("QUEUE_MAX_TIMEOUT", "10"))
+QUEUE_MAX_TIMEOUT = int(os.getenv("QUEUE_MAX_TIMEOUT", "300"))
 
 item_queue = Queue()
 inserters = {}

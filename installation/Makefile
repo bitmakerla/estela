@@ -19,8 +19,8 @@ resources:
 	-minikube delete
 	-. ./local/.env && minikube start \
 		   --insecure-registry=$${HOST_REGISTRY} \
-		   --cpus="2" \
-                   --memory="2500mb" \
+		   --cpus="4" \
+                   --memory="3500mb" \
 		   --disk-size="20000mb"
 	-minikube addons enable metrics-server
 
@@ -43,6 +43,7 @@ upload-all-images:
 	-. ./local/.env && for image in $(SERVICES); do \
 		docker push $${LOCAL_REGISTRY}/estela-$$image:latest; \
 	done
+	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-consumer:latest;
 
 .PHONY: images
 images: build-all-images upload-all-images
