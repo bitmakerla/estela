@@ -1,15 +1,21 @@
-import pytest
 from unittest.mock import Mock, patch
+
 import pyodbc
-from database_adapters.db_adapters import SqlServerWriterAdapter, InsertionResponse
+import pytest
+
+from database_adapters.db_adapters import InsertionResponse, SqlServerWriterAdapter
+
 
 class TestSqlServerWriterAdapter:
-
     @pytest.fixture
     def mock_pyodbc_connect(self):
-        with patch('database_adapters.db_adapters.pyodbc.connect') as mock_connect:
-            mock_connect.return_value.cursor.return_value.__enter__.return_value.execute = Mock()
-            mock_connect.return_value.cursor.return_value.__enter__.return_value.executemany = Mock()
+        with patch("database_adapters.db_adapters.pyodbc.connect") as mock_connect:
+            mock_connect.return_value.cursor.return_value.__enter__.return_value.execute = (
+                Mock()
+            )
+            mock_connect.return_value.cursor.return_value.__enter__.return_value.executemany = (
+                Mock()
+            )
             yield mock_connect
 
     @pytest.fixture
@@ -25,21 +31,36 @@ class TestSqlServerWriterAdapter:
 
     def test_execute_query_success(self, writer_adapter):
         connection = writer_adapter.get_connection()
-        assert writer_adapter._execute_query("test_db", "SELECT * FROM test_table") == (True, None)
+        assert writer_adapter._execute_query("test_db", "SELECT * FROM test_table") == (
+            True,
+            None,
+        )
 
     def test_execute_query_failure(self, mock_pyodbc_connect, writer_adapter):
         connection = writer_adapter.get_connection()
-        mock_pyodbc_connect.return_value.cursor.side_effect = pyodbc.DatabaseError("Error")
+        mock_pyodbc_connect.return_value.cursor.side_effect = pyodbc.DatabaseError(
+            "Error"
+        )
 
         # Ejecutar la consulta y capturar el resultado
-        result, error = writer_adapter._execute_query("test_db", "SELECT * FROM test_table")
+        result, error = writer_adapter._execute_query(
+            "test_db", "SELECT * FROM test_table"
+        )
         assert result == False
         assert isinstance(error, pyodbc.DatabaseError)
         assert str(error) == "Error"
 
     def test_execute_query_with_execute_many(self, writer_adapter):
         connection = writer_adapter.get_connection()
-        assert writer_adapter._execute_query("test_db", "INSERT INTO test_table VALUES (?)", values=[(1,),(2,)], execute_many=True) == (True, None)
+        assert (
+            writer_adapter._execute_query(
+                "test_db",
+                "INSERT INTO test_table VALUES (?)",
+                values=[(1,), (2,)],
+                execute_many=True,
+            )
+            == (True, None)
+        )
 
     def test_insert_one_to_dataset(self, writer_adapter):
         item = {"col1": "val1", "col2": "val2"}
@@ -67,6 +88,8 @@ class TestSqlServerWriterAdapter:
     def test_insert_one_to_unique_dataset(self, writer_adapter):
         connection = writer_adapter.get_connection()
         item = {"col1": "val1", "col2": "val2"}
-        response = writer_adapter.insert_one_to_unique_dataset("test_db", "test_table", item)
+        response = writer_adapter.insert_one_to_unique_dataset(
+            "test_db", "test_table", item
+        )
         assert isinstance(response, InsertionResponse)
         assert response.ok == True

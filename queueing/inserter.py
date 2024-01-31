@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import sys
 import threading
 import time
@@ -97,7 +97,11 @@ class Inserter:
                 self.database_name, self.collection_name, item["payload"]
             )
             if response.ok:
-                logger.debug("1 document inserted in {}. with values {}".format(self.identifier, item["payload"]))
+                logger.debug(
+                    "1 document inserted in {}. Item: {}".format(
+                        self.identifier, item["payload"]
+                    )
+                )
             else:
                 self.__handle_insertion_error(response, [item])
         else:

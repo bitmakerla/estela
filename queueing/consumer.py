@@ -1,15 +1,14 @@
+import logging
 import os
 import sys
-import logging
 import threading
 import time
-
 from queue import Queue
+
 from config.database_manager import db_client
+from estela_queue_adapter import get_consumer_interface
 from inserter import Inserter
 from utils import jsonify
-from estela_queue_adapter import get_consumer_interface
-
 
 WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
 HEARTBEAT_TICK = int(os.getenv("HEARTBEAT_TICK", "300"))
@@ -89,13 +88,17 @@ def get_db_name(item):
         logger.debug("Using generated database name: {}".format(project))
         return project
 
+
 def get_dataset_name(item, topic_name):
     if "dataset_name" in item:
         logger.debug("Using custom dataset_name: {}".format(item["dataset_name"]))
         return item["dataset_name"]
-    job, spider, _ = split_jid(item["jid"]) 
-    logger.debug("Using generated dataset_name: {}-{}-{}".format(spider, job, topic_name))
+    job, spider, _ = split_jid(item["jid"])
+    logger.debug(
+        "Using generated dataset_name: {}-{}-{}".format(spider, job, topic_name)
+    )
     return "{}-{}-{}".format(spider, job, topic_name)
+
 
 def consume_from_queue_platform(topic_name):
     if db_client.get_connection():

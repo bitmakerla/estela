@@ -1,9 +1,9 @@
-from abc import ABCMeta, abstractmethod
 import logging
+import threading
+from abc import ABCMeta, abstractmethod
 
 import pymongo
 import pyodbc
-import threading
 from bson.objectid import ObjectId
 from pymongo.errors import ConnectionFailure, PyMongoError
 
@@ -14,62 +14,116 @@ class InsertionResponse:
     def __init__(self, ok, exception=None, need_upsert=False):
         self.ok = ok
         self.need_upsert = need_upsert
-        self.error = None if (ok or exception is None) else f"{exception.__class__.__name__}: {str(exception)}"
+        self.error = (
+            None
+            if (ok or exception is None)
+            else f"{exception.__class__.__name__}: {str(exception)}"
+        )
+
 
 class DatabaseReaderInterface(metaclass=ABCMeta):
-    """Database adapter that just support read operations."""
+    """
+    An abstract base class defining the interface for database read operations.
+
+    This interface is used to adapt various types of databases to a common set of read operations,
+    enabling the retrieval of data and metadata from the database.
+    """
 
     @abstractmethod
     def get_connection(self):
-        pass
+        """Establishes a connection to the database."""
 
     @abstractmethod
     def get_all_dataset_data(self):
-        pass
+        """Retrieves all data from a dataset within the database."""
 
     @abstractmethod
     def get_chunked_dataset_data(self):
-        pass
+        """
+        Retrieves data from a dataset in chunks.
+
+        This method is particularly useful for handling large datasets that should not be loaded into memory all at once.
+        """
 
     @abstractmethod
     def get_paginated_dataset_data(self):
-        pass
+        """
+        Retrieves data from a dataset in a paginated manner.
+
+        This method is useful for web applications or services where data needs to be displayed in smaller portions.
+        """
 
     @abstractmethod
     def get_estimated_item_count(self):
-        pass
+        """
+        Provides an estimated count of items in a dataset.
+
+        Note that this might not always be an exact count but should be fast and efficient, suitable for large datasets.
+        """
 
     @abstractmethod
     def get_estimated_item_size(self):
-        pass
+        """
+        Provides an estimated size of each item in the dataset.
+
+        This can be useful for understanding data storage requirements and planning data load operations.
+        """
 
     @abstractmethod
     def get_database_size(self):
-        pass
+        """
+        Retrieves the total size of the database.
+
+        This includes the size of all datasets and any additional overhead the database might have.
+        """
+
 
 class DatabaseWriterInterface(metaclass=ABCMeta):
-    """Database adapter that just support write operations."""
+    """
+    An abstract base class defining the interface for database write operations.
+
+    This interface is used to adapt various types of databases to a common set of write operations,
+    enabling the modification of data within the database.
+    """
 
     @abstractmethod
     def get_connection(self):
-        pass
+        """Establishes a connection to the database."""
 
     @abstractmethod
     def delete_dataset_data(self):
-        pass
+        """
+        Deletes data from a dataset.
+
+        This method should ensure that data is removed according to specified criteria or conditions.
+        """
 
     @abstractmethod
     def insert_one_to_unique_dataset(self):
-        pass
+        """
+        Inserts a single data item into a unique dataset.
+
+        This method ensures that the data item is added to a dataset belonging to a scheduled job with
+        the field unique_collection set to True. This means, all jobs save the data to the same dataset,
+        instead of creating a new dataset for each job.
+        """
 
     @abstractmethod
     def insert_one_to_dataset(self):
-        pass
+        """
+        Inserts a single data item into a dataset.
+
+        This method is for adding individual items to a dataset where uniqueness is not enforced.
+        """
 
     @abstractmethod
     def insert_many_to_dataset(self):
-        pass
-  
+        """
+        Inserts multiple data items into a dataset.
+
+        This method is optimized for bulk operations, allowing efficient insertion of large numbers of data items.
+        """
+
 
 class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
     def __init__(self, mongo_connection, mongo_production, mongo_certificate_path):
@@ -215,14 +269,14 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
         collection_size = database.command("collstats", collection_name)["size"]
         return collection_size
 
-class SqlServerWriterAdapter(DatabaseWriterInterface):
 
+class SqlServerWriterAdapter(DatabaseWriterInterface):
     def __init__(self, connection_string, production, certificate_path):
         self.connection_string = connection_string
         self.local_storage = threading.local()
 
     def get_connection(self):
-        if not hasattr(self.local_storage, 'connection'):
+        if not hasattr(self.local_storage, "connection"):
             try:
                 self.local_storage.connection = pyodbc.connect(self.connection_string)
                 return True
@@ -230,7 +284,7 @@ class SqlServerWriterAdapter(DatabaseWriterInterface):
                 print(f"Error connecting to SQL Server: {e}")
                 return False
         return True
-        
+
     def _execute_query(self, database_name, query, values=(), execute_many=False):
         if not self.get_connection():
             return False, "Connection Error"
@@ -252,37 +306,45 @@ class SqlServerWriterAdapter(DatabaseWriterInterface):
             return False, e
 
     def insert_one_to_dataset(self, database_name, table_name, item):
-        # It should `transform`` the item into a valid sql item.
-        columns = ', '.join(item.keys())
-        placeholders = ', '.join('?' * len(item))
+        # It should 'transform' the item into a valid SQL item.
+        columns = ", ".join(item.keys())
+        placeholders = ", ".join("?" * len(item))
         query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-        response, ex = self._execute_query(database_name, query, values=list(item.values()))
+        response, ex = self._execute_query(
+            database_name, query, values=list(item.values())
+        )
         return InsertionResponse(response, ex)
-        
+
     def insert_many_to_dataset(self, database_name, table_name, items):
-        columns = ', '.join(items[0].keys())
-        placeholders = ', '.join('?' * len(items[0]))
+        columns = ", ".join(items[0].keys())
+        placeholders = ", ".join("?" * len(items[0]))
         logger.debug("items :%s", str(items))
         query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
         values_to_insert = [tuple(item.values()) for item in items]
         logger.debug("values to insert: %s", str(values_to_insert))
-        response, ex = self._execute_query(database_name, query, values_to_insert, execute_many=True)
-        # no upsert needed as execute_many is atomic
+        response, ex = self._execute_query(
+            database_name, query, values_to_insert, execute_many=True
+        )
+        # No upsert needed as execute_many is atomic
         return InsertionResponse(response, ex)
 
     def delete_dataset_data(self, database_name, table_name):
         query = f"DELETE FROM {table_name}"
-        response, ex= self._execute_query(database_name, query)
+        response, ex = self._execute_query(database_name, query)
         return InsertionResponse(response, ex)
-    
-    def insert_one_to_unique_dataset(self, database_name, table_name, item): # Needs more discussion.
+
+    def insert_one_to_unique_dataset(
+        self, database_name, table_name, item
+    ):  # Needs more discussion.
         return self.insert_one_to_dataset(database_name, table_name, item)
+
 
 def get_database_interface(engine, connection, production, certificate_path):
     database_interfaces = {
         "mongodb": MongoAdapter(connection, production, certificate_path),
     }
     return database_interfaces[engine]
+
 
 def get_database_writer_interface(engine, connection, production, certificate_path):
     database_interfaces = {
