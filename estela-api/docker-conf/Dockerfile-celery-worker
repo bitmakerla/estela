@@ -1,6 +1,6 @@
 FROM python:3.9
 
-ARG M1_LOCAL=false
+ARG APPLE_SILICON_LOCAL=false
 
 WORKDIR /home/estela
 
@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # If M1 chip is used, install pyodbc and unixodbc-dev
-RUN if [ "$M1_LOCAL" = "true" ]; then \
+RUN if [ "$APPLE_SILICON_LOCAL" = "true" ]; then \
         apt-get update && apt-get install -y unixodbc-dev && \
         pip install --no-binary :all: pyodbc && \
         sed -i '/pyodbc/d' requirements/test.txt; \

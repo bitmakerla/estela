@@ -7,7 +7,7 @@ LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-servic
 RESOURCES = db registry minio zookeeper kafka
 SERVICES ?= django-api celery-worker celery-beat redis build-project
 PLATFORM ?= linux/$(shell uname -m)
-M1_LOCAL ?= false
+APPLE_SILICON_LOCAL ?= false
 
 
 .PHONY: resources
@@ -34,9 +34,9 @@ delete-resources:
 .PHONY: build-all-images
 build-all-images:
 	-. ./local/.env && for service in $(SERVICES); do \
-		cd $(API_DIR) && docker build .. --build-arg M1_LOCAL=${M1_LOCAL} --file docker-conf/Dockerfile-$$service --tag $${LOCAL_REGISTRY}/estela-$$service:latest; \
+		cd $(API_DIR) && docker build .. --build-arg APPLE_SILICON_LOCAL=${APPLE_SILICON_LOCAL} --file docker-conf/Dockerfile-$$service --tag $${LOCAL_REGISTRY}/estela-$$service:latest; \
 	done
-	-. ./local/.env && cd $(QUEUING_DIR) && docker build .. --build-arg M1_LOCAL=${M1_LOCAL} --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
+	-. ./local/.env && cd $(QUEUING_DIR) && docker build .. --build-arg APPLE_SILICON_LOCAL=${APPLE_SILICON_LOCAL} --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
 
 .PHONY: upload-all-images
 upload-all-images:
