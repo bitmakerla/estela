@@ -271,7 +271,8 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
 
 
 class SqlServerWriterAdapter(DatabaseWriterInterface):
-    def __init__(self, connection_string, production, certificate_path):
+
+    def __init__(self, connection_string):
         self.connection_string = connection_string
         self.local_storage = threading.local()
 
@@ -349,6 +350,6 @@ def get_database_interface(engine, connection, production, certificate_path):
 def get_database_writer_interface(engine, connection, production, certificate_path):
     database_interfaces = {
         "mongodb": MongoAdapter(connection, production, certificate_path),
-        "sqlserver": SqlServerWriterAdapter(connection, production, certificate_path),
+        "sqlserver": SqlServerWriterAdapter(connection),
     }
     return database_interfaces[engine]

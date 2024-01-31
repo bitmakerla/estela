@@ -7,7 +7,7 @@ LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-servic
 RESOURCES = db registry minio zookeeper kafka
 SERVICES ?= django-api celery-worker celery-beat redis build-project
 PLATFORM ?= linux/$(shell uname -m)
-APPLE_SILICON ?= false
+APPLE_SILICON_LOCAL ?= $$(uname -m | grep -q 'arm64' && echo "true" || echo "false")
 
 
 .PHONY: resources

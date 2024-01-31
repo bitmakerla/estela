@@ -8,7 +8,7 @@ REGISTRY_HOST = localhost:5001
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_DOC = docs/api.yaml
 PLATFORM ?= linux/$(shell uname -m)
-APPLE_SILICON ?= false
+APPLE_SILICON_LOCAL ?= $$(uname -m | grep -q 'arm64' && echo "true" || echo "false")
 
 .PHONY: start
 start:
