@@ -7,6 +7,7 @@ LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-servic
 RESOURCES = db registry minio zookeeper kafka
 SERVICES ?= django-api celery-worker celery-beat redis build-project
 PLATFORM ?= linux/$(shell uname -m)
+APPLE_SILICON ?= $$(uname -m | grep -q 'arm64' && echo "true" || echo "false")
 
 
 .PHONY: resources
@@ -18,8 +19,8 @@ resources:
 	-minikube delete
 	-. ./local/.env && minikube start \
 		   --insecure-registry=$${HOST_REGISTRY} \
-		   --cpus="2" \
-                   --memory="2500mb" \
+		   --cpus="4" \
+                   --memory="3500mb" \
 		   --disk-size="20000mb"
 	-minikube addons enable metrics-server
 
@@ -33,15 +34,16 @@ delete-resources:
 .PHONY: build-all-images
 build-all-images:
 	-. ./local/.env && for service in $(SERVICES); do \
-		cd $(API_DIR) && docker build .. --file docker-conf/Dockerfile-$$service --tag $${LOCAL_REGISTRY}/estela-$$service:latest; \
+		cd $(API_DIR) && docker build .. --build-arg APPLE_SILICON=${APPLE_SILICON} --file docker-conf/Dockerfile-$$service --tag $${LOCAL_REGISTRY}/estela-$$service:latest; \
 	done
-	-. ./local/.env && cd $(QUEUING_DIR) && docker build .. --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
+	-. ./local/.env && cd $(QUEUING_DIR) && docker build .. --build-arg APPLE_SILICON=${APPLE_SILICON} --file Dockerfile --tag $${LOCAL_REGISTRY}/estela-consumer:latest
 
 .PHONY: upload-all-images
 upload-all-images:
 	-. ./local/.env && for image in $(SERVICES); do \
 		docker push $${LOCAL_REGISTRY}/estela-$$image:latest; \
 	done
+	-. ./local/.env && docker push $${LOCAL_REGISTRY}/estela-consumer:latest;
 
 .PHONY: images
 images: build-all-images upload-all-images

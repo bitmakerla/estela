@@ -1,15 +1,14 @@
+import logging
 import os
 import sys
-import logging
 import threading
 import time
-
 from queue import Queue
+
 from config.database_manager import db_client
+from estela_queue_adapter import get_consumer_interface
 from inserter import Inserter
 from utils import jsonify
-from estela_queue_adapter import get_consumer_interface
-
 
 WORKER_POOL = int(os.getenv("WORKER_POOL", "10"))
 HEARTBEAT_TICK = int(os.getenv("HEARTBEAT_TICK", "300"))
@@ -19,6 +18,7 @@ QUEUE_MAX_TIMEOUT = int(os.getenv("QUEUE_MAX_TIMEOUT", "300"))
 item_queue = Queue()
 inserters = {}
 heartbeat_lock = threading.Lock()
+logger = logging.getLogger(__name__)
 
 
 def read_from_queue():
@@ -58,7 +58,7 @@ def heartbeat():
         time.sleep(HEARTBEAT_TICK)
 
         with heartbeat_lock:
-            logging.debug("Heartbeat: A new inspection has started.")
+            logger.debug("Heartbeat: A new inspection has started.")
 
             for worker in workers:
                 worker.join()
@@ -71,7 +71,33 @@ def heartbeat():
                 ):
                     del inserters[identifier]
 
-            logging.debug("Heartbeat: {} alive inserters.".format(len(inserters)))
+            logger.debug("Heartbeat: {} alive inserters.".format(len(inserters)))
+
+
+def split_jid(jid):
+    return jid.split(".")
+
+
+def get_db_name(item):
+    if "db_name" in item:
+        logger.debug("Using custom database name: {}".format(item["db_name"]))
+        return item["db_name"]
+    # This should be deprecated.
+    if "jid" in item:
+        _, _, project = split_jid(item["jid"])
+        logger.debug("Using generated database name: {}".format(project))
+        return project
+
+
+def get_dataset_name(item, topic_name):
+    if "dataset_name" in item:
+        logger.debug("Using custom dataset_name: {}".format(item["dataset_name"]))
+        return item["dataset_name"]
+    job, spider, _ = split_jid(item["jid"])
+    logger.debug(
+        "Using generated dataset_name: {}-{}-{}".format(spider, job, topic_name)
+    )
+    return "{}-{}-{}".format(spider, job, topic_name)
 
 
 def consume_from_queue_platform(topic_name):
@@ -90,21 +116,19 @@ def consume_from_queue_platform(topic_name):
 
     _heartbeat = threading.Thread(target=heartbeat, daemon=True)
     _heartbeat.start()
-
     for message in consumer:
         if heartbeat_lock.locked():
             heartbeat_lock.acquire()
             heartbeat_lock.release()
 
-        job, spider, project = message.value["jid"].split(".")
-
-        collection_name = "{}-{}-{}".format(spider, job, topic_name)
-        identifier = "{}/{}".format(project, collection_name)
+        db_name = get_db_name(message.value)
+        dataset_name = get_dataset_name(message.value, topic_name)
+        identifier = "{}/{}".format(db_name, dataset_name)
         unique = message.value.get("unique", "") == "True"
 
         if inserters.get(identifier) is None:
             inserters[identifier] = Inserter(
-                db_client, project, collection_name, unique, topic_name
+                db_client, db_name, dataset_name, unique, topic_name
             )
 
         inserters[identifier].add_pending_item()
