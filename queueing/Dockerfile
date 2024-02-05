@@ -1,17 +1,12 @@
 FROM python:3.9
 
-ARG APPLE_SILICON=false
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 WORKDIR /home/estela
 
 COPY queueing/requirements requirements
-RUN if [ "$APPLE_SILICON" = "true" ]; then \
-        apt-get update && apt-get install -y unixodbc-dev && \
-        pip install --no-binary :all: pyodbc && \
-        sed -i '/pyodbc/d' requirements/consumer.txt; \
-    fi
+RUN apt-get update && apt-get install -y unixodbc-dev
 RUN pip install -r requirements/consumer.txt
 
 COPY queueing/consumer.py .
