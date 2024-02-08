@@ -1,16 +1,45 @@
-FROM python:3.9
+# Build Stage
+FROM python:3.9-slim as builder
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    unixodbc-dev \
+    default-libmysqlclient-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY queueing/requirements requirements
+
+RUN pip install --no-cache-dir --target=/build/deps -r requirements/consumer.txt
+
+
+# Final Stage
+FROM python:3.9-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /home/estela
 
-COPY queueing/requirements requirements
-RUN apt-get update && apt-get install -y unixodbc-dev
-RUN pip install -r requirements/consumer.txt
+# Copy installed dependencies from the builder stage
+COPY --from=builder /build/deps /usr/local/lib/python3.9/site-packages
 
 COPY queueing/consumer.py .
 COPY queueing/inserter.py .
 COPY queueing/utils.py .
 COPY queueing/config config
 COPY database_adapters/ ./database_adapters
+
+# Runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    unixodbc-dev \
+    default-libmysqlclient-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*

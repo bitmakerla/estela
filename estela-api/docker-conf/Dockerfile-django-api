@@ -1,18 +1,45 @@
-FROM python:3.9
+# Build Stage
+FROM python:3.9-slim as builder
 
-WORKDIR /home/estela
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    unixodbc-dev \
+    default-libmysqlclient-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY estela-api/requirements ./requirements
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+RUN pip install --no-cache-dir --target=/build/deps -r requirements/test.txt \
+    && if [ -f requirements/externalApps.txt ]; then pip install --no-cache-dir --target=/build/deps -r requirements/externalApps.txt; fi
 
-RUN apt-get update && apt-get install -y unixodbc-dev
 
-RUN pip install -r requirements/test.txt
-RUN if test -f "requirements/externalApps.txt"; then pip install -r requirements/externalApps.txt; fi
+# Final Stage
+FROM python:3.9-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /home/estela
+
+# Copy installed dependencies from the builder stage
+COPY --from=builder /build/deps /usr/local/lib/python3.9/site-packages
 
 COPY estela-api/ .
 COPY database_adapters/ ./database_adapters
+
+# Runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    unixodbc-dev \
+    default-libmysqlclient-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8000
