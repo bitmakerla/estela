@@ -31,6 +31,7 @@ WORKDIR /home/estela
 
 # Copy installed dependencies from the builder stage
 COPY --from=builder /build/deps /usr/local/lib/python3.9/site-packages
+COPY --from=builder /build/deps/bin /usr/local/bin
 
 COPY estela-api/ .
 COPY database_adapters/ ./database_adapters
