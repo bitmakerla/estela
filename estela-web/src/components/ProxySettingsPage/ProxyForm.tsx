@@ -87,7 +87,7 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type,
                     />
                 </Form.Item>
                 <Form.Item label="Password" name="proxy_password">
-                    <Input
+                    <Input.password
                         size="large"
                         placeholder="Password"
                         name="ESTELA_PROXY_PASS"
