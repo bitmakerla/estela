@@ -3,7 +3,7 @@ version: '3'
 services:
   db:
     container_name: estela_db
-    image: mysql:8
+    image: mysql:8.3
     volumes:
       - estela_dbdata:/var/lib/mysql
       - ./db/mysql:/docker-entrypoint-initdb.d
