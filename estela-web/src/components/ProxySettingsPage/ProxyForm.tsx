@@ -36,6 +36,9 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type,
     }, [proxyEnvVars]);
 
     const getProxyValue = (envVarName: string): string => {
+        if (envVarName == "ESTELA_PROXY_PASS") {
+            return "";
+        }
         const proxyNameObj = envVars.find((obj) => obj.name === envVarName);
         return proxyNameObj ? proxyNameObj.value : "";
     };
@@ -87,12 +90,12 @@ export const ProxyForm: React.FC<ProxyFormProps> = ({ envVars, setEnvVars, type,
                     />
                 </Form.Item>
                 <Form.Item label="Password" name="proxy_password">
-                    <Input.password
+                    <Input.Password
                         size="large"
                         placeholder="Password"
                         name="ESTELA_PROXY_PASS"
                         onChange={handleChangeProxy}
-                        defaultValue={getProxyValue("ESTELA_PROXY_PASS")}
+                        defaultValue=""
                         className="input-proxy-form border-estela placeholder:text-estela-black-low"
                     />
                 </Form.Item>
