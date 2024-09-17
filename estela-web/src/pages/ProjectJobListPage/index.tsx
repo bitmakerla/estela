@@ -172,6 +172,16 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 </Content>
             ),
         },
+        {
+            title: "ITEMS",
+            dataIndex: "itemCount",
+            key: "itemCount",
+            render: (item_count: number): ReactElement => (
+                <Content>
+                    <Text>{item_count}</Text>
+                </Content>
+            ),
+        },
     ];
 
     async componentDidMount(): Promise<void> {
@@ -202,6 +212,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 date: convertDateToString(job.created),
                 status: job.jobStatus,
                 tags: job.tags,
+                itemCount: job.itemCount,
             }));
 
             const waitingJobs = data.filter((job: SpiderJobData) => job.status === "WAITING");
