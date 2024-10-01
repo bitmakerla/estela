@@ -121,6 +121,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         ("ADMIN", "Admin"),
         ("DEVELOPER", "Developer"),
         ("VIEWER", "Viewer"),
+        ("OWNER", "Owner")
     ]
     pid = serializers.UUIDField(
         read_only=True, help_text="A UUID identifying this project."

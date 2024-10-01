@@ -37,6 +37,12 @@ export interface UserProfile {
      * @memberof UserProfile
      */
     password: string;
+    /**
+     * Designates that this user has all permissions without explicitly assigning them.
+     * @type {boolean}
+     * @memberof UserProfile
+     */
+    readonly isSuperuser?: boolean;
 }
 
 export function UserProfileFromJSON(json: any): UserProfile {
@@ -52,6 +58,7 @@ export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'username': json['username'],
         'email': json['email'],
         'password': json['password'],
+        'isSuperuser': !exists(json, 'is_superuser') ? undefined : json['is_superuser'],
     };
 }
 

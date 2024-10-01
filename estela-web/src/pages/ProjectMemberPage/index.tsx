@@ -40,6 +40,7 @@ interface ProjectMemberPageState {
     newUser: string;
     members: MemberState[];
     permission: ProjectUpdatePermissionEnum;
+    changeRolePermissions: ProjectUpdatePermissionEnum[];
 }
 
 interface RouteParams {
@@ -58,6 +59,11 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         newUser: "",
         permission: ProjectUpdatePermissionEnum.Viewer,
         members: [],
+        changeRolePermissions: [
+            ProjectUpdatePermissionEnum.Admin,
+            ProjectUpdatePermissionEnum.Developer,
+            ProjectUpdatePermissionEnum.Viewer,
+        ],
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -90,6 +96,23 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
         },
     ];
 
+    verifyIsSuperuser = (): void => {
+        const requestParams = { username: AuthService.getUserUsername() || "" };
+        this.apiService.apiAuthProfileRead(requestParams).then(
+            (response) => {
+                this.setState({
+                    changeRolePermissions:
+                        response.isSuperuser === true
+                            ? [...this.state.changeRolePermissions, ProjectUpdatePermissionEnum.Owner]
+                            : [...this.state.changeRolePermissions],
+                });
+            },
+            (error: unknown) => {
+                error;
+            },
+        );
+    };
+
     updateInfo = (): void => {
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
@@ -117,6 +140,7 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
     };
 
     async componentDidMount(): Promise<void> {
+        this.verifyIsSuperuser();
         this.updateInfo();
     }
 
@@ -324,27 +348,15 @@ export class ProjectMemberPage extends Component<RouteComponentProps<RouteParams
                                             defaultValue={ProjectUpdatePermissionEnum.Viewer}
                                             onChange={this.handleSelectChange}
                                         >
-                                            <Option
-                                                key={1}
-                                                className="hover:bg-button-hover hover:text-estela"
-                                                value={ProjectUpdatePermissionEnum.Admin}
-                                            >
-                                                Admin
-                                            </Option>
-                                            <Option
-                                                key={2}
-                                                className="hover:bg-button-hover hover:text-estela"
-                                                value={ProjectUpdatePermissionEnum.Developer}
-                                            >
-                                                Developer
-                                            </Option>
-                                            <Option
-                                                key={3}
-                                                className="hover:bg-button-hover hover:text-estela"
-                                                value={ProjectUpdatePermissionEnum.Viewer}
-                                            >
-                                                Viewer
-                                            </Option>
+                                            {this.state.changeRolePermissions.map((permission, index) => (
+                                                <Option
+                                                    key={index}
+                                                    className="hover:bg-button-hover hover:text-estela"
+                                                    value={permission}
+                                                >
+                                                    {permission[0] + permission.slice(1).toLowerCase()}
+                                                </Option>
+                                            ))}
                                         </Select>
                                         <Row className="mt-6 w-full grid grid-cols-2" justify="center">
                                             <Button

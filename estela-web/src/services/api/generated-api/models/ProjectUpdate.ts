@@ -114,7 +114,8 @@ export enum ProjectUpdateFrameworkEnum {
 export enum ProjectUpdatePermissionEnum {
     Admin = 'ADMIN',
     Developer = 'DEVELOPER',
-    Viewer = 'VIEWER'
+    Viewer = 'VIEWER',
+    Owner = 'OWNER'
 }/**
 * @export
 * @enum {string}
