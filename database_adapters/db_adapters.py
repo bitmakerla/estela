@@ -265,6 +265,8 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
         return total_size_bytes
 
     def get_dataset_size(self, database_name, collection_name):
+        if not self.get_connection():
+            raise Exception("Failed to connect to MongoDB")
         database = self.client[database_name]
         collection_size = database.command("collstats", collection_name)["size"]
         return collection_size
