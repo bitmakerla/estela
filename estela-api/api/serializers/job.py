@@ -7,7 +7,7 @@ from api.serializers.job_specific import (
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from api.utils import delete_stats_from_redis, update_stats_from_redis
+from api.utils import delete_stats_from_redis, update_stats_from_redis, get_collection_size, get_collection_name
 from config.job_manager import job_manager
 from core.models import (
     DataStatus,
@@ -31,6 +31,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
         required=False, read_only=True, help_text="Current job status."
     )
     spider = serializers.SerializerMethodField("get_spider")
+    storage_size = serializers.SerializerMethodField("get_storage_size")
 
     class Meta:
         model = SpiderJob
@@ -50,10 +51,17 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "cronjob",
             "data_expiry_days",
             "data_status",
+            "storage_size",
         )
 
     def get_spider(self, instance):
         return {"sid": instance.spider.sid, "name": instance.spider.name}
+
+    def get_storage_size(self, instance):
+        pid = str(instance.spider.project.pid)
+        collections = ["items", "requests", "logs", "stats"]
+        total_size = sum(get_collection_size(pid, get_collection_name(instance, collection)) for collection in collections)
+        return total_size
 
 
 class SpiderJobCreateEnvVarSerializer(serializers.Serializer):

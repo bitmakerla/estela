@@ -124,6 +124,12 @@ export interface SpiderJob {
      * @memberof SpiderJob
      */
     dataStatus?: SpiderJobDataStatusEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderJob
+     */
+    readonly storageSize?: string;
 }
 
 /**
@@ -161,6 +167,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'storageSize': !exists(json, 'storage_size') ? undefined : json['storage_size'],
     };
 }
 

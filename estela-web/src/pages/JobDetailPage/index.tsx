@@ -306,6 +306,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     loaded: true,
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
+                    storageSize: response.storageSize,
                 });
             },
             (error: unknown) => {
@@ -660,6 +661,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             totalResponseBytes,
             items,
             status,
+            storageSize,
         } = this.state;
         const getProxyTag = (): string => {
             const desiredItem = envVars.find((item) => item.name === "ESTELA_PROXY_NAME");
@@ -933,15 +935,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     </Card>
                 </Content>
                 <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
-                    <Card
-                        className="opacity-40 cursor-not-allowed w-full col-span-2 flex flex-col"
-                        style={{ borderRadius: "8px" }}
-                        bordered={false}
-                    >
+                    <Card className="w-full col-span-2 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-0 text-estela-black-medium font-medium text-base">Storage</Text>
                         <Row className="grid grid-cols-1 py-1 mt-3">
                             <Col>
-                                <Text className="font-bold text-estela-black-full text-lg">-/-</Text>
+                                <Text className="font-bold text-estela-black-full text-lg">
+                                    {`${formatBytes(storageSize).quantity} ${formatBytes(storageSize).type}`}
+                                </Text>
                             </Col>
                             <Col>
                                 <Text className="text-estela-black-medium text-xs">of project</Text>
@@ -950,7 +950,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{ width: "0%" }}
+                                        style={{
+                                            width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
+                                        }}
                                     ></div>
                                 </Content>
                             </Col>
@@ -958,7 +960,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     </Card>
                     <Card className="w-full col-span-3 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">
-                            Processing Time (HH:MM:SS)
+                            Processing Time 2 (HH:MM:SS)
                         </Text>
                         <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
