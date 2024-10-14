@@ -2,13 +2,18 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from api import errors
+from api.exceptions import DataBaseError
 from api.serializers.job_specific import (
     SpiderJobArgSerializer,
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
-from api.utils import delete_stats_from_redis, update_stats_from_redis, get_collection_size, get_collection_name
-from config.job_manager import job_manager
+from api.utils import (
+    delete_stats_from_redis,
+    update_stats_from_redis,
+    get_collection_name,
+)
+from config.job_manager import job_manager, spiderdata_db_client
 from core.models import (
     DataStatus,
     SpiderJob,
@@ -58,9 +63,19 @@ class SpiderJobSerializer(serializers.ModelSerializer):
         return {"sid": instance.spider.sid, "name": instance.spider.name}
 
     def get_storage_size(self, instance):
+        if not spiderdata_db_client.get_connection():
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
+
         pid = str(instance.spider.project.pid)
-        collections = ["items", "requests", "logs", "stats"]
-        total_size = sum(get_collection_size(pid, get_collection_name(instance, collection)) for collection in collections)
+        collections = ["items", "requests", "logs"]
+        total_size = sum(
+            [
+                spiderdata_db_client.get_dataset_size(
+                    pid, get_collection_name(instance, collection)
+                )
+                for collection in collections
+            ]
+        )
         return total_size
 
 
