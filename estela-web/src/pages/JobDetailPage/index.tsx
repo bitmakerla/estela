@@ -960,7 +960,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     </Card>
                     <Card className="w-full col-span-3 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">
-                            Processing Time 2 (HH:MM:SS)
+                            Processing Time (HH:MM:SS)
                         </Text>
                         <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                             <Col>
