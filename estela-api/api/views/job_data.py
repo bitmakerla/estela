@@ -8,11 +8,11 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.utils.urls import replace_query_param
-from api.utils import get_collection_name
 
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
+from api.utils import get_collection_name
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 from core.tasks import get_chain_to_process_usage_data

@@ -110,10 +110,6 @@ def get_proxy_provider_envs(proxy_provider):
     return env_vars
 
 
-def get_collection_size(database_name, collection_name):
-    return spiderdata_db_client.get_dataset_size(database_name, collection_name)
-
-
 def get_collection_name(job, data_type):
     if (
         job.cronjob is not None
