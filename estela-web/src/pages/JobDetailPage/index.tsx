@@ -951,7 +951,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                     <div
                                         className="bg-estela-states-green-medium h-2.5 rounded-full"
                                         style={{
-                                            width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
+                                            width: "100%",
                                         }}
                                     ></div>
                                 </Content>
