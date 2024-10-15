@@ -108,3 +108,20 @@ def get_proxy_provider_envs(proxy_provider):
         }
     )
     return env_vars
+
+
+def get_collection_name(job, data_type):
+    if (
+        job.cronjob is not None
+        and job.cronjob.unique_collection
+        and data_type == "items"
+    ):
+        job_collection_name = "{}-scj{}-job_{}".format(
+            job.spider.sid, job.cronjob.cjid, data_type
+        )
+    else:
+        job_collection_name = "{}-{}-job_{}".format(
+            job.spider.sid, job.jid, data_type
+        )
+
+    return job_collection_name

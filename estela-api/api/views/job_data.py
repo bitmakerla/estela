@@ -12,6 +12,7 @@ from rest_framework.utils.urls import replace_query_param
 from api import errors
 from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
+from api.utils import get_collection_name
 from config.job_manager import spiderdata_db_client
 from core.models import SpiderJob
 from core.tasks import get_chain_to_process_usage_data
@@ -98,7 +99,7 @@ class JobDataViewSet(
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        job_collection_name = self.get_collection_name(job, data_type)
+        job_collection_name = get_collection_name(job, data_type)
 
         count = spiderdata_db_client.get_estimated_item_count(
             kwargs["pid"], job_collection_name
@@ -147,21 +148,6 @@ class JobDataViewSet(
             }
         )
 
-    def get_collection_name(self, job, data_type):
-        if (
-            job.cronjob is not None
-            and job.cronjob.unique_collection
-            and data_type == "items"
-        ):
-            job_collection_name = "{}-scj{}-job_{}".format(
-                job.spider.sid, job.cronjob.cjid, data_type
-            )
-        else:
-            job_collection_name = "{}-{}-job_{}".format(
-                job.spider.sid, job.jid, data_type
-            )
-
-        return job_collection_name
 
     @swagger_auto_schema(
         methods=["GET"],
@@ -196,7 +182,7 @@ class JobDataViewSet(
         data_type = request.query_params.get("type", "items")
 
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
-        job_collection_name = self.get_collection_name(job, data_type)
+        job_collection_name = get_collection_name(job, data_type)
 
         data = []
         if data_type == "stats":
@@ -242,7 +228,7 @@ class JobDataViewSet(
         if not spiderdata_db_client.get_connection():
             raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
 
-        job_collection_name = self.get_collection_name(job, data_type)
+        job_collection_name = get_collection_name(job, data_type)
         deleted_data = spiderdata_db_client.delete_dataset_data(
             kwargs["pid"], job_collection_name
         )
