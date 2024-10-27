@@ -21,7 +21,7 @@ from api.serializers.project import (
     ProjectUsageSerializer,
     UsageRecordSerializer,
 )
-from api.utils import update_env_vars
+from api.utils import update_env_vars, update_stats_from_redis
 from core.models import (
     Activity,
     DataStatus,
@@ -242,6 +242,9 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         spider_set = Spider.objects.filter(project=kwargs["pid"])
         sid_set = spider_set.values_list("pk", flat=True)
         jobs_set = SpiderJob.objects.filter(spider__in=sid_set)
+        for job in jobs_set:
+            if job.status == SpiderJob.RUNNING_STATUS:
+                update_stats_from_redis(job)
         paginator_result = Paginator(jobs_set, page_size)
         page_result = paginator_result.page(page)
         results = SpiderJobSerializer(page_result, many=True)
