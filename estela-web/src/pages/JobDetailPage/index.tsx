@@ -108,7 +108,8 @@ interface JobDetailPageState {
     items: Dictionary[];
     loadedItems: boolean;
     loadedItemsFirstTime: boolean;
-    itemsCount: number;
+    itemCountInDB: number;
+    itemCountInRedis: number;
     itemsCurrent: number;
     dataStatus: string | undefined;
     dataExpiryDays: number | undefined;
@@ -239,7 +240,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         items: [],
         loadedItems: false,
         loadedItemsFirstTime: false,
-        itemsCount: 0,
+        itemCountInDB: 0,
+        itemCountInRedis: 0,
         itemsCurrent: 0,
         dataStatus: "",
         dataExpiryDays: 0,
@@ -307,6 +309,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                     storageSize: response.storageSize,
+                    itemCountInRedis: response.itemCount,
                 });
             },
             (error: unknown) => {
@@ -609,7 +612,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data as Dictionary[];
-                    this.setState({ items: data, loadedItems: true, itemsCurrent: page, itemsCount: response.count });
+                    this.setState({
+                        items: data,
+                        loadedItems: true,
+                        itemsCurrent: page,
+                        itemCountInDB: response.count,
+                    });
                 }
                 this.setState({ loadedItems: true, loadedItemsFirstTime: true });
             },
@@ -660,7 +668,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             spiderName,
             totalResponseBytes,
             items,
-            itemsCount,
+            itemCountInRedis,
             status,
             storageSize,
         } = this.state;
@@ -972,7 +980,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Item Count</Text>
                             <Row className="grid grid-cols-1 py-1 px-2 mt-3">
                                 <Col>
-                                    <Text className="font-bold text-estela-black-full text-lg">{itemsCount || 0}</Text>
+                                    <Text className="font-bold text-estela-black-full text-lg">
+                                        {itemCountInRedis || 0}
+                                    </Text>
                                 </Col>
                                 <Col>
                                     <Text className="text-estela-black-medium text-xs">this job</Text>
