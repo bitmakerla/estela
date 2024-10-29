@@ -108,7 +108,8 @@ interface JobDetailPageState {
     items: Dictionary[];
     loadedItems: boolean;
     loadedItemsFirstTime: boolean;
-    itemsCount: number;
+    itemCountInDB: number;
+    itemCountInRedis: number;
     itemsCurrent: number;
     dataStatus: string | undefined;
     dataExpiryDays: number | undefined;
@@ -239,7 +240,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         items: [],
         loadedItems: false,
         loadedItemsFirstTime: false,
-        itemsCount: 0,
+        itemCountInDB: 0,
+        itemCountInRedis: 0,
         itemsCurrent: 0,
         dataStatus: "",
         dataExpiryDays: 0,
@@ -307,6 +309,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     dataStatus: response.dataStatus,
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                     storageSize: response.storageSize,
+                    itemCountInRedis: response.itemCount,
                 });
             },
             (error: unknown) => {
@@ -609,7 +612,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 if (response.results?.length) {
                     const safe_data: unknown[] = response.results ?? [];
                     data = safe_data as Dictionary[];
-                    this.setState({ items: data, loadedItems: true, itemsCurrent: page, itemsCount: response.count });
+                    this.setState({
+                        items: data,
+                        loadedItems: true,
+                        itemsCurrent: page,
+                        itemCountInDB: response.count,
+                    });
                 }
                 this.setState({ loadedItems: true, loadedItemsFirstTime: true });
             },
@@ -660,6 +668,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             spiderName,
             totalResponseBytes,
             items,
+            itemCountInRedis,
             status,
             storageSize,
         } = this.state;
@@ -934,55 +943,90 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </Row>
                     </Card>
                 </Content>
-                <Content className="my-2 grid lg:grid-cols-12 grid-cols-12 gap-1 items-start lg:w-full">
-                    <Card className="w-full col-span-2 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-0 text-estela-black-medium font-medium text-base">Storage</Text>
-                        <Row className="grid grid-cols-1 py-1 mt-3">
-                            <Col>
-                                <Text className="font-bold text-estela-black-full text-lg">
-                                    {`${formatBytes(storageSize).quantity} ${formatBytes(storageSize).type}`}
-                                </Text>
-                            </Col>
-                            <Col>
-                                <Text className="text-estela-black-medium text-xs">of project</Text>
-                            </Col>
-                            <Col>
-                                <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
-                                    <div
-                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{
-                                            width: "100%",
-                                        }}
-                                    ></div>
-                                </Content>
-                            </Col>
-                        </Row>
-                    </Card>
-                    <Card className="w-full col-span-3 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
-                        <Text className="py-2 m-2 text-estela-black-medium font-medium text-base">
-                            Processing Time (HH:MM:SS)
-                        </Text>
-                        <Row className="grid grid-cols-1 py-1 px-2 mt-3">
-                            <Col>
-                                <Text className="font-bold text-estela-black-full text-lg">
-                                    {durationToString(lifespan || 0)}
-                                </Text>
-                            </Col>
-                            <Col>
-                                <Text className="text-estela-black-medium text-xs">this job</Text>
-                            </Col>
-                            <Col>
-                                <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-[#EEFFCD]">
-                                    <div
-                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                        style={{
-                                            width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
-                                        }}
-                                    ></div>
-                                </Content>
-                            </Col>
-                        </Row>
-                    </Card>
+                <Content className="my-2 grid lg:grid-cols-12 grid-cols-6 gap-1 items-start lg:w-full">
+                    <Content className="col-span-5 grid lg:grid-cols-12 grid-cols-12 flex flex-col">
+                        <Card
+                            className="col-span-4 flex flex-col mr-1"
+                            style={{ borderRadius: "8px" }}
+                            bordered={false}
+                        >
+                            <Text className="py-0 text-estela-black-medium font-medium text-base">Storage</Text>
+                            <Row className="grid grid-cols-1 py-1 mt-3">
+                                <Col>
+                                    <Text className="font-bold text-estela-black-full font-small text-base">
+                                        {`${formatBytes(storageSize).quantity} ${formatBytes(storageSize).type}`}
+                                    </Text>
+                                </Col>
+                                <Col>
+                                    <Text className="text-estela-black-medium text-xs">of project</Text>
+                                </Col>
+                                <Col>
+                                    <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
+                                        <div
+                                            className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                            style={{
+                                                width: "100%",
+                                            }}
+                                        ></div>
+                                    </Content>
+                                </Col>
+                            </Row>
+                        </Card>
+                        <Card
+                            className="col-span-4 flex flex-col mx-1"
+                            style={{ borderRadius: "8px" }}
+                            bordered={false}
+                        >
+                            <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Item Count</Text>
+                            <Row className="grid grid-cols-1 py-1 px-2 mt-3">
+                                <Col>
+                                    <Text className="font-bold text-estela-black-full text-lg">
+                                        {itemCountInRedis || 0}
+                                    </Text>
+                                </Col>
+                                <Col>
+                                    <Text className="text-estela-black-medium text-xs">this job</Text>
+                                </Col>
+                                <Col>
+                                    <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-[#EEFFCD]">
+                                        <div
+                                            className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                            style={{
+                                                width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
+                                            }}
+                                        ></div>
+                                    </Content>
+                                </Col>
+                            </Row>
+                        </Card>
+                        <Card
+                            className="col-span-4 flex flex-col ml-1 mr-1"
+                            style={{ borderRadius: "8px" }}
+                            bordered={false}
+                        >
+                            <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Proc. Time</Text>
+                            <Row className="grid grid-cols-1 py-1 px-2 mt-3">
+                                <Col>
+                                    <Text className="font-bold text-estela-black-full text-lg">
+                                        {durationToString(lifespan || 0)}
+                                    </Text>
+                                </Col>
+                                <Col>
+                                    <Text className="text-estela-black-medium text-xs">this job</Text>
+                                </Col>
+                                <Col>
+                                    <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-[#EEFFCD]">
+                                        <div
+                                            className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                            style={{
+                                                width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
+                                            }}
+                                        ></div>
+                                    </Content>
+                                </Col>
+                            </Row>
+                        </Card>
+                    </Content>
                     <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
                         <Row className="flow-root lg:my-6 my-4">
                             <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Fields</Text>
