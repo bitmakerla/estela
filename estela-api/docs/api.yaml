@@ -2198,6 +2198,12 @@ definitions:
         description: Project UUID.
         type: string
         format: uuid
+      last_modified:
+        title: Last Modified
+        description: Last time this spider was modified (latest deploy, job, or cronjob).
+        type: string
+        format: date-time
+        readOnly: true
       env_vars:
         description: Spider environment variables.
         type: array
@@ -2241,11 +2247,11 @@ definitions:
           - BUILDING
           - FAILURE
           - CANCELED
-      spiders:
-        description: Spiders in this deploy.
-        type: array
-        items:
-          $ref: '#/definitions/Spider'
+      spiders_count:
+        title: Spiders count
+        description: Number of spiders in this deploy.
+        type: integer
+        readOnly: true
       created:
         title: Created
         description: Deploy creation date.

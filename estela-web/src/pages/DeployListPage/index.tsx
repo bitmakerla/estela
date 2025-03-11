@@ -10,7 +10,7 @@ import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 import "./styles.scss";
 import { API_BASE_URL } from "../../constants";
 import { ApiService } from "../../services";
-import { ApiProjectsDeploysListRequest, Deploy, Spider, UserDetail } from "../../services/api";
+import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
@@ -62,25 +62,10 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             render: (created: Date): ReactElement => <Content>{convertDateToString(created)}</Content>,
         },
         {
-            title: "SPIDER",
-            key: "spiders",
-            dataIndex: "spiders",
-            render: (spiders: Spider[]): ReactElement => (
-                <>
-                    {spiders.length === 0 ? (
-                        "-/-"
-                    ) : spiders.length > 1 ? (
-                        <>
-                            <span className="text-estela-blue-full font-medium">{spiders[0].name}&nbsp;</span>
-                            <Tag className="bg-estela-blue-low rounded-lg border-estela-blue-full text-estela">+1</Tag>
-                        </>
-                    ) : (
-                        <>
-                            <span className="text-estela-blue-full font-medium">{spiders[0].name}</span>
-                        </>
-                    )}
-                </>
-            ),
+            title: "SPIDERS",
+            key: "spidersCount",
+            dataIndex: "spidersCount",
+            render: (count: number): ReactElement => (count === 0 ? <Text>-/-</Text> : <Text>{count}</Text>),
         },
         {
             title: (

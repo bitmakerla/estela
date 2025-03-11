@@ -20,6 +20,8 @@ class SpiderSerializer(serializers.ModelSerializer):
         many=True, required=False, help_text="Spider environment variables."
     )
 
+    last_modified = serializers.DateTimeField(read_only=True, help_text="Last time this spider was modified (latest deploy, job, or cronjob).")
+
     class Meta:
         model = Spider
         fields = (
@@ -29,6 +31,7 @@ class SpiderSerializer(serializers.ModelSerializer):
             "env_vars",
             "data_status",
             "data_expiry_days",
+            "last_modified",
         )
 
 
