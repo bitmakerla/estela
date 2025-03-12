@@ -30,8 +30,6 @@ import {
     ApiProjectsSpidersReadRequest,
     ApiProjectsSpidersJobsListRequest,
     ApiProjectsSpidersUpdateRequest,
-    ApiProjectsDeploysListRequest,
-    Deploy,
     Spider,
     SpiderDataStatusEnum,
     SpiderUpdateDataStatusEnum,
@@ -80,7 +78,6 @@ interface SpiderDetailPageState {
     stoppedJobs: SpiderJobData[];
     errorJobs: SpiderJobData[];
     scheduledJobsCount: number;
-    spiderCreationDate: string;
     persistenceChanged: boolean;
     newDataStatus: SpiderUpdateDataStatusEnum | undefined;
     dataStatus: SpiderDataStatusEnum | SpiderUpdateDataStatusEnum | undefined;
@@ -123,7 +120,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
         completedJobs: [],
         stoppedJobs: [],
         errorJobs: [],
-        spiderCreationDate: "",
         scheduledJobsCount: 0,
         dataStatus: undefined,
         dataExpiryDays: 1,
@@ -267,28 +263,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 resourceNotAllowedNotification();
             },
         );
-        const requestParamsDeploys: ApiProjectsDeploysListRequest = { pid: this.projectId };
-        this.apiService.apiProjectsDeploysList(requestParamsDeploys).then(
-            (results) => {
-                const deploys: Deploy[] = results.results;
-                const deploysAssociated = deploys.filter((deploy: Deploy) => {
-                    const spiders: Spider[] = deploy.spiders || [];
-                    return spiders.some((spider: Spider) => spider.sid?.toString() === this.spiderId);
-                });
-                const oldestDeployDate: Date =
-                    deploysAssociated.reduce((d1, d2) => {
-                        const date1: Date = d1?.created || new Date();
-                        const date2: Date = d2?.created || new Date();
-                        return date1 < date2 ? d1 : d2;
-                    })?.created || new Date();
-
-                this.setState({ spiderCreationDate: convertDateToString(oldestDeployDate) });
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
+        // The spider's last modified date is now included in the spider detail response
+        // No need to make additional API calls
     }
 
     getSpiderJobs = async (page: number): Promise<{ data: SpiderJobData[]; count: number; current: number }> => {
@@ -407,7 +383,6 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             completedJobs,
             stoppedJobs,
             errorJobs,
-            spiderCreationDate,
             scheduledJobsCount,
         } = this.state;
         return (
@@ -451,10 +426,14 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                             </div>
                             <div className="grid grid-cols-3 p-2 rounded-lg">
                                 <div className="col-span-1">
-                                    <p className="text-sm font-bold">Creation date</p>
+                                    <p className="text-sm font-bold">Last modified</p>
                                 </div>
                                 <div className="col-span-2">
-                                    <p className="text-sm text-silver">{spiderCreationDate}</p>
+                                    <p className="text-sm text-silver">
+                                        {this.state.spider?.lastModified
+                                            ? convertDateToString(this.state.spider.lastModified)
+                                            : "-"}
+                                    </p>
                                 </div>
                             </div>
                         </Content>

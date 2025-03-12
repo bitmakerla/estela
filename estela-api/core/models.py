@@ -145,6 +145,30 @@ class Spider(models.Model):
         default=False, help_text="True if the spider has been deleted."
     )
 
+    @property
+    def last_modified(self):
+        """Get the most recent activity date of this spider.
+        
+        This property returns the latest timestamp from:
+        - Latest deploy (code updates)
+        - Latest job execution
+        - Latest cronjob configuration
+        
+        This gives users insight into when the spider was last active, whether through
+        code updates (deploys) or data collection (jobs).
+        """
+
+        # Use a single query with subqueries for better performance
+        latest_dates = Spider.objects.filter(sid=self.sid).aggregate(
+            latest_deploy=models.Max('deploy__created'),
+            latest_job=models.Max('jobs__created'),
+            latest_cronjob=models.Max('cronjobs__created')
+        )
+        
+        # Filter out None values and get the most recent date
+        valid_dates = [d for d in latest_dates.values() if d is not None]
+        return max(valid_dates) if valid_dates else None
+
 
 class Deploy(models.Model):
     SUCCESS_STATUS = "SUCCESS"

@@ -14,10 +14,6 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    Spider,
-    SpiderFromJSON,
-    SpiderFromJSONTyped,
-    SpiderToJSON,
     UserDetail,
     UserDetailFromJSON,
     UserDetailFromJSONTyped,
@@ -55,11 +51,11 @@ export interface Deploy {
      */
     status?: DeployStatusEnum;
     /**
-     * Spiders in this deploy.
-     * @type {Array<Spider>}
+     * Number of spiders in this deploy.
+     * @type {number}
      * @memberof Deploy
      */
-    spiders?: Array<Spider>;
+    readonly spidersCount?: number;
     /**
      * Deploy creation date.
      * @type {Date}
@@ -93,7 +89,7 @@ export function DeployFromJSONTyped(json: any, ignoreDiscriminator: boolean): De
         'project': json['project'],
         'user': UserDetailFromJSON(json['user']),
         'status': !exists(json, 'status') ? undefined : json['status'],
-        'spiders': !exists(json, 'spiders') ? undefined : ((json['spiders'] as Array<any>).map(SpiderFromJSON)),
+        'spidersCount': !exists(json, 'spiders_count') ? undefined : json['spiders_count'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
     };
 }
@@ -110,7 +106,6 @@ export function DeployToJSON(value?: Deploy | null): any {
         'project': value.project,
         'user': UserDetailToJSON(value.user),
         'status': value.status,
-        'spiders': value.spiders === undefined ? undefined : ((value.spiders as Array<any>).map(SpiderToJSON)),
     };
 }
 

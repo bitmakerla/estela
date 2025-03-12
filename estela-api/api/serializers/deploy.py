@@ -6,16 +6,17 @@ from core.models import Deploy, Spider
 
 
 class DeploySerializer(serializers.ModelSerializer):
-    spiders = SpiderSerializer(
-        many=True, required=False, help_text="Spiders in this deploy."
-    )
+    spiders_count = serializers.SerializerMethodField(help_text="Number of spiders in this deploy.")
     user = UserDetailSerializer(
         required=True, help_text="User who performed the deploy."
     )
 
+    def get_spiders_count(self, obj):
+        return obj.spiders.count()
+
     class Meta:
         model = Deploy
-        fields = ["did", "project", "user", "status", "spiders", "created"]
+        fields = ["did", "project", "user", "status", "spiders_count", "created"]
 
 
 class DeployCreateSerializer(serializers.ModelSerializer):

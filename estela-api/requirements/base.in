@@ -1,6 +1,6 @@
 black
 boto3<=1.17
-celery
+celery==5.4.0
 croniter
 django
 django-celery-beat
