@@ -21,7 +21,7 @@ import {
 } from './';
 
 /**
- * Spiders in this deploy.
+ * 
  * @export
  * @interface Spider
  */
@@ -45,12 +45,6 @@ export interface Spider {
      */
     project: string;
     /**
-     * Last time this spider was modified (latest deploy, job, or cronjob).
-     * @type {Date}
-     * @memberof Spider
-     */
-    readonly lastModified?: Date;
-    /**
      * Spider environment variables.
      * @type {Array<SpiderJobEnvVar>}
      * @memberof Spider
@@ -68,6 +62,12 @@ export interface Spider {
      * @memberof Spider
      */
     dataExpiryDays: number;
+    /**
+     * Last time this spider was modified (latest deploy, job, or cronjob).
+     * @type {Date}
+     * @memberof Spider
+     */
+    readonly lastModified?: Date;
 }
 
 /**
@@ -92,10 +92,10 @@ export function SpiderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sp
         'sid': !exists(json, 'sid') ? undefined : json['sid'],
         'name': json['name'],
         'project': json['project'],
-        'lastModified': !exists(json, 'last_modified') ? undefined : (new Date(json['last_modified'])),
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'dataStatus': json['data_status'],
         'dataExpiryDays': json['data_expiry_days'],
+        'lastModified': !exists(json, 'last_modified') ? undefined : (new Date(json['last_modified'])),
     };
 }
 

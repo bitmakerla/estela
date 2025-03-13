@@ -178,6 +178,10 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
     const [open, setOpen] = useState(openModal);
     const [countKey, setCountKey] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [isLoadingSpiders, setIsLoadingSpiders] = useState<boolean>(true);
+    const [isLoadingMoreSpiders, setIsLoadingMoreSpiders] = useState<boolean>(false);
+    const [hasMoreSpiders, setHasMoreSpiders] = useState<boolean>(true);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [spiders, setSpiders] = useState<Spider[]>([]);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
     const [schedulesFlag, setSchedulesFlag] = useState([true, false]);
@@ -233,7 +237,13 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
     };
 
     useEffect(() => {
-        getProjectSpiders(1);
+        // If a spider is provided, use it as initial search term
+        if (spider) {
+            getProjectSpiders(1, false, spider.name);
+        } else {
+            getProjectSpiders(1);
+        }
+
         const weekDays = crontab.weekDays;
         weekDays[moment().day() % 7] = true;
         setCrontab({ ...crontab, currentDay: moment().day(), weekDays: weekDays });
@@ -282,64 +292,76 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         );
     };
 
-    const getProjectSpiders = async (page: number): Promise<void> => {
-        const requestParams: ApiProjectsSpidersListRequest = { pid: projectId, page, pageSize: PAGE_SIZE };
-        apiService.apiProjectsSpidersList(requestParams).then(
-            (results) => {
-                const spiderList = results.results ? results.results : [];
-                if (spider) {
-                    let index = 0;
-                    index = spiderList.findIndex((listedSpider: Spider) => {
-                        return listedSpider.sid == spider.sid;
-                    });
+    const getProjectSpiders = async (page: number, isLoadMore = false, search?: string): Promise<void> => {
+        if (isLoadMore) {
+            setIsLoadingMoreSpiders(true);
+        } else {
+            setIsLoadingSpiders(true);
+        }
 
-                    if (index < 0) {
-                        spiderList.unshift(spider);
-                        index = 0;
+        // Type assertion needed since search is a custom parameter
+        const requestParams = {
+            pid: projectId,
+            page,
+            pageSize: PAGE_SIZE,
+            search,
+        } as ApiProjectsSpidersListRequest;
+
+        try {
+            const results = await apiService.apiProjectsSpidersList(requestParams);
+            const spiderList = results.results;
+            setHasMoreSpiders(spiderList.length === PAGE_SIZE);
+
+            if (spiderList.length === 0) {
+                setIsLoadingSpiders(false);
+                setIsLoadingMoreSpiders(false);
+                return;
+            }
+
+            // Always select the first spider from the results
+            if (spiderList.length > 0 && page === 1) {
+                // If we have a specific spider and it's in the results, select it
+                let selectedIndex = 0;
+
+                if (spider) {
+                    const index = spiderList.findIndex((s) => s.sid === spider.sid);
+                    if (index >= 0) {
+                        selectedIndex = index;
                     }
-                    setProjectData({ ...projectData, sid: String(spiderList[index].sid) });
-                    const envVars = spiderList[index].envVars || [];
-                    setSpiderEnvVars(
-                        envVars.map((envVar: SpiderJobEnvVar) => {
-                            return {
-                                evid: envVar.evid,
-                                name: envVar.name,
-                                value: envVar.masked ? "__MASKED__" : envVar.value,
-                                masked: envVar.masked,
-                            };
-                        }),
-                    );
-                    setCronjobData({
-                        ...cronjobData,
-                        dataStatus: spiderList[index].dataStatus,
-                        dataExpiryDays: spiderList[index].dataExpiryDays,
-                    });
-                } else if (spiderList.length > 0) {
-                    setProjectData({ ...projectData, sid: String(spiderList[0].sid) });
-                    const envVars = spiderList[0].envVars || [];
-                    setSpiderEnvVars(
-                        envVars.map((envVar: SpiderJobEnvVar) => {
-                            return {
-                                evid: envVar.evid,
-                                name: envVar.name,
-                                value: envVar.masked ? "__MASKED__" : envVar.value,
-                                masked: envVar.masked,
-                            };
-                        }),
-                    );
-                    setCronjobData({
-                        ...cronjobData,
-                        dataStatus: spiderList[0].dataStatus,
-                        dataExpiryDays: spiderList[0].dataExpiryDays,
-                    });
                 }
-                setSpiders(spiderList);
-            },
-            (error: unknown) => {
-                error;
-                resourceNotAllowedNotification();
-            },
-        );
+
+                setProjectData({ ...projectData, sid: String(spiderList[selectedIndex].sid) });
+                const envVars = spiderList[selectedIndex].envVars || [];
+                setSpiderEnvVars(
+                    envVars.map((envVar: SpiderJobEnvVar) => ({
+                        evid: envVar.evid,
+                        name: envVar.name,
+                        value: envVar.masked ? "__MASKED__" : envVar.value,
+                        masked: envVar.masked,
+                    })),
+                );
+                setCronjobData({
+                    ...cronjobData,
+                    dataStatus: spiderList[selectedIndex].dataStatus,
+                    dataExpiryDays: spiderList[selectedIndex].dataExpiryDays || 1,
+                });
+            }
+
+            setSpiders((prev) => (isLoadMore ? [...prev, ...spiderList] : spiderList));
+            setCurrentPage(page);
+        } catch (error) {
+            console.log(error);
+            resourceNotAllowedNotification();
+        } finally {
+            setIsLoadingSpiders(false);
+            setIsLoadingMoreSpiders(false);
+        }
+    };
+
+    const loadMoreSpiders = (): void => {
+        if (!isLoadingMoreSpiders && hasMoreSpiders) {
+            getProjectSpiders(currentPage + 1, true);
+        }
     };
 
     const handleSpiderChange = (value: string): void => {
@@ -350,6 +372,14 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             getSpiderEnvVars(Number(spiderId.sid));
         }
         setProjectData({ ...projectData, sid: String(spiderId?.sid) });
+    };
+
+    const handleSpiderSearch = (value: string): void => {
+        if (value.trim() !== "") {
+            setSpiders([]);
+            setCurrentPage(1);
+            getProjectSpiders(1, false, value);
+        }
     };
 
     const handlePersistenceChange = (value: number): void => {
@@ -708,8 +738,10 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         setOpen(true);
                     }
                 }}
+                loading={isLoadingSpiders}
+                disabled={isLoadingSpiders}
             >
-                Schedule new job
+                {isLoadingSpiders ? "Loading spiders..." : "Schedule new job"}
             </Button>
             {externalComponent}
             <Modal
@@ -734,6 +766,23 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 className="w-full"
                                 defaultValue={spider ? spider.name : spiders[0] ? spiders[0].name : ""}
                                 onChange={handleSpiderChange}
+                                showSearch
+                                onSearch={handleSpiderSearch}
+                                filterOption={false}
+                                notFoundContent={isLoadingSpiders ? "Loading..." : "No spiders found"}
+                                dropdownRender={(menu) => (
+                                    <>
+                                        {menu}
+                                        {hasMoreSpiders && (
+                                            <div
+                                                style={{ padding: "8px", textAlign: "center", cursor: "pointer" }}
+                                                onClick={loadMoreSpiders}
+                                            >
+                                                {isLoadingMoreSpiders ? "Loading more..." : "Load more"}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                             >
                                 {spiders.map((spider: Spider) => (
                                     <Option key={spider.sid} value={spider.name}>

@@ -1,6 +1,7 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
 from rest_framework.response import Response
+from drf_yasg import openapi
 
 from api.mixins import BaseViewSet
 from api.serializers.spider import SpiderSerializer, SpiderUpdateSerializer
@@ -19,9 +20,29 @@ class SpiderViewSet(
     queryset = Spider.objects.all()
 
     def get_queryset(self):
-        return self.model_class.objects.filter(
+        queryset = self.model_class.objects.filter(
             project__pid=self.kwargs["pid"], deleted=False
         )
+        
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+
+        return queryset
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description='Filter spiders by name (case-insensitive)',
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(
         request_body=SpiderUpdateSerializer,
