@@ -417,6 +417,7 @@ export interface ApiProjectsSpidersListRequest {
     pid: string;
     page?: number;
     pageSize?: number;
+    search?: string;
 }
 
 export interface ApiProjectsSpidersPartialUpdateRequest {
@@ -2415,6 +2416,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.pageSize !== undefined) {
             queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.search !== undefined) {
+            queryParameters['search'] = requestParameters.search;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

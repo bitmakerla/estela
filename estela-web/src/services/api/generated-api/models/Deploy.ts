@@ -52,10 +52,10 @@ export interface Deploy {
     status?: DeployStatusEnum;
     /**
      * Number of spiders in this deploy.
-     * @type {number}
+     * @type {string}
      * @memberof Deploy
      */
-    readonly spidersCount?: number;
+    readonly spidersCount?: string;
     /**
      * Deploy creation date.
      * @type {Date}

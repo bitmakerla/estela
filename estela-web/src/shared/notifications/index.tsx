@@ -1,7 +1,6 @@
 import { notification } from "antd";
 
 import "./styles.scss";
-import history from "../../history";
 
 export const authNotification = (): void => {
     notification.warn({
@@ -15,7 +14,6 @@ export const resourceNotAllowedNotification = (): void => {
         message: "Resource Not Allowed",
         description: "You do not have permissions to enter to this resource.",
     });
-    history.push("/");
 };
 
 export const dataDeletedNotification = (): void => {

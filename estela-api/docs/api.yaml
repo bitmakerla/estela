@@ -742,6 +742,11 @@ paths:
           description: Number of results to return per page.
           required: false
           type: integer
+        - name: search
+          in: query
+          description: Filter spiders by name (case-insensitive)
+          required: false
+          type: string
       responses:
         '200':
           description: ''
@@ -1848,7 +1853,7 @@ definitions:
         title: Value
         description: Env variable value.
         type: string
-        maxLength: 1000
+        maxLength: 12000
         minLength: 1
       masked:
         title: Masked
@@ -2173,53 +2178,6 @@ definitions:
         type: integer
         maximum: 18446744073709551615
         minimum: 0
-  Spider:
-    description: Spiders in this deploy.
-    required:
-      - name
-      - project
-      - data_status
-      - data_expiry_days
-    type: object
-    properties:
-      sid:
-        title: Sid
-        description: A unique integer value identifying this spider.
-        type: integer
-        readOnly: true
-      name:
-        title: Name
-        description: Spider's name.
-        type: string
-        maxLength: 1000
-        minLength: 1
-      project:
-        title: Project
-        description: Project UUID.
-        type: string
-        format: uuid
-      last_modified:
-        title: Last Modified
-        description: Last time this spider was modified (latest deploy, job, or cronjob).
-        type: string
-        format: date-time
-        readOnly: true
-      env_vars:
-        description: Spider environment variables.
-        type: array
-        items:
-          $ref: '#/definitions/SpiderJobEnvVar'
-      data_status:
-        title: Data status
-        description: Data status.
-        type: string
-        enum:
-          - PERSISTENT
-          - PENDING
-      data_expiry_days:
-        title: Data expiry days
-        description: Days before data expires.
-        type: integer
   Deploy:
     required:
       - project
@@ -2250,7 +2208,7 @@ definitions:
       spiders_count:
         title: Spiders count
         description: Number of spiders in this deploy.
-        type: integer
+        type: string
         readOnly: true
       created:
         title: Created
@@ -2418,6 +2376,52 @@ definitions:
         title: Count
         description: Project jobs count.
         type: integer
+  Spider:
+    required:
+      - name
+      - project
+      - data_status
+      - data_expiry_days
+    type: object
+    properties:
+      sid:
+        title: Sid
+        description: A unique integer value identifying this spider.
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        description: Spider's name.
+        type: string
+        maxLength: 1000
+        minLength: 1
+      project:
+        title: Project
+        description: Project UUID.
+        type: string
+        format: uuid
+      env_vars:
+        description: Spider environment variables.
+        type: array
+        items:
+          $ref: '#/definitions/SpiderJobEnvVar'
+      data_status:
+        title: Data status
+        description: Data status.
+        type: string
+        enum:
+          - PERSISTENT
+          - PENDING
+      data_expiry_days:
+        title: Data expiry days
+        description: Days before data expires.
+        type: integer
+      last_modified:
+        title: Last modified
+        description: Last time this spider was modified (latest deploy, job, or cronjob).
+        type: string
+        format: date-time
+        readOnly: true
   SpiderUpdate:
     type: object
     properties:
