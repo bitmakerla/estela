@@ -84,6 +84,9 @@ import {
     ProjectJob,
     ProjectJobFromJSON,
     ProjectJobToJSON,
+    ProjectSearch,
+    ProjectSearchFromJSON,
+    ProjectSearchToJSON,
     ProjectStats,
     ProjectStatsFromJSON,
     ProjectStatsToJSON,
@@ -303,6 +306,12 @@ export interface ApiProjectsPartialUpdateRequest {
 
 export interface ApiProjectsReadRequest {
     pid: string;
+}
+
+export interface ApiProjectsSearchRequest {
+    page?: number;
+    pageSize?: number;
+    search?: string;
 }
 
 export interface ApiProjectsSpidersCronjobsCreateRequest {
@@ -1721,6 +1730,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsRead(requestParameters: ApiProjectsReadRequest): Promise<Project> {
         const response = await this.apiProjectsReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSearchRaw(requestParameters: ApiProjectsSearchRequest): Promise<runtime.ApiResponse<ProjectSearch>> {
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.search !== undefined) {
+            queryParameters['search'] = requestParameters.search;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/search`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ProjectSearchFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSearch(requestParameters: ApiProjectsSearchRequest): Promise<ProjectSearch> {
+        const response = await this.apiProjectsSearchRaw(requestParameters);
         return await response.value();
     }
 
