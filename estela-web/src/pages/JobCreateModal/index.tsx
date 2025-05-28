@@ -474,7 +474,8 @@ export default function JobCreateModal({
         apiService.apiProjectsSpidersJobsCreate(requests).then(
             (response: SpiderJobCreate) => {
                 setLoading(false);
-                history.push(`/projects/${pid}/spiders/${sid}/jobs/${response.jid}`);
+                // Force a complete page reload by using window.location.href directly
+                window.location.href = `/projects/${pid}/spiders/${sid}/jobs/${response.jid}`;
             },
             async (error) => {
                 setLoading(false);
