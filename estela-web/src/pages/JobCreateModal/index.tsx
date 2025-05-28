@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
+import { EyeInvisibleOutlined } from "@ant-design/icons";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import {
     ApiProjectsSpidersJobsCreateRequest,
@@ -35,11 +36,7 @@ interface JobCreateModalProps {
     hideRunButton?: boolean;
 }
 
-interface MaskedTagProps {
-    children: React.ReactNode;
-    id: number;
-    level: boolean;
-}
+// Removed unused interface
 
 interface ArgsData {
     name: string;
@@ -154,19 +151,7 @@ export default function JobCreateModal({
         sid: "",
     });
 
-    const MaskedTag: React.FC<MaskedTagProps> = ({ children, id, level }) => {
-        return (
-            <Tooltip placement="top" title="Masked variable" showArrow={false} className="tooltip">
-                <Tag
-                    closable
-                    className="bg-estela-blue-low border-none text-estela-blue-full rounded"
-                    onClose={() => handleRemoveProjectEnvVar(id, level)}
-                >
-                    {children}
-                </Tag>
-            </Tooltip>
-        );
-    };
+    // MaskedTag component was replaced with inline implementation using EyeInvisibleOutlined
 
     useEffect(() => {
         // If a spider is provided, use it as initial search term
@@ -597,7 +582,7 @@ export default function JobCreateModal({
                     setOpen(false);
                     if (onClose) onClose();
                 }}
-                width={460}
+                width={700}
                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
                 footer={null}
             >
@@ -650,145 +635,212 @@ export default function JobCreateModal({
                     </Select>
                 </Row>
                 <Row>
-                    <p className="text-base my-2">Arguments</p>
-                    <Space direction="vertical">
-                        <Space direction="horizontal">
-                            {jobData.args.map((arg: ArgsData, id: number) => (
-                                <Tag
-                                    className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                    closable
-                                    key={id}
-                                    onClose={() => handleRemoveArg(id)}
-                                >
-                                    {arg.name}: {arg.value}
-                                </Tag>
-                            ))}
-                        </Space>
-                        <Space direction="horizontal">
+                    <div className="w-full">
+                        <p className="text-base my-2 font-medium">Arguments</p>
+                        <div className="border border-gray-200 rounded-lg p-2 mb-3 w-full max-h-[200px] overflow-y-auto">
+                            {jobData.args.length > 0 ? (
+                                <div className="space-y-2">
+                                    {jobData.args.map((arg: ArgsData, id: number) => (
+                                        <div
+                                            key={id}
+                                            className="flex justify-between items-center bg-estela-blue-low p-2 rounded-lg"
+                                        >
+                                            <div className="text-estela-blue-full truncate mr-2 flex-grow">
+                                                <span className="font-medium">{arg.name}:</span> {arg.value}
+                                            </div>
+                                            <Button
+                                                type="text"
+                                                icon={<span className="text-red-500">×</span>}
+                                                onClick={() => handleRemoveArg(id)}
+                                                className="flex items-center hover:bg-red-50"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-gray-400 text-center py-2">No arguments added yet</div>
+                            )}
+                        </div>
+                        <div className="flex items-center space-x-2">
                             <Input
                                 size="large"
-                                className="border-estela-blue-full rounded-l-lg"
+                                className="border-estela-blue-full rounded-lg"
                                 name="newArgName"
-                                placeholder="name"
+                                placeholder="Argument name"
                                 value={variable.newArgName}
                                 onChange={handleInputChange}
                             />
                             <Input
                                 size="large"
-                                className="border-estela-blue-full rounded-r-lg"
+                                className="border-estela-blue-full rounded-lg"
                                 name="newArgValue"
-                                placeholder="value"
+                                placeholder="Argument value"
                                 value={variable.newArgValue}
                                 onChange={handleInputChange}
                             />
                             <Button
-                                shape="circle"
-                                size="small"
-                                icon={<Add />}
-                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                type="primary"
+                                icon={<Add className="mr-1" />}
+                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white rounded-lg px-3"
                                 onClick={addArgument}
-                            ></Button>
-                        </Space>
-                    </Space>
+                            >
+                                Add
+                            </Button>
+                        </div>
+                    </div>
                 </Row>
                 <Row>
-                    <p className="text-base my-2">Environment Variables</p>
-                    <Space direction="vertical">
-                        <div className="flex gap-2 mt-1">
-                            {getFilteredEnvVars(projectEnvVars).length > 0 && <p className="text-sm">Project</p>}
-                            <div className="flex gap-2">
-                                {getFilteredEnvVars(projectEnvVars).map((envVar: SpiderJobEnvVar, id: number) =>
-                                    envVar.masked ? (
-                                        <MaskedTag key={id} id={id} level={true}>
-                                            {envVar.name}
-                                        </MaskedTag>
-                                    ) : (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={id}
-                                            onClose={() => handleRemoveProjectEnvVar(id, true)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ),
-                                )}
+                    <div className="w-full">
+                        <p className="text-base my-2 font-medium">Environment Variables</p>
+
+                        {/* Project ENV vars section */}
+                        {getFilteredEnvVars(projectEnvVars).length > 0 && (
+                            <div className="mb-3">
+                                <p className="text-sm font-medium mb-1 text-gray-600">Project Variables</p>
+                                <div className="border border-gray-200 rounded-lg p-2 max-h-[150px] overflow-y-auto">
+                                    <div className="space-y-2">
+                                        {getFilteredEnvVars(projectEnvVars).map(
+                                            (envVar: SpiderJobEnvVar, id: number) => (
+                                                <div
+                                                    key={id}
+                                                    className="flex justify-between items-center bg-estela-blue-low p-2 rounded-lg"
+                                                >
+                                                    <div className="truncate mr-2 flex-grow text-estela-blue-full">
+                                                        <span className="font-medium">{envVar.name}</span>
+                                                        {!envVar.masked && `: ${envVar.value}`}
+                                                        {envVar.masked && (
+                                                            <Tooltip
+                                                                placement="top"
+                                                                title="Masked variable"
+                                                                showArrow={false}
+                                                            >
+                                                                <EyeInvisibleOutlined className="ml-1 text-purple-500" />
+                                                            </Tooltip>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        type="text"
+                                                        icon={<span className="text-red-500">×</span>}
+                                                        onClick={() => handleRemoveProjectEnvVar(id, true)}
+                                                        className="flex items-center hover:bg-red-50"
+                                                    />
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex gap-2 my-2">
-                            {getFilteredEnvVars(spiderEnvVars).length > 0 && <p className="text-sm">Spider</p>}
-                            <div className="flex gap-2">
-                                {getFilteredEnvVars(spiderEnvVars).map((envVar: SpiderJobEnvVar, id: number) =>
-                                    envVar.masked ? (
-                                        <MaskedTag key={id} id={id} level={false}>
-                                            {envVar.name}
-                                        </MaskedTag>
-                                    ) : (
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            key={id}
-                                            onClose={() => handleRemoveProjectEnvVar(id, false)}
-                                        >
-                                            {envVar.name}: {envVar.value}
-                                        </Tag>
-                                    ),
-                                )}
+                        )}
+
+                        {/* Spider ENV vars section */}
+                        {getFilteredEnvVars(spiderEnvVars).length > 0 && (
+                            <div className="mb-3">
+                                <p className="text-sm font-medium mb-1 text-gray-600">Spider Variables</p>
+                                <div className="border border-gray-200 rounded-lg p-2 max-h-[150px] overflow-y-auto">
+                                    <div className="space-y-2">
+                                        {getFilteredEnvVars(spiderEnvVars).map(
+                                            (envVar: SpiderJobEnvVar, id: number) => (
+                                                <div
+                                                    key={id}
+                                                    className="flex justify-between items-center bg-estela-blue-low p-2 rounded-lg"
+                                                >
+                                                    <div className="truncate mr-2 flex-grow text-estela-blue-full">
+                                                        <span className="font-medium">{envVar.name}</span>
+                                                        {!envVar.masked && `: ${envVar.value}`}
+                                                        {envVar.masked && (
+                                                            <Tooltip
+                                                                placement="top"
+                                                                title="Masked variable"
+                                                                showArrow={false}
+                                                            >
+                                                                <EyeInvisibleOutlined className="ml-1 text-purple-500" />
+                                                            </Tooltip>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        type="text"
+                                                        icon={<span className="text-red-500">×</span>}
+                                                        onClick={() => handleRemoveProjectEnvVar(id, false)}
+                                                        className="flex items-center hover:bg-red-50"
+                                                    />
+                                                </div>
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <Space direction="horizontal" className="mb-2">
-                            {jobData.envVars.map((envVar: EnvVarsData, id: number) =>
-                                envVar.masked ? (
-                                    <Tooltip key={id} placement="top" title="Masked variable" showArrow={false}>
-                                        <Tag
-                                            className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                            closable
-                                            onClose={() => handleRemoveEnvVar(id)}
-                                        >
-                                            {envVar.name}
-                                        </Tag>
-                                    </Tooltip>
+                        )}
+
+                        {/* Job ENV vars section */}
+                        <div className="mb-3">
+                            <p className="text-sm font-medium mb-1 text-gray-600">Job Variables</p>
+                            <div className="border border-gray-200 rounded-lg p-2 max-h-[150px] overflow-y-auto">
+                                {jobData.envVars.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {jobData.envVars.map((envVar: EnvVarsData, id: number) => (
+                                            <div
+                                                key={id}
+                                                className="flex justify-between items-center bg-estela-blue-low p-2 rounded-lg"
+                                            >
+                                                <div className="truncate mr-2 flex-grow text-estela-blue-full">
+                                                    <span className="font-medium">{envVar.name}</span>
+                                                    {!envVar.masked && `: ${envVar.value}`}
+                                                    {envVar.masked && (
+                                                        <Tooltip
+                                                            placement="top"
+                                                            title="Masked variable"
+                                                            showArrow={false}
+                                                        >
+                                                            <span className="ml-1 text-purple-500">🔒</span>
+                                                        </Tooltip>
+                                                    )}
+                                                </div>
+                                                <Button
+                                                    type="text"
+                                                    icon={<span className="text-red-500">×</span>}
+                                                    onClick={() => handleRemoveEnvVar(id)}
+                                                    className="flex items-center hover:bg-red-50"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <Tag
-                                        className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                        closable
-                                        key={id}
-                                        onClose={() => handleRemoveEnvVar(id)}
-                                    >
-                                        {envVar.name}: {envVar.value}
-                                    </Tag>
-                                ),
-                            )}
-                        </Space>
-                        <Space direction="horizontal">
+                                    <div className="text-gray-400 text-center py-2">No variables added yet</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Add new ENV var section */}
+                        <div className="flex items-center space-x-2">
                             <Input
                                 size="large"
-                                className="border-estela-blue-full rounded-l-lg"
+                                className="border-estela-blue-full rounded-lg"
                                 name="newEnvVarName"
-                                placeholder="name"
+                                placeholder="Variable name"
                                 value={variable.newEnvVarName}
                                 onChange={handleInputChange}
                             />
                             <Input
                                 size="large"
-                                className="border-estela-blue-full rounded-r-lg"
+                                className="border-estela-blue-full rounded-lg"
                                 name="newEnvVarValue"
-                                placeholder="value"
+                                placeholder="Variable value"
                                 value={variable.newEnvVarValue}
                                 onChange={handleInputChange}
                             />
                             <Checkbox checked={variable.newEnvVarMasked} onChange={onChangeEnvVarMasked}>
-                                Masked
+                                <EyeInvisibleOutlined className="text-purple-500" />
                             </Checkbox>
                             <Button
-                                shape="circle"
-                                size="small"
-                                icon={<Add />}
-                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                                type="primary"
+                                icon={<Add className="mr-1" />}
+                                className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white rounded-lg px-3"
                                 onClick={addEnvVar}
-                            ></Button>
-                        </Space>
-                    </Space>
+                            >
+                                Add
+                            </Button>
+                        </div>
+                    </div>
                 </Row>
                 <Row>
                     <Modal
@@ -831,57 +883,67 @@ export default function JobCreateModal({
                         )}
                     </Space>
                 </Row>
-                <Space direction="vertical" className="my-2">
-                    <p className="text-base">Tags</p>
-                    <Space direction="horizontal">
-                        {jobData.tags.map((tag: TagsData, id) => (
-                            <Tag
-                                className="text-estela-blue-full border-0 bg-estela-blue-low"
-                                closable
-                                key={id}
-                                onClose={() => handleRemoveTag(id)}
-                            >
-                                {tag.name}
-                            </Tag>
-                        ))}
-                    </Space>
-                    <Space direction="horizontal">
+                <div className="w-full my-3">
+                    <p className="text-base font-medium mb-2">Tags</p>
+                    <div className="border border-gray-200 rounded-lg p-2 mb-3 max-h-[150px] overflow-y-auto">
+                        {jobData.tags.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {jobData.tags.map((tag: TagsData, id) => (
+                                    <Tag
+                                        className="text-estela-blue-full border-0 bg-estela-blue-low py-1 px-3 flex items-center"
+                                        closable
+                                        key={id}
+                                        onClose={() => handleRemoveTag(id)}
+                                    >
+                                        {tag.name}
+                                    </Tag>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-gray-400 text-center py-2">No tags added yet</div>
+                        )}
+                    </div>
+                    <div className="flex items-center space-x-2">
                         <Input
                             size="large"
                             className="border-estela-blue-full rounded-lg"
                             name="newTagName"
-                            placeholder="name"
+                            placeholder="Tag name"
                             value={variable.newTagName}
                             onChange={handleInputChange}
+                            onPressEnter={addTag}
                         />
                         <Button
-                            shape="circle"
-                            size="small"
-                            icon={<Add />}
-                            className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white"
+                            type="primary"
+                            icon={<Add className="mr-1" />}
+                            className="flex items-center justify-center bg-estela-blue-full border-estela-blue-full stroke-white hover:bg-estela-blue-full hover:border-estela-blue-full hover:stroke-white rounded-lg px-3"
                             onClick={addTag}
-                        ></Button>
-                    </Space>
-                </Space>
-                <Row className="flow-root mt-4">
-                    <Button
-                        loading={loading}
-                        onClick={handleSubmit}
-                        size="large"
-                        className="float-left w-48 h-12 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
-                    >
-                        Create
-                    </Button>
-                    <Button
-                        size="large"
-                        className="float-right w-48 h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                        onClick={() => {
-                            setOpen(false);
-                            if (onClose) onClose();
-                        }}
-                    >
-                        Cancel
-                    </Button>
+                        >
+                            Add
+                        </Button>
+                    </div>
+                </div>
+                <Row className="flow-root mt-6">
+                    <div className="flex justify-between w-full">
+                        <Button
+                            loading={loading}
+                            onClick={handleSubmit}
+                            size="large"
+                            className="w-48 h-12 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
+                        >
+                            Create
+                        </Button>
+                        <Button
+                            size="large"
+                            className="w-48 h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
+                            onClick={() => {
+                                setOpen(false);
+                                if (onClose) onClose();
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
                 </Row>
             </Modal>
         </>
