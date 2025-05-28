@@ -474,6 +474,10 @@ export default function JobCreateModal({
         apiService.apiProjectsSpidersJobsCreate(requests).then(
             (response: SpiderJobCreate) => {
                 setLoading(false);
+                // Close the modal first if an onClose callback is provided
+                if (onClose) {
+                    onClose();
+                }
                 // Force a complete page reload by using window.location.href directly
                 window.location.href = `/projects/${pid}/spiders/${sid}/jobs/${response.jid}`;
             },
@@ -488,6 +492,10 @@ export default function JobCreateModal({
                     incorrectDataNotification();
                 }
                 setOpen(false);
+                // Call onClose callback if provided
+                if (onClose) {
+                    onClose();
+                }
             },
         );
     };
@@ -867,7 +875,10 @@ export default function JobCreateModal({
                     <Button
                         size="large"
                         className="float-right w-48 h-12 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                        onClick={() => setOpen(false)}
+                        onClick={() => {
+                            setOpen(false);
+                            if (onClose) onClose();
+                        }}
                     >
                         Cancel
                     </Button>
