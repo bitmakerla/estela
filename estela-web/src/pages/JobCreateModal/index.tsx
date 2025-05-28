@@ -28,6 +28,11 @@ interface JobCreateModalProps {
     openModal: boolean;
     spider: Spider | null;
     projectId: string;
+    initialArgs?: ArgsData[];
+    initialEnvVars?: SpiderJobEnvVar[];
+    initialTags?: TagsData[];
+    onClose?: () => void;
+    hideRunButton?: boolean;
 }
 
 interface MaskedTagProps {
@@ -97,7 +102,16 @@ const dataPersistenceOptions = [
     { label: "Forever", key: 7, value: 720 },
 ];
 
-export default function JobCreateModal({ openModal, spider, projectId }: JobCreateModalProps) {
+export default function JobCreateModal({
+    openModal,
+    spider,
+    projectId,
+    initialArgs = [],
+    initialEnvVars = [],
+    initialTags = [],
+    onClose,
+    hideRunButton,
+}: JobCreateModalProps) {
     const PAGE_SIZE = 15;
     const apiService = ApiService();
     const [open, setOpen] = useState(openModal);
@@ -110,9 +124,14 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
     const [jobData, setJobData] = useState<JobData>({
-        args: [],
-        envVars: [],
-        tags: [],
+        args: initialArgs.map((arg, index) => ({ ...arg, key: index })),
+        envVars: initialEnvVars.map((envVar, index) => ({
+            name: envVar.name,
+            value: envVar.masked ? "__MASKED__" : envVar.value,
+            masked: envVar.masked || false,
+            key: index,
+        })),
+        tags: initialTags,
         dataStatus: spider ? spider.dataStatus : undefined,
         dataExpiryDays: spider ? spider.dataExpiryDays : 1,
     });
@@ -539,23 +558,25 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
 
     return (
         <>
-            <Button
-                icon={<Run className="mr-2" width={19} />}
-                size="large"
-                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                onClick={() => {
-                    if (spiders.length == 0) {
-                        message.error("No spiders found. Please make a new deploy.");
-                        history.push(`/projects/${projectId}/deploys`);
-                    } else {
-                        setOpen(true);
-                    }
-                }}
-                loading={isLoadingSpiders}
-                disabled={isLoadingSpiders}
-            >
-                {isLoadingSpiders ? "Loading spiders..." : "Run new job"}
-            </Button>
+            {!hideRunButton && (
+                <Button
+                    icon={<Run className="mr-2" width={19} />}
+                    size="large"
+                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                    onClick={() => {
+                        if (spiders.length == 0) {
+                            message.error("No spiders found. Please make a new deploy.");
+                            history.push(`/projects/${projectId}/deploys`);
+                        } else {
+                            setOpen(true);
+                        }
+                    }}
+                    loading={isLoadingSpiders}
+                    disabled={isLoadingSpiders}
+                >
+                    {isLoadingSpiders ? "Loading spiders..." : "Run new job"}
+                </Button>
+            )}
             {externalComponent}
             <Modal
                 style={{
@@ -563,10 +584,12 @@ export default function JobCreateModal({ openModal, spider, projectId }: JobCrea
                     padding: 0,
                 }}
                 open={open}
-                centered
+                onCancel={() => {
+                    setOpen(false);
+                    if (onClose) onClose();
+                }}
                 width={460}
                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
-                onCancel={() => setOpen(false)}
                 footer={null}
             >
                 <Row>
