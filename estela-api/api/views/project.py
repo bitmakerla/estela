@@ -176,10 +176,26 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             if data_status == DataStatus.PERSISTENT_STATUS:
                 instance.data_status = DataStatus.PERSISTENT_STATUS
                 description = "changed data persistence to persistent."
+                
+                # Apply to existing spiders if requested
+                if serializer.validated_data.get('apply_to_existing_spiders', False):
+                    Spider.objects.filter(project=instance).update(
+                        data_status=DataStatus.PERSISTENT_STATUS
+                    )
+                    description += " Applied to all existing spiders."
+                    
             elif data_status == DataStatus.PENDING_STATUS and data_expiry_days > 0:
                 instance.data_status = DataStatus.PENDING_STATUS
                 instance.data_expiry_days = data_expiry_days
                 description = f"changed data persistence to {data_expiry_days} days."
+                
+                # Apply to existing spiders if requested
+                if serializer.validated_data.get('apply_to_existing_spiders', False):
+                    Spider.objects.filter(project=instance).update(
+                        data_status=DataStatus.PENDING_STATUS,
+                        data_expiry_days=data_expiry_days
+                    )
+                    description += " Applied to all existing spiders."
             else:
                 raise ParseError({"error": errors.INVALID_DATA_STATUS})
 

@@ -383,10 +383,14 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
     };
 
     const handlePersistenceChange = (value: number): void => {
-        if (value == 720) {
+        if (value === 720) {
             setCronjobData({ ...cronjobData, dataStatus: SpiderCronJobCreateDataStatusEnum.Persistent });
         } else {
-            setCronjobData({ ...cronjobData, dataExpiryDays: value });
+            setCronjobData({
+                ...cronjobData,
+                dataStatus: SpiderCronJobCreateDataStatusEnum.Pending,
+                dataExpiryDays: value,
+            });
         }
     };
 
@@ -729,7 +733,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             <Button
                 icon={<Add className="mr-2" width={19} />}
                 size="large"
-                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-md"
                 onClick={() => {
                     if (spiders.length == 0) {
                         message.error("No spiders found. Please make a new deploy.");
