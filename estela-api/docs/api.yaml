@@ -1989,6 +1989,11 @@ definitions:
         title: Data expiry days
         description: New data expiry days.
         type: integer
+      apply_to_existing_spiders:
+        title: Apply to existing spiders
+        description: Apply data persistence settings to all existing spiders.
+        type: boolean
+        default: false
   ProjectActivity:
     required:
       - results

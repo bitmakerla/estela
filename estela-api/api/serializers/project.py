@@ -168,6 +168,12 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="New data expiry days.",
     )
+    apply_to_existing_spiders = serializers.BooleanField(
+        write_only=True,
+        required=False,
+        default=False,
+        help_text="Apply data persistence settings to all existing spiders.",
+    )
 
     class Meta:
         model = Project
@@ -182,6 +188,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "permission",
             "data_status",
             "data_expiry_days",
+            "apply_to_existing_spiders",
         )
 
 

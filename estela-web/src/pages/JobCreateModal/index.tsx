@@ -306,7 +306,7 @@ export default function JobCreateModal({
         if (value == 720) {
             setJobData({ ...jobData, dataStatus: SpiderDataStatusEnum.Persistent });
         } else {
-            setJobData({ ...jobData, dataExpiryDays: value });
+            setJobData({ ...jobData, dataStatus: SpiderDataStatusEnum.Pending, dataExpiryDays: value });
         }
     };
 

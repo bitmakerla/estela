@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space } from "antd";
+import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space, Checkbox } from "antd";
 import type { RadioChangeEvent } from "antd";
 import { RouteComponentProps, Link } from "react-router-dom";
 
@@ -45,6 +45,7 @@ interface ProjectSettingsPageState {
     dataStatus: ProjectDataStatusEnum | undefined;
     newDataStatus: ProjectUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
+    applyToExistingSpiders: boolean;
 }
 
 interface RouteParams {
@@ -76,6 +77,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         dataExpiryDays: 1,
         projectName: "",
         category: undefined,
+        applyToExistingSpiders: false,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -169,6 +171,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         const requestData: ProjectUpdate = {
             dataStatus: this.state.newDataStatus,
             dataExpiryDays: Number(this.state.dataExpiryDays),
+            applyToExistingSpiders: this.state.applyToExistingSpiders,
         };
         const request: ApiProjectsUpdateRequest = {
             data: requestData,
@@ -177,8 +180,11 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         this.apiService.apiProjectsUpdate(request).then(
             () => {
                 this.updateInfo();
-                message.success("Data persistence changed");
-                this.setState({ persistenceChanged: false });
+                const successMessage = this.state.applyToExistingSpiders
+                    ? "Data persistence changed and applied to all existing spiders"
+                    : "Data persistence changed";
+                message.success(successMessage);
+                this.setState({ persistenceChanged: false, applyToExistingSpiders: false });
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
@@ -230,6 +236,10 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
 
     handleSelectChange = (value: ProjectUpdatePermissionEnum): void => {
         this.setState({ permission: value });
+    };
+
+    handleApplyToExistingSpiders = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ applyToExistingSpiders: e.target.checked });
     };
 
     dataPersistenceOptions = [
@@ -349,6 +359,15 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                         ))}
                                     </Radio.Group>
                                 </Content>
+                                <div className="mt-2 mb-6 p-3 border-t border-gray-100">
+                                    <Checkbox
+                                        onChange={this.handleApplyToExistingSpiders}
+                                        checked={this.state.applyToExistingSpiders}
+                                        className="text-base text-estela-black-full"
+                                    >
+                                        <span className="ml-2 font-medium">Apply to all existing spiders</span>
+                                    </Checkbox>
+                                </div>
                                 <div className="h-12 w-72">
                                     <Button
                                         block

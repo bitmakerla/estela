@@ -90,6 +90,12 @@ export interface ProjectUpdate {
      * @memberof ProjectUpdate
      */
     dataExpiryDays?: number;
+    /**
+     * Apply data persistence settings to all existing spiders.
+     * @type {boolean}
+     * @memberof ProjectUpdate
+     */
+    applyToExistingSpiders?: boolean;
 }
 
 /**
@@ -145,6 +151,7 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
         'permission': !exists(json, 'permission') ? undefined : json['permission'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'applyToExistingSpiders': !exists(json, 'apply_to_existing_spiders') ? undefined : json['apply_to_existing_spiders'],
     };
 }
 
@@ -166,6 +173,7 @@ export function ProjectUpdateToJSON(value?: ProjectUpdate | null): any {
         'permission': value.permission,
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
+        'apply_to_existing_spiders': value.applyToExistingSpiders,
     };
 }
 
