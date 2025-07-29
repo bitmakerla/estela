@@ -31,8 +31,9 @@ def run_cronjob_once(data):
         "args": data.get("cargs"),
         "env_vars": data.get("cenv_vars"),
         "tags": data.get("ctags"),
+        "data_expiry_days": data.get("data_expiry_days"),
     }
-    launch_job(data.get("spider", {}).get("sid"), _data)
+    launch_job(data.get("spider", {}).get("sid"),  _data, data.get("data_expiry_days"))
 
 
 def disable_cronjob(key):
