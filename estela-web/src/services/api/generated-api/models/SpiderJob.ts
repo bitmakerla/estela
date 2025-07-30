@@ -129,6 +129,12 @@ export interface SpiderJob {
      * @type {string}
      * @memberof SpiderJob
      */
+    readonly databaseInsertionProgress?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderJob
+     */
     readonly storageSize?: string;
 }
 
@@ -167,6 +173,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
+        'databaseInsertionProgress': !exists(json, 'database_insertion_progress') ? undefined : json['database_insertion_progress'],
         'storageSize': !exists(json, 'storage_size') ? undefined : json['storage_size'],
     };
 }

@@ -1,7 +1,8 @@
 import json
 from collections import defaultdict
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from typing import List
+import logging
 
 from celery import chain
 from celery.exceptions import TaskError
@@ -26,6 +27,7 @@ from core.models import (
     UsageRecord,
 )
 
+import redis
 
 def get_default_token(job):
     user = job.spider.project.users.first()
@@ -358,3 +360,70 @@ def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=
         )
 
     return process_chain
+
+
+@celery_app.task(name="core.tasks.update_mongodb_insertion_progress")
+def update_mongodb_insertion_progress():
+    """
+    Updates the database insertion progress for completed spider jobs.
+    Tracks stalled jobs and excludes them after multiple cycles with no progress.
+    """
+    
+    # Verify MongoDB connection
+    if not spiderdata_db_client.get_connection():
+        logging.error("Failed to connect to MongoDB - skipping progress updates")
+        return
+        
+    # Process a batch of jobs
+    batch_size = getattr(settings, 'UPDATE_MONGODB_INSERTION_BATCH_SIZE', 100)
+    stall_threshold = getattr(settings, 'MONGODB_MAX_STALLED_CYCLES', 10)
+    redis_client = redis.from_url(settings.REDIS_URL)
+    
+    jobs = SpiderJob.objects.filter(
+        status=SpiderJob.COMPLETED_STATUS, 
+        database_insertion_progress__lt=100,
+        exclude_from_insertion_updates=False
+    ).order_by('created')[:batch_size]
+    
+    job_count = jobs.count()
+    if job_count == 0:
+        return
+        
+    logging.info(f"Processing {job_count} jobs for MongoDB insertion progress")
+    
+    for job in jobs:
+        stall_key = f"estela:stalled:{job.jid}"
+        
+        # Handle zero-item jobs
+        if job.item_count == 0:
+            SpiderJob.objects.filter(pk=job.pk).update(database_insertion_progress=100)
+            continue
+            
+        try:
+            # Get MongoDB document count
+            collection = f"{job.spider.sid}-{job.jid}-job_items"
+            count = spiderdata_db_client.get_estimated_item_count(
+                str(job.spider.project.pid), collection
+            )
+            
+            # Calculate progress
+            new_progress = min(100, (count / job.item_count) * 100)
+            progress_changed = abs(new_progress - job.database_insertion_progress) > 0.1
+            
+            if progress_changed:
+                # Progress changed - update DB and reset stall counter
+                SpiderJob.objects.filter(pk=job.pk).update(database_insertion_progress=new_progress)
+                redis_client.delete(stall_key)
+            else:
+                # Progress stalled - increment counter
+                stall_count = redis_client.incr(stall_key)
+                
+                # Exclude job if stalled too long
+                if stall_count >= stall_threshold:
+                    SpiderJob.objects.filter(pk=job.pk).update(exclude_from_insertion_updates=True)
+                    redis_client.delete(stall_key)
+                    logging.info(f"Job {job.jid} excluded after {stall_count} cycles with no progress")
+        except Exception as e:
+            logging.error(f"Error updating progress for job {job.jid}: {str(e)}")
+            
+    logging.info(f"Completed MongoDB insertion progress updates")

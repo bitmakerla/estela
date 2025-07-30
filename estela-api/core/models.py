@@ -325,6 +325,12 @@ class SpiderJob(models.Model):
     request_count = models.PositiveBigIntegerField(
         default=0, help_text="The number of requests made by the spider job."
     )
+    database_insertion_progress = models.FloatField(
+        default=0, help_text="Percentage of items inserted into the database."
+    )
+    exclude_from_insertion_updates = models.BooleanField(
+        default=False, help_text="Whether the job should be excluded from further progress updates."
+    )
     # proxy_usage_data follows this format:
     # {
     #   "proxy_name": <proxy_name>,
