@@ -376,7 +376,7 @@ def update_mongodb_insertion_progress():
         
     # Process a batch of jobs
     batch_size = getattr(settings, 'UPDATE_MONGODB_INSERTION_BATCH_SIZE', 100)
-    stall_threshold = getattr(settings, 'MONGODB_MAX_STALLED_CYCLES', 10)
+    stall_threshold = getattr(settings, 'MONGODB_MAX_STALLED_CYCLES', 100)
     redis_client = redis.from_url(settings.REDIS_URL)
     
     jobs = SpiderJob.objects.filter(
