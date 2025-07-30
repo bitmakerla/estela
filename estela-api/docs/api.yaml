@@ -2362,6 +2362,10 @@ definitions:
           - PERSISTENT
           - PENDING
           - DELETED
+      database_insertion_progress:
+        title: Database insertion progress
+        type: string
+        readOnly: true
       storage_size:
         title: Storage size
         type: string

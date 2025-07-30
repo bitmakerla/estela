@@ -89,6 +89,7 @@ interface JobDetailPageState {
     loadedSpiders: boolean;
     spiderName: string;
     storageSize?: number;
+    databaseInsertionProgress?: number;
 }
 
 interface RouteParams {
@@ -209,6 +210,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         spiders: [],
         loadedSpiders: false,
         spiderName: "",
+        storageSize: undefined,
+        databaseInsertionProgress: undefined,
     };
 
     apiService = ApiService();
@@ -246,6 +249,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     dataExpiryDays: response.dataExpiryDays == null ? 1 : response.dataExpiryDays,
                     storageSize: response.storageSize,
                     itemCountInRedis: response.itemCount,
+                    databaseInsertionProgress: response.databaseInsertionProgress
+                        ? parseFloat(response.databaseInsertionProgress)
+                        : undefined,
                 });
             },
             (error: unknown) => {
@@ -475,6 +481,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             itemCountInRedis,
             status,
             storageSize,
+            databaseInsertionProgress,
         } = this.state;
         const getProxyTag = (): string => {
             const desiredItem = envVars.find((item) => item.name === "ESTELA_PROXY_NAME");
@@ -731,7 +738,29 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                 </Col>
                             )}
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2">
+                        {status === "COMPLETED" && (
+                            <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
+                                <Col>
+                                    <Text className="font-bold">Database Insertion Progress</Text>
+                                </Col>
+                                <Col className="col-span-2 px-2">
+                                    {databaseInsertionProgress !== undefined ? (
+                                        <div className="flex items-center">
+                                            <div className="w-48 bg-gray-200 rounded-full h-2.5 mr-2">
+                                                <div
+                                                    className="bg-estela-green-full h-2.5 rounded-full"
+                                                    style={{ width: `${databaseInsertionProgress}%` }}
+                                                ></div>
+                                            </div>
+                                            <span>{databaseInsertionProgress.toFixed(1)}%</span>
+                                        </div>
+                                    ) : (
+                                        <Text className="text-estela-black-medium text-xs">No data available</Text>
+                                    )}
+                                </Col>
+                            </Row>
+                        )}
+                        <Row className="grid grid-cols-3 py-1 px-2">
                             <Col>
                                 <Text className="font-bold">Data Persistence</Text>
                             </Col>

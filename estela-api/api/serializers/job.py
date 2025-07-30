@@ -37,6 +37,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
     )
     spider = serializers.SerializerMethodField("get_spider")
     storage_size = serializers.SerializerMethodField("get_storage_size")
+    database_insertion_progress = serializers.SerializerMethodField("get_database_insertion_progress")
 
     class Meta:
         model = SpiderJob
@@ -56,6 +57,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "cronjob",
             "data_expiry_days",
             "data_status",
+            "database_insertion_progress",
             "storage_size",
         )
 
@@ -77,6 +79,10 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             ]
         )
         return total_size
+
+    def get_database_insertion_progress(self, instance):
+        # Return the actual database insertion progress value from the model
+        return instance.database_insertion_progress
 
 
 class SpiderJobCreateEnvVarSerializer(serializers.Serializer):

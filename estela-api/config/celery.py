@@ -23,6 +23,10 @@ app.conf.beat_schedule = {
         "task": "core.tasks.delete_expired_jobs_data",
         "schedule": 3600,
     },
+    "update-mongodb-insertion-progress": {
+        "task": "core.tasks.update_mongodb_insertion_progress",
+        "schedule": 60,
+    },
 }
 
 
