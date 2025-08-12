@@ -81,6 +81,16 @@ class KubernetesEngine:
             container.security_context = client.V1SecurityContext(
                 capabilities=client.V1Capabilities(drop=["ALL"])
             )
+        else:
+            # Build containers need privileged mode for Docker-in-Docker
+            container.security_context = client.V1SecurityContext(
+                privileged=True
+            )
+            # Add resource limits for build containers
+            container.resources = client.V1ResourceRequirements(
+                limits={"memory": "4Gi", "cpu": "2"},
+                requests={"memory": "2Gi", "cpu": "1"}
+            )
 
         pod_spec = client.V1PodSpec(
             containers=[container],

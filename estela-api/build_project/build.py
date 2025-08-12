@@ -40,12 +40,35 @@ def unzip_project():
 def build_image(PROJECT_PATH, DOCKERFILE_PATH):
     project_path = PROJECT_PATH
     docker_client = docker.from_env()
-    docker_client.images.build(
-        nocache=True,
+    
+    logging.info(f"Starting Docker build with path: {project_path}")
+    logging.info(f"Using Dockerfile: {DOCKERFILE_PATH}")
+    logging.info(f"Target image tag: {ESTELA_IMAGE}")
+    
+    # Build with verbose output
+    build_logs = docker_client.api.build(
         path=project_path,
         dockerfile=DOCKERFILE_PATH,
         tag=ESTELA_IMAGE,
+        nocache=True,
+        decode=True,  # Decode the streaming output
+        rm=True,      # Remove intermediate containers
     )
+    
+    # Stream and log the build output
+    for log_line in build_logs:
+        if 'stream' in log_line:
+            # Print each build step in real-time
+            message = log_line['stream'].strip()
+            if message:
+                logging.info(f"BUILD: {message}")
+        elif 'error' in log_line:
+            logging.error(f"BUILD ERROR: {log_line['error']}")
+            raise Exception(f"Docker build failed: {log_line['error']}")
+        elif 'status' in log_line:
+            logging.info(f"BUILD STATUS: {log_line['status']}")
+    
+    logging.info("Docker build completed successfully")
     docker_client.containers.prune()
 
 
@@ -86,14 +109,21 @@ def put(endpoint, data=None, params=None):
 
 def get_spiders():
     docker_client = docker.from_env()
-    output = docker_client.containers.run(
-        ESTELA_IMAGE,
-        "estela-describe-project",
-        auto_remove=True,
-        environment=settings.QUEUE_PARAMS,
-    )
-    spiders = json.loads(output)["spiders"]
-    return spiders
+    try:
+        logging.info("Running estela-describe-project to get spiders...")
+        output = docker_client.containers.run(
+            ESTELA_IMAGE,
+            "estela-describe-project",
+            auto_remove=True,
+            environment=settings.QUEUE_PARAMS,
+        )
+        logging.info("estela-describe-project completed successfully")
+        spiders = json.loads(output)["spiders"]
+        return spiders
+    except Exception as e:
+        logging.warning(f"Failed to get spiders: {str(e)}")
+        logging.warning("Continuing deployment without spider detection...")
+        return []  # Return empty list instead of failing
 
 
 def check_status(response, status_code, error_field="detail"):

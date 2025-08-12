@@ -1,32 +1,60 @@
+# Start with Python 3.9 base and add Docker-in-Docker capability
 FROM python:3.9-slim
 
-WORKDIR /home/estela
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
+# Install Docker using the official Docker-in-Docker approach
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    build-essential \
     curl \
-    git \
     gnupg \
     lsb-release \
+    git \
+    build-essential \
     unixodbc-dev \
     default-libmysqlclient-dev \
+    iptables \
+    supervisor \
     && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
     && apt-get install -y docker-ce docker-ce-cli containerd.io \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Docker Compose (useful for DinD)
+RUN curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod +x /usr/local/bin/docker-compose
+
+WORKDIR /home/estela
+
+# Copy requirements and install Python dependencies (Python 3.9 compatible)
 COPY estela-api/requirements ./requirements
+RUN pip install --no-cache-dir -r requirements/deploy.txt && \
+    if [ -f requirements/externalApps.txt ]; then \
+        pip install --no-cache-dir -r requirements/externalApps.txt; \
+    fi
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements/deploy.txt \
-    && { [ -f requirements/externalApps.txt ] && pip install --no-cache-dir -r requirements/externalApps.txt || true; }
+# Copy application code
+COPY estela-api/ ./estela-api
+COPY database_adapters/ ./database_adapters
 
-COPY estela-api/ estela-api/
-COPY database_adapters/ estela-api/database_adapters/
+# Create entrypoint script that properly starts Docker daemon for DinD
+COPY estela-api/docker-conf/entrypoint-dind.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Set up Docker-in-Docker environment variables
+ENV DOCKER_TLS_CERTDIR=""
+ENV DOCKER_DRIVER=vfs
+ENV DOCKER_BUILDKIT=1
+ENV BUILDKIT_INLINE_CACHE=1
+
+# Create docker group and add permissions
+RUN groupadd -r docker || true
+
+EXPOSE 8000
+
+# Run as root to start dockerd (required for DinD)
+USER root
+
+# Use the DinD entrypoint that starts Docker daemon before running our script
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python3", "/home/estela/estela-api/build_project/build.py"]
