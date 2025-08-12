@@ -26,11 +26,9 @@ def launch_deploy_job(pid, did, container_image):
         "EXTERNAL_MIDDLEWARES": ",".join(settings.EXTERNAL_MIDDLEWARES),
     }
 
-    volume = (
-        {"name": "docker-sock", "path": "/var/run"}
-        if build_manager.name == "default"
-        else {}
-    )
+    # No volume mount needed for Docker-in-Docker
+    # The container will run its own Docker daemon internally
+    volume = {}
 
     job_manager.create_job(
         name="deploy-project-{}".format(did),
@@ -38,7 +36,7 @@ def launch_deploy_job(pid, did, container_image):
         job_env_vars=ENV_VARS,
         container_image=settings.BUILD_PROJECT_IMAGE,
         volume=volume,
-        command=["python", f"estela-api/build_project/{build_manager.filename}"],
+        command=["/entrypoint.sh", "python3", f"/home/estela/estela-api/build_project/{build_manager.filename}"],
         isbuild=True,
     )
 
