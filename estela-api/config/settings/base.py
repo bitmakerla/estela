@@ -268,9 +268,9 @@ GOOGLE_APPLICATION_LOCATION = env("GOOGLE_APPLICATION_LOCATION")
 PROJECT_BUCKET = env("BUCKET_NAME_PROJECTS")
 
 # Project image name
-BUILD_PROJECT_IMAGE = "{}/estela-build-project".format(
+BUILD_PROJECT_IMAGE = env("BUILD_PROJECT_IMAGE", default="{}/estela-build-project".format(
     urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
-)
+))
 
 # Test image name
 TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
