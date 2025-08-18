@@ -1,5 +1,5 @@
 from api.tokens import account_reset_token
-from config.job_manager import job_manager, build_manager
+from config.job_manager import job_manager
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sites.shortcuts import get_current_site
@@ -24,20 +24,22 @@ def launch_deploy_job(pid, did, container_image):
         "SPIDERDATA_DB_ENGINE": settings.SPIDERDATA_DB_ENGINE,
         "DJANGO_EXTERNAL_APPS": ",".join(settings.DJANGO_EXTERNAL_APPS),
         "EXTERNAL_MIDDLEWARES": ",".join(settings.EXTERNAL_MIDDLEWARES),
+        "REPOSITORY_NAME": settings.REPOSITORY_NAME,
+        "REGISTRY_HOST": settings.REGISTRY_HOST,
     }
 
-    # No volume mount needed for Docker-in-Docker
-    # The container will run its own Docker daemon internally
+    # No volume needed for Kaniko builds - uses shared volumes internally
     volume = {}
 
+    # Use Kaniko 3-container pipeline instead of Docker-in-Docker
     job_manager.create_job(
         name="deploy-project-{}".format(did),
         key=pid,
         job_env_vars=ENV_VARS,
-        container_image=settings.BUILD_PROJECT_IMAGE,
+        container_image=container_image,  # Use actual target image
         volume=volume,
-        command=["/entrypoint.sh", "python3", f"/home/estela/estela-api/build_project/{build_manager.filename}"],
-        isbuild=True,
+        command=["estela-report-deploy"],  # Command for spider-status container
+        isbuild=True,  # Triggers Kaniko 3-container pipeline
     )
 
 

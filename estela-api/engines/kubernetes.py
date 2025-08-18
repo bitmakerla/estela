@@ -78,27 +78,30 @@ class KubernetesEngine:
             volume_mounts=[volume_mount] if volume_mount else None,
         )
         if not isbuild:
+            # Regular spider job containers
             container.security_context = client.V1SecurityContext(
                 capabilities=client.V1Capabilities(drop=["ALL"])
             )
+            containers = [container]
+            init_containers = []
         else:
-            # Build containers need privileged mode for Docker-in-Docker
-            container.security_context = client.V1SecurityContext(
-                privileged=True
-            )
-            # Add resource limits for build containers
-            container.resources = client.V1ResourceRequirements(
-                limits={"memory": "4Gi", "cpu": "2"},
-                requests={"memory": "2Gi", "cpu": "1"}
+            # Build job: Create 3-container pipeline
+            containers, init_containers = self._create_build_containers(
+                container_name, container_image, env_list
             )
 
         pod_spec = client.V1PodSpec(
-            containers=[container],
+            containers=containers,
+            init_containers=init_containers,
             restart_policy=self.POD_RESTART_POLICY,
             image_pull_secrets=[
                 client.V1LocalObjectReference(self.IMAGE_PULL_SECRET_NAME)
             ],
-            volumes=[volume] if volume else None,
+            volumes=(
+                self._create_build_volumes()
+                if isbuild
+                else ([volume] if volume else None)
+            ),
             node_selector={"role": self.SPIDER_NODE_ROLE}
             if settings.MULTI_NODE_MODE == "True"
             else None,
@@ -109,9 +112,11 @@ class KubernetesEngine:
             )
 
         template.template.spec = pod_spec
+        # Build jobs shouldn't retry - if a build fails, retrying won't fix it
+        backoff_limit = 0 if isbuild else self.BACKOFF_LIMIT
         body.spec = client.V1JobSpec(
             ttl_seconds_after_finished=self.JOB_TTL_SECONDS_AFTER_FINISHED,
-            backoff_limit=self.BACKOFF_LIMIT,
+            backoff_limit=backoff_limit,
             template=template.template,
         )
         return body
@@ -209,3 +214,101 @@ class KubernetesEngine:
             return None
 
         return self.Status(api_response.status)
+
+    def _create_build_volumes(self):
+        """Create shared volume for build containers"""
+        return [
+            client.V1Volume(
+                name="shared-workspace",
+                empty_dir=client.V1EmptyDirVolumeSource()
+            )
+        ]
+
+    def _create_build_containers(self, _container_name, target_image, env_list):
+        """Create 3-container build pipeline: downloader + kaniko + spider-status"""
+
+        # Extract the actual target image name from environment variables
+        actual_target_image = None
+        for env in env_list:
+            if env.name == "CONTAINER_IMAGE":
+                actual_target_image = env.value
+                break
+
+        if not actual_target_image:
+            # Fallback to passed target_image parameter if CONTAINER_IMAGE not in env
+            actual_target_image = target_image
+
+        shared_volume_mount = client.V1VolumeMount(
+            name="shared-workspace", mount_path="/shared"
+        )
+        
+        # Init Container 1: Download and extract project
+        downloader_container = client.V1Container(
+            name="project-downloader",
+            image=settings.DOWNLOADER_IMAGE,
+            env=env_list,
+            volume_mounts=[shared_volume_mount],
+            resources=client.V1ResourceRequirements(
+                limits={"memory": "512Mi", "cpu": "500m"},
+                requests={"memory": "256Mi", "cpu": "250m"}
+            ),
+            security_context=client.V1SecurityContext(
+                run_as_non_root=True,
+                run_as_user=1000,
+                capabilities=client.V1Capabilities(drop=["ALL"])
+            )
+        )
+        
+        # Init Container 2: Kaniko build
+        kaniko_container = client.V1Container(
+            name="kaniko-builder",
+            image="gcr.io/kaniko-project/executor:v1.21.0",
+            args=[
+                "--dockerfile=/shared/project/.estela/Dockerfile-estela",
+                "--context=/shared/project",
+                f"--destination={actual_target_image}",  # Build actual target image
+                "--cache=true",
+                "--cache-repo=094814489188.dkr.ecr.us-east-2.amazonaws.com/"
+                "bitmaker-projects-cache",
+                "--cache-ttl=168h",  # 7 days cache
+                "--compressed-caching=false",
+                "--single-snapshot=true",
+                "--skip-unused-stages=true",  # Skip building unused stages
+                "--snapshot-mode=redo",  # Faster snapshot mode
+            ],
+            volume_mounts=[shared_volume_mount],
+            resources=client.V1ResourceRequirements(
+                limits={"memory": "2Gi", "cpu": "2"},  # More CPU for faster builds
+                requests={"memory": "1Gi", "cpu": "1"}
+            ),
+            env=[
+                client.V1EnvVar(name="AWS_REGION", value="us-east-2"),
+                # Add ECR authentication env vars from self.CREDENTIALS
+            ]
+            + [
+                client.V1EnvVar(name=env.name, value=env.value)
+                for env in env_list
+                if env.name in ["REGISTRY_TOKEN", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
+            ],
+        )
+        
+        # Main Container: Spider detection + status update (THE BUILT IMAGE ITSELF)
+        # Uses estela-report-deploy command from estela-entrypoint package
+        spider_status_container = client.V1Container(
+            name="spider-status",
+            image=actual_target_image,  # The image that Kaniko just built!
+            env=env_list,
+            command=["estela-report-deploy"],  # Command provided by estela-entrypoint
+            volume_mounts=[shared_volume_mount],
+            resources=client.V1ResourceRequirements(
+                limits={"memory": "512Mi", "cpu": "500m"},
+                requests={"memory": "256Mi", "cpu": "250m"}
+            ),
+            image_pull_policy=self.IMAGE_PULL_POLICY,
+            # No security context restrictions - uses the built image's defaults
+        )
+
+        init_containers = [downloader_container, kaniko_container]
+        containers = [spider_status_container]
+
+        return containers, init_containers

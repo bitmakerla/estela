@@ -272,6 +272,11 @@ BUILD_PROJECT_IMAGE = env("BUILD_PROJECT_IMAGE", default="{}/estela-build-projec
     urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
 ))
 
+# Downloader image name for Kaniko builds
+DOWNLOADER_IMAGE = env("DOWNLOADER_IMAGE", default="{}/estela-project-downloader:latest".format(
+    urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
+))
+
 # Test image name
 TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
     urlparse(REGISTRY_HOST).netloc or REGISTRY_HOST
