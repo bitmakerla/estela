@@ -61,9 +61,10 @@ class DeployViewSet(
         if error:
             raise APIException({"error": error})
 
-        # Launch Job to build Project
+        # Launch Job to build Project to candidate image
+        candidate_image = project.get_candidate_image()
         launch_deploy_job(
-            self.kwargs["pid"], serializer.data["did"], project.container_image
+            self.kwargs["pid"], serializer.data["did"], candidate_image
         )
 
         headers = self.get_success_headers(serializer.data)

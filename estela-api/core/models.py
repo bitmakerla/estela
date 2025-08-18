@@ -89,13 +89,26 @@ class Project(models.Model):
 
     @property
     def container_image(self):
+        """Get the production container image for this project."""
+        return self.get_production_image()
+    
+    def get_candidate_image(self):
+        """Get the candidate container image for builds."""
         parsed_container_host = urlparse(settings.REGISTRY_HOST)
-        container_image = "{}/{}:estela_{}".format(
+        return "{}/{}:estela_{}_candidate".format(
             parsed_container_host.netloc or settings.REGISTRY_HOST,
             settings.REPOSITORY_NAME,
             self.pid,
         )
-        return container_image
+    
+    def get_production_image(self):
+        """Get the production container image (same as container_image but explicit)."""
+        parsed_container_host = urlparse(settings.REGISTRY_HOST)
+        return "{}/{}:estela_{}".format(
+            parsed_container_host.netloc or settings.REGISTRY_HOST,
+            settings.REPOSITORY_NAME,
+            self.pid,
+        )
 
 
 class Permission(models.Model):
