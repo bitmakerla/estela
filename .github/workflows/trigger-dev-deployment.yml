@@ -1,0 +1,64 @@
+name: Trigger Development Deployment
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  trigger-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Trigger deployment in bitmaker-cloud-deploy
+        run: |
+          echo "🚀 Triggering deployment for commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Triggered by: ${{ github.actor }}"
+          
+          response=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.DEPLOY_TRIGGER_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}" \
+            -d '{
+              "event_type": "deploy-dev-auto",
+              "client_payload": {
+                "source_repo": "estela",
+                "branch": "${{ github.ref_name }}",
+                "commit": "${{ github.sha }}",
+                "triggered_by": "${{ github.actor }}",
+                "commit_message": "${{ github.event.head_commit.message }}"
+              }
+            }' \
+            -w "\n%{http_code}" \
+            -s)
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          if [ "$http_code" = "204" ]; then
+            echo "✅ Deployment triggered successfully!"
+          else
+            echo "❌ Failed to trigger deployment"
+            echo "HTTP Status: $http_code"
+            echo "Response: $body"
+            exit 1
+          fi
+      
+      - name: Add deployment status comment
+        if: github.event_name == 'push'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const commit_sha = context.sha;
+            const message = `🚀 Deployment to development environment has been triggered!\n\nCommit: ${commit_sha.substring(0, 7)}`;
+            
+            // Create a commit comment
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: commit_sha,
+              body: message
+            });
