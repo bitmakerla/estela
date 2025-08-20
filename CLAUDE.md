@@ -1,0 +1,3 @@
+- When deploy to kubernetes please check that we're using the do-nyc1-scraping-development-cluster cluster and if not please request a confirmation
+- Use amd64 docker buildings for default
+- Use aws-vault with creds estela_api_creds to run aws commands

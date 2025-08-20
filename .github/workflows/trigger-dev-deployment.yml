@@ -18,24 +18,20 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Triggered by: ${{ github.actor }}"
           
-          # Escape commit message for JSON
-          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
-          
           response=$(curl -X POST \
             -H "Authorization: token ${{ secrets.DEPLOY_TRIGGER_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -H "Content-Type: application/json" \
             "${{ secrets.DEPLOY_WEBHOOK_URL }}" \
-            -d "{
-              \"event_type\": \"deploy-dev-auto\",
-              \"client_payload\": {
-                \"source_repo\": \"estela\",
-                \"branch\": \"${{ github.ref_name }}\",
-                \"commit\": \"${{ github.sha }}\",
-                \"triggered_by\": \"${{ github.actor }}\",
-                \"commit_message\": \"${COMMIT_MSG}\"
+            -d '{
+              "event_type": "deploy-dev-auto",
+              "client_payload": {
+                "source_repo": "estela",
+                "branch": "${{ github.ref_name }}",
+                "commit": "${{ github.sha }}",
+                "triggered_by": "${{ github.actor }}",
+                "commit_message": "${{ github.event.head_commit.message }}"
               }
-            }" \
+            }' \
             -w "\n%{http_code}" \
             -s)
           
