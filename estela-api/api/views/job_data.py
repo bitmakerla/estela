@@ -190,13 +190,14 @@ class JobDataViewSet(
                 kwargs["pid"], job_collection_name
             )
         else:
-            docs_limit = max(
-                1,
-                settings.MAX_WEB_DOWNLOAD_SIZE
-                // spiderdata_db_client.get_estimated_item_size(
+            try:
+                estimated_size = spiderdata_db_client.get_estimated_item_size(
                     kwargs["pid"], job_collection_name
-                ),
-            )
+                )
+                docs_limit = max(1, settings.MAX_WEB_DOWNLOAD_SIZE // estimated_size)
+            except:
+                docs_limit = settings.MAX_WEB_DOWNLOAD_SIZE
+            
             data = spiderdata_db_client.get_dataset_data(
                 kwargs["pid"], job_collection_name, docs_limit
             )
