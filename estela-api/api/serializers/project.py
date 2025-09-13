@@ -228,3 +228,12 @@ class ProjectActivitySerializer(serializers.Serializer):
     count = serializers.IntegerField(
         required=True, help_text="Project activities count."
     )
+
+
+class ProjectSearchSerializer(serializers.Serializer):
+    results = ProjectSerializer(
+        many=True, required=True, help_text="Project search results."
+    )
+    count = serializers.IntegerField(
+        required=True, help_text="Project search results count."
+    )
