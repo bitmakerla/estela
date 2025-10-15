@@ -14,6 +14,7 @@ import { ProjectMemberPage } from "../pages/ProjectMemberPage";
 import { ProjectJobListPage } from "../pages/ProjectJobListPage";
 import { ProjectCronJobListPage } from "../pages/ProjectCronJobListPage";
 import { ProjectActivityPage } from "../pages/ProjectActivityPage";
+import { ProjectConnectionsPage } from "../pages/ProjectConnectionsPage";
 import { DeployListPage } from "../pages/DeployListPage";
 import { SpiderListPage } from "../pages/SpiderListPage";
 import { SpiderDetailPage } from "../pages/SpiderDetailPage";
@@ -68,8 +69,9 @@ export const MainRoutes: React.FC = () => {
                     "/projects/:projectId/deploys",
                     "/projects/:projectId/members",
                     "/projects/:projectId/spiders",
-                    "/projects/:projectId/jobs",
+                    "/projects/:projectId/jobs", 
                     "/projects/:projectId/cronjobs",
+                    "/projects/:projectId/connections",
                     "/projects/:projectId/activity",
                     "/projects/:projectId/spiders/:spiderId",
                     "/projects/:projectId/spiders/:spiderId/jobs/:jobId/data/:dataType",
@@ -88,6 +90,7 @@ export const MainRoutes: React.FC = () => {
                     <Route path="/projects/:projectId/spiders" component={SpiderListPage} exact />
                     <Route path="/projects/:projectId/jobs" component={ProjectJobListPage} exact />
                     <Route path="/projects/:projectId/cronjobs" component={ProjectCronJobListPage} exact />
+                    <Route path="/projects/:projectId/connections" component={ProjectConnectionsPage} exact />
                     <Route path="/projects/:projectId/activity" component={ProjectActivityPage} exact />
                     <Route path="/projects/:projectId/spiders/:spiderId" component={SpiderDetailPage} exact />
                     <Route

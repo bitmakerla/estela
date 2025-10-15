@@ -1,0 +1,71 @@
+/* Project Connections Page Styles */
+
+.connections-page {
+    .connection-list {
+        .ant-table {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    .connection-form {
+        .ant-form-item {
+            margin-bottom: 16px;
+        }
+
+        .connection-type-specific-fields {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: #fafafa;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+        }
+    }
+
+    .connection-actions {
+        .ant-btn {
+            margin-right: 8px;
+
+            &:last-child {
+                margin-right: 0;
+            }
+        }
+    }
+}
+
+/* Status indicators */
+.connection-status {
+    &.testing {
+        color: #1890ff;
+    }
+
+    &.success {
+        color: #52c41a;
+    }
+
+    &.error {
+        color: #ff4d4f;
+    }
+}
+
+/* Connection type badges */
+.connection-type-badge {
+    &.database {
+        background-color: #722ed1;
+    }
+    &.s3 {
+        background-color: #fa8c16;
+    }
+    &.ftp {
+        background-color: #13c2c2;
+    }
+    &.sftp {
+        background-color: #52c41a;
+    }
+    &.http {
+        background-color: #1890ff;
+    }
+    &.webhook {
+        background-color: #eb2f96;
+    }
+}

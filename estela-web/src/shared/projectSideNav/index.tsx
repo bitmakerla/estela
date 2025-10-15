@@ -126,6 +126,17 @@ export const ProjectSideNav: React.FC<ProjectSideNavPropsInterface> = ({ project
                     ),
                 },
                 {
+                    key: "connections",
+                    label: (
+                        <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela hover:text-estela rounded">
+                            <Settings className="mr-2 w-8 h-8" />
+                            <Link to={`/projects/${projectId}/connections`} onClick={() => updatePath("connections")}>
+                                Connections
+                            </Link>
+                        </Content>
+                    ),
+                },
+                {
                     key: "settings",
                     label: (
                         <Content className="flex items-center hover:bg-button-hover stroke-black hover:stroke-estela rounded">

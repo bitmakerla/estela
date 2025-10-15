@@ -32,11 +32,18 @@ import {
     ApiProjectsSpidersJobsUpdateRequest,
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersListRequest,
+    ApiProjectsConnectionsListRequest,
+    ApiProjectsSpidersJobsExportsCreateRequest,
+    ApiProjectsSpidersJobsExportsListRequest,
     SpiderJob,
     SpiderJobEnvVar,
     SpiderJobUpdate,
     SpiderJobUpdateDataStatusEnum,
     Spider,
+    ConnectionList,
+    DataExport,
+    DataExportCreate,
+    DataExportList,
 } from "../../services/api";
 import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../JobDataPage";
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
@@ -85,11 +92,17 @@ interface JobDetailPageState {
     modified: boolean;
     modalStop: boolean;
     modalClone: boolean;
+    modalExport: boolean;
     spiders: Spider[];
     loadedSpiders: boolean;
     spiderName: string;
     storageSize?: number;
     databaseInsertionProgress?: number;
+    connections: ConnectionList[];
+    loadedConnections: boolean;
+    exports: DataExportList[];
+    loadedExports: boolean;
+    exportInProgress: boolean;
 }
 
 interface RouteParams {
@@ -207,11 +220,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         modified: false,
         modalStop: false,
         modalClone: false,
+        modalExport: false,
         spiders: [],
         loadedSpiders: false,
         spiderName: "",
         storageSize: undefined,
         databaseInsertionProgress: undefined,
+        connections: [],
+        loadedConnections: false,
+        exports: [],
+        loadedExports: false,
+        exportInProgress: false,
     };
 
     apiService = ApiService();
@@ -261,6 +280,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
         this.getProjectSpiders();
         await this.getItems(1);
+        this.loadExports();
         this.setState({ loadedItemsFirstTime: true });
     }
 
@@ -436,6 +456,57 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 resourceNotAllowedNotification();
             },
         );
+    };
+
+    loadConnections = async (): Promise<void> => {
+        const requestParams: ApiProjectsConnectionsListRequest = {
+            pid: this.projectId,
+        };
+        try {
+            const response = await this.apiService.apiProjectsConnectionsList(requestParams);
+            console.log(response)
+            this.setState({ 
+                connections: response.filter(conn => conn.connType === "S3"),
+                loadedConnections: true 
+            });
+        } catch (error) {
+            console.log(error)
+            resourceNotAllowedNotification();
+            this.setState({ loadedConnections: true });
+        }
+    };
+
+    loadExports = async (): Promise<void> => {
+        const requestParams: ApiProjectsSpidersJobsExportsListRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: String(this.jobId),
+        };
+        try {
+            const response = await this.apiService.apiProjectsSpidersJobsExportsList(requestParams);
+            this.setState({ exports: response, loadedExports: true });
+        } catch (error) {
+            resourceNotAllowedNotification();
+            this.setState({ loadedExports: true });
+        }
+    };
+
+    createExport = async (connectionId: number): Promise<void> => {
+        this.setState({ exportInProgress: true });
+        const requestParams: ApiProjectsSpidersJobsExportsCreateRequest = {
+            pid: this.projectId,
+            sid: this.spiderId,
+            jid: String(this.jobId),
+            data: { connection: connectionId },
+        };
+        try {
+            await this.apiService.apiProjectsSpidersJobsExportsCreate(requestParams);
+            this.setState({ modalExport: false, exportInProgress: false });
+            this.loadExports();
+        } catch (error) {
+            resourceNotAllowedNotification();
+            this.setState({ exportInProgress: false });
+        }
     };
 
     chartConfigs = (bytes: BytesMetric): [number[], string[]] => {
@@ -898,12 +969,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             status,
             modalStop,
             modalClone,
+            modalExport,
             spiders,
             activeKey,
             loadedSpiders,
             itemsCurrent,
             loadedItems,
             loadedItemsFirstTime,
+            connections,
+            loadedConnections,
+            exports,
+            exportInProgress,
         } = this.state;
         return (
             <Content className="content-padding">
@@ -928,6 +1004,17 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                         className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                     >
                                         Clone this job
+                                    </Button>
+                                    <Button
+                                        disabled={status !== SpiderJobUpdateStatusEnum.Completed}
+                                        onClick={() => {
+                                            this.setState({ modalExport: true });
+                                            this.loadConnections();
+                                        }}
+                                        size="large"
+                                        className="flex items-center stroke-white border-green-600 hover:stroke-green-600 bg-green-600 text-white hover:text-green-600 text-sm hover:border-green-600 rounded-md"
+                                    >
+                                        Export Data
                                     </Button>
                                     <Button
                                         disabled={!(status == SpiderJobUpdateStatusEnum.Running)}
@@ -979,6 +1066,97 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     Cancel
                                                 </Button>
                                             </Row>
+                                        </Modal>
+                                    )}
+                                    {modalExport && (
+                                        <Modal
+                                            title="Export Job Data to S3"
+                                            open={modalExport}
+                                            onCancel={() => this.setState({ modalExport: false })}
+                                            footer={null}
+                                            width={600}
+                                        >
+                                            <div className="p-4">
+                                                <p className="mb-4 text-gray-600">
+                                                    Select an S3 connection to export your job data:
+                                                </p>
+                                                {!loadedConnections ? (
+                                                    <Spin />
+                                                ) : connections.length === 0 ? (
+                                                    <div className="text-center py-8">
+                                                        <p className="text-gray-500 mb-4">No S3 connections found.</p>
+                                                        <p className="text-sm text-gray-400">
+                                                            Please create an S3 connection first in project settings.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {connections.map((connection) => (
+                                                            <Card
+                                                                key={connection.cid}
+                                                                className="cursor-pointer hover:border-blue-400"
+                                                                onClick={() => {
+                                                                    if (connection.cid) {
+                                                                        this.createExport(connection.cid);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <div className="flex justify-between items-center">
+                                                                    <div>
+                                                                        <h4 className="font-medium">{connection.name}</h4>
+                                                                        <p className="text-sm text-gray-500">
+                                                                            {connection.connTypeDisplay}
+                                                                        </p>
+                                                                    </div>
+                                                                    <Button
+                                                                        type="primary"
+                                                                        loading={exportInProgress}
+                                                                        disabled={exportInProgress}
+                                                                    >
+                                                                        {exportInProgress ? "Exporting..." : "Select"}
+                                                                    </Button>
+                                                                </div>
+                                                            </Card>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                
+                                                {exports.length > 0 && (
+                                                    <div className="mt-6">
+                                                        <h4 className="font-medium mb-3">Recent Exports</h4>
+                                                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                                                            {exports.slice(0, 5).map((exportItem) => (
+                                                                <div
+                                                                    key={exportItem.eid}
+                                                                    className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                                                                >
+                                                                    <div>
+                                                                        <span className="text-sm font-medium">
+                                                                            {exportItem.connectionName}
+                                                                        </span>
+                                                                        <p className="text-xs text-gray-500">
+                                                                            {new Date(exportItem.created).toLocaleString()}
+                                                                        </p>
+                                                                    </div>
+                                                                    <Tag
+                                                                        color={
+                                                                            exportItem.status === "COMPLETED"
+                                                                                ? "green"
+                                                                                : exportItem.status === "FAILED"
+                                                                                ? "red"
+                                                                                : exportItem.status === "IN_PROGRESS"
+                                                                                ? "blue"
+                                                                                : "gray"
+                                                                        }
+                                                                    >
+                                                                        {exportItem.status}
+                                                                    </Tag>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </Modal>
                                     )}
                                     {modalClone && (

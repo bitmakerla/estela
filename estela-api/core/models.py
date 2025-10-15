@@ -554,6 +554,213 @@ class Notification(models.Model):
     )
 
 
+class Connection(models.Model):
+    DATABASE = "DATABASE"
+    S3 = "S3"
+    FTP = "FTP"
+    SFTP = "SFTP"
+    HTTP = "HTTP"
+    WEBHOOK = "WEBHOOK"
+    
+    CONNECTION_TYPE_CHOICES = [
+        (DATABASE, "Database"),
+        (S3, "AWS S3"),
+        (FTP, "FTP"),
+        (SFTP, "SFTP"),
+        (HTTP, "HTTP"),
+        (WEBHOOK, "Webhook"),
+    ]
+    
+    cid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this connection."
+    )
+    name = models.CharField(max_length=255, help_text="Connection name.")
+    conn_type = models.CharField(
+        max_length=50, 
+        choices=CONNECTION_TYPE_CHOICES, 
+        help_text="Connection type."
+    )
+    host = models.CharField(
+        max_length=500, blank=True, help_text="Connection host."
+    )
+    port = models.CharField(
+        max_length=10, blank=True, help_text="Connection port."
+    )
+    login = models.CharField(
+        max_length=500, blank=True, help_text="Connection login/username."
+    )
+    password = models.CharField(
+        max_length=5000, blank=True, help_text="Connection password."
+    )
+    extra = models.JSONField(
+        default=dict, blank=True, help_text="Additional connection configuration."
+    )
+    project = models.ForeignKey(
+        Project, 
+        on_delete=models.CASCADE, 
+        related_name="connections",
+        help_text="Project this connection belongs to."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, help_text="Connection creation date."
+    )
+    updated = models.DateTimeField(
+        auto_now=True, help_text="Connection last update date."
+    )
+    
+    class Meta:
+        ordering = ["name"]
+        unique_together = ["name", "project"]
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_conn_type_display()})"
+
+
+class AirflowDAG(models.Model):
+    ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    DRAFT = "DRAFT"
+    
+    STATUS_CHOICES = [
+        (ACTIVE, "Active"),
+        (PAUSED, "Paused"),
+        (DRAFT, "Draft"),
+    ]
+    
+    did = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this DAG."
+    )
+    name = models.CharField(max_length=255, help_text="DAG name.")
+    description = models.TextField(blank=True, help_text="DAG description.")
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="airflow_dags",
+        help_text="Project this DAG belongs to."
+    )
+    spider = models.ForeignKey(
+        Spider,
+        on_delete=models.CASCADE,
+        related_name="airflow_dags",
+        help_text="Spider this DAG is associated with."
+    )
+    connection = models.ForeignKey(
+        Connection,
+        on_delete=models.CASCADE,
+        related_name="airflow_dags",
+        help_text="Connection this DAG uses."
+    )
+    template = models.CharField(
+        max_length=100, help_text="Template used for this DAG."
+    )
+    template_config = models.JSONField(
+        default=dict, help_text="Template configuration parameters."
+    )
+    target_schema = models.CharField(
+        max_length=500, blank=True, help_text="Target database schema/collection name."
+    )
+    schedule = models.CharField(
+        max_length=100, blank=True, help_text="DAG schedule (cron expression or preset)."
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=DRAFT,
+        help_text="DAG status."
+    )
+    dag_id = models.CharField(
+        max_length=255, unique=True, help_text="Unique DAG identifier in Airflow."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, help_text="DAG creation date."
+    )
+    updated = models.DateTimeField(
+        auto_now=True, help_text="DAG last update date."
+    )
+    
+    class Meta:
+        ordering = ["name"]
+    
+    def __str__(self):
+        return f"{self.name} ({self.spider.name})"
+
+
+class DataExport(models.Model):
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (IN_PROGRESS, "In Progress"),
+        (COMPLETED, "Completed"),
+        (FAILED, "Failed"),
+    ]
+    
+    eid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this export."
+    )
+    spider_job = models.ForeignKey(
+        SpiderJob,
+        on_delete=models.CASCADE,
+        related_name="data_exports",
+        help_text="SpiderJob whose data is being exported."
+    )
+    connection = models.ForeignKey(
+        Connection,
+        on_delete=models.CASCADE,
+        related_name="data_exports",
+        help_text="Connection to export data to."
+    )
+    dag_run_id = models.CharField(
+        max_length=255, blank=True, help_text="Airflow DAG run ID."
+    )
+    dag_name = models.CharField(
+        max_length=255, help_text="Airflow DAG name used for export."
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=PENDING,
+        help_text="Export status."
+    )
+    webhook_token = models.CharField(
+        max_length=255, unique=True, help_text="Unique webhook token for status updates."
+    )
+    export_path = models.CharField(
+        max_length=1000, blank=True, help_text="Path where data was exported in the target system."
+    )
+    error_message = models.TextField(
+        blank=True, help_text="Error message if export failed."
+    )
+    started_at = models.DateTimeField(
+        null=True, blank=True, help_text="When the export started."
+    )
+    completed_at = models.DateTimeField(
+        null=True, blank=True, help_text="When the export completed."
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, help_text="Export request creation date."
+    )
+    updated = models.DateTimeField(
+        auto_now=True, help_text="Export last update date."
+    )
+    
+    class Meta:
+        ordering = ["-created"]
+    
+    def __str__(self):
+        return f"Export {self.eid}: {self.spider_job} -> {self.connection.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.webhook_token:
+            self.webhook_token = uuid.uuid4().hex
+        if not self.dag_name:
+            self.dag_name = "estela_data_export"  # Use the actual DAG uploaded to Airflow
+        super().save(*args, **kwargs)
+
+
 class ProxyProvider(models.Model):
     proxyid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this proxy."

@@ -526,6 +526,142 @@ paths:
         required: true
         type: string
         format: uuid
+  /api/projects/{pid}/connections:
+    get:
+      operationId: api_projects_connections_list
+      description: List connections for a project
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ConnectionList'
+      tags:
+        - api
+    post:
+      operationId: api_projects_connections_create
+      description: Create a new connection
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Connection'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Connection'
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/connections/{cid}:
+    get:
+      operationId: api_projects_connections_read
+      description: Retrieve a connection
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Connection'
+      tags:
+        - api
+    put:
+      operationId: api_projects_connections_update
+      description: Update a connection
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Connection'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Connection'
+      tags:
+        - api
+    patch:
+      operationId: api_projects_connections_partial_update
+      description: Partially update a connection
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Connection'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Connection'
+      tags:
+        - api
+    delete:
+      operationId: api_projects_connections_delete
+      description: Delete a connection
+      parameters: []
+      responses:
+        '204':
+          description: Connection deleted
+      tags:
+        - api
+    parameters:
+      - name: cid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/connections/{cid}/test_connection:
+    post:
+      operationId: api_projects_connections_test_connection
+      description: Test connection configuration
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties: {}
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ConnectionTest'
+        '400':
+          description: Bad Request
+      tags:
+        - api
+    parameters:
+      - name: cid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/cronjobs:
     get:
       operationId: api_projects_cronjobs
@@ -1276,6 +1412,129 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports:
+    get:
+      operationId: api_projects_spiders_jobs_exports_list
+      description: List data exports for a spider job
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: integer
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: integer
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DataExportList'
+      tags:
+        - api
+    post:
+      operationId: api_projects_spiders_jobs_exports_create
+      description: Create a new data export request
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/DataExportCreate'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/DataExport'
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports/{eid}:
+    get:
+      operationId: api_projects_spiders_jobs_exports_read
+      description: Retrieve a data export
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DataExport'
+      tags:
+        - api
+    put:
+      operationId: api_projects_spiders_jobs_exports_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/DataExport'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DataExport'
+      tags:
+        - api
+    patch:
+      operationId: api_projects_spiders_jobs_exports_partial_update
+      description: ''
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/DataExport'
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/DataExport'
+      tags:
+        - api
+    delete:
+      operationId: api_projects_spiders_jobs_exports_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+        - api
+    parameters:
+      - name: eid
+        in: path
+        required: true
+        type: string
+      - name: jid
+        in: path
+        required: true
+        type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/usage:
     get:
       operationId: api_projects_usage
@@ -1602,6 +1861,30 @@ paths:
         - api
     parameters:
       - name: pid
+        in: path
+        required: true
+        type: string
+  /api/webhooks/export/{webhook_token}/:
+    post:
+      operationId: api_webhooks_export_create
+      description: Webhook endpoint for Airflow to update export status
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/WebhookUpdate'
+      responses:
+        '200':
+          description: Status updated successfully
+        '404':
+          description: Export not found
+        '400':
+          description: Bad Request
+      tags:
+        - api
+    parameters:
+      - name: webhook_token
         in: path
         required: true
         type: string
@@ -2009,6 +2292,123 @@ definitions:
         title: Count
         description: Project activities count.
         type: integer
+  ConnectionList:
+    required:
+      - name
+      - conn_type
+    type: object
+    properties:
+      cid:
+        title: Cid
+        description: Connection ID.
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        description: Connection name.
+        type: string
+        minLength: 1
+      conn_type:
+        title: Conn type
+        description: Connection type.
+        type: string
+        minLength: 1
+      conn_type_display:
+        title: Conn type display
+        description: Human readable connection type.
+        type: string
+        readOnly: true
+        minLength: 1
+      created:
+        title: Created
+        description: Creation date.
+        type: string
+        format: date-time
+        readOnly: true
+  Connection:
+    required:
+      - name
+      - conn_type
+    type: object
+    properties:
+      cid:
+        title: Cid
+        description: Connection ID.
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        description: Connection name.
+        type: string
+        minLength: 1
+      conn_type:
+        title: Conn type
+        description: Connection type.
+        type: string
+        enum:
+          - DATABASE
+          - S3
+          - FTP
+          - SFTP
+          - HTTP
+          - WEBHOOK
+      host:
+        title: Host
+        description: Connection host.
+        type: string
+      port:
+        title: Port
+        description: Connection port.
+        type: string
+      login:
+        title: Login
+        description: Connection login/username.
+        type: string
+      password:
+        title: Password
+        description: Connection password.
+        type: string
+      extra:
+        title: Extra
+        description: Additional connection configuration.
+        type: object
+      project:
+        title: Project
+        description: Project this connection belongs to.
+        type: string
+        format: uuid
+        readOnly: true
+      created:
+        title: Created
+        description: Creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      updated:
+        title: Updated
+        description: Last update date.
+        type: string
+        format: date-time
+        readOnly: true
+  ConnectionTest:
+    required:
+      - success
+      - message
+    type: object
+    properties:
+      success:
+        title: Success
+        description: Whether the connection test was successful.
+        type: boolean
+      message:
+        title: Message
+        description: Test result message.
+        type: string
+        minLength: 1
+      details:
+        title: Details
+        description: Additional test details.
+        type: object
   SpiderJobArg:
     description: Cron job arguments.
     required:
@@ -2681,6 +3081,133 @@ definitions:
         title: Proxy usage data
         description: Proxy Usage data.
         type: string
+  DataExportList:
+    type: object
+    properties:
+      eid:
+        title: Eid
+        description: Export ID.
+        type: integer
+        readOnly: true
+      status:
+        title: Status
+        description: Export status.
+        type: string
+        readOnly: true
+        minLength: 1
+      connection_name:
+        title: Connection name
+        type: string
+        readOnly: true
+        minLength: 1
+      connection_type:
+        title: Connection type
+        type: string
+        readOnly: true
+        minLength: 1
+      created:
+        title: Created
+        description: Creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      completed_at:
+        title: Completed at
+        description: Completion time.
+        type: string
+        format: date-time
+        readOnly: true
+  DataExportCreate:
+    required:
+      - connection
+    type: object
+    properties:
+      connection:
+        title: Connection
+        description: Connection ID to export data to.
+        type: integer
+  DataExport:
+    type: object
+    properties:
+      eid:
+        title: Eid
+        description: Export ID.
+        type: integer
+        readOnly: true
+      status:
+        title: Status
+        description: Export status.
+        type: string
+        readOnly: true
+        minLength: 1
+      dag_run_id:
+        title: Dag run id
+        description: Airflow DAG run ID.
+        type: string
+        readOnly: true
+        minLength: 1
+      dag_name:
+        title: Dag name
+        description: Airflow DAG name.
+        type: string
+        readOnly: true
+        minLength: 1
+      webhook_token:
+        title: Webhook token
+        description: Webhook token.
+        type: string
+        readOnly: true
+        minLength: 1
+      export_path:
+        title: Export path
+        description: Export path.
+        type: string
+        readOnly: true
+        minLength: 1
+      error_message:
+        title: Error message
+        description: Error message.
+        type: string
+        readOnly: true
+        minLength: 1
+      started_at:
+        title: Started at
+        description: Start time.
+        type: string
+        format: date-time
+        readOnly: true
+      completed_at:
+        title: Completed at
+        description: Completion time.
+        type: string
+        format: date-time
+        readOnly: true
+      created:
+        title: Created
+        description: Creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      updated:
+        title: Updated
+        description: Last update date.
+        type: string
+        format: date-time
+        readOnly: true
+      connection_name:
+        title: Connection name
+        type: string
+        readOnly: true
+        minLength: 1
+      connection_type:
+        title: Connection type
+        type: string
+        readOnly: true
+        minLength: 1
+      spider_job_id:
+        title: Spider job id
+        type: integer
+        readOnly: true
   UsageRecord:
     required:
       - processing_time
@@ -3125,3 +3652,42 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Spider'
+  WebhookUpdate:
+    required:
+      - status
+    type: object
+    properties:
+      status:
+        title: Status
+        description: Export status.
+        type: string
+        enum:
+          - PENDING
+          - IN_PROGRESS
+          - COMPLETED
+          - FAILED
+      dag_run_id:
+        title: Dag run id
+        description: Airflow DAG run ID.
+        type: string
+        minLength: 1
+      export_path:
+        title: Export path
+        description: Export path.
+        type: string
+        minLength: 1
+      error_message:
+        title: Error message
+        description: Error message.
+        type: string
+        minLength: 1
+      started_at:
+        title: Started at
+        description: Start time.
+        type: string
+        format: date-time
+      completed_at:
+        title: Completed at
+        description: Completion time.
+        type: string
+        format: date-time

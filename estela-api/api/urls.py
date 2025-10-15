@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework import routers
 
 from api.views import (
@@ -11,6 +12,8 @@ from api.views import (
     stats as stats_views,
     notification as notification_views,
     proxyprovider as proxyprovider_views,
+    connection as connection_views,
+    data_export as data_export_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -63,6 +66,16 @@ router.register(
     prefix=r"proxy_provider",
     viewset=proxyprovider_views.ProxyProviderViewSet,
 )
+router.register(
+    prefix=r"projects/(?P<pid>[0-9a-z-]+)/connections",
+    viewset=connection_views.ConnectionViewSet,
+    basename="connection",
+)
+router.register(
+    prefix=r"projects/(?P<pid>[0-9a-z-]+)/spiders/(?P<sid>\d+)/jobs/(?P<jid>\d+)/exports",
+    viewset=data_export_views.DataExportViewSet,
+    basename="data-export",
+)
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 router.register(
     prefix=r"auth/profile", viewset=auth_views.UserProfileViewSet, basename="profile"
@@ -79,4 +92,6 @@ router.register(
     basename="change-password",
 )
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path('webhooks/export/<str:webhook_token>/', data_export_views.webhook_export_update, name='webhook-export-update'),
+]

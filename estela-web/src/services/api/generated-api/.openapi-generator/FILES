@@ -5,7 +5,13 @@ index.ts
 models/Activity.ts
 models/AuthToken.ts
 models/ChangePassword.ts
+models/Connection.ts
+models/ConnectionList.ts
+models/ConnectionTest.ts
 models/CoverageStats.ts
+models/DataExport.ts
+models/DataExportCreate.ts
+models/DataExportList.ts
 models/Deploy.ts
 models/DeployCreate.ts
 models/DeployUpdate.ts
@@ -63,5 +69,6 @@ models/UsageRecord.ts
 models/User.ts
 models/UserDetail.ts
 models/UserProfile.ts
+models/WebhookUpdate.ts
 models/index.ts
 runtime.ts

@@ -21,6 +21,24 @@ import {
     ChangePassword,
     ChangePasswordFromJSON,
     ChangePasswordToJSON,
+    Connection,
+    ConnectionFromJSON,
+    ConnectionToJSON,
+    ConnectionList,
+    ConnectionListFromJSON,
+    ConnectionListToJSON,
+    ConnectionTest,
+    ConnectionTestFromJSON,
+    ConnectionTestToJSON,
+    DataExport,
+    DataExportFromJSON,
+    DataExportToJSON,
+    DataExportCreate,
+    DataExportCreateFromJSON,
+    DataExportCreateToJSON,
+    DataExportList,
+    DataExportListFromJSON,
+    DataExportListToJSON,
     Deploy,
     DeployFromJSON,
     DeployToJSON,
@@ -150,6 +168,9 @@ import {
     UserProfile,
     UserProfileFromJSON,
     UserProfileToJSON,
+    WebhookUpdate,
+    WebhookUpdateFromJSON,
+    WebhookUpdateToJSON,
 } from '../models';
 
 export interface ApiAccountChangePasswordChangeRequest {
@@ -232,6 +253,45 @@ export interface ApiProjectsActivitiesRequest {
     pid: string;
     page?: number;
     pageSize?: number;
+}
+
+export interface ApiProjectsConnectionsCreateRequest {
+    pid: string;
+    data: Connection;
+}
+
+export interface ApiProjectsConnectionsDeleteRequest {
+    cid: string;
+    pid: string;
+}
+
+export interface ApiProjectsConnectionsListRequest {
+    pid: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProjectsConnectionsPartialUpdateRequest {
+    cid: string;
+    pid: string;
+    data: Connection;
+}
+
+export interface ApiProjectsConnectionsReadRequest {
+    cid: string;
+    pid: string;
+}
+
+export interface ApiProjectsConnectionsTestConnectionRequest {
+    cid: string;
+    pid: string;
+    data: object;
+}
+
+export interface ApiProjectsConnectionsUpdateRequest {
+    cid: string;
+    pid: string;
+    data: Connection;
 }
 
 export interface ApiProjectsCreateRequest {
@@ -383,6 +443,51 @@ export interface ApiProjectsSpidersJobsDataListRequest {
     type?: string;
 }
 
+export interface ApiProjectsSpidersJobsExportsCreateRequest {
+    jid: string;
+    pid: string;
+    sid: string;
+    data: DataExportCreate;
+}
+
+export interface ApiProjectsSpidersJobsExportsDeleteRequest {
+    eid: string;
+    jid: string;
+    pid: string;
+    sid: string;
+}
+
+export interface ApiProjectsSpidersJobsExportsListRequest {
+    jid: string;
+    pid: string;
+    sid: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface ApiProjectsSpidersJobsExportsPartialUpdateRequest {
+    eid: string;
+    jid: string;
+    pid: string;
+    sid: string;
+    data: DataExport;
+}
+
+export interface ApiProjectsSpidersJobsExportsReadRequest {
+    eid: string;
+    jid: string;
+    pid: string;
+    sid: string;
+}
+
+export interface ApiProjectsSpidersJobsExportsUpdateRequest {
+    eid: string;
+    jid: string;
+    pid: string;
+    sid: string;
+    data: DataExport;
+}
+
 export interface ApiProjectsSpidersJobsListRequest {
     pid: string;
     sid: string;
@@ -511,6 +616,11 @@ export interface ApiStatsSpidersRequest {
     page?: number;
     pageSize?: number;
     offset?: number;
+}
+
+export interface ApiWebhooksExportCreateRequest {
+    webhookToken: string;
+    data: WebhookUpdate;
 }
 
 /**
@@ -1214,6 +1324,296 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsActivities(requestParameters: ApiProjectsActivitiesRequest): Promise<ProjectActivity> {
         const response = await this.apiProjectsActivitiesRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Create a new connection
+     */
+    async apiProjectsConnectionsCreateRaw(requestParameters: ApiProjectsConnectionsCreateRequest): Promise<runtime.ApiResponse<Connection>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsCreate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsConnectionsCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ConnectionToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ConnectionFromJSON(jsonValue));
+    }
+
+    /**
+     * Create a new connection
+     */
+    async apiProjectsConnectionsCreate(requestParameters: ApiProjectsConnectionsCreateRequest): Promise<Connection> {
+        const response = await this.apiProjectsConnectionsCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Delete a connection
+     */
+    async apiProjectsConnectionsDeleteRaw(requestParameters: ApiProjectsConnectionsDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.cid === null || requestParameters.cid === undefined) {
+            throw new runtime.RequiredError('cid','Required parameter requestParameters.cid was null or undefined when calling apiProjectsConnectionsDelete.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections/{cid}`.replace(`{${"cid"}}`, encodeURIComponent(String(requestParameters.cid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Delete a connection
+     */
+    async apiProjectsConnectionsDelete(requestParameters: ApiProjectsConnectionsDeleteRequest): Promise<void> {
+        await this.apiProjectsConnectionsDeleteRaw(requestParameters);
+    }
+
+    /**
+     * List connections for a project
+     */
+    async apiProjectsConnectionsListRaw(requestParameters: ApiProjectsConnectionsListRequest): Promise<runtime.ApiResponse<Array<ConnectionList>>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsList.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => {
+            // Handle paginated response format
+            const results = Array.isArray(jsonValue) ? jsonValue : jsonValue.results || [];
+            return results.map(ConnectionListFromJSON);
+        });
+    }
+
+    /**
+     * List connections for a project
+     */
+    async apiProjectsConnectionsList(requestParameters: ApiProjectsConnectionsListRequest): Promise<Array<ConnectionList>> {
+        const response = await this.apiProjectsConnectionsListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Partially update a connection
+     */
+    async apiProjectsConnectionsPartialUpdateRaw(requestParameters: ApiProjectsConnectionsPartialUpdateRequest): Promise<runtime.ApiResponse<Connection>> {
+        if (requestParameters.cid === null || requestParameters.cid === undefined) {
+            throw new runtime.RequiredError('cid','Required parameter requestParameters.cid was null or undefined when calling apiProjectsConnectionsPartialUpdate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsPartialUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsConnectionsPartialUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections/{cid}`.replace(`{${"cid"}}`, encodeURIComponent(String(requestParameters.cid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ConnectionToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ConnectionFromJSON(jsonValue));
+    }
+
+    /**
+     * Partially update a connection
+     */
+    async apiProjectsConnectionsPartialUpdate(requestParameters: ApiProjectsConnectionsPartialUpdateRequest): Promise<Connection> {
+        const response = await this.apiProjectsConnectionsPartialUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Retrieve a connection
+     */
+    async apiProjectsConnectionsReadRaw(requestParameters: ApiProjectsConnectionsReadRequest): Promise<runtime.ApiResponse<Connection>> {
+        if (requestParameters.cid === null || requestParameters.cid === undefined) {
+            throw new runtime.RequiredError('cid','Required parameter requestParameters.cid was null or undefined when calling apiProjectsConnectionsRead.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsRead.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections/{cid}`.replace(`{${"cid"}}`, encodeURIComponent(String(requestParameters.cid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ConnectionFromJSON(jsonValue));
+    }
+
+    /**
+     * Retrieve a connection
+     */
+    async apiProjectsConnectionsRead(requestParameters: ApiProjectsConnectionsReadRequest): Promise<Connection> {
+        const response = await this.apiProjectsConnectionsReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Test connection configuration
+     */
+    async apiProjectsConnectionsTestConnectionRaw(requestParameters: ApiProjectsConnectionsTestConnectionRequest): Promise<runtime.ApiResponse<ConnectionTest>> {
+        if (requestParameters.cid === null || requestParameters.cid === undefined) {
+            throw new runtime.RequiredError('cid','Required parameter requestParameters.cid was null or undefined when calling apiProjectsConnectionsTestConnection.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsTestConnection.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsConnectionsTestConnection.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections/{cid}/test_connection`.replace(`{${"cid"}}`, encodeURIComponent(String(requestParameters.cid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters.data as any,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ConnectionTestFromJSON(jsonValue));
+    }
+
+    /**
+     * Test connection configuration
+     */
+    async apiProjectsConnectionsTestConnection(requestParameters: ApiProjectsConnectionsTestConnectionRequest): Promise<ConnectionTest> {
+        const response = await this.apiProjectsConnectionsTestConnectionRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Update a connection
+     */
+    async apiProjectsConnectionsUpdateRaw(requestParameters: ApiProjectsConnectionsUpdateRequest): Promise<runtime.ApiResponse<Connection>> {
+        if (requestParameters.cid === null || requestParameters.cid === undefined) {
+            throw new runtime.RequiredError('cid','Required parameter requestParameters.cid was null or undefined when calling apiProjectsConnectionsUpdate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsConnectionsUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsConnectionsUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/connections/{cid}`.replace(`{${"cid"}}`, encodeURIComponent(String(requestParameters.cid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ConnectionToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ConnectionFromJSON(jsonValue));
+    }
+
+    /**
+     * Update a connection
+     */
+    async apiProjectsConnectionsUpdate(requestParameters: ApiProjectsConnectionsUpdateRequest): Promise<Connection> {
+        const response = await this.apiProjectsConnectionsUpdateRaw(requestParameters);
         return await response.value();
     }
 
@@ -2216,6 +2616,290 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Create a new data export request
+     */
+    async apiProjectsSpidersJobsExportsCreateRaw(requestParameters: ApiProjectsSpidersJobsExportsCreateRequest): Promise<runtime.ApiResponse<DataExport>> {
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsExportsCreate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsExportsCreate.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsExportsCreate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersJobsExportsCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: DataExportCreateToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DataExportFromJSON(jsonValue));
+    }
+
+    /**
+     * Create a new data export request
+     */
+    async apiProjectsSpidersJobsExportsCreate(requestParameters: ApiProjectsSpidersJobsExportsCreateRequest): Promise<DataExport> {
+        const response = await this.apiProjectsSpidersJobsExportsCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsExportsDeleteRaw(requestParameters: ApiProjectsSpidersJobsExportsDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.eid === null || requestParameters.eid === undefined) {
+            throw new runtime.RequiredError('eid','Required parameter requestParameters.eid was null or undefined when calling apiProjectsSpidersJobsExportsDelete.');
+        }
+
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsExportsDelete.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsExportsDelete.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsExportsDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports/{eid}`.replace(`{${"eid"}}`, encodeURIComponent(String(requestParameters.eid))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsExportsDelete(requestParameters: ApiProjectsSpidersJobsExportsDeleteRequest): Promise<void> {
+        await this.apiProjectsSpidersJobsExportsDeleteRaw(requestParameters);
+    }
+
+    /**
+     * List data exports for a spider job
+     */
+    async apiProjectsSpidersJobsExportsListRaw(requestParameters: ApiProjectsSpidersJobsExportsListRequest): Promise<runtime.ApiResponse<Array<DataExportList>>> {
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsExportsList.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsExportsList.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsExportsList.');
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.page !== undefined) {
+            queryParameters['page'] = requestParameters.page;
+        }
+
+        if (requestParameters.pageSize !== undefined) {
+            queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DataExportListFromJSON));
+    }
+
+    /**
+     * List data exports for a spider job
+     */
+    async apiProjectsSpidersJobsExportsList(requestParameters: ApiProjectsSpidersJobsExportsListRequest): Promise<Array<DataExportList>> {
+        const response = await this.apiProjectsSpidersJobsExportsListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsExportsPartialUpdateRaw(requestParameters: ApiProjectsSpidersJobsExportsPartialUpdateRequest): Promise<runtime.ApiResponse<DataExport>> {
+        if (requestParameters.eid === null || requestParameters.eid === undefined) {
+            throw new runtime.RequiredError('eid','Required parameter requestParameters.eid was null or undefined when calling apiProjectsSpidersJobsExportsPartialUpdate.');
+        }
+
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsExportsPartialUpdate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsExportsPartialUpdate.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsExportsPartialUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersJobsExportsPartialUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports/{eid}`.replace(`{${"eid"}}`, encodeURIComponent(String(requestParameters.eid))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: DataExportToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DataExportFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsExportsPartialUpdate(requestParameters: ApiProjectsSpidersJobsExportsPartialUpdateRequest): Promise<DataExport> {
+        const response = await this.apiProjectsSpidersJobsExportsPartialUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Retrieve a data export
+     */
+    async apiProjectsSpidersJobsExportsReadRaw(requestParameters: ApiProjectsSpidersJobsExportsReadRequest): Promise<runtime.ApiResponse<DataExport>> {
+        if (requestParameters.eid === null || requestParameters.eid === undefined) {
+            throw new runtime.RequiredError('eid','Required parameter requestParameters.eid was null or undefined when calling apiProjectsSpidersJobsExportsRead.');
+        }
+
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsExportsRead.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsExportsRead.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsExportsRead.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports/{eid}`.replace(`{${"eid"}}`, encodeURIComponent(String(requestParameters.eid))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DataExportFromJSON(jsonValue));
+    }
+
+    /**
+     * Retrieve a data export
+     */
+    async apiProjectsSpidersJobsExportsRead(requestParameters: ApiProjectsSpidersJobsExportsReadRequest): Promise<DataExport> {
+        const response = await this.apiProjectsSpidersJobsExportsReadRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsExportsUpdateRaw(requestParameters: ApiProjectsSpidersJobsExportsUpdateRequest): Promise<runtime.ApiResponse<DataExport>> {
+        if (requestParameters.eid === null || requestParameters.eid === undefined) {
+            throw new runtime.RequiredError('eid','Required parameter requestParameters.eid was null or undefined when calling apiProjectsSpidersJobsExportsUpdate.');
+        }
+
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsExportsUpdate.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsExportsUpdate.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsExportsUpdate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiProjectsSpidersJobsExportsUpdate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/exports/{eid}`.replace(`{${"eid"}}`, encodeURIComponent(String(requestParameters.eid))).replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: DataExportToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DataExportFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsExportsUpdate(requestParameters: ApiProjectsSpidersJobsExportsUpdateRequest): Promise<DataExport> {
+        const response = await this.apiProjectsSpidersJobsExportsUpdateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
      */
     async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
@@ -3098,6 +3782,45 @@ export class ApiApi extends runtime.BaseAPI {
     async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpidersPagination> {
         const response = await this.apiStatsSpidersRaw(requestParameters);
         return await response.value();
+    }
+
+    /**
+     * Webhook endpoint for Airflow to update export status
+     */
+    async apiWebhooksExportCreateRaw(requestParameters: ApiWebhooksExportCreateRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.webhookToken === null || requestParameters.webhookToken === undefined) {
+            throw new runtime.RequiredError('webhookToken','Required parameter requestParameters.webhookToken was null or undefined when calling apiWebhooksExportCreate.');
+        }
+
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiWebhooksExportCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/webhooks/export/{webhook_token}/`.replace(`{${"webhook_token"}}`, encodeURIComponent(String(requestParameters.webhookToken))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: WebhookUpdateToJSON(requestParameters.data),
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Webhook endpoint for Airflow to update export status
+     */
+    async apiWebhooksExportCreate(requestParameters: ApiWebhooksExportCreateRequest): Promise<void> {
+        await this.apiWebhooksExportCreateRaw(requestParameters);
     }
 
 }

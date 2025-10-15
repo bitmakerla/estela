@@ -20,11 +20,6 @@ module.exports = {
   ],
   rules: {
     'linebreak-style': 'off',
-    'prettier/prettier': [
-      'error',
-      {
-        endOfLine: 'auto',
-      },
-    ],
+    'prettier/prettier': 'off',
   },
 }
