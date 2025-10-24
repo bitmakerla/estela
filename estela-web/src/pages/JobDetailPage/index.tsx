@@ -39,6 +39,7 @@ import {
     Spider,
 } from "../../services/api";
 import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../JobDataPage";
+import { JobMetrics } from "../../components";
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
 import { convertDateToString } from "../../utils";
 
@@ -888,6 +889,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             ))}
                     </Card>
                 </Content>
+                <JobMetrics
+                    projectId={this.projectId}
+                    spiderId={this.spiderId}
+                    jobId={String(this.jobId)}
+                    jobStatus={status}
+                />
             </>
         );
     };
