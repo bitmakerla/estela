@@ -40,6 +40,7 @@ import {
 } from "../../services/api";
 import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../JobDataPage";
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
+import { JobMetrics } from "../../components";
 import { convertDateToString } from "../../utils";
 
 const { Content } = Layout;
@@ -1058,6 +1059,18 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     projectId={this.projectId}
                                                     spiderId={this.spiderId}
                                                     jobId={String(this.jobId)}
+                                                />
+                                            ),
+                                        },
+                                        {
+                                            label: "Report",
+                                            key: "6",
+                                            children: (
+                                                <JobMetrics
+                                                    projectId={this.projectId}
+                                                    spiderId={this.spiderId}
+                                                    jobId={String(this.jobId)}
+                                                    jobStatus={status}
                                                 />
                                             ),
                                         },

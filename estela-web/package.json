@@ -17,7 +17,7 @@
     "react-chartjs-2": "^5.1.0",
     "react-dom": "^17.0.2",
     "react-router-dom": "^5.3.4",
-    "sass": "^1.36.0",
+    "sass": "^1.93.2",
     "typescript": "^4.8.4",
     "web-vitals": "^1.0.1"
   },
@@ -91,7 +91,7 @@
     "postcss-loader": "^7.0.1",
     "prettier": "^2.3.2",
     "sass": "^1.36.0",
-    "sass-loader": "^13.0.2",
+    "sass-loader": "^16.0.6",
     "style-loader": "^3.3.1",
     "tailwindcss": "^3.1.8",
     "webpack": "^5.77.0",
