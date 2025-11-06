@@ -33,8 +33,9 @@ interface JobMetricsProps {
 
 interface StatsData {
     [key: string]: string | number | object;
-    "custom/items_scraped": number;
-    "custom/pages_processed": number;
+    // Core metrics (Scrapy built-in)
+    item_scraped_count?: number;
+    response_received_count?: number;
     elapsed_time_seconds: number;
     success_rate: number;
     items_per_minute: number;
@@ -45,7 +46,9 @@ interface StatsData {
     "downloader/response_status_count/403"?: number;
     "downloader/response_status_count/404"?: number;
     "downloader/response_bytes": number;
-    coverage: {
+    // Advanced metrics (optional, prefixed with advanced_metrics/)
+    "advanced_metrics/items_duplicates"?: number;
+    coverage?: {
         [key: string]: number;
         total_items: number;
         total_items_coverage: number;
@@ -60,6 +63,27 @@ const formatElapsedTime = (totalSeconds: number): string => {
     const seconds = Math.floor(totalSeconds % 60);
 
     return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+};
+
+/**
+ * Helper function to get metric value with backward compatibility
+ * Supports both old metric names and new advanced_metrics/ prefix
+ */
+const getMetricValue = (stats: StatsData | null, key: string, defaultValue = 0): number => {
+    if (!stats) return defaultValue;
+
+    // Try direct key first
+    if (stats[key] !== undefined) {
+        return Number(stats[key]) || defaultValue;
+    }
+
+    // Try with advanced_metrics/ prefix
+    const advancedKey = `advanced_metrics/${key}`;
+    if (stats[advancedKey] !== undefined) {
+        return Number(stats[advancedKey]) || defaultValue;
+    }
+
+    return defaultValue;
 };
 
 export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetricsProps) {
@@ -116,8 +140,8 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
             timestamp: new Date().toISOString(),
             metrics: {
                 performance: {
-                    itemsScraped: statsData["custom/items_scraped"] || 0,
-                    pagesProcessed: statsData["custom/pages_processed"] || 0,
+                    itemsScraped: statsData["item_scraped_count"] || 0,
+                    pagesProcessed: statsData["response_received_count"] || 0,
                     elapsedTimeSeconds: statsData["elapsed_time_seconds"] || 0,
                     successRate: statsData["success_rate"] || 0,
                     itemsPerMinute: statsData["items_per_minute"] || 0,
@@ -135,15 +159,25 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                     requestCount: statsData["downloader/request_count"] || 0,
                 },
                 coverage: statsData.coverage || {},
+                advancedMetrics: {
+                    itemsDuplicates: getMetricValue(statsData, "items_duplicates"),
+                    schemaValidation: {
+                        percentage: getMetricValue(statsData, "schema_coverage/percentage"),
+                        valid: getMetricValue(statsData, "schema_coverage/valid"),
+                        checked: getMetricValue(statsData, "schema_coverage/checked"),
+                    },
+                },
                 timeline: (() => {
                     const timeline: Array<{ interval: string; items: number }> = [];
                     for (let i = 0; i < 20; i++) {
-                        const timelineKey = `timeline/${i}/items`;
-                        const intervalKey = `timeline/${i}/interval`;
+                        // Timeline is a new feature - only in advanced_metrics
+                        const timelineKey = `advanced_metrics/timeline/${i}/items`;
+                        const intervalKey = `advanced_metrics/timeline/${i}/interval`;
+
                         if (statsData[timelineKey] !== undefined) {
                             timeline.push({
-                                interval: statsData[intervalKey] || `${i}-${i + 1}m`,
-                                items: statsData[timelineKey],
+                                interval: String(statsData[intervalKey]) || `${i}-${i + 1}m`,
+                                items: Number(statsData[timelineKey]),
                             });
                         }
                     }
@@ -214,8 +248,8 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
     }
 
     // Extract metrics from the actual stats response
-    const itemsScraped = Number(statsData["custom/items_scraped"]) || 0;
-    const pagesProcessed = Number(statsData["custom/pages_processed"]) || 0;
+    const itemsScraped = Number(statsData["item_scraped_count"]) || 0;
+    const pagesProcessed = Number(statsData["response_received_count"]) || 0;
     const elapsedTimeSeconds = Number(statsData["elapsed_time_seconds"]) || 0;
     const itemsPerMinute = Number(statsData["items_per_minute"]) || 0;
     const pagesPerMinute = Number(statsData["pages_per_minute"]) || 0;
@@ -282,17 +316,17 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
             {
                 label: "Count",
                 data: [status200Count, status403Count],
-                backgroundColor: ["#22c55e", "#f59e0b"],
+                backgroundColor: ["#10B981", "#F59E0B"],
                 borderWidth: 0,
-                borderRadius: 4,
+                borderRadius: 8,
             },
         ],
     };
 
     // Top 5 Errors using actual data
     const errorCounts = [
-        { label: "403 Forbidden", count: status403Count, color: "#ef4444" },
-        { label: "404 Not Found", count: status404Count, color: "#f59e0b" },
+        { label: "403 Forbidden", count: status403Count, color: "#EF4444" },
+        { label: "404 Not Found", count: status404Count, color: "#F59E0B" },
     ].filter((error) => error.count > 0);
 
     // If no errors, show placeholder data
@@ -308,17 +342,18 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
         ],
     };
 
-    // Timeline data for scraping speed
+    // Timeline data for scraping speed (new feature - advanced metrics only)
     const timelineData: number[] = [];
     const timelineLabels: string[] = [];
 
-    // Extract timeline data from the stats response
+    // Extract timeline data from advanced_metrics
     for (let i = 0; i < 20; i++) {
-        const timelineKey = `timeline/${i}/items`;
-        const intervalKey = `timeline/${i}/interval`;
+        const timelineKey = `advanced_metrics/timeline/${i}/items`;
+        const intervalKey = `advanced_metrics/timeline/${i}/interval`;
+
         if (statsData[timelineKey] !== undefined) {
-            timelineData.push(statsData[timelineKey]);
-            timelineLabels.push(statsData[intervalKey] || `${i}-${i + 1}m`);
+            timelineData.push(Number(statsData[timelineKey]));
+            timelineLabels.push(String(statsData[intervalKey]) || `${i}-${i + 1}m`);
         }
     }
 
@@ -334,10 +369,13 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
             {
                 label: "Items Processed",
                 data: timelineData.length > 0 ? timelineData : [0],
-                borderColor: "#ef4444",
-                backgroundColor: "transparent",
+                borderColor: "#3B82F6",
+                backgroundColor: "rgba(59, 130, 246, 0.1)",
                 borderWidth: 2,
                 tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 4,
             },
         ],
     };
@@ -345,18 +383,19 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
     const fieldsData: Array<{ name: string; coverage: number; complete: number; empty: number }> = [];
     const fieldNames = new Set<string>();
 
-    const totalItemsScraped = statsData["custom/items_scraped"] || 0;
+    const totalItemsScraped = statsData["item_scraped_count"] || 0;
 
+    // Extract field coverage from advanced_metrics
     Object.keys(statsData).forEach((key) => {
-        const match = key.match(/^schema_coverage\/fields\/([^\/]+)\/(complete|empty)$/);
+        const match = key.match(/^advanced_metrics\/schema_coverage\/fields\/([^\/]+)\/(complete|empty)$/);
         if (match) {
             fieldNames.add(match[1]);
         }
     });
 
     fieldNames.forEach((fieldName) => {
-        const completeKey = `schema_coverage/fields/${fieldName}/complete`;
-        const emptyKey = `schema_coverage/fields/${fieldName}/empty`;
+        const completeKey = `advanced_metrics/schema_coverage/fields/${fieldName}/complete`;
+        const emptyKey = `advanced_metrics/schema_coverage/fields/${fieldName}/empty`;
 
         const complete = Number(statsData[completeKey]) || 0;
         const empty = Number(statsData[emptyKey]) || 0;
@@ -415,132 +454,136 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
     ];
 
     return (
-        <Content className="space-y-4 mt-8">
-            {/* Metrics Header */}
-            <Row justify="space-between" align="middle" className="mb-6">
-                <Col>
-                    <Text className="text-estela-black-medium font-medium text-xl">Job Metrics</Text>
-                </Col>
+        <Content className="space-y-6 mt-4">
+            {/* Header with Download Button */}
+            <Row justify="end" align="middle">
                 <Col>
                     <Button
                         onClick={downloadMetrics}
                         icon={<Export className="h-4 w-4 mr-2" />}
-                        size="large"
-                        className="flex items-center stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                        size="middle"
+                        className="flex items-center stroke-gray-600 border-gray-200 bg-white text-gray-700 hover:text-gray-900 text-sm hover:border-gray-300 hover:bg-gray-50 rounded-lg shadow-sm"
                     >
-                        Download Metrics
+                        Export
                     </Button>
                 </Col>
             </Row>
 
-            {/* Overall Status */}
-            <Card
-                className={`border ${
-                    statusColor === "green"
-                        ? "border-green-200 bg-green-50"
-                        : statusColor === "blue"
-                        ? "border-blue-200 bg-blue-50"
-                        : statusColor === "yellow"
-                        ? "border-yellow-200 bg-yellow-50"
-                        : "border-red-200 bg-red-50"
-                }`}
-                style={{ borderRadius: "8px" }}
-            >
-                <Row className="flex items-center justify-between">
-                    <Col className="flex items-center space-x-2">
-                        <div
-                            className={`w-6 h-6 rounded flex items-center justify-center ${
-                                statusColor === "green"
-                                    ? "bg-green-500"
-                                    : statusColor === "blue"
-                                    ? "bg-blue-500"
-                                    : statusColor === "yellow"
-                                    ? "bg-yellow-500"
-                                    : "bg-red-500"
-                            }`}
-                        >
-                            <span className="text-white text-sm">
-                                {statusColor === "green" || statusColor === "blue"
-                                    ? "✓"
-                                    : statusColor === "yellow"
-                                    ? "⚠"
-                                    : "✕"}
-                            </span>
+            {/* Key Metrics Cards */}
+            <Row gutter={[16, 16]}>
+                <Col span={8}>
+                    <Card
+                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
+                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <Text className="text-sm text-gray-500 block mb-1">Items Scraped</Text>
+                                <Text className="text-3xl font-semibold text-gray-900">
+                                    {itemsScraped.toLocaleString()}
+                                </Text>
+                            </div>
+                            <div
+                                className={`w-2 h-2 rounded-full mt-2 ${
+                                    statusColor === "green"
+                                        ? "bg-green-400"
+                                        : statusColor === "blue"
+                                        ? "bg-blue-400"
+                                        : statusColor === "yellow"
+                                        ? "bg-yellow-400"
+                                        : "bg-red-400"
+                                }`}
+                            ></div>
                         </div>
-                        <Text className="font-semibold text-lg">Overall Status</Text>
-                        <Text
-                            className={
-                                statusColor === "green"
-                                    ? "text-green-600"
-                                    : statusColor === "blue"
-                                    ? "text-blue-600"
-                                    : statusColor === "yellow"
-                                    ? "text-yellow-600"
-                                    : "text-red-600"
-                            }
-                        >
-                            {statusText}
-                        </Text>
-                    </Col>
-                    <Col className="flex space-x-8">
-                        <div className="text-center">
-                            <Text className="text-2xl font-bold">{itemsScraped}</Text>
-                            <Text className="text-sm text-gray-600 block">Items Scraped</Text>
-                        </div>
-                        <div className="text-center">
-                            <Text className="text-2xl font-bold">
+                    </Card>
+                </Col>
+                <Col span={8}>
+                    <Card
+                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
+                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <div>
+                            <Text className="text-sm text-gray-500 block mb-1">Duration</Text>
+                            <Text className="text-3xl font-semibold text-gray-900">
                                 {elapsedTimeSeconds > 0 ? formatElapsedTime(elapsedTimeSeconds) : "0:00:00"}
                             </Text>
-                            <Text className="text-sm text-gray-600 block">Duration</Text>
                         </div>
-                    </Col>
-                </Row>
-            </Card>
+                    </Card>
+                </Col>
+                <Col span={8}>
+                    <Card
+                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
+                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <div>
+                            <Text className="text-sm text-gray-500 block mb-1">Status</Text>
+                            <Text
+                                className={`text-3xl font-semibold ${
+                                    statusColor === "green"
+                                        ? "text-green-600"
+                                        : statusColor === "blue"
+                                        ? "text-blue-600"
+                                        : statusColor === "yellow"
+                                        ? "text-yellow-600"
+                                        : "text-red-600"
+                                }`}
+                            >
+                                {statusText}
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
 
             {/* Performance Metrics */}
-            <Card className="bg-white" style={{ borderRadius: "8px" }}>
-                <div className="flex items-center space-x-2 mb-4">
-                    <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center">
-                        <span className="text-white text-sm">📊</span>
-                    </div>
-                    <Text className="font-semibold text-lg">Performance Metrics</Text>
-                </div>
-                <Row className="grid grid-cols-5 gap-4">
-                    <Col className="text-center">
-                        <Text className="text-2xl font-bold">{pagesProcessed}</Text>
-                        <Text className="text-sm text-gray-600 block">Pages Processed</Text>
+            <Card
+                className="border-0 shadow-sm"
+                style={{ borderRadius: "12px", backgroundColor: "#FFFFFF" }}
+                bodyStyle={{ padding: "28px" }}
+            >
+                <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-6 block">
+                    Performance
+                </Text>
+                <Row className="grid grid-cols-5 gap-6">
+                    <Col className="text-left">
+                        <Text className="text-sm text-gray-500 block mb-2">Pages</Text>
+                        <Text className="text-2xl font-semibold text-gray-900">{pagesProcessed.toLocaleString()}</Text>
                     </Col>
-                    <Col className="text-center">
-                        <Text className="text-2xl font-bold">{itemsPerMinute.toFixed(1)}</Text>
-                        <Text className="text-sm text-gray-600 block">Items/Minute</Text>
+                    <Col className="text-left">
+                        <Text className="text-sm text-gray-500 block mb-2">Items/Min</Text>
+                        <Text className="text-2xl font-semibold text-gray-900">{itemsPerMinute.toFixed(1)}</Text>
                     </Col>
-                    <Col className="text-center">
-                        <Text className="text-2xl font-bold">{pagesPerMinute.toFixed(2)}</Text>
-                        <Text className="text-sm text-gray-600 block">Pages/Minute</Text>
+                    <Col className="text-left">
+                        <Text className="text-sm text-gray-500 block mb-2">Pages/Min</Text>
+                        <Text className="text-2xl font-semibold text-gray-900">{pagesPerMinute.toFixed(2)}</Text>
                     </Col>
-                    <Col className="text-center">
-                        <Text className="text-2xl font-bold">{timePerPageSeconds.toFixed(2)}s</Text>
-                        <Text className="text-sm text-gray-600 block">Time/Page</Text>
+                    <Col className="text-left">
+                        <Text className="text-sm text-gray-500 block mb-2">Time/Page</Text>
+                        <Text className="text-2xl font-semibold text-gray-900">{timePerPageSeconds.toFixed(2)}s</Text>
                     </Col>
-                    <Col className="text-center">
-                        <Text className="text-2xl font-bold">
+                    <Col className="text-left">
+                        <Text className="text-sm text-gray-500 block mb-2">Peak Memory</Text>
+                        <Text className="text-2xl font-semibold text-gray-900">
                             {formatBytes(peakMemoryBytes).quantity} {formatBytes(peakMemoryBytes).type}
                         </Text>
-                        <Text className="text-sm text-gray-600 block">Peak Memory</Text>
                     </Col>
                 </Row>
             </Card>
 
-            <Row gutter={16}>
+            <Row gutter={[16, 16]}>
                 {/* HTTP Response Distribution */}
                 <Col span={12}>
-                    <Card className="bg-white h-80" style={{ borderRadius: "8px" }}>
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="w-6 h-6 bg-teal-500 rounded flex items-center justify-center">
-                                <span className="text-white text-sm">📈</span>
-                            </div>
-                            <Text className="font-semibold text-lg">HTTP Response Distribution</Text>
-                        </div>
+                    <Card
+                        className="border-0 shadow-sm h-80"
+                        style={{ borderRadius: "12px" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4 block">
+                            HTTP Responses
+                        </Text>
                         <div className="h-56">
                             <Bar
                                 data={httpResponseData}
@@ -549,8 +592,14 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                                     maintainAspectRatio: false,
                                     plugins: { legend: { display: false } },
                                     scales: {
-                                        x: { title: { display: true, text: "Response Code" } },
-                                        y: { title: { display: true, text: "Count" } },
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: { color: "#6B7280" },
+                                        },
+                                        y: {
+                                            grid: { color: "#F3F4F6", borderDash: [3, 3] },
+                                            ticks: { color: "#6B7280" },
+                                        },
                                     },
                                 }}
                             />
@@ -560,13 +609,14 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
 
                 {/* Top 5 Errors */}
                 <Col span={12}>
-                    <Card className="bg-white h-80" style={{ borderRadius: "8px" }}>
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
-                                <span className="text-white text-sm">⚠</span>
-                            </div>
-                            <Text className="font-semibold text-lg">Top 5 Errors</Text>
-                        </div>
+                    <Card
+                        className="border-0 shadow-sm h-80"
+                        style={{ borderRadius: "12px" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4 block">
+                            Error Distribution
+                        </Text>
                         <Row>
                             <Col span={12} className="h-56">
                                 <Doughnut
@@ -603,16 +653,17 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                 </Col>
             </Row>
 
-            <Row gutter={16}>
+            <Row gutter={[16, 16]}>
                 {/* Scraping Speed */}
                 <Col span={16}>
-                    <Card className="bg-white h-80" style={{ borderRadius: "8px" }}>
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center">
-                                <span className="text-white text-sm">📊</span>
-                            </div>
-                            <Text className="font-semibold text-lg">Scraping Speed (Items per Interval)</Text>
-                        </div>
+                    <Card
+                        className="border-0 shadow-sm h-80"
+                        style={{ borderRadius: "12px" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4 block">
+                            Scraping Timeline
+                        </Text>
                         <div className="h-56">
                             <Line
                                 data={scrapingSpeedData}
@@ -621,8 +672,14 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                                     maintainAspectRatio: false,
                                     plugins: { legend: { display: false } },
                                     scales: {
-                                        x: { title: { display: true, text: "Time Interval" } },
-                                        y: { title: { display: true, text: "Items Processed" } },
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: { color: "#6B7280", font: { size: 11 } },
+                                        },
+                                        y: {
+                                            grid: { color: "#F3F4F6", borderDash: [3, 3] },
+                                            ticks: { color: "#6B7280" },
+                                        },
                                     },
                                 }}
                             />
@@ -632,31 +689,38 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
 
                 {/* Additional Metrics */}
                 <Col span={8}>
-                    <Card className="bg-white h-80" style={{ borderRadius: "8px" }}>
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="w-6 h-6 bg-teal-500 rounded flex items-center justify-center">
-                                <span className="text-white text-sm">📋</span>
+                    <Card
+                        className="border-0 shadow-sm h-80"
+                        style={{ borderRadius: "12px" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4 block">
+                            Additional Stats
+                        </Text>
+                        <div className="space-y-6 mt-4">
+                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                                <Text className="text-sm text-gray-500 block mb-1">Retries</Text>
+                                <Text className="text-2xl font-semibold text-gray-900">
+                                    {statsData["retry/count"] || 0}
+                                </Text>
                             </div>
-                            <Text className="font-semibold text-lg">Additional Metrics</Text>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="text-center">
-                                <Text className="text-2xl font-bold">{statsData["custom/items_duplicates"] || 0}</Text>
-                                <Text className="text-sm text-gray-600 block">Retries</Text>
+                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                                <Text className="text-sm text-gray-500 block mb-1">Duplicates</Text>
+                                <Text className="text-2xl font-semibold text-gray-900">
+                                    {getMetricValue(statsData, "items_duplicates")}
+                                </Text>
                             </div>
-                            <div className="text-center">
-                                <Text className="text-2xl font-bold">{statsData["custom/items_duplicates"] || 0}</Text>
-                                <Text className="text-sm text-gray-600 block">Duplicates</Text>
+                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                                <Text className="text-sm text-gray-500 block mb-1">Timeouts</Text>
+                                <Text className="text-2xl font-semibold text-gray-900">
+                                    {statsData["scheduler/dequeued"] || 0}
+                                </Text>
                             </div>
-                            <div className="text-center">
-                                <Text className="text-2xl font-bold">{statsData["scheduler/dequeued"] || 0}</Text>
-                                <Text className="text-sm text-gray-600 block">Timeouts</Text>
-                            </div>
-                            <div className="text-center">
-                                <Text className="text-2xl font-bold">
+                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                                <Text className="text-sm text-gray-500 block mb-1">Downloaded</Text>
+                                <Text className="text-2xl font-semibold text-gray-900">
                                     {formatBytes(responseBytes).quantity} {formatBytes(responseBytes).type}
                                 </Text>
-                                <Text className="text-sm text-gray-600 block">Downloaded</Text>
                             </div>
                         </div>
                     </Card>
@@ -665,29 +729,27 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
 
             {/* Scraped Fields Completeness */}
             {fieldsData.length > 0 && (
-                <Card className="bg-white" style={{ borderRadius: "8px" }}>
-                    <div className="flex items-center space-x-2 mb-4">
-                        <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center">
-                            <span className="text-white text-sm">✓</span>
-                        </div>
-                        <Text className="font-semibold text-lg">Scraped Fields Completeness</Text>
-                    </div>
-                    <div className="space-y-2">
+                <Card className="border-0 shadow-sm" style={{ borderRadius: "12px" }} bodyStyle={{ padding: "28px" }}>
+                    <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-6 block">
+                        Field Coverage
+                    </Text>
+                    <div className="space-y-4">
                         {fieldsData.map((field, index) => (
                             <Row key={index} className="items-center">
                                 <Col span={4}>
-                                    <Text className="text-sm">{field.name}</Text>
+                                    <Text className="text-sm text-gray-700 font-medium">{field.name}</Text>
                                 </Col>
                                 <Col span={16}>
                                     <Progress
-                                        percent={field.coverage} // YA ESTÁ CORRECTO - usa field.coverage
-                                        strokeColor="#22c55e"
+                                        percent={field.coverage}
+                                        strokeColor="#10B981"
                                         showInfo={false}
                                         size="small"
+                                        trailColor="#F3F4F6"
                                     />
                                 </Col>
                                 <Col span={4} className="text-right">
-                                    <Text className="text-sm">{field.complete}</Text>
+                                    <Text className="text-sm text-gray-600">{field.coverage.toFixed(1)}%</Text>
                                 </Col>
                             </Row>
                         ))}
@@ -696,21 +758,21 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
             )}
 
             {/* Retry Reasons Breakdown */}
-            <Card className="bg-white" style={{ borderRadius: "8px" }}>
-                <div className="flex items-center space-x-2 mb-4">
-                    <div className="w-6 h-6 bg-blue-500 rounded flex items-center justify-center">
-                        <span className="text-white text-sm">🔄</span>
-                    </div>
-                    <Text className="font-semibold text-lg">Retry Reasons Breakdown</Text>
-                </div>
-                <Table
-                    dataSource={retryReasonsData}
-                    columns={retryColumns}
-                    pagination={false}
-                    size="small"
-                    rowKey="reason"
-                />
-            </Card>
+            {retryReasonsData.length > 0 && (
+                <Card className="border-0 shadow-sm" style={{ borderRadius: "12px" }} bodyStyle={{ padding: "28px" }}>
+                    <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-6 block">
+                        Error Breakdown
+                    </Text>
+                    <Table
+                        dataSource={retryReasonsData}
+                        columns={retryColumns}
+                        pagination={false}
+                        size="middle"
+                        rowKey="reason"
+                        className="modern-table"
+                    />
+                </Card>
+            )}
         </Content>
     );
 }

@@ -1063,7 +1063,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             ),
                                         },
                                         {
-                                            label: "Report",
+                                            label: "Metrics (Experimental)",
                                             key: "6",
                                             children: (
                                                 <JobMetrics
