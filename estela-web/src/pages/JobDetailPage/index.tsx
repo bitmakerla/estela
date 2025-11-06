@@ -907,7 +907,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } = this.state;
         return (
             <Content className="content-padding">
-                {loaded && loadedSpiders ? (
+                {loaded ? (
                     <Layout className="white-background">
                         <Content className="bg-metal rounded-2xl">
                             <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
@@ -923,6 +923,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 modalClone: true,
                                             });
                                         }}
+                                        loading={!loadedSpiders}
+                                        disabled={!loadedSpiders}
                                         icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
                                         size="large"
                                         className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
