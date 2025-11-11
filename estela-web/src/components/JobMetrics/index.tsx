@@ -14,8 +14,8 @@ import {
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 import { Layout, Typography, Row, Col, Card, Progress, Table, Button } from "antd";
 import { ApiService } from "../../services";
+import { formatBytes } from "../../utils";
 import { ApiProjectsSpidersJobsDataListRequest } from "../../services/api";
-import { formatBytes, durationToString } from "../../utils";
 import { Spin } from "../../shared";
 import Export from "../../assets/icons/export.svg";
 
@@ -38,13 +38,12 @@ interface StatsData {
     response_received_count?: number;
     elapsed_time_seconds: number;
     success_rate: number;
+    http_success_rate: number;
+    goal_achievement?: number | null;
     items_per_minute: number;
     pages_per_minute: number;
     time_per_page_seconds: number;
     "resources/peak_memory_bytes": number;
-    "downloader/response_status_count/200"?: number;
-    "downloader/response_status_count/403"?: number;
-    "downloader/response_status_count/404"?: number;
     "downloader/response_bytes": number;
     // Advanced metrics (optional, prefixed with advanced_metrics/)
     "advanced_metrics/items_duplicates"?: number;
@@ -86,6 +85,20 @@ const getMetricValue = (stats: StatsData | null, key: string, defaultValue = 0):
     return defaultValue;
 };
 
+const extractHttpStatusCodes = (statsData: StatsData): { [key: string]: number } => {
+    const statusCodes: { [key: string]: number } = {};
+
+    Object.keys(statsData).forEach((key) => {
+        const match = key.match(/^downloader\/response_status_count\/(\d+)$/);
+        if (match) {
+            const statusCode = match[1];
+            statusCodes[statusCode] = Number(statsData[key]) || 0;
+        }
+    });
+
+    return statusCodes;
+};
+
 export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetricsProps) {
     const [loading, setLoading] = useState(true);
     const [statsData, setStatsData] = useState<StatsData | null>(null);
@@ -107,7 +120,13 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                 const response = await apiService.apiProjectsSpidersJobsDataList(requestParams);
                 if (response.results && response.results.length > 0) {
                     const data = response.results[0] as StatsData;
-                    setStatsData(data);
+                    const processedData: StatsData = {};
+                    Object.entries(data).forEach(([key, value]) => {
+                        const decodedKey = key.replace(/\\u002e/g, ".").replace(/\\u002f/g, "/");
+                        processedData[decodedKey] = value;
+                    });
+
+                    setStatsData(processedData);
                 }
             } catch (error) {
                 console.error("Error fetching stats:", error);
@@ -144,16 +163,14 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                     pagesProcessed: statsData["response_received_count"] || 0,
                     elapsedTimeSeconds: statsData["elapsed_time_seconds"] || 0,
                     successRate: statsData["success_rate"] || 0,
+                    httpSuccessRate: statsData["http_success_rate"] || 0,
+                    goalAchievement: statsData["goal_achievement"] || null,
                     itemsPerMinute: statsData["items_per_minute"] || 0,
                     pagesPerMinute: statsData["pages_per_minute"] || 0,
                     timePerPageSeconds: statsData["time_per_page_seconds"] || 0,
                     peakMemoryBytes: statsData["resources/peak_memory_bytes"] || 0,
                 },
-                httpResponses: {
-                    status200: statsData["downloader/response_status_count/200"] || 0,
-                    status403: statsData["downloader/response_status_count/403"] || 0,
-                    status404: statsData["downloader/response_status_count/404"] || 0,
-                },
+                httpResponses: extractHttpStatusCodes(statsData),
                 downloads: {
                     responseBytes: statsData["downloader/response_bytes"] || 0,
                     requestCount: statsData["downloader/request_count"] || 0,
@@ -251,102 +268,153 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
     const itemsScraped = Number(statsData["item_scraped_count"]) || 0;
     const pagesProcessed = Number(statsData["response_received_count"]) || 0;
     const elapsedTimeSeconds = Number(statsData["elapsed_time_seconds"]) || 0;
+    const successRate = Number(statsData["success_rate"]) || 0;
+    const httpSuccessRate = Number(statsData["http_success_rate"]) || 0;
+    const goalAchievement =
+        statsData["goal_achievement"] !== undefined && statsData["goal_achievement"] !== null
+            ? Number(statsData["goal_achievement"])
+            : null;
     const itemsPerMinute = Number(statsData["items_per_minute"]) || 0;
     const pagesPerMinute = Number(statsData["pages_per_minute"]) || 0;
     const timePerPageSeconds = Number(statsData["time_per_page_seconds"]) || 0;
     const peakMemoryBytes = Number(statsData["resources/peak_memory_bytes"]) || 0;
     const responseBytes = Number(statsData["downloader/response_bytes"]) || 0;
 
-    // Status codes for HTTP Response Distribution
-    const status200Count = Number(statsData["downloader/response_status_count/200"]) || 0;
-    const status403Count = Number(statsData["downloader/response_status_count/403"]) || 0;
-    const status404Count = Number(statsData["downloader/response_status_count/404"]) || 0;
-    const status301Count = Number(statsData["downloader/response_status_count/301"]) || 0;
+    const statusCodes = extractHttpStatusCodes(statsData);
 
-    // Calcular errores y éxitos
-    const totalErrors = status403Count + status404Count;
-    const successCount = status200Count + status301Count;
+    const successCodes: { [key: string]: number } = {};
+    const errorCodes: { [key: string]: number } = {};
+
+    Object.entries(statusCodes).forEach(([code, count]) => {
+        const codeNum = parseInt(code);
+        if (codeNum >= 200 && codeNum < 400) {
+            successCodes[code] = count;
+        } else if (codeNum >= 400) {
+            errorCodes[code] = count;
+        }
+    });
+
+    // Calculate total errors and successes
+    const totalErrors = Object.values(errorCodes).reduce((sum, count) => sum + count, 0);
+    const totalSuccess = Object.values(successCodes).reduce((sum, count) => sum + count, 0);
+
+    // Retry reasons - dynamic from stats
+    const retryReasonsData: Array<{
+        reason: string;
+        count: number;
+        percentage: string;
+        description: string;
+    }> = [];
+
+    Object.keys(statsData).forEach((key) => {
+        const match = key.match(/^retry\/reason_count\/(.+)$/);
+        if (match) {
+            const reason = match[1];
+            const count = Number(statsData[key]) || 0;
+
+            if (count > 0) {
+                const totalRetries = Number(statsData["retry/count"]) || count;
+                const percentage = totalRetries > 0 ? ((count / totalRetries) * 100).toFixed(1) + "%" : "0%";
+
+                // Decode reason (handle escaped characters)
+                const decodedReason =
+                    reason
+                        .replace(/\\u002e/g, ".")
+                        .replace(/\\u002f/g, "/")
+                        .split(".")
+                        .pop() || reason;
+
+                const descriptions: { [key: string]: string } = {
+                    TimeoutError: "Request timed out - server took too long to respond",
+                    ConnectionRefusedError: "Server refused the connection",
+                    DNSLookupError: "DNS lookup failed - domain not found",
+                    ResponseNeverReceived: "Server did not respond or connection was closed",
+                    ConnectionLost: "Connection was lost during the request",
+                };
+
+                retryReasonsData.push({
+                    reason: decodedReason,
+                    count: count,
+                    percentage: percentage,
+                    description: descriptions[decodedReason] || "Network or connection error",
+                });
+            }
+        }
+    });
 
     console.log("=== DEBUG JOB METRICS ===");
     console.log("jobStatus:", jobStatus);
-    console.log("status200Count:", status200Count);
-    console.log("status301Count:", status301Count);
-    console.log("status404Count:", status404Count);
-    console.log("successCount:", successCount);
+    console.log("statusCodes:", statusCodes);
+    console.log("successCodes:", successCodes);
+    console.log("errorCodes:", errorCodes);
+    console.log("totalSuccess:", totalSuccess);
     console.log("totalErrors:", totalErrors);
-    console.log("elapsedTimeSeconds:", elapsedTimeSeconds);
-    console.log("elapsedTimeSeconds type:", typeof elapsedTimeSeconds);
-    console.log("durationToString result:", durationToString(elapsedTimeSeconds));
-    console.log("durationToString result 2:", formatElapsedTime(elapsedTimeSeconds));
+    console.log("successRate:", successRate);
+    console.log("httpSuccessRate:", httpSuccessRate);
+    console.log("goalAchievement:", goalAchievement);
+    console.log("retryReasonsData:", retryReasonsData);
     console.log("========================");
 
     const getStatusColor = () => {
-        if (jobStatus === "COMPLETED") {
-            return totalErrors === 0 ? "green" : "blue";
-        }
-        if (jobStatus === "RUNNING" || jobStatus === "running") {
-            return "green";
-        }
-        if (jobStatus === "WAITING" || jobStatus === "IN_QUEUE") {
-            return "yellow";
-        }
-        return "red"; // ERROR o cualquier otro
+        if (successRate >= 90) return "green";
+        if (successRate >= 70) return "blue";
+        if (successRate >= 50) return "yellow";
+        return "red";
     };
 
     const statusColor = getStatusColor();
 
     const getStatusText = () => {
-        if (jobStatus === "COMPLETED") {
-            return totalErrors === 0 ? "Completed Successfully" : "Completed with Errors";
-        }
-        if (jobStatus === "RUNNING" || jobStatus === "running") {
-            return "Running";
-        }
-        if (jobStatus === "WAITING" || jobStatus === "IN_QUEUE") {
-            return "Waiting";
-        }
-        return "Error";
+        if (successRate >= 90) return "Completed Successfully";
+        if (successRate >= 70) return "Completed with Warnings";
+        if (successRate >= 50) return "Below Target";
+        return "Critical Error";
     };
 
     const statusText = getStatusText();
 
+    const httpLabels = Object.keys(statusCodes).map((code) => {
+        const codeNum = parseInt(code);
+        if (code === "200") return "200 OK";
+        if (code === "301") return "301 Redirect";
+        if (code === "404") return "404 Not Found";
+        if (code === "403") return "403 Forbidden";
+        if (code === "500") return "500 Server Error";
+        if (code === "503") return "503 Unavailable";
+        if (codeNum >= 200 && codeNum < 300) return `${code} Success`;
+        if (codeNum >= 300 && codeNum < 400) return `${code} Redirect`;
+        if (codeNum >= 400 && codeNum < 500) return `${code} Client Error`;
+        if (codeNum >= 500) return `${code} Server Error`;
+        return `${code}`;
+    });
+
+    const httpValues = Object.values(statusCodes);
+
+    const httpColors = Object.keys(statusCodes).map((code) => {
+        const codeNum = parseInt(code);
+        if (codeNum >= 200 && codeNum < 300) return "#10B981";
+        if (codeNum >= 300 && codeNum < 400) return "#3B82F6";
+        if (codeNum >= 400 && codeNum < 500) return "#F59E0B";
+        if (codeNum >= 500) return "#EF4444";
+        return "#6B7280";
+    });
+
     const httpResponseData = {
-        labels: ["200 OK", "403 Error"],
+        labels: httpLabels,
         datasets: [
             {
                 label: "Count",
-                data: [status200Count, status403Count],
-                backgroundColor: ["#10B981", "#F59E0B"],
+                data: httpValues,
+                backgroundColor: httpColors,
                 borderWidth: 0,
                 borderRadius: 8,
             },
         ],
     };
 
-    // Top 5 Errors using actual data
-    const errorCounts = [
-        { label: "403 Forbidden", count: status403Count, color: "#EF4444" },
-        { label: "404 Not Found", count: status404Count, color: "#F59E0B" },
-    ].filter((error) => error.count > 0);
-
-    // If no errors, show placeholder data
-    const hasErrors = errorCounts.length > 0;
-    const errorData = {
-        labels: hasErrors ? errorCounts.map((e) => e.label) : ["No errors"],
-        datasets: [
-            {
-                data: hasErrors ? errorCounts.map((e) => e.count) : [1],
-                backgroundColor: hasErrors ? errorCounts.map((e) => e.color) : ["#e5e7eb"],
-                borderWidth: 0,
-            },
-        ],
-    };
-
-    // Timeline data for scraping speed (new feature - advanced metrics only)
     const timelineData: number[] = [];
     const timelineLabels: string[] = [];
 
-    // Extract timeline data from advanced_metrics
     for (let i = 0; i < 20; i++) {
         const timelineKey = `advanced_metrics/timeline/${i}/items`;
         const intervalKey = `advanced_metrics/timeline/${i}/interval`;
@@ -357,7 +425,6 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
         }
     }
 
-    // If no timeline data, create a placeholder for running jobs
     if (timelineData.length === 0 && (jobStatus === "RUNNING" || jobStatus === "IN_QUEUE" || jobStatus === "WAITING")) {
         timelineData.push(0);
         timelineLabels.push("0-1m");
@@ -381,46 +448,36 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
     };
 
     const fieldsData: Array<{ name: string; coverage: number; complete: number; empty: number }> = [];
-    const fieldNames = new Set<string>();
 
-    const totalItemsScraped = statsData["item_scraped_count"] || 0;
+    if (statsData.coverage) {
+        const coverage = statsData.coverage;
+        const totalItems = coverage.total_items || itemsScraped;
 
-    // Extract field coverage from advanced_metrics
-    Object.keys(statsData).forEach((key) => {
-        const match = key.match(/^advanced_metrics\/schema_coverage\/fields\/([^\/]+)\/(complete|empty)$/);
-        if (match) {
-            fieldNames.add(match[1]);
-        }
-    });
+        // Extract all field coverage data
+        Object.keys(coverage).forEach((key) => {
+            // Skip non-field keys
+            if (key === "total_items" || key === "total_items_coverage") return;
 
-    fieldNames.forEach((fieldName) => {
-        const completeKey = `advanced_metrics/schema_coverage/fields/${fieldName}/complete`;
-        const emptyKey = `advanced_metrics/schema_coverage/fields/${fieldName}/empty`;
+            // Look for field_count and coverage pairs
+            if (key.endsWith("_field_count")) {
+                const fieldName = key.replace("_field_count", "");
+                const coverageKey = `${fieldName}_coverage`;
 
-        const complete = Number(statsData[completeKey]) || 0;
-        const empty = Number(statsData[emptyKey]) || 0;
+                const fieldCount = Number(coverage[key]) || 0;
+                const fieldCoverage = Number(coverage[coverageKey]) || 0;
+                const empty = totalItems - fieldCount;
 
-        let coverage = 100;
-        let total = complete + empty;
-
-        if (totalItemsScraped > 0) {
-            if (empty === 0 && complete < totalItemsScraped) {
-                coverage = (complete / totalItemsScraped) * 100;
-                total = totalItemsScraped;
-            } else if (total > 0) {
-                coverage = (complete / total) * 100;
+                if (fieldCount > 0 || fieldCoverage > 0) {
+                    fieldsData.push({
+                        name: fieldName,
+                        coverage: fieldCoverage,
+                        complete: fieldCount,
+                        empty: empty > 0 ? empty : 0,
+                    });
+                }
             }
-        }
-
-        if (complete > 0 || empty > 0) {
-            fieldsData.push({
-                name: fieldName,
-                coverage: Math.round(coverage * 100) / 100,
-                complete: complete,
-                empty: empty,
-            });
-        }
-    });
+        });
+    }
 
     fieldsData.sort((a, b) => {
         if (b.coverage !== a.coverage) {
@@ -428,23 +485,6 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
         }
         return b.complete - a.complete;
     });
-
-    // Retry reasons using actual error data
-    // const totalErrors = status403Count + status404Count;
-    const retryReasonsData = [
-        {
-            reason: "403 Forbidden",
-            count: status403Count,
-            percentage: totalErrors > 0 ? ((status403Count / totalErrors) * 100).toFixed(1) + "%" : "0%",
-            description: "Network or connection error",
-        },
-        {
-            reason: "404 Not Found",
-            count: status404Count,
-            percentage: totalErrors > 0 ? ((status404Count / totalErrors) * 100).toFixed(1) + "%" : "0%",
-            description: "Page or resource not found",
-        },
-    ].filter((reason) => reason.count > 0);
 
     const retryColumns = [
         { title: "Reason", dataIndex: "reason", key: "reason" },
@@ -469,9 +509,34 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                 </Col>
             </Row>
 
-            {/* Key Metrics Cards */}
             <Row gutter={[16, 16]}>
-                <Col span={8}>
+                <Col flex="1" style={{ minWidth: "200px" }}>
+                    <Card
+                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
+                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <div>
+                            <Text className="text-sm text-gray-500 block mb-1">Status</Text>
+                            <Text
+                                className={`text-2xl font-semibold ${
+                                    statsData["status"] === "running"
+                                        ? "text-blue-600"
+                                        : statusColor === "green"
+                                        ? "text-green-600"
+                                        : statusColor === "blue"
+                                        ? "text-blue-600"
+                                        : statusColor === "yellow"
+                                        ? "text-yellow-600"
+                                        : "text-red-600"
+                                }`}
+                            >
+                                {statsData["status"] === "running" ? "Running" : statusText}
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+                <Col flex="1" style={{ minWidth: "200px" }}>
                     <Card
                         className="border-0 shadow-sm hover:shadow-md transition-shadow"
                         style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
@@ -498,7 +563,33 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                         </div>
                     </Card>
                 </Col>
-                <Col span={8}>
+                <Col flex="1" style={{ minWidth: "200px" }}>
+                    <Card
+                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
+                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <div>
+                            <Text className="text-sm text-gray-500 block mb-1">HTTP Success Rate</Text>
+                            <Text className="text-3xl font-semibold text-gray-900">{httpSuccessRate.toFixed(1)}%</Text>
+                        </div>
+                    </Card>
+                </Col>
+                <Col flex="1" style={{ minWidth: "200px" }}>
+                    <Card
+                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
+                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
+                        bodyStyle={{ padding: "24px" }}
+                    >
+                        <div>
+                            <Text className="text-sm text-gray-500 block mb-1">Goal Achievement</Text>
+                            <Text className="text-3xl font-semibold text-gray-900">
+                                {goalAchievement !== null ? `${goalAchievement.toFixed(1)}%` : "N/A"}
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+                <Col flex="1" style={{ minWidth: "200px" }}>
                     <Card
                         className="border-0 shadow-sm hover:shadow-md transition-shadow"
                         style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
@@ -508,30 +599,6 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                             <Text className="text-sm text-gray-500 block mb-1">Duration</Text>
                             <Text className="text-3xl font-semibold text-gray-900">
                                 {elapsedTimeSeconds > 0 ? formatElapsedTime(elapsedTimeSeconds) : "0:00:00"}
-                            </Text>
-                        </div>
-                    </Card>
-                </Col>
-                <Col span={8}>
-                    <Card
-                        className="border-0 shadow-sm hover:shadow-md transition-shadow"
-                        style={{ borderRadius: "12px", backgroundColor: "#FAFAFA" }}
-                        bodyStyle={{ padding: "24px" }}
-                    >
-                        <div>
-                            <Text className="text-sm text-gray-500 block mb-1">Status</Text>
-                            <Text
-                                className={`text-3xl font-semibold ${
-                                    statusColor === "green"
-                                        ? "text-green-600"
-                                        : statusColor === "blue"
-                                        ? "text-blue-600"
-                                        : statusColor === "yellow"
-                                        ? "text-yellow-600"
-                                        : "text-red-600"
-                                }`}
-                            >
-                                {statusText}
                             </Text>
                         </div>
                     </Card>
@@ -574,7 +641,6 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
             </Card>
 
             <Row gutter={[16, 16]}>
-                {/* HTTP Response Distribution */}
                 <Col span={12}>
                     <Card
                         className="border-0 shadow-sm h-80"
@@ -607,7 +673,7 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                     </Card>
                 </Col>
 
-                {/* Top 5 Errors */}
+                {/* Error Distribution - Using Retry Reasons */}
                 <Col span={12}>
                     <Card
                         className="border-0 shadow-sm h-80"
@@ -620,7 +686,32 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                         <Row>
                             <Col span={12} className="h-56">
                                 <Doughnut
-                                    data={errorData}
+                                    data={{
+                                        labels:
+                                            retryReasonsData.length > 0
+                                                ? retryReasonsData.map((item) => item.reason)
+                                                : ["No errors"],
+                                        datasets: [
+                                            {
+                                                data:
+                                                    retryReasonsData.length > 0
+                                                        ? retryReasonsData.map((item) => item.count)
+                                                        : [1],
+                                                backgroundColor:
+                                                    retryReasonsData.length > 0
+                                                        ? [
+                                                              "#EF4444", // Red
+                                                              "#F59E0B", // Orange
+                                                              "#FBBF24", // Amber
+                                                              "#F87171", // Light red
+                                                              "#FB923C", // Light orange
+                                                              "#FCD34D", // Light amber
+                                                          ].slice(0, retryReasonsData.length)
+                                                        : ["#e5e7eb"],
+                                                borderWidth: 0,
+                                            },
+                                        ],
+                                    }}
                                     options={{
                                         responsive: true,
                                         maintainAspectRatio: false,
@@ -629,15 +720,29 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                                 />
                             </Col>
                             <Col span={12} className="pl-4">
-                                <div className="space-y-2">
-                                    {hasErrors ? (
-                                        errorCounts.map((error, index) => (
-                                            <div key={index} className="flex items-center space-x-2">
-                                                <div
-                                                    className="w-3 h-3 rounded"
-                                                    style={{ backgroundColor: error.color }}
-                                                ></div>
-                                                <Text className="text-sm">{error.label}</Text>
+                                <div className="space-y-2 max-h-56 overflow-y-auto">
+                                    {retryReasonsData.length > 0 ? (
+                                        retryReasonsData.map((item, index) => (
+                                            <div key={index} className="flex items-center justify-between space-x-2">
+                                                <div className="flex items-center space-x-2 flex-1">
+                                                    <div
+                                                        className="w-3 h-3 rounded flex-shrink-0"
+                                                        style={{
+                                                            backgroundColor: [
+                                                                "#EF4444",
+                                                                "#F59E0B",
+                                                                "#FBBF24",
+                                                                "#F87171",
+                                                                "#FB923C",
+                                                                "#FCD34D",
+                                                            ][index % 6],
+                                                        }}
+                                                    ></div>
+                                                    <Text className="text-sm truncate">{item.reason}</Text>
+                                                </div>
+                                                <Text className="text-sm font-medium text-gray-600 ml-2">
+                                                    {item.count}
+                                                </Text>
                                             </div>
                                         ))
                                     ) : (
@@ -655,7 +760,7 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
 
             <Row gutter={[16, 16]}>
                 {/* Scraping Speed */}
-                <Col span={16}>
+                <Col span={24}>
                     <Card
                         className="border-0 shadow-sm h-80"
                         style={{ borderRadius: "12px" }}
@@ -686,37 +791,74 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                         </div>
                     </Card>
                 </Col>
+            </Row>
 
-                {/* Additional Metrics */}
-                <Col span={8}>
+            {/* Scraped Fields Completeness */}
+            <Row gutter={[16, 16]}>
+                {fieldsData.length > 0 && (
+                    <Col flex="auto">
+                        <Card
+                            className="border-0 shadow-sm"
+                            style={{ borderRadius: "12px" }}
+                            bodyStyle={{ padding: "28px" }}
+                        >
+                            <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-6 block">
+                                Field Coverage
+                            </Text>
+                            <div className="space-y-4">
+                                {fieldsData.map((field, index) => (
+                                    <Row key={index} className="items-center">
+                                        <Col span={4}>
+                                            <Text className="text-sm text-gray-700 font-medium">{field.name}</Text>
+                                        </Col>
+                                        <Col span={16}>
+                                            <Progress
+                                                percent={field.coverage}
+                                                strokeColor="#10B981"
+                                                showInfo={false}
+                                                size="small"
+                                                trailColor="#F3F4F6"
+                                            />
+                                        </Col>
+                                        <Col span={4} className="text-right">
+                                            <Text className="text-sm text-gray-600">{field.coverage.toFixed(1)}%</Text>
+                                        </Col>
+                                    </Row>
+                                ))}
+                            </div>
+                        </Card>
+                    </Col>
+                )}
+                <Col flex="0 0 auto" style={{ width: fieldsData.length > 0 ? "350px" : "100%" }}>
                     <Card
-                        className="border-0 shadow-sm h-80"
+                        className="border-0 shadow-sm"
                         style={{ borderRadius: "12px" }}
                         bodyStyle={{ padding: "24px" }}
                     >
                         <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4 block">
                             Additional Stats
                         </Text>
-                        <div className="space-y-6 mt-4">
-                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                        <div className="space-y-4 mt-4">
+                            <div className="px-3 py-2 bg-gray-50 rounded-lg">
                                 <Text className="text-sm text-gray-500 block mb-1">Retries</Text>
                                 <Text className="text-2xl font-semibold text-gray-900">
                                     {statsData["retry/count"] || 0}
                                 </Text>
                             </div>
-                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                            <div className="px-3 py-2 bg-gray-50 rounded-lg">
                                 <Text className="text-sm text-gray-500 block mb-1">Duplicates</Text>
                                 <Text className="text-2xl font-semibold text-gray-900">
                                     {getMetricValue(statsData, "items_duplicates")}
                                 </Text>
                             </div>
-                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                            <div className="px-3 py-2 bg-gray-50 rounded-lg">
                                 <Text className="text-sm text-gray-500 block mb-1">Timeouts</Text>
                                 <Text className="text-2xl font-semibold text-gray-900">
-                                    {statsData["scheduler/dequeued"] || 0}
+                                    {statsData["downloader/exception_type_count/twisted.internet.error.TimeoutError"] ||
+                                        0}
                                 </Text>
                             </div>
-                            <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                            <div className="px-3 py-2 bg-gray-50 rounded-lg">
                                 <Text className="text-sm text-gray-500 block mb-1">Downloaded</Text>
                                 <Text className="text-2xl font-semibold text-gray-900">
                                     {formatBytes(responseBytes).quantity} {formatBytes(responseBytes).type}
@@ -726,36 +868,6 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                     </Card>
                 </Col>
             </Row>
-
-            {/* Scraped Fields Completeness */}
-            {fieldsData.length > 0 && (
-                <Card className="border-0 shadow-sm" style={{ borderRadius: "12px" }} bodyStyle={{ padding: "28px" }}>
-                    <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-6 block">
-                        Field Coverage
-                    </Text>
-                    <div className="space-y-4">
-                        {fieldsData.map((field, index) => (
-                            <Row key={index} className="items-center">
-                                <Col span={4}>
-                                    <Text className="text-sm text-gray-700 font-medium">{field.name}</Text>
-                                </Col>
-                                <Col span={16}>
-                                    <Progress
-                                        percent={field.coverage}
-                                        strokeColor="#10B981"
-                                        showInfo={false}
-                                        size="small"
-                                        trailColor="#F3F4F6"
-                                    />
-                                </Col>
-                                <Col span={4} className="text-right">
-                                    <Text className="text-sm text-gray-600">{field.coverage.toFixed(1)}%</Text>
-                                </Col>
-                            </Row>
-                        ))}
-                    </div>
-                </Card>
-            )}
 
             {/* Retry Reasons Breakdown */}
             {retryReasonsData.length > 0 && (
