@@ -681,7 +681,7 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
                         bodyStyle={{ padding: "24px" }}
                     >
                         <Text className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4 block">
-                            Error Distribution
+                            Retry Errors
                         </Text>
                         <Row>
                             <Col span={12} className="h-56">
