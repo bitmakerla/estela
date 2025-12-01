@@ -250,12 +250,10 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         await this.getJobs(page);
     };
 
-    onChangeStatus = (index: number, count: number) => {
-        if (count === 0) {
-            const tableStatus = this.state.tableStatus;
-            tableStatus[index] = !tableStatus[index];
-            this.setState({ tableStatus: tableStatus });
-        }
+    onChangeStatus = (index: number) => {
+        const tableStatus = this.state.tableStatus;
+        tableStatus[index] = !tableStatus[index];
+        this.setState({ tableStatus: tableStatus });
     };
 
     render(): JSX.Element {
@@ -620,8 +618,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                         <Text className="text-estela-black-medium font-medium text-xs">STATUS</Text>
                                         <Content className="my-2">
                                             <Checkbox
-                                                checked={waitingJobs.length == 0 ? tableStatus[waiting] : true}
-                                                onChange={() => this.onChangeStatus(waiting, waitingJobs.length)}
+                                                checked={tableStatus[waiting]}
+                                                onChange={() => this.onChangeStatus(waiting)}
                                             >
                                                 <Space direction="horizontal">
                                                     <Text className="text-estela-black-medium font-medium text-sm">
@@ -634,8 +632,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
-                                                checked={queueJobs.length == 0 ? tableStatus[queued] : true}
-                                                onChange={() => this.onChangeStatus(queued, queueJobs.length)}
+                                                checked={tableStatus[queued]}
+                                                onChange={() => this.onChangeStatus(queued)}
                                             >
                                                 <Space direction="horizontal">
                                                     <Text className="text-estela-black-medium font-medium text-sm">
@@ -648,8 +646,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
-                                                checked={runningJobs.length == 0 ? tableStatus[running] : true}
-                                                onChange={() => this.onChangeStatus(running, runningJobs.length)}
+                                                checked={tableStatus[running]}
+                                                onChange={() => this.onChangeStatus(running)}
                                             >
                                                 <Space direction="horizontal">
                                                     <Text className="text-estela-black-medium font-medium text-sm">
@@ -662,8 +660,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
-                                                checked={completedJobs.length == 0 ? tableStatus[completed] : true}
-                                                onChange={() => this.onChangeStatus(completed, completedJobs.length)}
+                                                checked={tableStatus[completed]}
+                                                onChange={() => this.onChangeStatus(completed)}
                                             >
                                                 <Space direction="horizontal">
                                                     <Text className="text-estela-black-medium font-medium text-sm">
@@ -676,8 +674,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
-                                                checked={stoppedJobs.length == 0 ? tableStatus[stopped] : true}
-                                                onChange={() => this.onChangeStatus(stopped, stoppedJobs.length)}
+                                                checked={tableStatus[stopped]}
+                                                onChange={() => this.onChangeStatus(stopped)}
                                             >
                                                 <Space direction="horizontal">
                                                     <Text className="text-estela-black-medium font-medium text-sm">
@@ -690,8 +688,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                             </Checkbox>
                                             <br />
                                             <Checkbox
-                                                checked={errorJobs.length == 0 ? tableStatus[withError] : true}
-                                                onChange={() => this.onChangeStatus(withError, errorJobs.length)}
+                                                checked={tableStatus[withError]}
+                                                onChange={() => this.onChangeStatus(withError)}
                                             >
                                                 <Space direction="horizontal">
                                                     <Text className="text-estela-black-medium font-medium text-sm">
