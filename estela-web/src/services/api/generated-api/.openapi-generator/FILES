@@ -33,6 +33,7 @@ models/ProjectActivity.ts
 models/ProjectCronJob.ts
 models/ProjectDetail.ts
 models/ProjectJob.ts
+models/ProjectSearch.ts
 models/ProjectStats.ts
 models/ProjectUpdate.ts
 models/ProjectUsage.ts

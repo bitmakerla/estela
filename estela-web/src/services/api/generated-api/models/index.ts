@@ -29,6 +29,7 @@ export * from './ProjectActivity';
 export * from './ProjectCronJob';
 export * from './ProjectDetail';
 export * from './ProjectJob';
+export * from './ProjectSearch';
 export * from './ProjectStats';
 export * from './ProjectUpdate';
 export * from './ProjectUsage';
