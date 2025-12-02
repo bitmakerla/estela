@@ -221,44 +221,73 @@ export function JobMetrics({ projectId, spiderId, jobId, jobStatus }: JobMetrics
     }
 
     if (!statsData) {
-        // If job is running, show a message indicating metrics will be available when job completes
-        if (jobStatus === "RUNNING" || jobStatus === "IN_QUEUE" || jobStatus === "WAITING") {
-            return (
-                <Content className="space-y-4 mt-8">
-                    {/* Metrics Header */}
-                    <Row justify="space-between" align="middle" className="mb-6">
-                        <Col>
-                            <Text className="text-estela-black-medium font-medium text-xl">Job Metrics</Text>
-                        </Col>
-                    </Row>
-                    <Content className="text-center py-12">
-                        <div className="space-y-4">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                                <span className="text-2xl">📊</span>
-                            </div>
-                            <div>
-                                <Text className="text-lg font-medium text-estela-black-full block">
-                                    Metrics will be available when the job completes
-                                </Text>
-                                <Text className="text-sm text-estela-black-medium">Current status: {jobStatus}</Text>
-                            </div>
-                        </div>
-                    </Content>
-                </Content>
-            );
-        }
+        const isJobRunning = jobStatus === "RUNNING" || jobStatus === "IN_QUEUE" || jobStatus === "WAITING";
 
-        // For completed jobs without stats data
         return (
             <Content className="space-y-4 mt-8">
-                {/* Metrics Header */}
                 <Row justify="space-between" align="middle" className="mb-6">
                     <Col>
                         <Text className="text-estela-black-medium font-medium text-xl">Job Metrics</Text>
                     </Col>
                 </Row>
-                <Content className="text-center py-8">
-                    <Text className="text-estela-black-medium">No metrics data available</Text>
+                <Content className="text-center py-12">
+                    <div className="space-y-4">
+                        <div
+                            className={`w-16 h-16 ${
+                                isJobRunning ? "bg-blue-100" : "bg-gray-100"
+                            } rounded-full flex items-center justify-center mx-auto`}
+                        >
+                            <span className="text-2xl">📊</span>
+                        </div>
+                        <div>
+                            <Text className="text-lg font-medium text-estela-black-full block">
+                                {isJobRunning ? "Waiting for metrics data..." : "No metrics data available"}
+                            </Text>
+                            <Text className="text-sm text-estela-black-medium">
+                                {isJobRunning
+                                    ? `Current status: ${jobStatus}`
+                                    : "No statistics were recorded for this job."}
+                            </Text>
+                        </div>
+                    </div>
+                </Content>
+            </Content>
+        );
+    }
+
+    const metricsExtensionEnabled = statsData["advanced_metrics/items_duplicates"] !== undefined;
+    const metricsDataReady = statsData["success_rate"] !== undefined;
+
+    if (!metricsDataReady) {
+        return (
+            <Content className="space-y-4 mt-8">
+                <Row justify="space-between" align="middle" className="mb-6">
+                    <Col>
+                        <Text className="text-estela-black-medium font-medium text-xl">Job Metrics</Text>
+                    </Col>
+                </Row>
+                <Content className="text-center py-12">
+                    <div className="space-y-4">
+                        <div
+                            className={`w-16 h-16 ${
+                                metricsExtensionEnabled ? "bg-blue-100" : "bg-gray-100"
+                            } rounded-full flex items-center justify-center mx-auto`}
+                        >
+                            <span className="text-2xl">📊</span>
+                        </div>
+                        <div>
+                            <Text className="text-lg font-medium text-estela-black-full block">
+                                {metricsExtensionEnabled
+                                    ? "Metrics will be available when the job completes"
+                                    : "Metrics not available for this job"}
+                            </Text>
+                            <Text className="text-sm text-estela-black-medium">
+                                {metricsExtensionEnabled
+                                    ? `Current status: ${jobStatus}`
+                                    : "This job was run without the metrics extension enabled."}
+                            </Text>
+                        </div>
+                    </div>
                 </Content>
             </Content>
         );
