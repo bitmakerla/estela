@@ -437,6 +437,34 @@ paths:
       tags:
         - api
     parameters: []
+  /api/projects/search:
+    get:
+      operationId: api_projects_search
+      description: ''
+      parameters:
+        - name: page
+          in: query
+          description: A page number within the paginated result set.
+          required: false
+          type: number
+        - name: page_size
+          in: query
+          description: Number of results to return per page.
+          required: false
+          type: number
+        - name: search
+          in: query
+          description: Search for a project by name.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/ProjectSearch'
+      tags:
+        - api
+    parameters: []
   /api/projects/{pid}:
     get:
       operationId: api_projects_read
@@ -1924,6 +1952,21 @@ definitions:
         type: integer
         maximum: 65535
         minimum: 0
+  ProjectSearch:
+    required:
+      - results
+      - count
+    type: object
+    properties:
+      results:
+        description: Project search results.
+        type: array
+        items:
+          $ref: '#/definitions/Project'
+      count:
+        title: Count
+        description: Project search results count.
+        type: integer
   ProjectUpdate:
     type: object
     properties:
