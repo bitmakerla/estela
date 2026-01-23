@@ -1,0 +1,462 @@
+version: '3.8'
+
+# =============================================================================
+# Estela Docker Standalone - Complete setup without Kubernetes
+# =============================================================================
+# This docker-compose file runs the entire Estela platform using Docker only.
+# No Kubernetes required! Spider jobs run as Docker containers.
+#
+# Usage:
+#   1. Copy .env.example to .env and configure
+#   2. Run: docker-compose up -d
+#   3. Wait for services to be healthy
+#   4. Access: http://localhost:3000 (frontend) / http://localhost:8000 (API)
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # Infrastructure Services
+  # ===========================================================================
+
+  # MySQL Database - stores API data (projects, spiders, jobs metadata)
+  db:
+    image: mysql:8.3
+    container_name: estela-db
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-estelaroot}
+      MYSQL_DATABASE: ${DB_NAME:-estela_db}
+      MYSQL_USER: ${DB_USER:-estela}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-estelapass}
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # MongoDB - stores spider job data (items, logs, requests, stats)
+  mongodb:
+    image: mongo:6.0
+    container_name: estela-mongodb
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-estela}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-estelapass}
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # Redis - Celery broker and job stats caching
+  redis:
+    image: redis:7-alpine
+    container_name: estela-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # MinIO - S3-compatible object storage for spider projects
+  minio:
+    image: minio/minio
+    container_name: estela-minio
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # Create MinIO buckets on startup
+  minio-init:
+    image: minio/mc
+    container_name: estela-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 ${MINIO_USER:-minioadmin} ${MINIO_PASSWORD:-minioadmin};
+      mc mb --ignore-existing myminio/estela-projects;
+      mc mb --ignore-existing myminio/estela-django-api;
+      mc anonymous set public myminio/estela-projects;
+      exit 0;
+      "
+    networks:
+      - estela-network
+
+  # Docker Registry - stores built spider images
+  registry:
+    image: registry:2
+    container_name: estela-registry
+    volumes:
+      - registry_data:/var/lib/registry
+    ports:
+      - "5001:5000"
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # Zookeeper - Kafka coordination
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    container_name: estela-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # Kafka - message queue for spider data
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: estela-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:19092,LISTENER_DOCKER_EXTERNAL://localhost:9092
+      KAFKA_LISTENERS: LISTENER_DOCKER_INTERNAL://:19092,LISTENER_DOCKER_EXTERNAL://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # Application Services
+  # ===========================================================================
+
+  # Django REST API
+  api:
+    build:
+      context: ../..
+      dockerfile: estela-api/docker-conf/Dockerfile-django-api
+    image: estela-django-api:local
+    container_name: estela-api
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      # Mount Docker socket for container-based spider execution
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Database
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-estela_db}
+      DB_USER: ${DB_USER:-estela}
+      DB_PASSWORD: ${DB_PASSWORD:-estelapass}
+      # Redis
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      # MongoDB (spider data)
+      SPIDERDATA_DB_ENGINE: mongodb
+      SPIDERDATA_DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      SPIDERDATA_DB_CERTIFICATE_PATH: ""
+      # Storage (MinIO) - for LocalCredentials
+      MINIO_HOST: minio
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: ${MINIO_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_PASSWORD:-minioadmin}
+      # AWS-style vars (for compatibility)
+      AWS_ACCESS_KEY_ID: ${MINIO_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_PASSWORD:-minioadmin}
+      AWS_STORAGE_BUCKET_NAME: estela-django-api
+      BUCKET_NAME_PROJECTS: estela-projects
+      # Registry
+      REGISTRY_HOST: registry:5000
+      REPOSITORY_NAME: estela-spiders
+      # Engine - USE DOCKER instead of kubernetes!
+      ENGINE: docker
+      CREDENTIALS: local
+      BUILD: default
+      # API settings
+      DJANGO_API_HOST: api:8000
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,api
+      CORS_ORIGIN_WHITELIST: http://localhost:3000,http://127.0.0.1:3000
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      STAGE: DEVELOPMENT
+      # Kafka
+      KAFKA_HOSTS: kafka
+      KAFKA_PORT: "19092"
+      # Other
+      REGISTER: "True"
+      VERIFICATION_EMAIL: "False"
+      REDIS_STATS_INTERVAL: "5.0"
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py collectstatic --noinput &&
+        python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.create_superuser('admin', 'admin@estela.local', 'admin') if not User.objects.filter(username='admin').exists() else None\" &&
+        python manage.py shell -c \"from django.contrib.auth.models import User; User.objects.create_user('deploy_manager', 'deploy@estela.local', 'deploy') if not User.objects.filter(username='deploy_manager').exists() else None\" &&
+        gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2
+      "
+    ports:
+      - "8000:8000"
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # Celery Worker - executes background tasks
+  celery-worker:
+    build:
+      context: ../..
+      dockerfile: estela-api/docker-conf/Dockerfile-celery-worker
+    image: estela-celery-worker:local
+    container_name: estela-celery-worker
+    depends_on:
+      - api
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-estela_db}
+      DB_USER: ${DB_USER:-estela}
+      DB_PASSWORD: ${DB_PASSWORD:-estelapass}
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      SPIDERDATA_DB_ENGINE: mongodb
+      SPIDERDATA_DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      SPIDERDATA_DB_CERTIFICATE_PATH: ""
+      # Storage (MinIO) - for LocalCredentials
+      MINIO_HOST: minio
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: ${MINIO_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_PASSWORD:-minioadmin}
+      AWS_ACCESS_KEY_ID: ${MINIO_USER:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_PASSWORD:-minioadmin}
+      AWS_STORAGE_BUCKET_NAME: estela-django-api
+      BUCKET_NAME_PROJECTS: estela-projects
+      REGISTRY_HOST: registry:5000
+      REPOSITORY_NAME: estela-spiders
+      ENGINE: docker
+      CREDENTIALS: local
+      BUILD: default
+      DJANGO_API_HOST: api:8000
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      KAFKA_HOSTS: kafka
+      KAFKA_PORT: "19092"
+    command: celery -A config worker -l info
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # Celery Beat - scheduled task runner
+  celery-beat:
+    build:
+      context: ../..
+      dockerfile: estela-api/docker-conf/Dockerfile-celery-beat
+    image: estela-celery-beat:local
+    container_name: estela-celery-beat
+    depends_on:
+      - api
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-estela_db}
+      DB_USER: ${DB_USER:-estela}
+      DB_PASSWORD: ${DB_PASSWORD:-estelapass}
+      REDIS_URL: redis://redis:6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      SPIDERDATA_DB_ENGINE: mongodb
+      SPIDERDATA_DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      SPIDERDATA_DB_CERTIFICATE_PATH: ""
+      ENGINE: docker
+      CREDENTIALS: local
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # Queue Consumers - process spider data from Kafka to MongoDB
+  # ===========================================================================
+
+  queue-consumer-items:
+    build:
+      context: ../..
+      dockerfile: queueing/Dockerfile
+    image: estela-queue-consumer:local
+    container_name: estela-queue-consumer-items
+    depends_on:
+      - kafka
+      - mongodb
+    environment:
+      # Kafka consumer config
+      KAFKA_HOSTS: kafka
+      KAFKA_PORT: "19092"
+      # Queue adapter config
+      QUEUE_PLATFORM: kafka
+      QUEUE_PLATFORM_LISTENERS: kafka
+      QUEUE_PLATFORM_PORT: "19092"
+      # Database config
+      DB_ENGINE: mongodb
+      DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      DB_CERTIFICATE_PATH: ""
+      PRODUCTION: "False"
+    command: python consumer.py job_items
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  queue-consumer-requests:
+    build:
+      context: ../..
+      dockerfile: queueing/Dockerfile
+    image: estela-queue-consumer:local
+    container_name: estela-queue-consumer-requests
+    depends_on:
+      - kafka
+      - mongodb
+    environment:
+      KAFKA_HOSTS: kafka
+      KAFKA_PORT: "19092"
+      QUEUE_PLATFORM: kafka
+      QUEUE_PLATFORM_LISTENERS: kafka
+      QUEUE_PLATFORM_PORT: "19092"
+      DB_ENGINE: mongodb
+      DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      DB_CERTIFICATE_PATH: ""
+      PRODUCTION: "False"
+    command: python consumer.py job_requests
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  queue-consumer-logs:
+    build:
+      context: ../..
+      dockerfile: queueing/Dockerfile
+    image: estela-queue-consumer:local
+    container_name: estela-queue-consumer-logs
+    depends_on:
+      - kafka
+      - mongodb
+    environment:
+      KAFKA_HOSTS: kafka
+      KAFKA_PORT: "19092"
+      QUEUE_PLATFORM: kafka
+      QUEUE_PLATFORM_LISTENERS: kafka
+      QUEUE_PLATFORM_PORT: "19092"
+      DB_ENGINE: mongodb
+      DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      DB_CERTIFICATE_PATH: ""
+      PRODUCTION: "False"
+    command: python consumer.py job_logs
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  queue-consumer-stats:
+    build:
+      context: ../..
+      dockerfile: queueing/Dockerfile
+    image: estela-queue-consumer:local
+    container_name: estela-queue-consumer-stats
+    depends_on:
+      - kafka
+      - mongodb
+    environment:
+      KAFKA_HOSTS: kafka
+      KAFKA_PORT: "19092"
+      QUEUE_PLATFORM: kafka
+      QUEUE_PLATFORM_LISTENERS: kafka
+      QUEUE_PLATFORM_PORT: "19092"
+      DB_ENGINE: mongodb
+      DB_CONNECTION: mongodb://${MONGO_USER:-estela}:${MONGO_PASSWORD:-estelapass}@mongodb:27017
+      DB_CERTIFICATE_PATH: ""
+      PRODUCTION: "False"
+    command: python consumer.py job_stats
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+  # ===========================================================================
+  # Frontend
+  # ===========================================================================
+
+  web:
+    build:
+      context: ../../estela-web
+      dockerfile: Dockerfile
+    image: estela-web:local
+    container_name: estela-web
+    depends_on:
+      - api
+    environment:
+      REACT_APP_API_BASE_URL: http://localhost:8000
+      REGISTER_PAGE_ENABLED: "true"
+    ports:
+      - "3000:3000"
+    networks:
+      - estela-network
+    restart: unless-stopped
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  estela-network:
+    name: estela-network
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  mysql_data:
+  mongodb_data:
+  redis_data:
+  minio_data:
+  registry_data:

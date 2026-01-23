@@ -8,6 +8,7 @@ django-cors-headers
 django-environ
 django-filter
 djangorestframework
+docker
 drf-yasg
 eks-token
 elasticsearch<7.14.0
