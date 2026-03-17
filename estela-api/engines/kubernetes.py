@@ -11,7 +11,6 @@ class KubernetesEngine:
     JOB_TIME_CREATION = 20  # Tolerance time for a Job to be created.
     POD_RESTART_POLICY = "Never"
     IMAGE_PULL_POLICY = "Always"
-    SPIDER_NODE_ROLE = "estela-spider"
     IMAGE_PULL_SECRET_NAME = "regcred"
     CREDENTIALS = None
 
@@ -79,6 +78,16 @@ class KubernetesEngine:
         )
         if not isbuild:
             # Regular spider job containers
+            container.resources = client.V1ResourceRequirements(
+                requests={
+                    "cpu": settings.SPIDER_JOB_CPU_REQUEST,
+                    "memory": settings.SPIDER_JOB_MEM_REQUEST,
+                },
+                limits={
+                    "cpu": settings.SPIDER_JOB_CPU_LIMIT,
+                    "memory": settings.SPIDER_JOB_MEM_LIMIT,
+                },
+            )
             container.security_context = client.V1SecurityContext(
                 capabilities=client.V1Capabilities(drop=["ALL"])
             )
@@ -102,7 +111,7 @@ class KubernetesEngine:
                 if isbuild
                 else ([volume] if volume else None)
             ),
-            node_selector={"role": self.SPIDER_NODE_ROLE}
+            node_selector={"role": settings.SPIDER_NODE_ROLE}
             if settings.MULTI_NODE_MODE == "True"
             else None,
         )

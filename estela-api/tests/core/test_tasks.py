@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from config.job_manager import job_manager
 from core.cronjob import create_cronjob, delete_cronjob
 from core.models import Project, Spider, SpiderJob
@@ -6,17 +8,33 @@ from tests.base import BaseTestCase
 
 
 class RunSpiderJobs(BaseTestCase):
-    def test_run_jobs(self):
+    @patch("core.tasks._get_cluster_resources", return_value=(12.0, 32e9, 0.0, 0.0))
+    def test_run_jobs_dispatches_sequentially(self, mock_resources):
+        """run_spider_jobs should dispatch IN_QUEUE jobs directly to K8s."""
         SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).delete()
         project = Project.objects.create(name="project test")
         spider = Spider.objects.create(project=project, name="spider test")
         job = SpiderJob.objects.create(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
         run_spider_jobs()
+        job.refresh_from_db()
+        self.assertEqual(job.status, SpiderJob.WAITING_STATUS)
         job_info = job_manager.read_job(job.name)
         self.assertIsNotNone(job_info)
         job_manager.delete_job(job.name)
 
-    def test_run_jobs_from_endpoint(self):
+    @patch("core.tasks._get_cluster_resources", return_value=None)
+    def test_run_jobs_stops_when_no_capacity(self, mock_resources):
+        """run_spider_jobs should stop dispatching when cluster resources unavailable."""
+        SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).delete()
+        project = Project.objects.create(name="project test")
+        spider = Spider.objects.create(project=project, name="spider test")
+        job = SpiderJob.objects.create(spider=spider, status=SpiderJob.IN_QUEUE_STATUS)
+        run_spider_jobs()
+        job.refresh_from_db()
+        self.assertEqual(job.status, SpiderJob.IN_QUEUE_STATUS)
+
+    def test_create_job_default_async(self):
+        """Creating a job without params should save as IN_QUEUE (async by default)."""
         SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).delete()
         project = self.user.project_set.create(
             name="project test 2", through_defaults={"permission": "OWNER"}
@@ -26,25 +44,14 @@ class RunSpiderJobs(BaseTestCase):
             "pid": project.pid,
             "sid": spider.sid,
         }
-        params = {"async": True}
         response = self.make_request(
             method="POST",
             user=self.user,
             url_kwargs=url_kwargs,
             status_code=201,
             resource="job-list",
-            params=params,
         )
         self.assertEqual(response["job_status"], SpiderJob.IN_QUEUE_STATUS)
-        run_spider_jobs()
-        url_kwargs["jid"] = response["jid"]
-        response = self.make_request(
-            method="GET",
-            user=self.user,
-            url_kwargs=url_kwargs,
-            resource="job-detail",
-        )
-        job_manager.delete_job(response["name"])
 
     def test_create_cronjob(self):
         response = create_cronjob("1.1.1", "1.1.1", [], [], [], "* * * * *")

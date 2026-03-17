@@ -88,10 +88,10 @@ class SpiderJobViewSet(
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                name="async",
+                name="sync",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_BOOLEAN,
-                description="True if this job is async.",
+                description="True to bypass the dispatch queue and send directly to K8s.",
             ),
         ],
         request_body=SpiderJobCreateSerializer,
@@ -99,7 +99,7 @@ class SpiderJobViewSet(
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
-        async_param = request.query_params.get("async", False)
+        sync_param = request.query_params.get("sync", "false").lower() == "true"
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
@@ -110,7 +110,7 @@ class SpiderJobViewSet(
         else:
             data_expiry_days = None
 
-        if not async_param:
+        if sync_param:
             job = serializer.save(
                 spider=spider,
                 data_status=data_status,
