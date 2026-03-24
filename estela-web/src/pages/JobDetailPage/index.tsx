@@ -260,9 +260,11 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                 resourceNotAllowedNotification();
             },
         );
-        this.getProjectSpiders();
         await this.getItems(1);
         this.setState({ loadedItemsFirstTime: true });
+        setTimeout(() => {
+            this.getProjectSpiders();
+        }, 500);
     }
 
     getProjectSpiders = async (): Promise<void> => {
@@ -908,7 +910,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         } = this.state;
         return (
             <Content className="content-padding">
-                {loaded && loadedSpiders ? (
+                {loaded ? (
                     <Layout className="white-background">
                         <Content className="bg-metal rounded-2xl">
                             <Row className="flow-root lg:mt-10 lg:mx-10 mt-6 mx-6">
@@ -924,11 +926,13 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                 modalClone: true,
                                             });
                                         }}
-                                        icon={<Copy className="h-6 w-6 mr-2 text-sm" />}
+                                        loading={!loadedSpiders}
+                                        disabled={!loadedSpiders}
+                                        icon={!loadedSpiders ? null : <Copy className="h-6 w-6 mr-2 text-sm" />}
                                         size="large"
                                         className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
                                     >
-                                        Clone this job
+                                        {!loadedSpiders ? "Loading..." : "Clone this job"}
                                     </Button>
                                     <Button
                                         disabled={!(status == SpiderJobUpdateStatusEnum.Running)}
