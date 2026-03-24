@@ -32,17 +32,20 @@ import {
     ApiProjectsSpidersListRequest,
     ApiProjectsSpidersReadRequest,
     ApiProjectsReadRequest,
+    ApiProjectsResourceTiersAvailableRequest,
     SpiderDataStatusEnum,
     SpiderCronJobCreate,
     SpiderJobEnvVar,
     Project,
     Spider,
+    ResourceTier,
 } from "../../services/api";
 import history from "../../history";
 import { ApiService } from "../../services";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
 import { checkExternalError } from "../../defaultComponents";
 import { getFilteredEnvVars } from "../../utils";
+import { DEFAULT_RESOURCE_TIER } from "../../constants";
 import { ProxySettings } from "../../components/ProxySettingsPage";
 
 import "./styles.scss";
@@ -76,6 +79,7 @@ interface CronjobData {
     dataStatus: SpiderCronJobCreateDataStatusEnum | SpiderDataStatusEnum;
     dataExpiryDays: number;
     uniqueCollection: boolean;
+    resourceTier: string;
 }
 
 interface ArgsData {
@@ -184,6 +188,8 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [spiders, setSpiders] = useState<Spider[]>([]);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
+    const [availableTiers, setAvailableTiers] = useState<ResourceTier[]>([]);
+    const [projectDefaultTier, setProjectDefaultTier] = useState<string>(DEFAULT_RESOURCE_TIER);
     const [schedulesFlag, setSchedulesFlag] = useState([true, false]);
     const [cronjobData, setCronjobData] = useState<CronjobData>({
         args: [],
@@ -192,6 +198,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
         dataStatus: SpiderCronJobCreateDataStatusEnum.Pending,
         dataExpiryDays: spider ? Number(spider.dataExpiryDays) : 1,
         uniqueCollection: false,
+        resourceTier: "",
     });
     const [projectEnvVars, setProjectEnvVars] = useState<SpiderJobEnvVar[]>([]);
     const [spiderEnvVars, setSpiderEnvVars] = useState<SpiderJobEnvVar[]>([]);
@@ -261,10 +268,24 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         };
                     }),
                 );
+                const defaultTier = response.defaultResourceTier || DEFAULT_RESOURCE_TIER;
+                setProjectDefaultTier(defaultTier);
+                setCronjobData((prev) => ({ ...prev, resourceTier: defaultTier }));
             },
             (error: unknown) => {
                 error;
                 resourceNotAllowedNotification();
+            },
+        );
+
+        // Fetch available tiers
+        const tiersParams: ApiProjectsResourceTiersAvailableRequest = { pid: projectData.pid };
+        apiService.apiProjectsResourceTiersAvailable(tiersParams).then(
+            (tiers: ResourceTier[]) => {
+                setAvailableTiers(tiers);
+            },
+            (error: unknown) => {
+                error;
             },
         );
     }, []);
@@ -340,11 +361,11 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         masked: envVar.masked,
                     })),
                 );
-                setCronjobData({
-                    ...cronjobData,
+                setCronjobData((prev) => ({
+                    ...prev,
                     dataStatus: spiderList[selectedIndex].dataStatus,
                     dataExpiryDays: spiderList[selectedIndex].dataExpiryDays || 1,
-                });
+                }));
             }
 
             setSpiders((prev) => (isLoadMore ? [...prev, ...spiderList] : spiderList));
@@ -702,6 +723,7 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
             uniqueCollection: cronjobData.uniqueCollection,
             dataStatus: dataStatus,
             dataExpiryDays: cronjobData.dataExpiryDays,
+            resourceTier: cronjobData.resourceTier,
         };
         const request: ApiProjectsSpidersCronjobsCreateRequest = {
             data: requestData,
@@ -808,6 +830,22 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 {dataPersistenceOptions.map((option: OptionDataPersistance) => (
                                     <Option className="text-sm" key={option.key} value={option.value}>
                                         {option.label}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Content>
+                        <Content>
+                            <p className="text-base my-2">Resource Tier</p>
+                            <Select
+                                onChange={(value: string) => setCronjobData({ ...cronjobData, resourceTier: value })}
+                                className="w-full"
+                                size="large"
+                                value={cronjobData.resourceTier}
+                            >
+                                {availableTiers.map((tier: ResourceTier) => (
+                                    <Option key={tier.name} value={tier.name}>
+                                        {tier.name} ({tier.memLimit})
+                                        {tier.name === projectDefaultTier ? " - Default" : ""}
                                     </Option>
                                 ))}
                             </Select>

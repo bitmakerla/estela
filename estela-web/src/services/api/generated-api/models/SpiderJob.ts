@@ -136,6 +136,12 @@ export interface SpiderJob {
      * @memberof SpiderJob
      */
     readonly storageSize?: string;
+    /**
+     * Resource tier for K8s pod allocation.
+     * @type {string}
+     * @memberof SpiderJob
+     */
+    resourceTier?: string;
 }
 
 /**
@@ -146,6 +152,19 @@ export enum SpiderJobDataStatusEnum {
     Persistent = 'PERSISTENT',
     Pending = 'PENDING',
     Deleted = 'DELETED'
+}/**
+* @export
+* @enum {string}
+*/
+export enum SpiderJobResourceTierEnum {
+    Tiny = 'TINY',
+    Xsmall = 'XSMALL',
+    Small = 'SMALL',
+    Medium = 'MEDIUM',
+    Large = 'LARGE',
+    Xlarge = 'XLARGE',
+    Huge = 'HUGE',
+    Xhuge = 'XHUGE'
 }
 
 export function SpiderJobFromJSON(json: any): SpiderJob {
@@ -175,6 +194,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'databaseInsertionProgress': !exists(json, 'database_insertion_progress') ? undefined : json['database_insertion_progress'],
         'storageSize': !exists(json, 'storage_size') ? undefined : json['storage_size'],
+        'resourceTier': !exists(json, 'resource_tier') ? undefined : json['resource_tier'],
     };
 }
 
@@ -197,6 +217,7 @@ export function SpiderJobToJSON(value?: SpiderJob | null): any {
         'cronjob': value.cronjob,
         'data_expiry_days': value.dataExpiryDays,
         'data_status': value.dataStatus,
+        'resource_tier': value.resourceTier,
     };
 }
 

@@ -37,6 +37,7 @@ export * from './ProxyProviderResponse';
 export * from './ProxyProviderUpdate';
 export * from './ResetPasswordConfirm';
 export * from './ResetPasswordRequest';
+export * from './ResourceTier';
 export * from './Spider';
 export * from './SpiderCronJob';
 export * from './SpiderCronJobCreate';

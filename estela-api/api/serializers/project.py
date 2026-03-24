@@ -64,6 +64,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "env_vars",
             "data_status",
             "data_expiry_days",
+            "default_resource_tier",
         )
 
 
@@ -174,6 +175,11 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         default=False,
         help_text="Apply data persistence settings to all existing spiders.",
     )
+    default_resource_tier = serializers.CharField(
+        write_only=True,
+        required=False,
+        help_text="Default resource tier for jobs in this project.",
+    )
 
     class Meta:
         model = Project
@@ -189,6 +195,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             "data_status",
             "data_expiry_days",
             "apply_to_existing_spiders",
+            "default_resource_tier",
         )
 
 

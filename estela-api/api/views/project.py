@@ -102,6 +102,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         description = ""
         framework = serializer.validated_data.pop("framework", "")
         env_vars = serializer.validated_data.pop("env_vars", None)
+        default_resource_tier = serializer.validated_data.pop("default_resource_tier", "")
 
         if name:
             old_name = instance.name
@@ -171,6 +172,10 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
                 description = f"updated {user_email}'s permissions to {permission}."
             else:
                 raise ParseError({"error": "Action not supported."})
+
+        if default_resource_tier:
+            instance.default_resource_tier = default_resource_tier
+            description = f"changed default resource tier to {default_resource_tier}."
 
         if data_status:
             if data_status == DataStatus.PERSISTENT_STATUS:

@@ -88,6 +88,27 @@ export interface SpiderJobCreate {
      * @memberof SpiderJobCreate
      */
     dataStatus: string;
+    /**
+     * Resource tier for K8s pod allocation.
+     * @type {string}
+     * @memberof SpiderJobCreate
+     */
+    resourceTier?: string;
+}
+
+/**
+* @export
+* @enum {string}
+*/
+export enum SpiderJobCreateResourceTierEnum {
+    Tiny = 'TINY',
+    Xsmall = 'XSMALL',
+    Small = 'SMALL',
+    Medium = 'MEDIUM',
+    Large = 'LARGE',
+    Xlarge = 'XLARGE',
+    Huge = 'HUGE',
+    Xhuge = 'XHUGE'
 }
 
 export function SpiderJobCreateFromJSON(json: any): SpiderJobCreate {
@@ -109,6 +130,7 @@ export function SpiderJobCreateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'cronjob': !exists(json, 'cronjob') ? undefined : json['cronjob'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
         'dataStatus': json['data_status'],
+        'resourceTier': !exists(json, 'resource_tier') ? undefined : json['resource_tier'],
     };
 }
 
@@ -127,6 +149,7 @@ export function SpiderJobCreateToJSON(value?: SpiderJobCreate | null): any {
         'cronjob': value.cronjob,
         'data_expiry_days': value.dataExpiryDays,
         'data_status': value.dataStatus,
+        'resource_tier': value.resourceTier,
     };
 }
 

@@ -1,6 +1,22 @@
 import React, { Component } from "react";
-import { Button, Radio, Layout, Form, message, Typography, Row, Input, Select, Space, Checkbox } from "antd";
+import {
+    Button,
+    Radio,
+    Layout,
+    Form,
+    message,
+    Typography,
+    Row,
+    Col,
+    Input,
+    Select,
+    Space,
+    Checkbox,
+    Modal,
+    Card,
+} from "antd";
 import type { RadioChangeEvent } from "antd";
+import { PlusOutlined, DeleteOutlined, CheckCircleFilled } from "@ant-design/icons";
 import { RouteComponentProps, Link } from "react-router-dom";
 
 import { EnvVarsSetting } from "../../components/EnvVarsSettingsPage";
@@ -11,6 +27,9 @@ import history from "../../history";
 import { ApiService } from "../../services";
 import {
     ApiProjectsReadRequest,
+    ApiProjectsResourceTiersAvailableRequest,
+    ApiProjectsResourceTiersCreateRequest,
+    ApiProjectsResourceTiersDeleteRequest,
     Project,
     ProjectUpdate,
     ProjectUpdatePermissionEnum,
@@ -20,8 +39,10 @@ import {
     ApiProjectsUpdateRequest,
     ApiProjectsDeleteRequest,
     SpiderJobEnvVar,
+    ResourceTier,
 } from "../../services/api";
 import { resourceNotAllowedNotification } from "../../shared";
+import { DEFAULT_RESOURCE_TIER } from "../../constants";
 import { Permission } from "../../services/api/generated-api/models/Permission";
 import { handleInvalidDataError } from "../../utils";
 
@@ -46,6 +67,14 @@ interface ProjectSettingsPageState {
     newDataStatus: ProjectUpdateDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
     applyToExistingSpiders: boolean;
+    availableTiers: ResourceTier[];
+    defaultResourceTier: string;
+    showTierModal: boolean;
+    newTierName: string;
+    newTierCpuRequest: string;
+    newTierCpuLimit: string;
+    newTierMemRequest: string;
+    newTierMemLimit: string;
 }
 
 interface RouteParams {
@@ -78,6 +107,14 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         projectName: "",
         category: undefined,
         applyToExistingSpiders: false,
+        availableTiers: [],
+        defaultResourceTier: DEFAULT_RESOURCE_TIER,
+        showTierModal: false,
+        newTierName: "",
+        newTierCpuRequest: "",
+        newTierCpuLimit: "",
+        newTierMemRequest: "",
+        newTierMemLimit: "",
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -114,6 +151,7 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                     loaded: true,
                     envVars: [...envVars],
                     category: response.category,
+                    defaultResourceTier: response.defaultResourceTier || "SMALL",
                 });
             },
             (error: unknown) => {
@@ -123,8 +161,91 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
         );
     };
 
+    fetchTiers = (): void => {
+        const tiersParams: ApiProjectsResourceTiersAvailableRequest = { pid: this.projectId };
+        this.apiService.apiProjectsResourceTiersAvailable(tiersParams).then(
+            (tiers: ResourceTier[]) => {
+                this.setState({ availableTiers: tiers });
+            },
+            (error: unknown) => {
+                error;
+            },
+        );
+    };
+
+    changeDefaultTier = (tierName: string): void => {
+        const requestData: ProjectUpdate = {
+            defaultResourceTier: tierName,
+        };
+        const request: ApiProjectsUpdateRequest = {
+            data: requestData,
+            pid: this.projectId,
+        };
+        this.apiService.apiProjectsUpdate(request).then(
+            () => {
+                this.setState({ defaultResourceTier: tierName });
+                message.success(`Default tier changed to ${tierName}`);
+            },
+            (error: unknown) => {
+                handleInvalidDataError(error);
+            },
+        );
+    };
+
+    createCustomTier = (): void => {
+        const { newTierName, newTierCpuRequest, newTierCpuLimit, newTierMemRequest, newTierMemLimit } = this.state;
+        if (!newTierName || !newTierCpuRequest || !newTierCpuLimit || !newTierMemRequest || !newTierMemLimit) {
+            message.error("All fields are required");
+            return;
+        }
+        const request: ApiProjectsResourceTiersCreateRequest = {
+            pid: this.projectId,
+            data: {
+                name: newTierName,
+                cpuRequest: `${newTierCpuRequest}m`,
+                cpuLimit: `${newTierCpuLimit}m`,
+                memRequest: `${newTierMemRequest}Mi`,
+                memLimit: `${newTierMemLimit}Mi`,
+            },
+        };
+        this.apiService.apiProjectsResourceTiersCreate(request).then(
+            () => {
+                message.success(`Custom tier "${newTierName}" created`);
+                this.setState({
+                    showTierModal: false,
+                    newTierName: "",
+                    newTierCpuRequest: "",
+                    newTierCpuLimit: "",
+                    newTierMemRequest: "",
+                    newTierMemLimit: "",
+                });
+                this.fetchTiers();
+            },
+            (error: unknown) => {
+                handleInvalidDataError(error);
+            },
+        );
+    };
+
+    deleteCustomTier = (tierId: number, tierName: string): void => {
+        const request: ApiProjectsResourceTiersDeleteRequest = {
+            pid: this.projectId,
+            id: tierId,
+        };
+        this.apiService.apiProjectsResourceTiersDelete(request).then(
+            () => {
+                message.success(`Tier "${tierName}" deleted`);
+                this.fetchTiers();
+            },
+            (error: unknown) => {
+                handleInvalidDataError(error);
+            },
+        );
+    };
+
     async componentDidMount(): Promise<void> {
         this.updateInfo();
+        this.fetchTiers();
     }
 
     async componentDidUpdate(
@@ -277,6 +398,9 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
             detailsChanged,
             persistenceChanged,
             envVars,
+            availableTiers,
+            defaultResourceTier,
+            showTierModal,
         } = this.state;
         return (
             <Content className="bg-metal rounded-2xl">
@@ -381,6 +505,138 @@ export class ProjectSettingsPage extends Component<RouteComponentProps<RoutePara
                                 </div>
                             </Content>
                         </Row>
+                        <Row className="bg-white rounded-lg my-4">
+                            <div className="lg:m-8 md:mx-6 m-4 w-full">
+                                <div className="flex justify-between items-center mb-4">
+                                    <p className="text-2xl text-estela-black-full">Resource Tiers</p>
+                                    <Button icon={<PlusOutlined />} disabled className="flex items-center rounded-md">
+                                        Add Custom Tier
+                                    </Button>
+                                </div>
+                                <p className="text-sm text-estela-black-medium mb-4">
+                                    Click on a tier to set it as the default for new jobs in this project.
+                                </p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {availableTiers.map((tier: ResourceTier) => {
+                                        const isDefault = tier.name === defaultResourceTier;
+                                        const isCustom = tier.id !== null && tier.id !== undefined;
+                                        return (
+                                            <Card
+                                                key={tier.name}
+                                                size="small"
+                                                className={`cursor-pointer transition-all ${
+                                                    isDefault
+                                                        ? "border-2 border-estela bg-estela-blue-low"
+                                                        : "border border-gray-200 hover:border-estela"
+                                                }`}
+                                                onClick={() => this.changeDefaultTier(tier.name)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <p className="font-semibold text-base text-estela-black-full">
+                                                        {tier.name}
+                                                    </p>
+                                                    <div className="flex items-center gap-1">
+                                                        {isDefault && <CheckCircleFilled className="text-estela" />}
+                                                        {isCustom && (
+                                                            <Button
+                                                                type="text"
+                                                                size="small"
+                                                                icon={<DeleteOutlined className="text-red-500" />}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    this.deleteCustomTier(tier.id as number, tier.name);
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                                                    <div>
+                                                        MEM: {tier.memRequest} / {tier.memLimit}
+                                                    </div>
+                                                    <div>
+                                                        CPU: {tier.cpuRequest} / {tier.cpuLimit}
+                                                    </div>
+                                                </div>
+                                                {isDefault && (
+                                                    <div className="mt-1">
+                                                        <span className="text-xs font-medium text-estela">Default</span>
+                                                    </div>
+                                                )}
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </Row>
+                        <Modal
+                            open={showTierModal}
+                            title="Add Custom Tier"
+                            onCancel={() => this.setState({ showTierModal: false })}
+                            onOk={this.createCustomTier}
+                            okText="Create"
+                            okButtonProps={{
+                                className: "bg-estela border-estela text-white",
+                            }}
+                        >
+                            <Form layout="vertical">
+                                <Form.Item label="Name">
+                                    <Input
+                                        value={this.state.newTierName}
+                                        onChange={(e) => this.setState({ newTierName: e.target.value })}
+                                        placeholder="e.g. MY_CUSTOM"
+                                    />
+                                </Form.Item>
+                                <Row gutter={16}>
+                                    <Col span={12}>
+                                        <Form.Item label="CPU Request (millicores)">
+                                            <Input
+                                                type="number"
+                                                value={this.state.newTierCpuRequest}
+                                                onChange={(e) => this.setState({ newTierCpuRequest: e.target.value })}
+                                                placeholder="e.g. 256"
+                                                suffix="m"
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={12}>
+                                        <Form.Item label="CPU Limit (millicores)">
+                                            <Input
+                                                type="number"
+                                                value={this.state.newTierCpuLimit}
+                                                onChange={(e) => this.setState({ newTierCpuLimit: e.target.value })}
+                                                placeholder="e.g. 512"
+                                                suffix="m"
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
+                                <Row gutter={16}>
+                                    <Col span={12}>
+                                        <Form.Item label="Memory Request (MiB)">
+                                            <Input
+                                                type="number"
+                                                value={this.state.newTierMemRequest}
+                                                onChange={(e) => this.setState({ newTierMemRequest: e.target.value })}
+                                                placeholder="e.g. 384"
+                                                suffix="Mi"
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                    <Col span={12}>
+                                        <Form.Item label="Memory Limit (MiB)">
+                                            <Input
+                                                type="number"
+                                                value={this.state.newTierMemLimit}
+                                                onChange={(e) => this.setState({ newTierMemLimit: e.target.value })}
+                                                placeholder="e.g. 512"
+                                                suffix="Mi"
+                                            />
+                                        </Form.Item>
+                                    </Col>
+                                </Row>
+                            </Form>
+                        </Modal>
                         <EnvVarsSetting projectId={this.projectId} spiderId="" envVarsData={envVars} level="project" />
                         <ProxySettings envVars={envVars} setEnvVars={this.updateEnvVars} />
                         <Row className="bg-white rounded-lg">

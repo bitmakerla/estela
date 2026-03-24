@@ -7,17 +7,20 @@ import {
     ApiProjectsSpidersListRequest,
     ApiProjectsSpidersReadRequest,
     ApiProjectsReadRequest,
+    ApiProjectsResourceTiersAvailableRequest,
     SpiderDataStatusEnum,
     SpiderJobCreate,
     SpiderJobEnvVar,
     Project,
     Spider,
+    ResourceTier,
 } from "../../services/api";
 import { getFilteredEnvVars } from "../../utils";
 import history from "../../history";
 import { ApiService } from "../../services";
 import { ProxySettings } from "../../components/ProxySettingsPage";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
+import { DEFAULT_RESOURCE_TIER } from "../../constants";
 import { checkExternalError } from "../../defaultComponents";
 
 import Run from "../../assets/icons/play.svg";
@@ -66,6 +69,7 @@ interface JobData {
     tags: TagsData[];
     dataStatus: SpiderDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
+    resourceTier: string;
 }
 
 interface Variable {
@@ -120,6 +124,8 @@ export default function JobCreateModal({
     const [hasMoreSpiders, setHasMoreSpiders] = useState<boolean>(true);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
+    const [availableTiers, setAvailableTiers] = useState<ResourceTier[]>([]);
+    const [projectDefaultTier, setProjectDefaultTier] = useState<string>(DEFAULT_RESOURCE_TIER);
     const [jobData, setJobData] = useState<JobData>({
         args: initialArgs.map((arg, index) => ({ ...arg, key: index })),
         envVars: initialEnvVars.map((envVar, index) => ({
@@ -131,6 +137,7 @@ export default function JobCreateModal({
         tags: initialTags,
         dataStatus: spider ? spider.dataStatus : undefined,
         dataExpiryDays: spider ? spider.dataExpiryDays : 1,
+        resourceTier: "",
     });
     const [noProxy, setNoProxy] = useState<boolean>(true);
     const [newProxyFormActivate, setNewProxyFormActivate] = useState<boolean>(false);
@@ -175,10 +182,24 @@ export default function JobCreateModal({
                         };
                     }),
                 );
+                const defaultTier = response.defaultResourceTier || DEFAULT_RESOURCE_TIER;
+                setProjectDefaultTier(defaultTier);
+                setJobData((prev) => ({ ...prev, resourceTier: defaultTier }));
             },
             (error: unknown) => {
                 error;
                 resourceNotAllowedNotification();
+            },
+        );
+
+        // Fetch available tiers
+        const tiersParams: ApiProjectsResourceTiersAvailableRequest = { pid: request.pid };
+        apiService.apiProjectsResourceTiersAvailable(tiersParams).then(
+            (tiers: ResourceTier[]) => {
+                setAvailableTiers(tiers);
+            },
+            (error: unknown) => {
+                error;
             },
         );
     }, []);
@@ -224,11 +245,8 @@ export default function JobCreateModal({
             search,
         } as ApiProjectsSpidersListRequest;
 
-        console.log("Searching spiders with params:", requestParams);
-
         try {
             const results = await apiService.apiProjectsSpidersList(requestParams);
-            console.log("Search results:", results);
             const spiderList = results.results;
             setHasMoreSpiders(spiderList.length === PAGE_SIZE);
 
@@ -260,11 +278,11 @@ export default function JobCreateModal({
                         masked: envVar.masked,
                     })),
                 );
-                setJobData({
-                    ...jobData,
+                setJobData((prev) => ({
+                    ...prev,
                     dataStatus: spiderList[selectedIndex].dataStatus,
                     dataExpiryDays: spiderList[selectedIndex].dataExpiryDays,
-                });
+                }));
             }
 
             setSpiders((prev) => (isLoadMore ? [...prev, ...spiderList] : spiderList));
@@ -450,6 +468,7 @@ export default function JobCreateModal({
             tags: [...tags],
             dataStatus: String(dataStatus),
             dataExpiryDays: Number(dataExpiryDays),
+            resourceTier: jobData.resourceTier,
         };
         const requests: ApiProjectsSpidersJobsCreateRequest = {
             data: Data,
@@ -630,6 +649,21 @@ export default function JobCreateModal({
                         {dataPersistenceOptions.map((option: OptionDataPersistance) => (
                             <Option className="text-sm" key={option.key} value={option.value}>
                                 {option.label}
+                            </Option>
+                        ))}
+                    </Select>
+                </Row>
+                <Row>
+                    <p className="text-base my-2">Resource Tier</p>
+                    <Select
+                        onChange={(value: string) => setJobData({ ...jobData, resourceTier: value })}
+                        className="w-full"
+                        size="large"
+                        value={jobData.resourceTier}
+                    >
+                        {availableTiers.map((tier: ResourceTier) => (
+                            <Option key={tier.name} value={tier.name}>
+                                {tier.name} ({tier.memLimit}){tier.name === projectDefaultTier ? " - Default" : ""}
                             </Option>
                         ))}
                     </Select>

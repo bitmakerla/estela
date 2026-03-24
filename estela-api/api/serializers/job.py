@@ -59,6 +59,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "data_status",
             "database_insertion_progress",
             "storage_size",
+            "resource_tier",
         )
 
     def get_spider(self, instance):
@@ -123,6 +124,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             "cronjob",
             "data_expiry_days",
             "data_status",
+            "resource_tier",
         )
 
     def create(self, validated_data):

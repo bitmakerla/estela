@@ -13,7 +13,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     "run-spider-jobs": {
         "task": "core.tasks.run_spider_jobs",
-        "schedule": 30,
+        "schedule": settings.DISPATCH_RETRY_DELAY,
     },
     "check-and-update-job-status-errors": {
         "task": "core.tasks.check_and_update_job_status_errors",

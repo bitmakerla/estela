@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 from typing import List
 import logging
 
@@ -26,6 +26,7 @@ from core.models import (
     SpiderJob,
     UsageRecord,
 )
+from core.tiers import get_tier_resources
 
 import redis
 from kubernetes import client, config
@@ -53,7 +54,7 @@ def run_spider_jobs():
         return
 
     try:
-        jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS)[
+        jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).order_by("created")[
             : settings.RUN_JOBS_PER_LOT
         ]
 
@@ -62,27 +63,20 @@ def run_spider_jobs():
             return
 
         alloc_cpu, alloc_mem, used_cpu, used_mem = cluster
-        job_cpu = _parse_k8s_resource(settings.SPIDER_JOB_CPU_REQUEST)
-        job_mem = _parse_k8s_resource(settings.SPIDER_JOB_MEM_REQUEST)
 
         dispatched = 0
+        skipped = 0
         for job in jobs:
+            tier = get_tier_resources(job.resource_tier, project=job.spider.project)
+            job_cpu = _parse_k8s_resource(tier["cpu_request"])
+            job_mem = _parse_k8s_resource(tier["mem_request"])
             new_cpu = used_cpu + job_cpu
             new_mem = used_mem + job_mem
 
-            if alloc_cpu > 0 and (new_cpu / alloc_cpu) >= NODE_CAPACITY_THRESHOLD:
-                logging.info(
-                    "run_spider_jobs: CPU at capacity %.0f%%, stopped after %d jobs",
-                    (used_cpu / alloc_cpu) * 100, dispatched,
-                )
-                break
-
-            if alloc_mem > 0 and (new_mem / alloc_mem) >= NODE_CAPACITY_THRESHOLD:
-                logging.info(
-                    "run_spider_jobs: MEM at capacity %.0f%%, stopped after %d jobs",
-                    (used_mem / alloc_mem) * 100, dispatched,
-                )
-                break
+            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= NODE_CAPACITY_THRESHOLD) or \
+               (alloc_mem > 0 and (new_mem / alloc_mem) >= NODE_CAPACITY_THRESHOLD):
+                skipped += 1
+                continue
 
             try:
                 _dispatch_single_job(job)
@@ -92,8 +86,14 @@ def run_spider_jobs():
             except Exception as e:
                 logging.error("run_spider_jobs: failed to dispatch job %s: %s", job.jid, e)
 
-        if dispatched:
-            logging.info("run_spider_jobs: dispatched %d jobs", dispatched)
+        if dispatched or skipped:
+            logging.info(
+                "run_spider_jobs: dispatched %d, skipped %d (capacity %.0f%% CPU, %.0f%% MEM)",
+                dispatched, skipped,
+                (used_cpu / alloc_cpu) * 100 if alloc_cpu > 0 else 0,
+                (used_mem / alloc_mem) * 100 if alloc_mem > 0 else 0,
+            )
+
     finally:
         redis_client.delete(RUN_SPIDER_JOBS_LOCK_KEY)
 
@@ -132,6 +132,8 @@ def _dispatch_single_job(job):
         job.spider.project.container_image,
         auth_token=token,
         unique=unique,
+        resource_tier=job.resource_tier,
+        project=job.spider.project,
     )
 
 
@@ -236,13 +238,20 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
     else:
         data_["data_status"] = DataStatus.PENDING_STATUS
 
+    resource_tier = data_.pop("resource_tier", None)
+
     serializer = SpiderJobCreateSerializer(data=data_)
     serializer.is_valid(raise_exception=True)
-    serializer.save(
-        spider=spider,
-        status=SpiderJob.IN_QUEUE_STATUS,
-        data_expiry_days=data_expiry_days,
-    )
+
+    save_kwargs = {
+        "spider": spider,
+        "status": SpiderJob.IN_QUEUE_STATUS,
+        "data_expiry_days": data_expiry_days,
+    }
+    if resource_tier:
+        save_kwargs["resource_tier"] = resource_tier
+
+    serializer.save(**save_kwargs)
 
 
 @celery_app.task(name="core.tasks.check_and_update_job_status_errors")

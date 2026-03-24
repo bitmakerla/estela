@@ -99,9 +99,15 @@ class SpiderJobViewSet(
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
         sync_param = request.query_params.get("sync", "false").lower() == "true"
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Use project default tier if not specified
+        if not serializer.validated_data.get("resource_tier"):
+            serializer.validated_data["resource_tier"] = project.default_resource_tier
+
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
         if data_status == DataStatus.PENDING_STATUS:
             data_expiry_days = request.data.pop("data_expiry_days", 1)
@@ -143,6 +149,8 @@ class SpiderJobViewSet(
                 job_env_vars,
                 job.spider.project.container_image,
                 auth_token=token,
+                resource_tier=job.resource_tier,
+                project=project,
             )
         else:
             serializer.save(
@@ -153,7 +161,6 @@ class SpiderJobViewSet(
             )
 
         # Send action notification
-        project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_action(
             user=request.user,
             description=f"run Job-{serializer.data['jid']} for spider {spider.name}.",
