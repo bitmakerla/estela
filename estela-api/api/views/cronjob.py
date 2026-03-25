@@ -16,6 +16,7 @@ from api.serializers.cronjob import (
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
 from core.models import DataStatus, Spider, SpiderCronJob, Project
+from core.tiers import DEFAULT_TIER
 
 
 class SpiderCronJobViewSet(
@@ -67,9 +68,9 @@ class SpiderCronJobViewSet(
         serializer = SpiderCronJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Use project default tier if not specified
+        # Use default tier if not specified
         if not serializer.validated_data.get("resource_tier"):
-            serializer.validated_data["resource_tier"] = project.default_resource_tier
+            serializer.validated_data["resource_tier"] = DEFAULT_TIER
 
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
 

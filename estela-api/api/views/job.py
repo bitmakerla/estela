@@ -16,6 +16,7 @@ from api.serializers.job import (
 from api.utils import get_proxy_provider_envs, update_stats_from_redis
 from config.job_manager import job_manager
 from core.models import DataStatus, Project, ProxyProvider, Spider, SpiderJob
+from core.tiers import DEFAULT_TIER
 
 
 class SpiderJobViewSet(
@@ -104,9 +105,9 @@ class SpiderJobViewSet(
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Use project default tier if not specified
+        # Use default tier if not specified
         if not serializer.validated_data.get("resource_tier"):
-            serializer.validated_data["resource_tier"] = project.default_resource_tier
+            serializer.validated_data["resource_tier"] = DEFAULT_TIER
 
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
         if data_status == DataStatus.PENDING_STATUS:
@@ -150,7 +151,6 @@ class SpiderJobViewSet(
                 job.spider.project.container_image,
                 auth_token=token,
                 resource_tier=job.resource_tier,
-                project=project,
             )
         else:
             serializer.save(

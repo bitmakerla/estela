@@ -84,12 +84,6 @@ export interface Project {
      * @memberof Project
      */
     dataExpiryDays?: number;
-    /**
-     * Default resource tier for jobs in this project.
-     * @type {string}
-     * @memberof Project
-     */
-    defaultResourceTier?: string;
 }
 
 /**
@@ -139,7 +133,6 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
-        'defaultResourceTier': !exists(json, 'default_resource_tier') ? undefined : json['default_resource_tier'],
     };
 }
 
@@ -159,7 +152,6 @@ export function ProjectToJSON(value?: Project | null): any {
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
-        'default_resource_tier': value.defaultResourceTier,
     };
 }
 

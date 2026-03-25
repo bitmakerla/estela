@@ -96,12 +96,6 @@ export interface ProjectUpdate {
      * @memberof ProjectUpdate
      */
     applyToExistingSpiders?: boolean;
-    /**
-     * Default resource tier for jobs in this project.
-     * @type {string}
-     * @memberof ProjectUpdate
-     */
-    defaultResourceTier?: string;
 }
 
 /**
@@ -158,7 +152,6 @@ export function ProjectUpdateFromJSONTyped(json: any, ignoreDiscriminator: boole
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
         'applyToExistingSpiders': !exists(json, 'apply_to_existing_spiders') ? undefined : json['apply_to_existing_spiders'],
-        'defaultResourceTier': !exists(json, 'default_resource_tier') ? undefined : json['default_resource_tier'],
     };
 }
 
@@ -181,7 +174,6 @@ export function ProjectUpdateToJSON(value?: ProjectUpdate | null): any {
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
         'apply_to_existing_spiders': value.applyToExistingSpiders,
-        'default_resource_tier': value.defaultResourceTier,
     };
 }
 

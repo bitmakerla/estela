@@ -108,9 +108,6 @@ import {
     ResetPasswordRequest,
     ResetPasswordRequestFromJSON,
     ResetPasswordRequestToJSON,
-    ResourceTier,
-    ResourceTierFromJSON,
-    ResourceTierToJSON,
     Spider,
     SpiderFromJSON,
     SpiderToJSON,
@@ -443,26 +440,6 @@ export interface ApiProjectsSpidersUpdateRequest {
 export interface ApiProjectsUpdateRequest {
     pid: string;
     data: ProjectUpdate;
-}
-
-export interface ApiProjectsResourceTiersAvailableRequest {
-    pid: string;
-}
-
-export interface ApiProjectsResourceTiersCreateRequest {
-    pid: string;
-    data: ResourceTier;
-}
-
-export interface ApiProjectsResourceTiersDeleteRequest {
-    pid: string;
-    id: number;
-}
-
-export interface ApiProjectsResourceTiersUpdateRequest {
-    pid: string;
-    id: number;
-    data: ResourceTier;
 }
 
 export interface ApiProjectsUsageRequest {
@@ -3120,129 +3097,6 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpidersPagination> {
         const response = await this.apiStatsSpidersRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * List all available resource tiers (predefined + custom) for a project.
-     */
-    async apiProjectsResourceTiersAvailableRaw(requestParameters: ApiProjectsResourceTiersAvailableRequest): Promise<runtime.ApiResponse<Array<ResourceTier>>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsResourceTiersAvailable.');
-        }
-
-        const queryParameters: any = {};
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["Authorization"] = this.configuration.apiKey("Authorization");
-        }
-
-        const response = await this.request({
-            path: `/api/projects/{pid}/resource-tiers/available`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ResourceTierFromJSON));
-    }
-
-    async apiProjectsResourceTiersAvailable(requestParameters: ApiProjectsResourceTiersAvailableRequest): Promise<Array<ResourceTier>> {
-        const response = await this.apiProjectsResourceTiersAvailableRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Create a custom resource tier for a project.
-     */
-    async apiProjectsResourceTiersCreateRaw(requestParameters: ApiProjectsResourceTiersCreateRequest): Promise<runtime.ApiResponse<ResourceTier>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsResourceTiersCreate.');
-        }
-
-        const queryParameters: any = {};
-        const headerParameters: runtime.HTTPHeaders = {};
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["Authorization"] = this.configuration.apiKey("Authorization");
-        }
-
-        const response = await this.request({
-            path: `/api/projects/{pid}/resource-tiers`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ResourceTierToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ResourceTierFromJSON(jsonValue));
-    }
-
-    async apiProjectsResourceTiersCreate(requestParameters: ApiProjectsResourceTiersCreateRequest): Promise<ResourceTier> {
-        const response = await this.apiProjectsResourceTiersCreateRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Delete a custom resource tier.
-     */
-    async apiProjectsResourceTiersDeleteRaw(requestParameters: ApiProjectsResourceTiersDeleteRequest): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsResourceTiersDelete.');
-        }
-
-        const queryParameters: any = {};
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["Authorization"] = this.configuration.apiKey("Authorization");
-        }
-
-        const response = await this.request({
-            path: `/api/projects/{pid}/resource-tiers/{id}`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    async apiProjectsResourceTiersDelete(requestParameters: ApiProjectsResourceTiersDeleteRequest): Promise<void> {
-        await this.apiProjectsResourceTiersDeleteRaw(requestParameters);
-    }
-
-    /**
-     * Update a custom resource tier.
-     */
-    async apiProjectsResourceTiersUpdateRaw(requestParameters: ApiProjectsResourceTiersUpdateRequest): Promise<runtime.ApiResponse<ResourceTier>> {
-        if (requestParameters.pid === null || requestParameters.pid === undefined) {
-            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsResourceTiersUpdate.');
-        }
-
-        const queryParameters: any = {};
-        const headerParameters: runtime.HTTPHeaders = {};
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["Authorization"] = this.configuration.apiKey("Authorization");
-        }
-
-        const response = await this.request({
-            path: `/api/projects/{pid}/resource-tiers/{id}`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ResourceTierToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ResourceTierFromJSON(jsonValue));
-    }
-
-    async apiProjectsResourceTiersUpdate(requestParameters: ApiProjectsResourceTiersUpdateRequest): Promise<ResourceTier> {
-        const response = await this.apiProjectsResourceTiersUpdateRaw(requestParameters);
         return await response.value();
     }
 

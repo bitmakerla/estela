@@ -32,20 +32,18 @@ import {
     ApiProjectsSpidersListRequest,
     ApiProjectsSpidersReadRequest,
     ApiProjectsReadRequest,
-    ApiProjectsResourceTiersAvailableRequest,
     SpiderDataStatusEnum,
     SpiderCronJobCreate,
     SpiderJobEnvVar,
     Project,
     Spider,
-    ResourceTier,
 } from "../../services/api";
 import history from "../../history";
 import { ApiService } from "../../services";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
 import { checkExternalError } from "../../defaultComponents";
 import { getFilteredEnvVars } from "../../utils";
-import { DEFAULT_RESOURCE_TIER } from "../../constants";
+import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
 import { ProxySettings } from "../../components/ProxySettingsPage";
 
 import "./styles.scss";
@@ -188,8 +186,6 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [spiders, setSpiders] = useState<Spider[]>([]);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
-    const [availableTiers, setAvailableTiers] = useState<ResourceTier[]>([]);
-    const [projectDefaultTier, setProjectDefaultTier] = useState<string>(DEFAULT_RESOURCE_TIER);
     const [schedulesFlag, setSchedulesFlag] = useState([true, false]);
     const [cronjobData, setCronjobData] = useState<CronjobData>({
         args: [],
@@ -268,24 +264,11 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                         };
                     }),
                 );
-                const defaultTier = response.defaultResourceTier || DEFAULT_RESOURCE_TIER;
-                setProjectDefaultTier(defaultTier);
-                setCronjobData((prev) => ({ ...prev, resourceTier: defaultTier }));
+                setCronjobData((prev) => ({ ...prev, resourceTier: DEFAULT_RESOURCE_TIER }));
             },
             (error: unknown) => {
                 error;
                 resourceNotAllowedNotification();
-            },
-        );
-
-        // Fetch available tiers
-        const tiersParams: ApiProjectsResourceTiersAvailableRequest = { pid: projectData.pid };
-        apiService.apiProjectsResourceTiersAvailable(tiersParams).then(
-            (tiers: ResourceTier[]) => {
-                setAvailableTiers(tiers);
-            },
-            (error: unknown) => {
-                error;
             },
         );
     }, []);
@@ -842,10 +825,10 @@ export default function CronjobCreateModal({ openModal, spider, projectId }: Cro
                                 size="large"
                                 value={cronjobData.resourceTier}
                             >
-                                {availableTiers.map((tier: ResourceTier) => (
+                                {PREDEFINED_TIERS.map((tier) => (
                                     <Option key={tier.name} value={tier.name}>
                                         {tier.name} ({tier.memLimit})
-                                        {tier.name === projectDefaultTier ? " - Default" : ""}
+                                        {tier.name === DEFAULT_RESOURCE_TIER ? " - Default" : ""}
                                     </Option>
                                 ))}
                             </Select>

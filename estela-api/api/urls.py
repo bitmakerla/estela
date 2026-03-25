@@ -11,7 +11,6 @@ from api.views import (
     stats as stats_views,
     notification as notification_views,
     proxyprovider as proxyprovider_views,
-    tier as tier_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -59,11 +58,6 @@ router.register(
     prefix=r"stats/(?P<pid>[0-9a-z-]+)/spider/(?P<sid>\d+)",
     viewset=stats_views.SpidersJobsStatsViewSet,
     basename="spider-stats",
-)
-router.register(
-    prefix=r"projects/(?P<pid>[0-9a-z-]+)/resource-tiers",
-    viewset=tier_views.ResourceTierViewSet,
-    basename="resource-tier",
 )
 router.register(
     prefix=r"proxy_provider",

@@ -40,7 +40,6 @@ class KubernetesEngine:
         command,
         isbuild,
         resource_tier=None,
-        project=None,
     ):
         body = client.V1Job(api_version="batch/v1", kind="Job")
         body.metadata = client.V1ObjectMeta(namespace=namespace, name=name)
@@ -80,7 +79,7 @@ class KubernetesEngine:
         )
         if not isbuild:
             from core.tiers import get_tier_resources, DEFAULT_TIER
-            tier = get_tier_resources(resource_tier or DEFAULT_TIER, project=project)
+            tier = get_tier_resources(resource_tier or DEFAULT_TIER)
             cpu_req, cpu_lim = tier["cpu_request"], tier["cpu_limit"]
             mem_req, mem_lim = tier["mem_request"], tier["mem_limit"]
             container.resources = client.V1ResourceRequirements(
@@ -153,7 +152,6 @@ class KubernetesEngine:
         command=["estela-crawl"],
         isbuild=False,
         resource_tier=None,
-        project=None,
     ):
         if api_instance is None:
             api_instance = self.get_api_instance()
@@ -192,7 +190,6 @@ class KubernetesEngine:
             command,
             isbuild,
             resource_tier=resource_tier,
-            project=project,
         )
 
         api_response = api_instance.create_namespaced_job(namespace, body)

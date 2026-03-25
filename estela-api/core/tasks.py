@@ -67,7 +67,7 @@ def run_spider_jobs():
         dispatched = 0
         skipped = 0
         for job in jobs:
-            tier = get_tier_resources(job.resource_tier, project=job.spider.project)
+            tier = get_tier_resources(job.resource_tier)
             job_cpu = _parse_k8s_resource(tier["cpu_request"])
             job_mem = _parse_k8s_resource(tier["mem_request"])
             new_cpu = used_cpu + job_cpu
@@ -133,7 +133,6 @@ def _dispatch_single_job(job):
         auth_token=token,
         unique=unique,
         resource_tier=job.resource_tier,
-        project=job.spider.project,
     )
 
 

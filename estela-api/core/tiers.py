@@ -71,38 +71,8 @@ TIER_CHOICES = [
 ]
 
 
-def get_tier_resources(tier_name, project=None):
-    """Look up tier resources from hardcoded dict, then fall back to DB custom tiers."""
+def get_tier_resources(tier_name):
+    """Look up tier resources from the predefined dict."""
     if tier_name in RESOURCE_TIERS:
         return RESOURCE_TIERS[tier_name]
-
-    # Fall back to DB for custom tiers
-    from core.models import ResourceTier
-
-    try:
-        filters = {"name": tier_name}
-        if project is not None:
-            filters["project"] = project
-        custom = ResourceTier.objects.get(**filters)
-        return {
-            "cpu_request": custom.cpu_request,
-            "cpu_limit": custom.cpu_limit,
-            "mem_request": custom.mem_request,
-            "mem_limit": custom.mem_limit,
-            "memusage_limit_mb": _estimate_memusage_mb(custom.mem_limit),
-        }
-    except (ResourceTier.DoesNotExist, ResourceTier.MultipleObjectsReturned):
-        return RESOURCE_TIERS[DEFAULT_TIER]
-
-
-def _estimate_memusage_mb(mem_limit):
-    """Calculate MEMUSAGE_LIMIT_MB as ~85% of the K8s memory limit."""
-    units = {"Mi": 1, "Gi": 1024, "Ti": 1024 * 1024, "Ki": 1 / 1024}
-    for suffix, multiplier in units.items():
-        if mem_limit.endswith(suffix):
-            mb = float(mem_limit[:-len(suffix)]) * multiplier
-            return int(mb * 0.85)
-    try:
-        return int(float(mem_limit) / (1024 * 1024) * 0.85)
-    except ValueError:
-        return 1200
+    return RESOURCE_TIERS[DEFAULT_TIER]

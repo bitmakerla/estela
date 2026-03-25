@@ -7,20 +7,18 @@ import {
     ApiProjectsSpidersListRequest,
     ApiProjectsSpidersReadRequest,
     ApiProjectsReadRequest,
-    ApiProjectsResourceTiersAvailableRequest,
     SpiderDataStatusEnum,
     SpiderJobCreate,
     SpiderJobEnvVar,
     Project,
     Spider,
-    ResourceTier,
 } from "../../services/api";
 import { getFilteredEnvVars } from "../../utils";
 import history from "../../history";
 import { ApiService } from "../../services";
 import { ProxySettings } from "../../components/ProxySettingsPage";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
-import { DEFAULT_RESOURCE_TIER } from "../../constants";
+import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
 import { checkExternalError } from "../../defaultComponents";
 
 import Run from "../../assets/icons/play.svg";
@@ -124,8 +122,6 @@ export default function JobCreateModal({
     const [hasMoreSpiders, setHasMoreSpiders] = useState<boolean>(true);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [externalComponent, setExternalComponent] = useState<React.ReactNode>(<></>);
-    const [availableTiers, setAvailableTiers] = useState<ResourceTier[]>([]);
-    const [projectDefaultTier, setProjectDefaultTier] = useState<string>(DEFAULT_RESOURCE_TIER);
     const [jobData, setJobData] = useState<JobData>({
         args: initialArgs.map((arg, index) => ({ ...arg, key: index })),
         envVars: initialEnvVars.map((envVar, index) => ({
@@ -182,24 +178,11 @@ export default function JobCreateModal({
                         };
                     }),
                 );
-                const defaultTier = response.defaultResourceTier || DEFAULT_RESOURCE_TIER;
-                setProjectDefaultTier(defaultTier);
-                setJobData((prev) => ({ ...prev, resourceTier: defaultTier }));
+                setJobData((prev) => ({ ...prev, resourceTier: DEFAULT_RESOURCE_TIER }));
             },
             (error: unknown) => {
                 error;
                 resourceNotAllowedNotification();
-            },
-        );
-
-        // Fetch available tiers
-        const tiersParams: ApiProjectsResourceTiersAvailableRequest = { pid: request.pid };
-        apiService.apiProjectsResourceTiersAvailable(tiersParams).then(
-            (tiers: ResourceTier[]) => {
-                setAvailableTiers(tiers);
-            },
-            (error: unknown) => {
-                error;
             },
         );
     }, []);
@@ -661,9 +644,9 @@ export default function JobCreateModal({
                         size="large"
                         value={jobData.resourceTier}
                     >
-                        {availableTiers.map((tier: ResourceTier) => (
+                        {PREDEFINED_TIERS.map((tier) => (
                             <Option key={tier.name} value={tier.name}>
-                                {tier.name} ({tier.memLimit}){tier.name === projectDefaultTier ? " - Default" : ""}
+                                {tier.name} ({tier.memLimit}){tier.name === DEFAULT_RESOURCE_TIER ? " - Default" : ""}
                             </Option>
                         ))}
                     </Select>

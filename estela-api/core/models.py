@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 
 from config.job_manager import job_manager
-from core.tiers import DEFAULT_TIER
+from core.tiers import DEFAULT_TIER, TIER_CHOICES
 
 
 class DataStatus:
@@ -84,12 +84,6 @@ class Project(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
     )
-    default_resource_tier = models.CharField(
-        max_length=50,
-        default=DEFAULT_TIER,
-        help_text="Default resource tier for jobs in this project.",
-    )
-
     class Meta:
         ordering = ["name"]
 
@@ -271,6 +265,7 @@ class SpiderCronJob(models.Model):
     )
     resource_tier = models.CharField(
         max_length=50,
+        choices=TIER_CHOICES,
         default=DEFAULT_TIER,
         help_text="Resource tier for jobs created by this cron job.",
     )
@@ -366,6 +361,7 @@ class SpiderJob(models.Model):
     )
     resource_tier = models.CharField(
         max_length=50,
+        choices=TIER_CHOICES,
         default=DEFAULT_TIER,
         help_text="Resource tier for K8s pod allocation.",
     )
@@ -596,25 +592,3 @@ class ProxyProvider(models.Model):
         return self.name
 
 
-class ResourceTier(models.Model):
-    id = models.AutoField(primary_key=True)
-    project = models.ForeignKey(
-        Project,
-        on_delete=models.CASCADE,
-        related_name="resource_tiers",
-        null=True,
-        blank=True,
-        help_text="Project this tier belongs to. Null for predefined tiers.",
-    )
-    name = models.CharField(max_length=50, help_text="Tier name.")
-    cpu_request = models.CharField(max_length=20, help_text="CPU request (e.g. 256m).")
-    cpu_limit = models.CharField(max_length=20, help_text="CPU limit (e.g. 512m).")
-    mem_request = models.CharField(max_length=20, help_text="Memory request (e.g. 384Mi).")
-    mem_limit = models.CharField(max_length=20, help_text="Memory limit (e.g. 512Mi).")
-
-    class Meta:
-        unique_together = ("project", "name")
-
-    def __str__(self):
-        prefix = f"[{self.project.name}]" if self.project else "[Global]"
-        return f"{prefix} {self.name}"
