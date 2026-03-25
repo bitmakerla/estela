@@ -87,6 +87,12 @@ class KubernetesEngine:
                 requests={"cpu": cpu_req, "memory": mem_req},
                 limits={"cpu": cpu_lim, "memory": mem_lim},
             )
+            # Inject MEMUSAGE_LIMIT_MB for Scrapy graceful shutdown before OOM kill
+            memusage_mb = tier.get("memusage_limit_mb")
+            if memusage_mb:
+                env_list.append(
+                    client.V1EnvVar(name="MEMUSAGE_LIMIT_MB", value=str(memusage_mb))
+                )
             container.security_context = client.V1SecurityContext(
                 capabilities=client.V1Capabilities(drop=["ALL"])
             )
