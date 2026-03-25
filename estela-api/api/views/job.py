@@ -16,6 +16,7 @@ from api.serializers.job import (
 from api.utils import get_proxy_provider_envs, update_stats_from_redis
 from config.job_manager import job_manager
 from core.models import DataStatus, Project, ProxyProvider, Spider, SpiderJob
+from core.tiers import DEFAULT_TIER
 
 
 class SpiderJobViewSet(
@@ -88,10 +89,10 @@ class SpiderJobViewSet(
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                name="async",
+                name="sync",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_BOOLEAN,
-                description="True if this job is async.",
+                description="True to bypass the dispatch queue and send directly to K8s.",
             ),
         ],
         request_body=SpiderJobCreateSerializer,
@@ -99,9 +100,15 @@ class SpiderJobViewSet(
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
-        async_param = request.query_params.get("async", False)
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
+        sync_param = request.query_params.get("sync", "false").lower() == "true"
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Use default tier if not specified
+        if not serializer.validated_data.get("resource_tier"):
+            serializer.validated_data["resource_tier"] = DEFAULT_TIER
+
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
         if data_status == DataStatus.PENDING_STATUS:
             data_expiry_days = request.data.pop("data_expiry_days", 1)
@@ -110,7 +117,7 @@ class SpiderJobViewSet(
         else:
             data_expiry_days = None
 
-        if not async_param:
+        if sync_param:
             job = serializer.save(
                 spider=spider,
                 data_status=data_status,
@@ -143,6 +150,7 @@ class SpiderJobViewSet(
                 job_env_vars,
                 job.spider.project.container_image,
                 auth_token=token,
+                resource_tier=job.resource_tier,
             )
         else:
             serializer.save(
@@ -153,7 +161,6 @@ class SpiderJobViewSet(
             )
 
         # Send action notification
-        project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_action(
             user=request.user,
             description=f"run Job-{serializer.data['jid']} for spider {spider.name}.",

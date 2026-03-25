@@ -355,7 +355,7 @@ export interface ApiProjectsSpidersJobsCreateRequest {
     pid: string;
     sid: string;
     data: SpiderJobCreate;
-    async?: boolean;
+    sync?: boolean;
 }
 
 export interface ApiProjectsSpidersJobsDataDeleteRequest {
@@ -2038,8 +2038,8 @@ export class ApiApi extends runtime.BaseAPI {
 
         const queryParameters: any = {};
 
-        if (requestParameters.async !== undefined) {
-            queryParameters['async'] = requestParameters.async;
+        if (requestParameters.sync !== undefined) {
+            queryParameters['sync'] = requestParameters.sync;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

@@ -174,7 +174,6 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         default=False,
         help_text="Apply data persistence settings to all existing spiders.",
     )
-
     class Meta:
         model = Project
         fields = (

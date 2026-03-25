@@ -11,7 +11,6 @@ class KubernetesEngine:
     JOB_TIME_CREATION = 20  # Tolerance time for a Job to be created.
     POD_RESTART_POLICY = "Never"
     IMAGE_PULL_POLICY = "Always"
-    SPIDER_NODE_ROLE = "estela-spider"
     IMAGE_PULL_SECRET_NAME = "regcred"
     CREDENTIALS = None
 
@@ -40,6 +39,7 @@ class KubernetesEngine:
         volume_spec,
         command,
         isbuild,
+        resource_tier=None,
     ):
         body = client.V1Job(api_version="batch/v1", kind="Job")
         body.metadata = client.V1ObjectMeta(namespace=namespace, name=name)
@@ -78,7 +78,20 @@ class KubernetesEngine:
             volume_mounts=[volume_mount] if volume_mount else None,
         )
         if not isbuild:
-            # Regular spider job containers
+            from core.tiers import get_tier_resources, DEFAULT_TIER
+            tier = get_tier_resources(resource_tier or DEFAULT_TIER)
+            cpu_req, cpu_lim = tier["cpu_request"], tier["cpu_limit"]
+            mem_req, mem_lim = tier["mem_request"], tier["mem_limit"]
+            container.resources = client.V1ResourceRequirements(
+                requests={"cpu": cpu_req, "memory": mem_req},
+                limits={"cpu": cpu_lim, "memory": mem_lim},
+            )
+            # Inject MEMUSAGE_LIMIT_MB for Scrapy graceful shutdown before OOM kill
+            memusage_mb = tier.get("memusage_limit_mb")
+            if memusage_mb:
+                env_list.append(
+                    client.V1EnvVar(name="MEMUSAGE_LIMIT_MB", value=str(memusage_mb))
+                )
             container.security_context = client.V1SecurityContext(
                 capabilities=client.V1Capabilities(drop=["ALL"])
             )
@@ -102,7 +115,7 @@ class KubernetesEngine:
                 if isbuild
                 else ([volume] if volume else None)
             ),
-            node_selector={"role": self.SPIDER_NODE_ROLE}
+            node_selector={"role": settings.SPIDER_NODE_ROLE}
             if settings.MULTI_NODE_MODE == "True"
             else None,
         )
@@ -138,6 +151,7 @@ class KubernetesEngine:
         volume={},
         command=["estela-crawl"],
         isbuild=False,
+        resource_tier=None,
     ):
         if api_instance is None:
             api_instance = self.get_api_instance()
@@ -175,6 +189,7 @@ class KubernetesEngine:
             volume,
             command,
             isbuild,
+            resource_tier=resource_tier,
         )
 
         api_response = api_instance.create_namespaced_job(namespace, body)

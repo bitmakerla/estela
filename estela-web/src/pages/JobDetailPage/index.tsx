@@ -42,6 +42,7 @@ import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../Job
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
 import { JobMetrics } from "../../components";
 import { convertDateToString } from "../../utils";
+import { DEFAULT_RESOURCE_TIER } from "../../constants";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -91,6 +92,7 @@ interface JobDetailPageState {
     spiderName: string;
     storageSize?: number;
     databaseInsertionProgress?: number;
+    resourceTier?: string;
 }
 
 interface RouteParams {
@@ -253,6 +255,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                     databaseInsertionProgress: response.databaseInsertionProgress
                         ? parseFloat(response.databaseInsertionProgress)
                         : undefined,
+                    resourceTier: response.resourceTier || DEFAULT_RESOURCE_TIER,
                 });
             },
             (error: unknown) => {
@@ -485,6 +488,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             status,
             storageSize,
             databaseInsertionProgress,
+            resourceTier,
         } = this.state;
         const getProxyTag = (): string => {
             const desiredItem = envVars.find((item) => item.name === "ESTELA_PROXY_NAME");
@@ -600,6 +604,14 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                         </Row>
                         <Row className="grid grid-cols-3 py-1 px-2">
+                            <Col className="col-span-1">
+                                <Text className="font-bold">Resource Tier</Text>
+                            </Col>
+                            <Col className="col-span-2 px-2">
+                                <Tag color="blue">{resourceTier || DEFAULT_RESOURCE_TIER}</Tag>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-2 rounded-lg">
                             <Col>
                                 <Text className="font-bold">Tags</Text>
                             </Col>

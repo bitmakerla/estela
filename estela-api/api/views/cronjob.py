@@ -16,6 +16,7 @@ from api.serializers.cronjob import (
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
 from core.models import DataStatus, Spider, SpiderCronJob, Project
+from core.tiers import DEFAULT_TIER
 
 
 class SpiderCronJobViewSet(
@@ -63,8 +64,14 @@ class SpiderCronJobViewSet(
     )
     def create(self, request, *args, **kwargs):
         spider = get_object_or_404(Spider, sid=self.kwargs["sid"], deleted=False)
+        project = get_object_or_404(Project, pid=self.kwargs["pid"])
         serializer = SpiderCronJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Use default tier if not specified
+        if not serializer.validated_data.get("resource_tier"):
+            serializer.validated_data["resource_tier"] = DEFAULT_TIER
+
         data_status = request.data.pop("data_status", DataStatus.PERSISTENT_STATUS)
 
         if data_status == DataStatus.PENDING_STATUS:
@@ -88,9 +95,9 @@ class SpiderCronJobViewSet(
             request.data.get("ctags", []),
             cronjob.schedule,
             data_expiry_days=data_expiry_days,
+            resource_tier=cronjob.resource_tier,
         )
 
-        project = get_object_or_404(Project, pid=self.kwargs["pid"])
         self.save_action(
             user=request.user,
             description=f"scheduled a new Sche-Job-{cronjob.cjid} for spider {spider.name}.",

@@ -18,6 +18,7 @@ import history from "../../history";
 import { ApiService } from "../../services";
 import { ProxySettings } from "../../components/ProxySettingsPage";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
+import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
 import { checkExternalError } from "../../defaultComponents";
 
 import Run from "../../assets/icons/play.svg";
@@ -66,6 +67,7 @@ interface JobData {
     tags: TagsData[];
     dataStatus: SpiderDataStatusEnum | undefined;
     dataExpiryDays: number | null | undefined;
+    resourceTier: string;
 }
 
 interface Variable {
@@ -131,6 +133,7 @@ export default function JobCreateModal({
         tags: initialTags,
         dataStatus: spider ? spider.dataStatus : undefined,
         dataExpiryDays: spider ? spider.dataExpiryDays : 1,
+        resourceTier: "",
     });
     const [noProxy, setNoProxy] = useState<boolean>(true);
     const [newProxyFormActivate, setNewProxyFormActivate] = useState<boolean>(false);
@@ -175,6 +178,7 @@ export default function JobCreateModal({
                         };
                     }),
                 );
+                setJobData((prev) => ({ ...prev, resourceTier: DEFAULT_RESOURCE_TIER }));
             },
             (error: unknown) => {
                 error;
@@ -224,11 +228,8 @@ export default function JobCreateModal({
             search,
         } as ApiProjectsSpidersListRequest;
 
-        console.log("Searching spiders with params:", requestParams);
-
         try {
             const results = await apiService.apiProjectsSpidersList(requestParams);
-            console.log("Search results:", results);
             const spiderList = results.results;
             setHasMoreSpiders(spiderList.length === PAGE_SIZE);
 
@@ -260,11 +261,11 @@ export default function JobCreateModal({
                         masked: envVar.masked,
                     })),
                 );
-                setJobData({
-                    ...jobData,
+                setJobData((prev) => ({
+                    ...prev,
                     dataStatus: spiderList[selectedIndex].dataStatus,
                     dataExpiryDays: spiderList[selectedIndex].dataExpiryDays,
-                });
+                }));
             }
 
             setSpiders((prev) => (isLoadMore ? [...prev, ...spiderList] : spiderList));
@@ -450,6 +451,7 @@ export default function JobCreateModal({
             tags: [...tags],
             dataStatus: String(dataStatus),
             dataExpiryDays: Number(dataExpiryDays),
+            resourceTier: jobData.resourceTier,
         };
         const requests: ApiProjectsSpidersJobsCreateRequest = {
             data: Data,
@@ -630,6 +632,21 @@ export default function JobCreateModal({
                         {dataPersistenceOptions.map((option: OptionDataPersistance) => (
                             <Option className="text-sm" key={option.key} value={option.value}>
                                 {option.label}
+                            </Option>
+                        ))}
+                    </Select>
+                </Row>
+                <Row>
+                    <p className="text-base my-2">Resource Tier</p>
+                    <Select
+                        onChange={(value: string) => setJobData({ ...jobData, resourceTier: value })}
+                        className="w-full"
+                        size="large"
+                        value={jobData.resourceTier}
+                    >
+                        {PREDEFINED_TIERS.map((tier) => (
+                            <Option key={tier.name} value={tier.name}>
+                                {tier.name} ({tier.memLimit}){tier.name === DEFAULT_RESOURCE_TIER ? " - Default" : ""}
                             </Option>
                         ))}
                     </Select>

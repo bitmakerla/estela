@@ -8,6 +8,7 @@ from django.db import models
 from django.utils import timezone
 
 from config.job_manager import job_manager
+from core.tiers import DEFAULT_TIER, TIER_CHOICES
 
 
 class DataStatus:
@@ -83,7 +84,6 @@ class Project(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
     )
-
     class Meta:
         ordering = ["name"]
 
@@ -263,6 +263,12 @@ class SpiderCronJob(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the Cronjob has been deleted."
     )
+    resource_tier = models.CharField(
+        max_length=50,
+        choices=TIER_CHOICES,
+        default=DEFAULT_TIER,
+        help_text="Resource tier for jobs created by this cron job.",
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -352,6 +358,12 @@ class SpiderJob(models.Model):
     proxy_usage_data = models.JSONField(
         default=dict,
         help_text="Proxy Usage data.",
+    )
+    resource_tier = models.CharField(
+        max_length=50,
+        choices=TIER_CHOICES,
+        default=DEFAULT_TIER,
+        help_text="Resource tier for K8s pod allocation.",
     )
 
     class Meta:
@@ -578,3 +590,5 @@ class ProxyProvider(models.Model):
 
     def __str__(self):
         return self.name
+
+

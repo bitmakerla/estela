@@ -47,6 +47,7 @@ class SpiderCronJobSerializer(serializers.ModelSerializer):
             "unique_collection",
             "data_status",
             "data_expiry_days",
+            "resource_tier",
         )
 
     def get_spider(self, instance):
@@ -93,6 +94,7 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
             "unique_collection",
             "data_expiry_days",
             "data_status",
+            "resource_tier",
         )
 
     def create(self, validated_data):
@@ -137,6 +139,7 @@ class SpiderCronJobUpdateSerializer(
             "unique_collection",
             "data_status",
             "data_expiry_days",
+            "resource_tier",
         )
 
     def update(self, instance, validated_data):

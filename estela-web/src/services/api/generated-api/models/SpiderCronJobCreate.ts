@@ -88,6 +88,12 @@ export interface SpiderCronJobCreate {
      * @memberof SpiderCronJobCreate
      */
     dataStatus: SpiderCronJobCreateDataStatusEnum;
+    /**
+     * Resource tier for jobs created by this cron job.
+     * @type {string}
+     * @memberof SpiderCronJobCreate
+     */
+    resourceTier?: string;
 }
 
 /**
@@ -119,6 +125,7 @@ export function SpiderCronJobCreateFromJSONTyped(json: any, ignoreDiscriminator:
         'uniqueCollection': !exists(json, 'unique_collection') ? undefined : json['unique_collection'],
         'dataExpiryDays': json['data_expiry_days'],
         'dataStatus': json['data_status'],
+        'resourceTier': !exists(json, 'resource_tier') ? undefined : json['resource_tier'],
     };
 }
 
@@ -138,6 +145,7 @@ export function SpiderCronJobCreateToJSON(value?: SpiderCronJobCreate | null): a
         'unique_collection': value.uniqueCollection,
         'data_expiry_days': value.dataExpiryDays,
         'data_status': value.dataStatus,
+        'resource_tier': value.resourceTier,
     };
 }
 

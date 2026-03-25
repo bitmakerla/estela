@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 from typing import List
 import logging
 
@@ -26,8 +26,12 @@ from core.models import (
     SpiderJob,
     UsageRecord,
 )
+from core.tiers import get_tier_resources
 
 import redis
+from kubernetes import client, config
+
+NODE_CAPACITY_THRESHOLD = settings.NODE_CAPACITY_THRESHOLD
 
 def get_default_token(job):
     user = job.spider.project.users.first()
@@ -37,27 +41,175 @@ def get_default_token(job):
     return token.key
 
 
+RUN_SPIDER_JOBS_LOCK_KEY = "estela:run_spider_jobs:lock"
+RUN_SPIDER_JOBS_LOCK_TIMEOUT = 120
+
+
 @celery_app.task
 def run_spider_jobs():
-    jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS)[
-        : settings.RUN_JOBS_PER_LOT
-    ]
+    redis_client = redis.from_url(settings.REDIS_URL)
 
-    for job in jobs:
-        job_args = {arg.name: arg.value for arg in job.args.all()}
-        job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
-        job.status = SpiderJob.WAITING_STATUS
-        job.save()
-        job_manager.create_job(
-            job.name,
-            job.key,
-            job.key,
-            job.spider.name,
-            job_args,
-            job_env_vars,
-            job.spider.project.container_image,
-            auth_token=get_default_token(job),
+    if not redis_client.set(RUN_SPIDER_JOBS_LOCK_KEY, "1", nx=True, ex=RUN_SPIDER_JOBS_LOCK_TIMEOUT):
+        logging.info("run_spider_jobs: previous execution still running, skipping")
+        return
+
+    try:
+        jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).order_by("created")[
+            : settings.RUN_JOBS_PER_LOT
+        ]
+
+        cluster = _get_cluster_resources()
+        if cluster is None:
+            return
+
+        alloc_cpu, alloc_mem, used_cpu, used_mem = cluster
+
+        dispatched = 0
+        skipped = 0
+        for job in jobs:
+            tier = get_tier_resources(job.resource_tier)
+            job_cpu = _parse_k8s_resource(tier["cpu_request"])
+            job_mem = _parse_k8s_resource(tier["mem_request"])
+            new_cpu = used_cpu + job_cpu
+            new_mem = used_mem + job_mem
+
+            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= NODE_CAPACITY_THRESHOLD) or \
+               (alloc_mem > 0 and (new_mem / alloc_mem) >= NODE_CAPACITY_THRESHOLD):
+                skipped += 1
+                continue
+
+            try:
+                _dispatch_single_job(job)
+                used_cpu = new_cpu
+                used_mem = new_mem
+                dispatched += 1
+            except Exception as e:
+                logging.error("run_spider_jobs: failed to dispatch job %s: %s", job.jid, e)
+
+        if dispatched or skipped:
+            logging.info(
+                "run_spider_jobs: dispatched %d, skipped %d (capacity %.0f%% CPU, %.0f%% MEM)",
+                dispatched, skipped,
+                (used_cpu / alloc_cpu) * 100 if alloc_cpu > 0 else 0,
+                (used_mem / alloc_mem) * 100 if alloc_mem > 0 else 0,
+            )
+
+    finally:
+        redis_client.delete(RUN_SPIDER_JOBS_LOCK_KEY)
+
+
+def _dispatch_single_job(job):
+    job_args = {arg.name: arg.value for arg in job.args.all()}
+    job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
+
+    proxy_name = job_env_vars.get("ESTELA_PROXY_NAME")
+    if proxy_name:
+        proxy_provider = ProxyProvider.objects.filter(name=proxy_name).first()
+        if proxy_provider:
+            proxy_env_vars = get_proxy_provider_envs(proxy_provider)
+            job_env_vars.update(
+                {env_var["name"]: env_var["value"] for env_var in proxy_env_vars}
+            )
+
+    collection = job.key
+    unique = False
+    if job.cronjob is not None and job.cronjob.unique_collection:
+        collection = "scj{}".format(job.cronjob.key)
+        unique = True
+
+    token = get_default_token(job)
+
+    job.status = SpiderJob.WAITING_STATUS
+    job.save()
+
+    job_manager.create_job(
+        job.name,
+        job.key,
+        collection,
+        job.spider.name,
+        job_args,
+        job_env_vars,
+        job.spider.project.container_image,
+        auth_token=token,
+        unique=unique,
+        resource_tier=job.resource_tier,
+    )
+
+
+def _get_cluster_resources():
+    try:
+        config.load_incluster_config()
+        v1 = client.CoreV1Api()
+
+        spider_node_role = settings.SPIDER_NODE_ROLE
+        nodes = v1.list_node(label_selector=f"role={spider_node_role}")
+
+        if not nodes.items:
+            logging.warning("No worker nodes found with label role=%s", spider_node_role)
+            return None
+
+        total_allocatable_mem = 0
+        total_allocatable_cpu = 0
+        total_requested_mem = 0
+        total_requested_cpu = 0
+
+        for node in nodes.items:
+            allocatable = node.status.allocatable or {}
+            total_allocatable_mem += _parse_k8s_resource(allocatable.get("memory", "0"))
+            total_allocatable_cpu += _parse_k8s_resource(allocatable.get("cpu", "0"))
+
+            for phase in ("Running", "Pending"):
+                pods = v1.list_pod_for_all_namespaces(
+                    field_selector=f"spec.nodeName={node.metadata.name},status.phase={phase}"
+                )
+                for pod in pods.items:
+                    for container in pod.spec.containers:
+                        requests = (container.resources.requests or {}) if container.resources else {}
+                        total_requested_mem += _parse_k8s_resource(requests.get("memory", "0"))
+                        total_requested_cpu += _parse_k8s_resource(requests.get("cpu", "0"))
+
+        pending_pods = v1.list_pod_for_all_namespaces(
+            field_selector="status.phase=Pending"
         )
+        for pod in pending_pods.items:
+            if pod.spec.node_name:
+                continue 
+            node_selector = pod.spec.node_selector or {}
+            if node_selector.get("role") != spider_node_role:
+                continue
+            for container in pod.spec.containers:
+                requests = (container.resources.requests or {}) if container.resources else {}
+                total_requested_mem += _parse_k8s_resource(requests.get("memory", "0"))
+                total_requested_cpu += _parse_k8s_resource(requests.get("cpu", "0"))
+
+        return (total_allocatable_cpu, total_allocatable_mem, total_requested_cpu, total_requested_mem)
+    except Exception as e:
+        logging.error("Failed to get cluster resources: %s", e)
+        return None
+
+
+def _parse_k8s_resource(value):
+    value = str(value)
+    if value.endswith("m"):
+        return float(value[:-1]) / 1000
+    if value.endswith("Ki"):
+        return float(value[:-2]) * 1024
+    if value.endswith("Mi"):
+        return float(value[:-2]) * 1024 * 1024
+    if value.endswith("Gi"):
+        return float(value[:-2]) * 1024 * 1024 * 1024
+    if value.endswith("Ti"):
+        return float(value[:-2]) * 1024 * 1024 * 1024 * 1024
+    if value.endswith("k"):
+        return float(value[:-1]) * 1000
+    if value.endswith("M"):
+        return float(value[:-1]) * 1000 * 1000
+    if value.endswith("G"):
+        return float(value[:-1]) * 1000 * 1000 * 1000
+    try:
+        return float(value)
+    except ValueError:
+        return 0
 
 
 def delete_data(pid, sid, jid, data_type):
@@ -85,41 +237,20 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
     else:
         data_["data_status"] = DataStatus.PENDING_STATUS
 
+    resource_tier = data_.pop("resource_tier", None)
+
     serializer = SpiderJobCreateSerializer(data=data_)
     serializer.is_valid(raise_exception=True)
-    job = serializer.save(spider=spider, data_expiry_days=data_expiry_days)
 
-    collection = job.key
+    save_kwargs = {
+        "spider": spider,
+        "status": SpiderJob.IN_QUEUE_STATUS,
+        "data_expiry_days": data_expiry_days,
+    }
+    if resource_tier:
+        save_kwargs["resource_tier"] = resource_tier
 
-    if job.cronjob.unique_collection:
-        collection = "scj{}".format(job.cronjob.key)
-
-    if token is None:
-        token = get_default_token(job)
-
-    job_args = {arg.name: arg.value for arg in job.args.all()}
-    job_env_vars = {env_var.name: env_var.value for env_var in job.env_vars.all()}
-
-    proxy_name = job_env_vars.get("ESTELA_PROXY_NAME")
-    if proxy_name:
-        proxy_provider = ProxyProvider.objects.filter(name=proxy_name).first()
-        if proxy_provider:
-            proxy_env_vars = get_proxy_provider_envs(proxy_provider)
-            job_env_vars.update(
-                {env_var["name"]: env_var["value"] for env_var in proxy_env_vars}
-            )
-
-    job_manager.create_job(
-        job.name,
-        job.key,
-        collection,
-        job.spider.name,
-        job_args,
-        job_env_vars,
-        job.spider.project.container_image,
-        auth_token=token,
-        unique=job.cronjob.unique_collection,
-    )
+    serializer.save(**save_kwargs)
 
 
 @celery_app.task(name="core.tasks.check_and_update_job_status_errors")

@@ -51,6 +51,7 @@ import {
 } from "../../services/api";
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString, getFilteredEnvVars } from "../../utils";
+import { DEFAULT_RESOURCE_TIER } from "../../constants";
 
 const { Option } = Select;
 const { Content } = Layout;
@@ -134,6 +135,7 @@ interface CronJobDetailPageState {
     dataExpiryDays: number | null | undefined;
     loading_status: boolean;
     modified: boolean;
+    resourceTier: string;
 }
 
 interface RouteParams {
@@ -179,6 +181,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
         dataExpiryDays: 0,
         loading_status: false,
         modified: false,
+        resourceTier: "",
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -326,6 +329,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                     schedule: response.schedule,
                     created: convertDateToString(response.created),
                     unique_collection: response.uniqueCollection,
+                    resourceTier: response.resourceTier || "",
                     jobs: [...jobs],
                     count: data.count,
                     current: data.current,
@@ -902,7 +906,13 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 )}
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
+                            <Col>Resource Tier</Col>
+                            <Col>
+                                <Tag color="blue">{this.state.resourceTier || DEFAULT_RESOURCE_TIER}</Tag>
+                            </Col>
+                        </Row>
+                        <Row className="grid grid-cols-3 py-1 px-4">
                             <Col>Tags</Col>
                             <Col className="col-span-2">
                                 <Space direction="horizontal" className="flex flex-wrap">
@@ -920,7 +930,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-4 rounded-lg">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
                             <Col>Environment variables</Col>
                             <Col>
                                 <Space direction="vertical">
@@ -950,9 +960,9 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4">
+                        <Row className="grid grid-cols-3 py-1 px-4">
                             <Col>Proxy</Col>
-                            <Col className="px-2">
+                            <Col>
                                 <Space direction="vertical">
                                     {getProxyTag() === "" ? (
                                         <Text className="text-estela-black-medium text-xs">No Proxy</Text>
@@ -964,7 +974,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                                 </Space>
                             </Col>
                         </Row>
-                        <Row className="grid grid-cols-3 py-1 px-4 rounded-lg">
+                        <Row className="grid grid-cols-3 bg-estela-blue-low py-1 px-4 rounded-lg">
                             <Col>Arguments</Col>
                             <Col className="col-span-2">
                                 <Space direction="horizontal" className="flex flex-wrap">
