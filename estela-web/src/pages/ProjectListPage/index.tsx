@@ -9,7 +9,13 @@ import Bug from "../../assets/icons/bug.svg";
 import FolderDotted from "../../assets/icons/folderDotted.svg";
 import WelcomeProjects from "../../assets/images/welcomeProjects.svg";
 import history from "../../history";
-import { ApiProjectsListRequest, ApiProjectsCreateRequest, Project, ProjectCategoryEnum } from "../../services/api";
+import {
+    ApiProjectsCreateRequest,
+    ApiProjectsSearchRequest,
+    Project,
+    ProjectSearch,
+    ProjectCategoryEnum,
+} from "../../services/api";
 import { incorrectDataNotification, Spin, PaginationItem } from "../../shared";
 import { UserContext, UserContextProps } from "../../context/UserContext";
 
@@ -28,10 +34,14 @@ interface ProjectList {
 
 interface ProjectsPageState {
     projects: ProjectList[];
+    recentProjects: ProjectList[];
+    recentProjectsLoaded: boolean;
     username: string;
     loaded: boolean;
+    loadedProjects: boolean;
     count: number;
     current: number;
+    query: string;
     modalNewProject: boolean;
     modalWelcome: boolean;
     newProjectName: string;
@@ -39,17 +49,21 @@ interface ProjectsPageState {
 }
 
 export class ProjectListPage extends Component<unknown, ProjectsPageState> {
-    PAGE_SIZE = 10;
+    PAGE_SIZE = 3;
     totalProjects = 0;
 
     state: ProjectsPageState = {
         projects: [],
+        recentProjects: [],
+        recentProjectsLoaded: false,
         username: "",
         loaded: false,
+        loadedProjects: false,
         count: 0,
         current: 0,
+        query: "",
         modalNewProject: false,
-        modalWelcome: false,
+        modalWelcome: true,
         newProjectName: "",
         newProjectCategory: ProjectCategoryEnum.NotSpecified,
     };
@@ -104,7 +118,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     emptyText = (): ReactElement => (
         <Content className="flex flex-col items-center justify-center text-estela-black-medium">
             <FolderDotted className="w-20 h-20" />
-            <p>No projects yet.</p>
+            <p>No projects</p>
         </Content>
     );
 
@@ -112,26 +126,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         const { updateRole } = this.context as UserContextProps;
         updateRole && updateRole("");
         AuthService.removeFramework();
-        const data = await this.getProjects(1);
-        const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
-            return {
-                name: project.name,
-                category: project.category,
-                framework: project.framework,
-                pid: project.pid,
-                role:
-                    project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
-                    "ADMIN",
-                key: id,
-            };
-        });
-        this.setState({
-            projects: [...projectData],
-            count: data.count,
-            current: data.current,
-            loaded: true,
-            modalWelcome: data.count === 0,
-        });
+        this.updateFilteredProjects(this.state.query, 1);
     }
 
     handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -175,17 +170,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         return String(AuthService.getUserUsername());
     };
 
-    async getProjects(page: number): Promise<{ data: Project[]; count: number; current: number }> {
-        const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE };
-        const data = await this.apiService.apiProjectsList(requestParams);
-        this.totalProjects = data.count;
-        return { data: data.results, count: data.count, current: page };
-    }
-
-    onPageChange = async (page: number): Promise<void> => {
-        this.setState({ loaded: false });
-        const data = await this.getProjects(page);
-        const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
+    formatProjectData = (response: Project[]): void => {
+        const projectData: ProjectList[] = response.map((project: Project, id: number) => {
             return {
                 name: project.name,
                 pid: project.pid,
@@ -196,18 +182,61 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 key: id,
             };
         });
+        if (!this.state.recentProjectsLoaded) {
+            this.setState({
+                recentProjects: [...projectData],
+                recentProjectsLoaded: true,
+                modalWelcome: projectData.length === 0,
+            });
+        }
         this.setState({
             projects: [...projectData],
-            count: data.count,
-            current: data.current,
             loaded: true,
-            modalWelcome: data.count === 0,
         });
     };
 
+    updateFilteredProjects = async (query: string, page: number): Promise<void> => {
+        const requestParams: ApiProjectsSearchRequest = { search: query, page: page, pageSize: this.PAGE_SIZE };
+        this.apiService.apiProjectsSearch(requestParams).then((response: ProjectSearch) => {
+            this.formatProjectData(response.results);
+            this.setState({
+                count: response.count,
+                current: page,
+                loadedProjects: true,
+            });
+        });
+    };
+
+    onPageChange = async (page: number): Promise<void> => {
+        this.setState({ loadedProjects: false });
+        this.updateFilteredProjects(this.state.query, page);
+    };
+
+    onQueryChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+        this.setState({ loadedProjects: false });
+        const {
+            target: { value, name },
+        } = event;
+        if (name === "query") {
+            this.updateFilteredProjects(value, 1);
+        }
+        this.setState({ query: value });
+    };
+
     render(): JSX.Element {
-        const { projects, count, current, loaded, modalNewProject, modalWelcome, newProjectName, newProjectCategory } =
-            this.state;
+        const {
+            projects,
+            recentProjects,
+            count,
+            current,
+            loaded,
+            loadedProjects,
+            modalNewProject,
+            modalWelcome,
+            newProjectName,
+            newProjectCategory,
+            query,
+        } = this.state;
         return (
             <>
                 {loaded ? (
@@ -216,19 +245,19 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                             <Modal
                                 open={modalWelcome}
                                 footer={false}
-                                width={990}
+                                width={880}
                                 onCancel={() => {
                                     this.setState({ modalWelcome: false });
                                 }}
                             >
                                 <Row className="py-8 px-4" align="middle">
-                                    <Col span={16}>
-                                        <Text className="text-estela font-bold text-4xl">WELCOME SCRAPER!</Text>
-                                        <Paragraph className="text-xl mt-6">
+                                    <Col span={14}>
+                                        <Text className="text-estela font-bold text-4xl mx-3">WELCOME SCRAPER!</Text>
+                                        <Paragraph className="text-xl mt-6 mx-3">
                                             Start by creating a <Text strong>project</Text> to be able to deploy your
                                             spiders and start with your scraping.
                                         </Paragraph>
-                                        <Paragraph className="text-lg font-bold">
+                                        <Paragraph className="text-lg font-bold mx-3">
                                             Remember to install the&nbsp;
                                             <a
                                                 target="_blank"
@@ -240,7 +269,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             &nbsp;to be able to deploy your spiders!
                                         </Paragraph>
                                         <Button
-                                            className="mt-6 w-96 h-14 rounded-md bg-estela text-white hover:border-estela hover:text-estela"
+                                            className="my-2 w-96 text-lg h-14 mx-3 rounded-md bg-estela text-white hover:border-estela hover:text-estela"
                                             onClick={() => {
                                                 this.setState({ modalWelcome: false, modalNewProject: true });
                                             }}
@@ -248,7 +277,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             Start new project
                                         </Button>
                                     </Col>
-                                    <Col span={8}>
+                                    <Col span={10} className="flex justify-center">
                                         <WelcomeProjects className="w-72 h-72" />
                                     </Col>
                                 </Row>
@@ -267,8 +296,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                         </Col>
                                     </Row>
                                     <Row className="flex-row gap-3 mt-4">
-                                        {projects.map((project: ProjectList, index) => {
-                                            return index < 3 ? (
+                                        {recentProjects.map((project: ProjectList, index) => {
+                                            return index < 4 ? (
                                                 <Button
                                                     key={project.key}
                                                     onClick={() => {
@@ -282,7 +311,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                 >
                                                     <Row className="gap-4">
                                                         <Text className="text-sm font-bold">{project.name}</Text>
-                                                        {index === 0 && (
+                                                        {(index === 0 || index === 1) && (
                                                             <Tag className="text-estela bg-estela-blue-low border-none font-medium rounded-md">
                                                                 New
                                                             </Tag>
@@ -307,11 +336,20 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                     </Row>
                                 </Content>
                                 <Content className="bg-white rounded-md p-6 mx-4">
-                                    <Row className="flow-root items-center my-2">
-                                        <Col className="float-left">
-                                            <p className="text-silver text-base font-medium">MY PROJECTS</p>
+                                    <Row className="py-2">
+                                        <p className="text-silver text-base font-medium">MY PROJECTS</p>
+                                    </Row>
+                                    <Row className="grid grid-cols-4 my-2">
+                                        <Col className="col-span-3 w-full">
+                                            <Input
+                                                className="rounded-lg border-black-low w-full"
+                                                name="query"
+                                                value={query}
+                                                onChange={this.onQueryChange}
+                                                placeholder="Find a project..."
+                                            />
                                         </Col>
-                                        <Col className="float-right">
+                                        <Col className="grid justify-end mr-4">
                                             <Button
                                                 icon={<Add className="mr-2" width={15} />}
                                                 className="flex items-center text-sm font-medium stroke-estela border-white text-estela hover:bg-button-hover hover:text-estela hover:border-estela rounded-md"
@@ -432,27 +470,31 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             </Modal>
                                         </Col>
                                     </Row>
-                                    <Row className="flex flex-col w-full">
-                                        <Table
-                                            showHeader={false}
-                                            className="rounded-2xl"
-                                            columns={this.columns}
-                                            dataSource={projects}
-                                            pagination={false}
-                                            size="middle"
-                                            locale={{ emptyText: this.emptyText }}
-                                        />
-                                        <Pagination
-                                            className="pagination"
-                                            defaultCurrent={1}
-                                            total={count}
-                                            current={current}
-                                            pageSize={this.PAGE_SIZE}
-                                            onChange={this.onPageChange}
-                                            showSizeChanger={false}
-                                            itemRender={PaginationItem}
-                                        />
-                                    </Row>
+                                    {loadedProjects ? (
+                                        <Row className="flex flex-col w-full">
+                                            <Table
+                                                showHeader={false}
+                                                className="rounded-2xl"
+                                                columns={this.columns}
+                                                dataSource={projects}
+                                                pagination={false}
+                                                size="middle"
+                                                locale={{ emptyText: this.emptyText }}
+                                            />
+                                            <Pagination
+                                                className="pagination"
+                                                defaultCurrent={1}
+                                                total={count}
+                                                current={current}
+                                                pageSize={this.PAGE_SIZE}
+                                                onChange={this.onPageChange}
+                                                showSizeChanger={false}
+                                                itemRender={PaginationItem}
+                                            />
+                                        </Row>
+                                    ) : (
+                                        <Spin />
+                                    )}
                                     {this.totalProjects === 0 && (
                                         <Row className="flex my-4">
                                             <Col>
