@@ -31,7 +31,7 @@ from core.tiers import get_tier_resources
 import redis
 from kubernetes import client, config
 
-NODE_CAPACITY_THRESHOLD = settings.NODE_CAPACITY_THRESHOLD
+WORKERS_CAPACITY_THRESHOLD = settings.WORKERS_CAPACITY_THRESHOLD
 
 def get_default_token(job):
     user = job.spider.project.users.first()
@@ -73,8 +73,8 @@ def run_spider_jobs():
             new_cpu = used_cpu + job_cpu
             new_mem = used_mem + job_mem
 
-            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= NODE_CAPACITY_THRESHOLD) or \
-               (alloc_mem > 0 and (new_mem / alloc_mem) >= NODE_CAPACITY_THRESHOLD):
+            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= WORKERS_CAPACITY_THRESHOLD) or \
+               (alloc_mem > 0 and (new_mem / alloc_mem) >= WORKERS_CAPACITY_THRESHOLD):
                 skipped += 1
                 continue
 
@@ -119,9 +119,6 @@ def _dispatch_single_job(job):
 
     token = get_default_token(job)
 
-    job.status = SpiderJob.WAITING_STATUS
-    job.save()
-
     job_manager.create_job(
         job.name,
         job.key,
@@ -134,6 +131,9 @@ def _dispatch_single_job(job):
         unique=unique,
         resource_tier=job.resource_tier,
     )
+
+    job.status = SpiderJob.WAITING_STATUS
+    job.save()
 
 
 def _get_cluster_resources():
