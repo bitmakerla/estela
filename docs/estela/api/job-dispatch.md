@@ -57,7 +57,7 @@ For each matching node, the function:
 - Also accounts for unscheduled Pending pods that target the same node role via
   `nodeSelector`, since those will consume resources once scheduled.
 
-The `NODE_CAPACITY_THRESHOLD` (default 0.95) defines the maximum allowed utilization.
+The `WORKERS_CAPACITY_THRESHOLD` (default 0.95) defines the maximum allowed utilization.
 A job is only dispatched if both CPU and memory usage would remain below this threshold
 after adding the job's requests. The 5% headroom is reserved for system pods and
 in-flight scheduling.
@@ -104,7 +104,7 @@ these tasks can occupy all workers and delay job dispatching.
 | `core/tiers.py` | Tier definitions, `TIER_CHOICES`, `get_tier_resources()` |
 | `engines/kubernetes.py` | K8s Job creation with tier-based resource allocation |
 | `config/celery.py` | Beat schedule and periodic task registration |
-| `config/settings/base.py` | `DISPATCH_RETRY_DELAY`, `NODE_CAPACITY_THRESHOLD`, `SPIDER_NODE_ROLE` |
+| `config/settings/base.py` | `DISPATCH_RETRY_DELAY`, `WORKERS_CAPACITY_THRESHOLD`, `SPIDER_NODE_ROLE` |
 | `installation/helm-chart/templates/API/api-serviceaccount.yaml` | ClusterRole with node/pod permissions |
 
 ## Known Issues
@@ -113,34 +113,32 @@ these tasks can occupy all workers and delay job dispatching.
   in settings but the periodic task already exists in the DB with the old interval,
   the code change has no effect. Delete the DB entry or update it via Django admin.
 
-- **409 Conflict on retry**: If a job dispatch fails after the K8s Job was already
-  created but before the status was updated to `WAITING`, the next dispatch cycle
-  will attempt to create the same K8s Job again, resulting in a 409 Conflict from the
-  K8s API. The error is caught and logged, but the job remains `IN_QUEUE`.
-
-- **Node selector mismatch**: If `MULTI_NODE_MODE` is enabled but worker nodes don't
-  have the expected `role` label (default `bitmaker-worker`), `_get_cluster_resources()`
-  returns no nodes and dispatch is blocked. Similarly, spider pods use `nodeSelector`
-  with this role, so unlabeled nodes won't run spider jobs.
+- **Node selector mismatch**: If `DEDICATED_SPIDER_NODES` is enabled but worker nodes
+  don't have the expected `role` label (default `bitmaker-worker`),
+  `_get_cluster_resources()` returns no nodes and dispatch is blocked. Similarly, spider
+  pods use `nodeSelector` with this role, so unlabeled nodes won't run spider jobs.
 
 ## Deployment Requirements
 
-- **`MULTI_NODE_MODE` must be `"True"`**: This is **critical**. When `MULTI_NODE_MODE`
-  is enabled, spider pods are scheduled with a `nodeSelector` matching `SPIDER_NODE_ROLE`,
-  and `_get_cluster_resources()` queries only those labeled nodes. If `MULTI_NODE_MODE`
-  is `"False"`, pods have no `nodeSelector` and the capacity check has no way to
-  accurately measure available resources. The sequential dispatch system is designed
-  to work with `MULTI_NODE_MODE=True`.
+- **`DEDICATED_SPIDER_NODES` must be `"True"`**: This is enabled by default. When
+  active, spider pods are scheduled with a `nodeSelector` matching `SPIDER_NODE_ROLE`,
+  and `_get_cluster_resources()` queries only those labeled nodes. If set to `"False"`,
+  pods have no `nodeSelector` and the capacity check has no way to accurately measure
+  available resources. The sequential dispatch system is designed to work with
+  `DEDICATED_SPIDER_NODES=True`. Make sure this is not overridden in your environment.
 
-- **ClusterRole**: The service account used by the API and Celery worker must have
-  `get` and `list` permissions on `nodes` and `pods` resources. Without this,
-  `_get_cluster_resources()` fails and no jobs are dispatched. See
-  `api-serviceaccount.yaml` for the current ClusterRole definition.
+- **ClusterRole permissions**: The `estela-api` service account must have `get` and
+  `list` on both `nodes` and `pods`. The `nodes` permission is required specifically
+  for `_get_cluster_resources()` to read allocatable capacity. The `pods` permission is
+  needed to sum resource requests across Running and Pending pods. Without either of
+  these, the capacity check fails silently and **no jobs are dispatched**. These
+  permissions are defined in `api-serviceaccount.yaml` — verify they are applied in
+  your cluster after deployment.
 
 - **Worker concurrency**: Ensure the Celery worker has enough concurrency to handle
   dispatch alongside other periodic tasks. Add `--concurrency=8` (or similar) to the
   worker command in the Helm chart if not already set.
 
-- **Environment variables**: `DISPATCH_RETRY_DELAY`, `NODE_CAPACITY_THRESHOLD`,
-  `SPIDER_NODE_ROLE`, and `MULTI_NODE_MODE` must be configured in the API secrets
-  or config map.
+- **Environment variables**: `DISPATCH_RETRY_DELAY`, `WORKERS_CAPACITY_THRESHOLD`,
+  `SPIDER_NODE_ROLE`, and `DEDICATED_SPIDER_NODES` must be configured in the API
+  secrets or config map.
