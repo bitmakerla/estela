@@ -141,11 +141,16 @@ def _get_cluster_resources():
         config.load_incluster_config()
         v1 = client.CoreV1Api()
 
+        dedicated = settings.DEDICATED_SPIDER_NODES == "True"
         spider_node_role = settings.SPIDER_NODE_ROLE
-        nodes = v1.list_node(label_selector=f"role={spider_node_role}")
+
+        if dedicated:
+            nodes = v1.list_node(label_selector=f"role={spider_node_role}")
+        else:
+            nodes = v1.list_node()
 
         if not nodes.items:
-            logging.warning("No worker nodes found with label role=%s", spider_node_role)
+            logging.warning("No worker nodes found")
             return None
 
         total_allocatable_mem = 0
@@ -173,10 +178,11 @@ def _get_cluster_resources():
         )
         for pod in pending_pods.items:
             if pod.spec.node_name:
-                continue 
-            node_selector = pod.spec.node_selector or {}
-            if node_selector.get("role") != spider_node_role:
                 continue
+            if dedicated:
+                node_selector = pod.spec.node_selector or {}
+                if node_selector.get("role") != spider_node_role:
+                    continue
             for container in pod.spec.containers:
                 requests = (container.resources.requests or {}) if container.resources else {}
                 total_requested_mem += _parse_k8s_resource(requests.get("memory", "0"))
