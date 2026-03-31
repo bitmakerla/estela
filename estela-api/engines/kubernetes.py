@@ -116,7 +116,7 @@ class KubernetesEngine:
                 else ([volume] if volume else None)
             ),
             node_selector={"role": settings.SPIDER_NODE_ROLE}
-            if settings.MULTI_NODE_MODE == "True"
+            if settings.DEDICATED_SPIDER_NODES == "True"
             else None,
         )
         if not isbuild:
