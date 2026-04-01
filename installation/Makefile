@@ -4,8 +4,8 @@ WEB_DIR = ../estela-web
 API_POD = $$(kubectl get pod -l app=estela-django-api -o jsonpath="{.items[0].metadata.name}")
 API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.spec.clusterIP}')
 LOCAL_API_IP = $$(kubectl get services -n $${NAMESPACE} estela-django-api-service --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
-RESOURCES = db registry minio zookeeper kafka
-SERVICES ?= django-api celery-worker celery-beat redis build-project
+RESOURCES = db registry minio zookeeper kafka mongodb
+SERVICES ?= django-api celery-worker celery-beat redis build-project project-downloader
 PLATFORM ?= linux/$(shell uname -m)
 
 
@@ -57,6 +57,18 @@ install:
 .PHONY: uninstall
 uninstall:
 	-. ./local/.env && cd helm-chart && helm uninstall $${RELEASE_NAME} -n $${NAMESPACE}
+
+
+MINIO_NETWORK = $$(docker inspect estela_storage --format '{{range $$k,$$v := .NetworkSettings.Networks}}{{$$k}}{{end}}')
+MINIO_IP = $$(docker inspect estela_storage --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')
+BUCKET_NAME = $$(grep "^BUCKET_NAME_PROJECTS:" helm-chart/values.yaml | awk '{print $$2}' | tr -d '"' | tr -d "'")
+
+.PHONY: setup-minio-bucket
+setup-minio-bucket:
+	-docker run --rm --network $(MINIO_NETWORK) --entrypoint sh minio/mc -c \
+		"mc alias set myminio http://$(MINIO_IP):9000 minioadmin minioadmin && \
+		 mc mb myminio/$(BUCKET_NAME) --ignore-existing && \
+		 mc anonymous set download myminio/$(BUCKET_NAME)"
 
 
 .PHONY: update-api-ip

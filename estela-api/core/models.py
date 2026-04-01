@@ -95,10 +95,18 @@ class Project(models.Model):
     def get_candidate_image(self):
         """Get the candidate container image for builds."""
         parsed_container_host = urlparse(settings.REGISTRY_HOST)
-        return "{}/{}:estela_{}_candidate".format(
+
+        # In local mode, don't use _candidate suffix (build directly as production)
+        if settings.CREDENTIALS == 'local':
+            suffix = ""
+        else:
+            suffix = "_candidate"
+
+        return "{}/{}:estela_{}{}".format(
             parsed_container_host.netloc or settings.REGISTRY_HOST,
             settings.REPOSITORY_NAME,
             self.pid,
+            suffix,
         )
     
     def get_production_image(self):
