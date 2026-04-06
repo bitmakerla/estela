@@ -7,138 +7,71 @@ grand_parent: estela
 
 # Job Dispatch
 
-estela uses a capacity-aware sequential dispatch system to launch spider jobs.
-Instead of creating K8s Jobs immediately when requested, jobs are queued in the
-database and dispatched in controlled batches based on available cluster resources.
+When a spider job is created in estela, it enters a queue and is dispatched to the
+cluster only when sufficient resources are available. This prevents overloading the
+cluster and ensures jobs run reliably even under heavy load.
 
-## run_spider_jobs Task
+## How Dispatch Works
 
-The Celery Beat scheduler triggers the `run_spider_jobs` task periodically (default
-every 30 seconds, configured via `DISPATCH_RETRY_DELAY`).
+Jobs are dispatched in periodic cycles (every 30 seconds by default). In each cycle,
+estela:
 
-{: .note }
-> estela uses `django-celery-beat` with `DatabaseScheduler`. This means the schedule
-> is stored in the database, and **the DB value takes precedence** over what is defined
-> in `celery.py`. If you change `DISPATCH_RETRY_DELAY` in settings but the DB already
-> has a different interval, the DB value wins. Use the Django admin to update it, or
-> delete the `PeriodicTask` entry so it gets recreated from code.
-
-The task follows this sequence:
-
-1. **Acquire Redis lock**: Uses `SET spider_jobs_lock 1 NX EX 120` to prevent
-   overlapping executions. If the lock exists (previous run still active), the task
-   exits immediately.
-
-2. **Fetch queued jobs**: Queries jobs with `IN_QUEUE` status, ordered by creation
-   date (FIFO), limited to `RUN_JOBS_PER_LOT` (default 100, 1000 in production).
-
-3. **Read cluster capacity**: Calls the K8s API to calculate total allocatable
-   resources and current usage across worker nodes.
-
-4. **Dispatch loop**: For each queued job, looks up its resource tier, checks if
-   dispatching it would exceed the capacity threshold. If capacity is available,
-   sets status to `WAITING` and creates the K8s Job. If not, the job is skipped
-   and remains `IN_QUEUE` for the next cycle.
-
-5. **Release lock**: The Redis lock is deleted in a `finally` block, ensuring it is
-   always released even if an error occurs.
+1. Picks up queued jobs in the order they were created (first in, first out).
+2. Checks available CPU and memory on the cluster.
+3. Dispatches each job only if the cluster has enough capacity without exceeding the
+   configured utilization threshold.
+4. Leaves jobs in the queue if capacity is not available — they will be retried in the
+   next cycle.
 
 Job status transitions: `IN_QUEUE` → `WAITING` → `RUNNING` → `COMPLETED` / `ERROR`
 
-## Cluster Resource Checking
-
-The `_get_cluster_resources()` function queries the K8s API to determine available
-capacity on worker nodes. Nodes are selected by label (`role=<SPIDER_NODE_ROLE>`,
-default `bitmaker-worker`).
-
-For each matching node, the function:
-- Sums `node.status.allocatable` for CPU and memory (total cluster capacity).
-- Sums resource **requests** (not limits) from all Running and Pending pods on that node.
-- Also accounts for unscheduled Pending pods that target the same node role via
-  `nodeSelector`, since those will consume resources once scheduled.
-
-The `WORKERS_CAPACITY_THRESHOLD` (default 0.95) defines the maximum allowed utilization.
-A job is only dispatched if both CPU and memory usage would remain below this threshold
-after adding the job's requests. The 5% headroom is reserved for system pods and
-in-flight scheduling.
-
 ## Resource Tiers
 
-Each job is assigned a resource tier that determines CPU and memory for its K8s pod.
-Tiers are defined in `core/tiers.py`:
+Each job is assigned a resource tier that determines how much CPU and memory its
+container receives. The default tier is **LARGE**.
 
-| Tier   | CPU Req | CPU Lim | Mem Req  | Mem Lim  |
-|--------|---------|---------|----------|----------|
-| TINY   | 128m    | 256m    | 96Mi     | 128Mi    |
-| XSMALL | 192m    | 384m    | 192Mi    | 256Mi    |
-| SMALL  | 256m    | 512m    | 384Mi    | 512Mi    |
-| MEDIUM | 256m    | 512m    | 768Mi    | 1Gi      |
-| LARGE  | 512m    | 1024m   | 1152Mi   | 1536Mi   |
-| XLARGE | 512m    | 1024m   | 1536Mi   | 2Gi      |
-| HUGE   | 1024m   | 2048m   | 3072Mi   | 4Gi      |
-| XHUGE  | 2048m   | 4096m   | 6144Mi   | 8Gi      |
+| Tier   | CPU Request | CPU Limit | Memory Request | Memory Limit |
+|--------|-------------|-----------|----------------|--------------|
+| TINY   | 128m        | 256m      | 96Mi           | 128Mi        |
+| XSMALL | 192m        | 384m      | 192Mi          | 256Mi        |
+| SMALL  | 256m        | 512m      | 384Mi          | 512Mi        |
+| MEDIUM | 256m        | 512m      | 768Mi          | 1Gi          |
+| LARGE  | 512m        | 1024m     | 1152Mi         | 1536Mi       |
+| XLARGE | 512m        | 1024m     | 1536Mi         | 2Gi          |
+| HUGE   | 1024m       | 2048m     | 3072Mi         | 4Gi          |
+| XHUGE  | 2048m       | 4096m     | 6144Mi         | 8Gi          |
 
-The default tier is **LARGE**. Memory requests are ~75% of the limit, and CPU limits
-are 2x the request.
+Each job also receives a memory usage limit (~85% of the memory limit) that allows
+spiders to shut down gracefully before being forcefully terminated by the cluster.
 
-Each pod receives a `MEMUSAGE_LIMIT_MB` environment variable (~85% of the memory limit).
-Scrapy's MemoryUsage extension uses this to shut down gracefully before the container
-is OOM-killed by Kubernetes.
+## Configuration
 
-## Celery Worker Concurrency
+The dispatch behavior can be tuned with the following environment variables:
 
-The Celery worker command is defined in the Helm chart (`api-deployment.yaml`). By
-default it does not specify `--concurrency`, so Celery uses the number of available
-CPUs.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DISPATCH_RETRY_DELAY` | `30` | Seconds between dispatch cycles |
+| `WORKERS_CAPACITY_THRESHOLD` | `0.95` | Maximum cluster utilization (0–1) before new jobs are held back |
+| `SPIDER_NODE_ROLE` | `bitmaker-worker` | Label used to identify worker nodes |
+| `DEDICATED_SPIDER_NODES` | `True` | Whether spider jobs run on dedicated labeled nodes |
 
-It is recommended to set `--concurrency` to at least 4-8 to ensure the dispatch task
-is not starved by other long-running tasks. For example, `delete_expired_jobs_data`
-performs MongoDB deletions that can take significant time. If concurrency is too low,
-these tasks can occupy all workers and delay job dispatching.
-
-## Key Files
-
-| File | Description |
-|------|-------------|
-| `core/tasks.py` | `run_spider_jobs`, `_get_cluster_resources()`, `_dispatch_single_job()` |
-| `core/tiers.py` | Tier definitions, `TIER_CHOICES`, `get_tier_resources()` |
-| `engines/kubernetes.py` | K8s Job creation with tier-based resource allocation |
-| `config/celery.py` | Beat schedule and periodic task registration |
-| `config/settings/base.py` | `DISPATCH_RETRY_DELAY`, `WORKERS_CAPACITY_THRESHOLD`, `SPIDER_NODE_ROLE` |
-| `installation/helm-chart/templates/API/api-serviceaccount.yaml` | ClusterRole with node/pod permissions |
-
-## Known Issues
-
-- **DatabaseScheduler overrides code defaults**: If you change `DISPATCH_RETRY_DELAY`
-  in settings but the periodic task already exists in the DB with the old interval,
-  the code change has no effect. Delete the DB entry or update it via Django admin.
-
-- **Node selector mismatch**: If `DEDICATED_SPIDER_NODES` is enabled but worker nodes
-  don't have the expected `role` label (default `bitmaker-worker`),
-  `_get_cluster_resources()` returns no nodes and dispatch is blocked. Similarly, spider
-  pods use `nodeSelector` with this role, so unlabeled nodes won't run spider jobs.
+{: .note }
+> `DISPATCH_RETRY_DELAY` is persisted in the database once initialized. If you update
+> it in your settings, you also need to update or delete the corresponding entry via
+> the Django admin for the change to take effect.
 
 ## Deployment Requirements
 
-- **`DEDICATED_SPIDER_NODES` must be `"True"`**: This is enabled by default. When
-  active, spider pods are scheduled with a `nodeSelector` matching `SPIDER_NODE_ROLE`,
-  and `_get_cluster_resources()` queries only those labeled nodes. If set to `"False"`,
-  pods have no `nodeSelector` and the capacity check has no way to accurately measure
-  available resources. The sequential dispatch system is designed to work with
-  `DEDICATED_SPIDER_NODES=True`. Make sure this is not overridden in your environment.
+- **Dedicated spider nodes**: When `DEDICATED_SPIDER_NODES` is `"True"`, spider jobs
+  are scheduled on dedicated nodes identified by the `SPIDER_NODE_ROLE` label, and the
+  capacity check only considers those nodes. This is recommended for larger environments
+  where you want to isolate spider workloads. For smaller setups, set it to `"False"` to
+  allow jobs to run on any available node.
 
-- **ClusterRole permissions**: The `estela-api` service account must have `get` and
-  `list` on both `nodes` and `pods`. The `nodes` permission is required specifically
-  for `_get_cluster_resources()` to read allocatable capacity. The `pods` permission is
-  needed to sum resource requests across Running and Pending pods. Without either of
-  these, the capacity check fails silently and **no jobs are dispatched**. These
-  permissions are defined in `api-serviceaccount.yaml` — verify they are applied in
-  your cluster after deployment.
+- **Cluster permissions**: The estela API service account must have permission to read
+  nodes and pods in the cluster. Without these permissions, the capacity check fails
+  and no jobs are dispatched.
 
-- **Worker concurrency**: Ensure the Celery worker has enough concurrency to handle
-  dispatch alongside other periodic tasks. Add `--concurrency=8` (or similar) to the
-  worker command in the Helm chart if not already set.
-
-- **Environment variables**: `DISPATCH_RETRY_DELAY`, `WORKERS_CAPACITY_THRESHOLD`,
-  `SPIDER_NODE_ROLE`, and `DEDICATED_SPIDER_NODES` must be configured in the API
-  secrets or config map.
+- **Worker concurrency**: The background worker should have enough concurrency
+  (at least 4–8) to handle job dispatch alongside other periodic tasks. This can be
+  configured in the Helm chart.
