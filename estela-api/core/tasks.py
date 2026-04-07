@@ -31,7 +31,7 @@ from core.tiers import get_tier_resources
 import redis
 from kubernetes import client, config
 
-NODE_CAPACITY_THRESHOLD = settings.NODE_CAPACITY_THRESHOLD
+WORKERS_CAPACITY_THRESHOLD = settings.WORKERS_CAPACITY_THRESHOLD
 
 def get_default_token(job):
     user = job.spider.project.users.first()
@@ -73,8 +73,8 @@ def run_spider_jobs():
             new_cpu = used_cpu + job_cpu
             new_mem = used_mem + job_mem
 
-            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= NODE_CAPACITY_THRESHOLD) or \
-               (alloc_mem > 0 and (new_mem / alloc_mem) >= NODE_CAPACITY_THRESHOLD):
+            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= WORKERS_CAPACITY_THRESHOLD) or \
+               (alloc_mem > 0 and (new_mem / alloc_mem) >= WORKERS_CAPACITY_THRESHOLD):
                 skipped += 1
                 continue
 
@@ -119,9 +119,6 @@ def _dispatch_single_job(job):
 
     token = get_default_token(job)
 
-    job.status = SpiderJob.WAITING_STATUS
-    job.save()
-
     job_manager.create_job(
         job.name,
         job.key,
@@ -135,17 +132,25 @@ def _dispatch_single_job(job):
         resource_tier=job.resource_tier,
     )
 
+    job.status = SpiderJob.WAITING_STATUS
+    job.save()
+
 
 def _get_cluster_resources():
     try:
         config.load_incluster_config()
         v1 = client.CoreV1Api()
 
+        dedicated = settings.DEDICATED_SPIDER_NODES == "True"
         spider_node_role = settings.SPIDER_NODE_ROLE
-        nodes = v1.list_node(label_selector=f"role={spider_node_role}")
+
+        if dedicated:
+            nodes = v1.list_node(label_selector=f"role={spider_node_role}")
+        else:
+            nodes = v1.list_node()
 
         if not nodes.items:
-            logging.warning("No worker nodes found with label role=%s", spider_node_role)
+            logging.warning("No worker nodes found")
             return None
 
         total_allocatable_mem = 0
@@ -173,10 +178,11 @@ def _get_cluster_resources():
         )
         for pod in pending_pods.items:
             if pod.spec.node_name:
-                continue 
-            node_selector = pod.spec.node_selector or {}
-            if node_selector.get("role") != spider_node_role:
                 continue
+            if dedicated:
+                node_selector = pod.spec.node_selector or {}
+                if node_selector.get("role") != spider_node_role:
+                    continue
             for container in pod.spec.containers:
                 requests = (container.resources.requests or {}) if container.resources else {}
                 total_requested_mem += _parse_k8s_resource(requests.get("memory", "0"))
