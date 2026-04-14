@@ -33,6 +33,7 @@ from kubernetes import client, config
 
 WORKERS_CAPACITY_THRESHOLD = settings.WORKERS_CAPACITY_THRESHOLD
 
+
 def get_default_token(job):
     user = job.spider.project.users.first()
     if not user:
@@ -70,18 +71,16 @@ def run_spider_jobs():
             tier = get_tier_resources(job.resource_tier)
             job_cpu = _parse_k8s_resource(tier["cpu_request"])
             job_mem = _parse_k8s_resource(tier["mem_request"])
-            new_cpu = used_cpu + job_cpu
-            new_mem = used_mem + job_mem
 
-            if (alloc_cpu > 0 and (new_cpu / alloc_cpu) >= WORKERS_CAPACITY_THRESHOLD) or \
-               (alloc_mem > 0 and (new_mem / alloc_mem) >= WORKERS_CAPACITY_THRESHOLD):
+            if (alloc_cpu > 0 and (used_cpu / alloc_cpu) >= WORKERS_CAPACITY_THRESHOLD) or \
+               (alloc_mem > 0 and (used_mem / alloc_mem) >= WORKERS_CAPACITY_THRESHOLD):
                 skipped += 1
                 continue
 
             try:
                 _dispatch_single_job(job)
-                used_cpu = new_cpu
-                used_mem = new_mem
+                used_cpu += job_cpu
+                used_mem += job_mem
                 dispatched += 1
             except Exception as e:
                 logging.error("run_spider_jobs: failed to dispatch job %s: %s", job.jid, e)
