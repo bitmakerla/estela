@@ -75,7 +75,19 @@ services:
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
 
+  mongodb:
+    container_name: estela_mongodb
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: estela
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
 volumes:
   estela_dbdata:
   registry_data:
   datastore:
+  mongodb_data:

@@ -64,8 +64,8 @@ These variables define the estela behavior.
   by the spiders is stored. Currently, estela supports the _mongodb_ engine.
 
   {: .note }
-  >  For dev a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can be used to set a database, as mentioned on [Estela Resources Guide](./resources.html).
-  >  Or a mongodb can be setup on a local cluster on a docker image.
+  >  For local development, MongoDB is included in the docker-compose setup and can be started with `make resources`. Use `mongodb://<hostIp>:27017/estela` as the connection string.
+  >  Alternatively, a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) deploy can also be used, as mentioned on the [Estela Resources Guide](./resources.html).
 
 * _<SPIDERDATA\_DB\_CONNECTION>_ (Required): The connection URL to your database instance.
 

@@ -179,7 +179,7 @@ of the cloned [estela repository](https://github.com/bitmakerla/estela){:target=
 
 ## Resources
 
-All the named resources (except the _Document Oriented Database_ and the _SMTP Email Server_)
+All the named resources (except the _SMTP Email Server_)
 can be started locally by running this command in the  _installation_ folder:
 
 ```bash
@@ -258,6 +258,9 @@ following:
 $ make images
 ```
 
+{: .note }
+> In local mode (`CREDENTIALS: local`), project images are built and pushed directly as the production image. The `_candidate` suffix used in non-local deployments is not applied.
+
 The Helm deployment requires a release name and a namespace to identify the current version
 of the installed application. By default, the values of these variables are `base` and 
 `default`, respectively.
@@ -289,7 +292,13 @@ To proceed with the installation, perform the following steps:
 * If you are using the local resources, specifically MinIO, you will need to create a 
   public bucket with the name specified in the 
   [_BUCKET\_NAME\_PROJECTS_]({% link estela/installation/helm-variables.md %}#registry){:target="_blank"}
-  variable.
+  variable. You can do this automatically by running:
+
+  ```bash
+  $ make setup-minio-bucket
+  ```
+
+  Or manually via the web dashboard:
   * Go to the [web dashboard](http://localhost:9001){:target="_blank"} and log in using 
     the default credentials: `minioadmin : minioadmin`.
   * Then, [create a bucket](http://localhost:9001/buckets/add-bucket){:target="_blank"} 
