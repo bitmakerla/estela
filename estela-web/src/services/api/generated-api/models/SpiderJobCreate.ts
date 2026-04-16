@@ -93,7 +93,7 @@ export interface SpiderJobCreate {
      * @type {string}
      * @memberof SpiderJobCreate
      */
-    resourceTier?: string;
+    resourceTier?: SpiderJobCreateResourceTierEnum;
 }
 
 /**

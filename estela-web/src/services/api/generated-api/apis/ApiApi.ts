@@ -36,6 +36,9 @@ import {
     InlineResponse2001,
     InlineResponse2001FromJSON,
     InlineResponse2001ToJSON,
+    InlineResponse20010,
+    InlineResponse20010FromJSON,
+    InlineResponse20010ToJSON,
     InlineResponse2002,
     InlineResponse2002FromJSON,
     InlineResponse2002ToJSON,
@@ -302,6 +305,10 @@ export interface ApiProjectsPartialUpdateRequest {
 }
 
 export interface ApiProjectsReadRequest {
+    pid: string;
+}
+
+export interface ApiProjectsResourceStatusRequest {
     pid: string;
 }
 
@@ -1726,6 +1733,37 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiProjectsResourceStatusRaw(requestParameters: ApiProjectsResourceStatusRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsResourceStatus.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/resource_status`.replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsResourceStatus(requestParameters: ApiProjectsResourceStatusRequest): Promise<InlineResponse2004> {
+        const response = await this.apiProjectsResourceStatusRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiProjectsSpidersCronjobsCreateRaw(requestParameters: ApiProjectsSpidersCronjobsCreateRequest): Promise<runtime.ApiResponse<SpiderCronJobCreate>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsCreate.');
@@ -1806,7 +1844,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2005>> {
+    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsList.');
         }
@@ -1841,12 +1879,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2005FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2006FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2005> {
+    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2006> {
         const response = await this.apiProjectsSpidersCronjobsListRaw(requestParameters);
         return await response.value();
     }
@@ -2115,7 +2153,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersJobsDataDownloadRaw(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<runtime.ApiResponse<InlineResponse2008>> {
+    async apiProjectsSpidersJobsDataDownloadRaw(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<runtime.ApiResponse<InlineResponse2009>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataDownload.');
         }
@@ -2154,19 +2192,19 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2008FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2009FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataDownload(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<InlineResponse2008> {
+    async apiProjectsSpidersJobsDataDownload(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<InlineResponse2009> {
         const response = await this.apiProjectsSpidersJobsDataDownloadRaw(requestParameters);
         return await response.value();
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2007>> {
+    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2008>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataList.');
         }
@@ -2205,19 +2243,19 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2007FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2008FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2007> {
+    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2008> {
         const response = await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
         return await response.value();
     }
 
     /**
      */
-    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
+    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2007>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsList.');
         }
@@ -2260,12 +2298,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2006FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2007FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2006> {
+    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2007> {
         const response = await this.apiProjectsSpidersJobsListRaw(requestParameters);
         return await response.value();
     }
@@ -2403,7 +2441,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersListRaw(requestParameters: ApiProjectsSpidersListRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
+    async apiProjectsSpidersListRaw(requestParameters: ApiProjectsSpidersListRequest): Promise<runtime.ApiResponse<InlineResponse2005>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersList.');
         }
@@ -2434,12 +2472,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2005FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersList(requestParameters: ApiProjectsSpidersListRequest): Promise<InlineResponse2004> {
+    async apiProjectsSpidersList(requestParameters: ApiProjectsSpidersListRequest): Promise<InlineResponse2005> {
         const response = await this.apiProjectsSpidersListRaw(requestParameters);
         return await response.value();
     }
@@ -2706,7 +2744,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProxyProviderListRaw(requestParameters: ApiProxyProviderListRequest): Promise<runtime.ApiResponse<InlineResponse2009>> {
+    async apiProxyProviderListRaw(requestParameters: ApiProxyProviderListRequest): Promise<runtime.ApiResponse<InlineResponse20010>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -2729,12 +2767,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2009FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse20010FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProxyProviderList(requestParameters: ApiProxyProviderListRequest): Promise<InlineResponse2009> {
+    async apiProxyProviderList(requestParameters: ApiProxyProviderListRequest): Promise<InlineResponse20010> {
         const response = await this.apiProxyProviderListRaw(requestParameters);
         return await response.value();
     }

@@ -141,7 +141,7 @@ export interface SpiderJob {
      * @type {string}
      * @memberof SpiderJob
      */
-    resourceTier?: string;
+    resourceTier?: SpiderJobResourceTierEnum;
 }
 
 /**

@@ -12,6 +12,7 @@ models/DeployUpdate.ts
 models/FieldCoverageStats.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
+models/InlineResponse20010.ts
 models/InlineResponse2002.ts
 models/InlineResponse2003.ts
 models/InlineResponse2004.ts

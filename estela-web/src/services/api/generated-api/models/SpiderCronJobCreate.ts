@@ -93,7 +93,7 @@ export interface SpiderCronJobCreate {
      * @type {string}
      * @memberof SpiderCronJobCreate
      */
-    resourceTier?: string;
+    resourceTier?: SpiderCronJobCreateResourceTierEnum;
 }
 
 /**
@@ -104,6 +104,19 @@ export enum SpiderCronJobCreateDataStatusEnum {
     Persistent = 'PERSISTENT',
     Pending = 'PENDING',
     Deleted = 'DELETED'
+}/**
+* @export
+* @enum {string}
+*/
+export enum SpiderCronJobCreateResourceTierEnum {
+    Tiny = 'TINY',
+    Xsmall = 'XSMALL',
+    Small = 'SMALL',
+    Medium = 'MEDIUM',
+    Large = 'LARGE',
+    Xlarge = 'XLARGE',
+    Huge = 'HUGE',
+    Xhuge = 'XHUGE'
 }
 
 export function SpiderCronJobCreateFromJSON(json: any): SpiderCronJobCreate {

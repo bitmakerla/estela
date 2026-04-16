@@ -70,11 +70,12 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
         ]
     )
     password = serializers.CharField(style={"input_type": "password"}, write_only=True)
+    memory_quota = serializers.IntegerField(source="profile.memory_quota", read_only=True)
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "is_superuser"]
-        read_only_fields = ["is_superuser"]
+        fields = ["username", "email", "password", "is_superuser", "memory_quota"]
+        read_only_fields = ["is_superuser", "memory_quota"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

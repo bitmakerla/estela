@@ -20,6 +20,7 @@ from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
 from core.models import (
     DataStatus,
+    Permission,
     Project,
     ProxyProvider,
     Spider,
@@ -27,6 +28,7 @@ from core.models import (
     UsageRecord,
 )
 from core.tiers import get_tier_resources
+from core.utils import parse_k8s_resource, parse_memory_to_mi
 
 import redis
 from kubernetes import client, config
@@ -54,9 +56,9 @@ def run_spider_jobs():
         return
 
     try:
-        jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).order_by("created")[
+        jobs = list(SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).order_by("created").select_related("spider__project")[
             : settings.RUN_JOBS_PER_LOT
-        ]
+        ])
 
         cluster = _get_cluster_resources()
         if cluster is None:
@@ -64,12 +66,38 @@ def run_spider_jobs():
 
         alloc_cpu, alloc_mem, used_cpu, used_mem = cluster
 
+        active_jobs = list(SpiderJob.objects.filter(
+            status__in=[SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS]
+        ).select_related("spider__project"))
+
+        all_project_ids = {aj.spider.project_id for aj in active_jobs} | {job.spider.project_id for job in jobs}
+
+        owner_info = {
+            p.project_id: (p.user_id, p.user.profile.memory_quota)
+            for p in Permission.objects.filter(
+                project_id__in=all_project_ids,
+                permission=Permission.OWNER_PERMISSION,
+            ).select_related("user__profile")
+        }
+
+        # Soft-limit: the redis lock above prevents two run_spider_jobs from racing
+        # with each other, but other code paths can dispatch jobs (e.g. POST /jobs/?sync=true,
+        # manual celery tasks, shell scripts) without holding this lock. If they
+        # dispatch between this snapshot read and the loop below, the quota check
+        # can over-commit by a small amount until the next run.
+        owner_mem_usage = defaultdict(float)
+        for aj in active_jobs:
+            if aj.spider.project_id in owner_info:
+                owner_id, _ = owner_info[aj.spider.project_id]
+                tier = get_tier_resources(aj.resource_tier)
+                owner_mem_usage[owner_id] += parse_memory_to_mi(tier["mem_request"])
+
         dispatched = 0
         skipped = 0
         for job in jobs:
             tier = get_tier_resources(job.resource_tier)
-            job_cpu = _parse_k8s_resource(tier["cpu_request"])
-            job_mem = _parse_k8s_resource(tier["mem_request"])
+            job_cpu = parse_k8s_resource(tier["cpu_request"])
+            job_mem = parse_k8s_resource(tier["mem_request"])
             new_cpu = used_cpu + job_cpu
             new_mem = used_mem + job_mem
 
@@ -78,10 +106,26 @@ def run_spider_jobs():
                 skipped += 1
                 continue
 
+            owner_entry = owner_info.get(job.spider.project_id)
+            if owner_entry is None:
+                logging.warning(
+                    "run_spider_jobs: project %s has no owner; skipping job %s",
+                    job.spider.project_id, job.jid,
+                )
+                skipped += 1
+                continue
+
+            owner_id, quota = owner_entry
+            job_mem_mi = parse_memory_to_mi(tier["mem_request"])
+            if owner_mem_usage[owner_id] + job_mem_mi > quota:
+                skipped += 1
+                continue
+
             try:
                 _dispatch_single_job(job)
                 used_cpu = new_cpu
                 used_mem = new_mem
+                owner_mem_usage[owner_id] += job_mem_mi
                 dispatched += 1
             except Exception as e:
                 logging.error("run_spider_jobs: failed to dispatch job %s: %s", job.jid, e)
@@ -160,8 +204,8 @@ def _get_cluster_resources():
 
         for node in nodes.items:
             allocatable = node.status.allocatable or {}
-            total_allocatable_mem += _parse_k8s_resource(allocatable.get("memory", "0"))
-            total_allocatable_cpu += _parse_k8s_resource(allocatable.get("cpu", "0"))
+            total_allocatable_mem += parse_k8s_resource(allocatable.get("memory", "0"))
+            total_allocatable_cpu += parse_k8s_resource(allocatable.get("cpu", "0"))
 
             for phase in ("Running", "Pending"):
                 pods = v1.list_pod_for_all_namespaces(
@@ -170,8 +214,8 @@ def _get_cluster_resources():
                 for pod in pods.items:
                     for container in pod.spec.containers:
                         requests = (container.resources.requests or {}) if container.resources else {}
-                        total_requested_mem += _parse_k8s_resource(requests.get("memory", "0"))
-                        total_requested_cpu += _parse_k8s_resource(requests.get("cpu", "0"))
+                        total_requested_mem += parse_k8s_resource(requests.get("memory", "0"))
+                        total_requested_cpu += parse_k8s_resource(requests.get("cpu", "0"))
 
         pending_pods = v1.list_pod_for_all_namespaces(
             field_selector="status.phase=Pending"
@@ -185,37 +229,13 @@ def _get_cluster_resources():
                     continue
             for container in pod.spec.containers:
                 requests = (container.resources.requests or {}) if container.resources else {}
-                total_requested_mem += _parse_k8s_resource(requests.get("memory", "0"))
-                total_requested_cpu += _parse_k8s_resource(requests.get("cpu", "0"))
+                total_requested_mem += parse_k8s_resource(requests.get("memory", "0"))
+                total_requested_cpu += parse_k8s_resource(requests.get("cpu", "0"))
 
         return (total_allocatable_cpu, total_allocatable_mem, total_requested_cpu, total_requested_mem)
     except Exception as e:
         logging.error("Failed to get cluster resources: %s", e)
         return None
-
-
-def _parse_k8s_resource(value):
-    value = str(value)
-    if value.endswith("m"):
-        return float(value[:-1]) / 1000
-    if value.endswith("Ki"):
-        return float(value[:-2]) * 1024
-    if value.endswith("Mi"):
-        return float(value[:-2]) * 1024 * 1024
-    if value.endswith("Gi"):
-        return float(value[:-2]) * 1024 * 1024 * 1024
-    if value.endswith("Ti"):
-        return float(value[:-2]) * 1024 * 1024 * 1024 * 1024
-    if value.endswith("k"):
-        return float(value[:-1]) * 1000
-    if value.endswith("M"):
-        return float(value[:-1]) * 1000 * 1000
-    if value.endswith("G"):
-        return float(value[:-1]) * 1000 * 1000 * 1000
-    try:
-        return float(value)
-    except ValueError:
-        return 0
 
 
 def delete_data(pid, sid, jid, data_type):

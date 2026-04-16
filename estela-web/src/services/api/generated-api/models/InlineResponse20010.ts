@@ -14,49 +14,49 @@
 
 import { exists, mapValues } from '../runtime';
 import {
-    Spider,
-    SpiderFromJSON,
-    SpiderFromJSONTyped,
-    SpiderToJSON,
+    ProxyProvider,
+    ProxyProviderFromJSON,
+    ProxyProviderFromJSONTyped,
+    ProxyProviderToJSON,
 } from './';
 
 /**
  * 
  * @export
- * @interface InlineResponse2005
+ * @interface InlineResponse20010
  */
-export interface InlineResponse2005 {
+export interface InlineResponse20010 {
     /**
      * 
      * @type {number}
-     * @memberof InlineResponse2005
+     * @memberof InlineResponse20010
      */
     count: number;
     /**
      * 
      * @type {string}
-     * @memberof InlineResponse2005
+     * @memberof InlineResponse20010
      */
     next?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof InlineResponse2005
+     * @memberof InlineResponse20010
      */
     previous?: string | null;
     /**
      * 
-     * @type {Array<Spider>}
-     * @memberof InlineResponse2005
+     * @type {Array<ProxyProvider>}
+     * @memberof InlineResponse20010
      */
-    results: Array<Spider>;
+    results: Array<ProxyProvider>;
 }
 
-export function InlineResponse2005FromJSON(json: any): InlineResponse2005 {
-    return InlineResponse2005FromJSONTyped(json, false);
+export function InlineResponse20010FromJSON(json: any): InlineResponse20010 {
+    return InlineResponse20010FromJSONTyped(json, false);
 }
 
-export function InlineResponse2005FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse2005 {
+export function InlineResponse20010FromJSONTyped(json: any, ignoreDiscriminator: boolean): InlineResponse20010 {
     if ((json === undefined) || (json === null)) {
         return json;
     }
@@ -65,11 +65,11 @@ export function InlineResponse2005FromJSONTyped(json: any, ignoreDiscriminator: 
         'count': json['count'],
         'next': !exists(json, 'next') ? undefined : json['next'],
         'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(SpiderFromJSON)),
+        'results': ((json['results'] as Array<any>).map(ProxyProviderFromJSON)),
     };
 }
 
-export function InlineResponse2005ToJSON(value?: InlineResponse2005 | null): any {
+export function InlineResponse20010ToJSON(value?: InlineResponse20010 | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -81,7 +81,7 @@ export function InlineResponse2005ToJSON(value?: InlineResponse2005 | null): any
         'count': value.count,
         'next': value.next,
         'previous': value.previous,
-        'results': ((value.results as Array<any>).map(SpiderToJSON)),
+        'results': ((value.results as Array<any>).map(ProxyProviderToJSON)),
     };
 }
 

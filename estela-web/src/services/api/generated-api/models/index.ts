@@ -8,6 +8,7 @@ export * from './DeployUpdate';
 export * from './FieldCoverageStats';
 export * from './InlineResponse200';
 export * from './InlineResponse2001';
+export * from './InlineResponse20010';
 export * from './InlineResponse2002';
 export * from './InlineResponse2003';
 export * from './InlineResponse2004';

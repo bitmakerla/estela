@@ -20,11 +20,29 @@ import { exists, mapValues } from '../runtime';
  */
 export interface InlineResponse2008 {
     /**
+     * Data items count.
+     * @type {number}
+     * @memberof InlineResponse2008
+     */
+    count: number;
+    /**
+     * URI to the previous data chunk.
+     * @type {string}
+     * @memberof InlineResponse2008
+     */
+    previous?: string | null;
+    /**
+     * URI to the next data chunk.
+     * @type {string}
+     * @memberof InlineResponse2008
+     */
+    next?: string | null;
+    /**
      * Data items.
      * @type {Array<object>}
      * @memberof InlineResponse2008
      */
-    results: Array<object>;
+    results?: Array<object>;
 }
 
 export function InlineResponse2008FromJSON(json: any): InlineResponse2008 {
@@ -37,7 +55,10 @@ export function InlineResponse2008FromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'results': json['results'],
+        'count': json['count'],
+        'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'next': !exists(json, 'next') ? undefined : json['next'],
+        'results': !exists(json, 'results') ? undefined : json['results'],
     };
 }
 
@@ -50,6 +71,9 @@ export function InlineResponse2008ToJSON(value?: InlineResponse2008 | null): any
     }
     return {
         
+        'count': value.count,
+        'previous': value.previous,
+        'next': value.next,
         'results': value.results,
     };
 }

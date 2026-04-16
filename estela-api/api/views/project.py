@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
@@ -33,6 +34,8 @@ from core.models import (
     UsageRecord,
     User,
 )
+from core.tiers import get_tier_resources
+from core.utils import parse_memory_to_mi
 
 
 class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
@@ -394,5 +397,56 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         serializer = ActivitySerializer(page_result, many=True)
         return Response(
             {"results": serializer.data, "count": activities_set.count()},
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "memory_used": openapi.Schema(type=openapi.TYPE_NUMBER, description="Memory currently in use (Mi)."),
+                    "memory_quota": openapi.Schema(type=openapi.TYPE_NUMBER, description="Owner's total memory quota across all their projects (Mi)."),
+                    "used_pct": openapi.Schema(type=openapi.TYPE_NUMBER, description="Percentage of quota in use."),
+                },
+            )
+        },
+    )
+    @action(methods=["GET"], detail=True)
+    def resource_status(self, request, *args, **kwargs):
+        project = self.get_object()
+        owner = project.users.filter(
+            permission__permission=Permission.OWNER_PERMISSION
+        ).first()
+        if owner is None:
+            return Response(
+                {"memory_used": 0, "memory_quota": 0, "used_pct": 0},
+                status=status.HTTP_200_OK,
+            )
+
+        owner_projects = Project.objects.filter(
+            permission__user=owner,
+            permission__permission=Permission.OWNER_PERMISSION,
+        )
+        active_jobs = SpiderJob.objects.filter(
+            spider__project__in=owner_projects,
+            status__in=[SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS],
+        )
+
+        memory_used = 0.0
+        for job in active_jobs:
+            tier = get_tier_resources(job.resource_tier)
+            memory_used += parse_memory_to_mi(tier["mem_request"])
+
+        memory_quota = owner.profile.memory_quota
+        used_pct = round((memory_used / memory_quota) * 100, 1) if memory_quota > 0 else 0
+
+        return Response(
+            {
+                "memory_used": memory_used,
+                "memory_quota": memory_quota,
+                "used_pct": used_pct,
+            },
             status=status.HTTP_200_OK,
         )
