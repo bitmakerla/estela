@@ -43,6 +43,12 @@ export interface UserProfile {
      * @memberof UserProfile
      */
     readonly isSuperuser?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof UserProfile
+     */
+    memoryQuota?: number;
 }
 
 export function UserProfileFromJSON(json: any): UserProfile {
@@ -59,6 +65,7 @@ export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'email': json['email'],
         'password': json['password'],
         'isSuperuser': !exists(json, 'is_superuser') ? undefined : json['is_superuser'],
+        'memoryQuota': !exists(json, 'memory_quota') ? undefined : json['memory_quota'],
     };
 }
 
@@ -74,6 +81,7 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
         'username': value.username,
         'email': value.email,
         'password': value.password,
+        'memory_quota': value.memoryQuota,
     };
 }
 

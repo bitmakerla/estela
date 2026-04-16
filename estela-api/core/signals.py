@@ -1,9 +1,16 @@
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from core.models import SpiderJob
+from core.models import SpiderJob, UserProfile
 from core.tasks import get_chain_to_process_usage_data, record_job_coverage_event
+
+
+@receiver(post_save, sender=User, dispatch_uid="create_user_profile")
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
 
 
 @receiver(post_save, sender=SpiderJob, dispatch_uid="update_usage")

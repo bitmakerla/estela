@@ -727,6 +727,36 @@ paths:
         required: true
         type: string
         format: uuid
+  /api/projects/{pid}/resource_status:
+    get:
+      operationId: api_projects_resource_status
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              memory_used:
+                description: Memory currently in use (Mi).
+                type: number
+              memory_quota:
+                description: Owner's total memory quota across all their projects
+                  (Mi).
+                type: number
+              used_pct:
+                description: Percentage of quota in use.
+                type: number
+      tags:
+        - api
+    parameters:
+      - name: pid
+        in: path
+        description: A UUID identifying this project.
+        required: true
+        type: string
+        format: uuid
   /api/projects/{pid}/spiders:
     get:
       operationId: api_projects_spiders_list
@@ -1058,9 +1088,9 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/SpiderJobCreate'
-        - name: async
+        - name: sync
           in: query
-          description: True if this job is async.
+          description: True to bypass the dispatch queue and send directly to K8s.
           type: boolean
       responses:
         '201':
@@ -1720,6 +1750,9 @@ definitions:
           assigning them.
         type: boolean
         readOnly: true
+      memory_quota:
+        title: Memory quota
+        type: integer
   User:
     required:
       - username
@@ -2110,6 +2143,19 @@ definitions:
         maximum: 65535
         minimum: 0
         x-nullable: true
+      resource_tier:
+        title: Resource tier
+        description: Resource tier for jobs created by this cron job.
+        type: string
+        enum:
+          - TINY
+          - XSMALL
+          - SMALL
+          - MEDIUM
+          - LARGE
+          - XLARGE
+          - HUGE
+          - XHUGE
   ProjectCronJob:
     required:
       - results
@@ -2370,6 +2416,19 @@ definitions:
         title: Storage size
         type: string
         readOnly: true
+      resource_tier:
+        title: Resource tier
+        description: Resource tier for K8s pod allocation.
+        type: string
+        enum:
+          - TINY
+          - XSMALL
+          - SMALL
+          - MEDIUM
+          - LARGE
+          - XLARGE
+          - HUGE
+          - XHUGE
   ProjectJob:
     required:
       - results
@@ -2509,6 +2568,19 @@ definitions:
           - PERSISTENT
           - PENDING
           - DELETED
+      resource_tier:
+        title: Resource tier
+        description: Resource tier for jobs created by this cron job.
+        type: string
+        enum:
+          - TINY
+          - XSMALL
+          - SMALL
+          - MEDIUM
+          - LARGE
+          - XLARGE
+          - HUGE
+          - XHUGE
   SpiderCronJobUpdate:
     type: object
     properties:
@@ -2547,6 +2619,19 @@ definitions:
         maximum: 65535
         minimum: 0
         x-nullable: true
+      resource_tier:
+        title: Resource tier
+        description: Resource tier for jobs created by this cron job.
+        type: string
+        enum:
+          - TINY
+          - XSMALL
+          - SMALL
+          - MEDIUM
+          - LARGE
+          - XLARGE
+          - HUGE
+          - XHUGE
   SpiderJobCreateEnvVar:
     description: Job env variables.
     required:
@@ -2624,6 +2709,19 @@ definitions:
         description: Data status.
         type: string
         minLength: 1
+      resource_tier:
+        title: Resource tier
+        description: Resource tier for K8s pod allocation.
+        type: string
+        enum:
+          - TINY
+          - XSMALL
+          - SMALL
+          - MEDIUM
+          - LARGE
+          - XLARGE
+          - HUGE
+          - XHUGE
   SpiderJobUpdate:
     type: object
     properties:
