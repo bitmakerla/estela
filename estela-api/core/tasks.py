@@ -261,15 +261,18 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
 
 @celery_app.task(name="core.tasks.check_and_update_job_status_errors")
 def check_and_update_job_status_errors():
-    jobs = SpiderJob.objects.filter(status=SpiderJob.WAITING_STATUS)[
-        : settings.CHECK_JOB_ERRORS_BATCH_SIZE
-    ]
-
+    jobs = SpiderJob.objects.filter(
+        status__in=[SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS]
+    )[: settings.CHECK_JOB_ERRORS_BATCH_SIZE]
     for job in jobs:
         job_status = job_manager.read_job_status(job.name)
-        if job_status is None or (
-            job_status.active is None and job_status.succeeded is None
-        ):
+        is_waiting = job.status == SpiderJob.WAITING_STATUS
+        dead = job_status is None or (
+            job_status.active is None
+            and job_status.succeeded is None
+            and (is_waiting or job_status.failed is not None)
+        )
+        if dead:
             try:
                 update_stats_from_redis(job, save_to_database=True)
                 delete_stats_from_redis(job)
