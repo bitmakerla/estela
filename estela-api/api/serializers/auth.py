@@ -70,16 +70,25 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
         ]
     )
     password = serializers.CharField(style={"input_type": "password"}, write_only=True)
+    memory_quota = serializers.IntegerField(source="profile.memory_quota", required=False)
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "is_superuser"]
+        fields = ["username", "email", "password", "is_superuser", "memory_quota"]
         read_only_fields = ["is_superuser"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance:
             self.fields.pop("password")
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop("profile", {})
+        instance = super().update(instance, validated_data)
+        if profile_data:
+            instance.profile.memory_quota = profile_data["memory_quota"]
+            instance.profile.save()
+        return instance
 
 
 class ChangePasswordSerializer(serializers.Serializer):

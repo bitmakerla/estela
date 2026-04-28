@@ -20,6 +20,7 @@ from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
 from core.models import (
     DataStatus,
+    Permission,
     Project,
     ProxyProvider,
     Spider,
@@ -32,6 +33,7 @@ import redis
 from kubernetes import client, config
 
 WORKERS_CAPACITY_THRESHOLD = settings.WORKERS_CAPACITY_THRESHOLD
+DEFAULT_USER_MEMORY_QUOTA = settings.DEFAULT_USER_MEMORY_QUOTA
 
 def get_default_token(job):
     user = job.spider.project.users.first()
@@ -54,15 +56,36 @@ def run_spider_jobs():
         return
 
     try:
-        jobs = SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).order_by("created")[
+        jobs = list(SpiderJob.objects.filter(status=SpiderJob.IN_QUEUE_STATUS).order_by("created").select_related("spider__project")[
             : settings.RUN_JOBS_PER_LOT
-        ]
+        ])
 
         cluster = _get_cluster_resources()
         if cluster is None:
             return
 
         alloc_cpu, alloc_mem, used_cpu, used_mem = cluster
+
+        active_jobs = list(SpiderJob.objects.filter(
+            status__in=[SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS]
+        ).select_related("spider__project"))
+
+        all_project_ids = {aj.spider.project_id for aj in active_jobs} | {job.spider.project_id for job in jobs}
+
+        owner_info = {
+            p.project_id: (p.user_id, p.user.profile.memory_quota)
+            for p in Permission.objects.filter(
+                project_id__in=all_project_ids,
+                permission=Permission.OWNER_PERMISSION,
+            ).select_related("user__profile")
+        }
+
+        owner_mem_usage = defaultdict(float)
+        for aj in active_jobs:
+            if aj.spider.project_id in owner_info:
+                owner_id, _ = owner_info[aj.spider.project_id]
+                tier = get_tier_resources(aj.resource_tier)
+                owner_mem_usage[owner_id] += _parse_k8s_resource(tier["mem_request"]) / (1024 * 1024)
 
         dispatched = 0
         skipped = 0
@@ -78,10 +101,18 @@ def run_spider_jobs():
                 skipped += 1
                 continue
 
+            owner_id, quota = owner_info.get(job.spider.project_id, (None, DEFAULT_USER_MEMORY_QUOTA))
+            job_mem_mi = job_mem / (1024 * 1024)
+            if owner_id and owner_mem_usage[owner_id] + job_mem_mi > quota:
+                skipped += 1
+                continue
+
             try:
                 _dispatch_single_job(job)
                 used_cpu = new_cpu
                 used_mem = new_mem
+                if owner_id:
+                    owner_mem_usage[owner_id] += job_mem_mi
                 dispatched += 1
             except Exception as e:
                 logging.error("run_spider_jobs: failed to dispatch job %s: %s", job.jid, e)

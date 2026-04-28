@@ -84,6 +84,7 @@ class Project(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
     )
+
     class Meta:
         ordering = ["name"]
 
@@ -139,6 +140,16 @@ class Permission(models.Model):
         choices=PERMISSIONS_OPTIONS,
         default=VIEWER_PERMISSION,
         help_text="Permission on this project.",
+    )
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="profile", help_text="User."
+    )
+    memory_quota = models.PositiveIntegerField(
+        default=6144,
+        help_text="Maximum total memory this user can consume across all running jobs in all their projects.",
     )
 
 

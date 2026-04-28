@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
@@ -33,6 +34,7 @@ from core.models import (
     UsageRecord,
     User,
 )
+from core.tiers import get_tier_resources
 
 
 class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
@@ -394,5 +396,52 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         serializer = ActivitySerializer(page_result, many=True)
         return Response(
             {"results": serializer.data, "count": activities_set.count()},
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "memory_used": openapi.Schema(type=openapi.TYPE_NUMBER, description="Memory currently in use (Mi)."),
+                    "memory_quota": openapi.Schema(type=openapi.TYPE_NUMBER, description="Owner's total memory quota across all their projects (Mi)."),
+                    "used_pct": openapi.Schema(type=openapi.TYPE_NUMBER, description="Percentage of quota in use."),
+                },
+            )
+        },
+    )
+    @action(methods=["GET"], detail=True)
+    def resource_status(self, request, *args, **kwargs):
+        project = Project.objects.get(pid=kwargs["pid"])
+        owner = project.users.get(permission__permission=Permission.OWNER_PERMISSION)
+        owner_projects = Project.objects.filter(
+            permission__user=owner,
+            permission__permission=Permission.OWNER_PERMISSION,
+        )
+        active_jobs = SpiderJob.objects.filter(
+            spider__project__in=owner_projects,
+            status__in=[SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS],
+        )
+
+        memory_used = 0.0
+        for job in active_jobs:
+            tier = get_tier_resources(job.resource_tier)
+            mem_request = tier["mem_request"]
+            if mem_request.endswith("Mi"):
+                memory_used += float(mem_request[:-2])
+            elif mem_request.endswith("Gi"):
+                memory_used += float(mem_request[:-2]) * 1024
+
+        memory_quota = owner.profile.memory_quota
+        used_pct = round((memory_used / memory_quota) * 100, 1) if memory_quota > 0 else 0
+
+        return Response(
+            {
+                "memory_used": memory_used,
+                "memory_quota": memory_quota,
+                "used_pct": used_pct,
+            },
             status=status.HTTP_200_OK,
         )

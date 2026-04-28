@@ -1,5 +1,5 @@
 import React, { Component, ReactElement } from "react";
-import { Layout, Pagination, Typography, Checkbox, Tag, Button, Row, Col, Space, Table } from "antd";
+import { Layout, Pagination, Typography, Checkbox, Tag, Button, Row, Col, Space, Table, Progress, Tooltip } from "antd";
 import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import { ApiService } from "../../services";
@@ -9,6 +9,8 @@ import JobCreateModal from "../JobCreateModal";
 import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
+    ApiProjectsResourceStatusRequest,
+    InlineResponse2004,
     ProjectJob,
     Spider,
     SpiderJob,
@@ -76,6 +78,8 @@ interface ProjectJobListPageState {
     count: number;
     current: number;
     loading: boolean;
+    memoryUsed: number;
+    memoryQuota: number;
 }
 
 interface StateType {
@@ -100,6 +104,8 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
         loaded: false,
         count: 0,
         current: 0,
+        memoryUsed: 0,
+        memoryQuota: 0,
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
@@ -195,6 +201,12 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 resourceNotAllowedNotification();
             },
         );
+
+        const resourceParams: ApiProjectsResourceStatusRequest = { pid: this.projectId };
+        this.apiService.apiProjectsResourceStatus(resourceParams).then((response: InlineResponse2004) => {
+            this.setState({ memoryUsed: response.memoryUsed ?? 0, memoryQuota: response.memoryQuota ?? 0 });
+        });
+
         this.getJobs(1);
     }
 
@@ -268,7 +280,13 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
             waitingJobs,
             count,
             current,
+            memoryUsed,
+            memoryQuota,
         } = this.state;
+        const usedPct = memoryQuota > 0 ? Math.round((memoryUsed / memoryQuota) * 100) : 0;
+        const usedGB = (memoryUsed / 1024).toFixed(1);
+        const quotaGB = (memoryQuota / 1024).toFixed(1);
+        const progressColor = usedPct >= 90 ? "#f5222d" : usedPct >= 70 ? "#faad14" : "#52c41a";
         return (
             <Content>
                 {loaded ? (
@@ -280,7 +298,25 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                                         JOB OVERVIEW
                                     </Text>
                                 </Col>
-                                <Col className="float-right">
+                                <Col className="float-right flex items-center gap-3">
+                                    <Tooltip title={`${usedGB} GB used of ${quotaGB} GB quota`}>
+                                        <div className="flex items-center gap-2 border border-estela-blue-low bg-white rounded-lg px-3 py-1">
+                                            <Text className="text-xs text-estela-black-medium whitespace-nowrap">
+                                                Memory
+                                            </Text>
+                                            <Progress
+                                                percent={usedPct}
+                                                strokeColor={progressColor}
+                                                trailColor="#e8e8e8"
+                                                showInfo={false}
+                                                size="small"
+                                                style={{ width: 80 }}
+                                            />
+                                            <Text className="text-xs text-estela-black-medium whitespace-nowrap">
+                                                {usedGB} / {quotaGB} GB
+                                            </Text>
+                                        </div>
+                                    </Tooltip>
                                     <JobCreateModal projectId={this.projectId} openModal={false} spider={null} />
                                 </Col>
                             </Row>

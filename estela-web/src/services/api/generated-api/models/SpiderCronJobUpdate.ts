@@ -60,7 +60,7 @@ export interface SpiderCronJobUpdate {
      * @type {string}
      * @memberof SpiderCronJobUpdate
      */
-    resourceTier?: string;
+    resourceTier?: SpiderCronJobUpdateResourceTierEnum;
 }
 
 /**
@@ -77,6 +77,19 @@ export enum SpiderCronJobUpdateStatusEnum {
 export enum SpiderCronJobUpdateDataStatusEnum {
     Persistent = 'PERSISTENT',
     Pending = 'PENDING'
+}/**
+* @export
+* @enum {string}
+*/
+export enum SpiderCronJobUpdateResourceTierEnum {
+    Tiny = 'TINY',
+    Xsmall = 'XSMALL',
+    Small = 'SMALL',
+    Medium = 'MEDIUM',
+    Large = 'LARGE',
+    Xlarge = 'XLARGE',
+    Huge = 'HUGE',
+    Xhuge = 'XHUGE'
 }
 
 export function SpiderCronJobUpdateFromJSON(json: any): SpiderCronJobUpdate {
