@@ -3,11 +3,11 @@ from credentials.gcp import GCPCredentials
 from credentials.local import LocalCredentials
 
 
-def Credentials(plataform):
+def Credentials(platform):
     credentials = {
         "aws": AWSCredentials,
         "gcp": GCPCredentials,
         "local": LocalCredentials,
     }
 
-    return credentials[plataform]()
+    return credentials[platform]()
