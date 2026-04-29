@@ -21,6 +21,7 @@ from core.models import (
     SpiderJobEnvVar,
     SpiderJobTag,
 )
+from core.resource_dual_write import attach_spider_job_resource
 
 
 class SpiderJobSerializer(serializers.ModelSerializer):
@@ -154,6 +155,7 @@ class SpiderJobCreateSerializer(serializers.ModelSerializer):
             job.tags.add(tag)
 
         job.save()
+        attach_spider_job_resource(job)
         return job
 
 
