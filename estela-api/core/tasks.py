@@ -564,3 +564,20 @@ def update_mongodb_insertion_progress():
             logging.error(f"Error updating progress for job {job.jid}: {str(e)}")
             
     logging.info(f"Completed MongoDB insertion progress updates")
+
+
+@celery_app.task(name="core.tasks.reconcile_resource")
+def reconcile_resource(resource_id):
+    """Skeleton reconciler: load Resource and no-op (no K8s). Gated by RESOURCE_RECONCILER_ENABLED."""
+    if not settings.RESOURCE_RECONCILER_ENABLED:
+        return None
+    from core.models import Resource
+    from estela_resources import is_terminal_phase
+
+    try:
+        resource = Resource.objects.get(pk=resource_id)
+    except Resource.DoesNotExist:
+        return None
+    if is_terminal_phase(resource.phase):
+        return None
+    return None

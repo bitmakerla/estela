@@ -18,7 +18,7 @@ Suppose you want to use other services for the registry container and project st
 define a new credentials as a class. Add your credentials in `credentials/config.py` with a name:
 
 ```py
-def Credentials(plataform):
+def Credentials(platform):
     credentials = {
         "aws": AWSCredentials,
         "gcp": GCPCredentials,
@@ -26,7 +26,7 @@ def Credentials(plataform):
         "your_credentials": YourCredentials,
     }
 
-    return credentials[plataform]()
+    return credentials[platform]()
 ```
 
 The use of specific credentials is defined in the project settings as an environment variable at

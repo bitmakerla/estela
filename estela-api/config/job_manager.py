@@ -5,7 +5,7 @@ from builds.config import Build
 
 from database_adapters.db_adapters import get_database_interface
 
-credentials = Credentials(plataform=settings.CREDENTIALS)
+credentials = Credentials(platform=settings.CREDENTIALS)
 
 job_manager = JobManager(engine=settings.ENGINE)
 
