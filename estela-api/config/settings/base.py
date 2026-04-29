@@ -56,6 +56,7 @@ env = environ.Env(
     BUCKET_NAME_PROJECTS=(str, "dummy"),
     SECRET_KEY=(str, "dummy"),
     ENGINE=(str, "dummy"),
+    RESOURCE_DUAL_WRITE=(bool, False),
     BUILD=(str, "default"),
     STAGE=(str, "DEVELOPMENT"),
     SPIDERDATA_DB_ENGINE=(str, "dummy"),
@@ -298,6 +299,7 @@ TEST_DOCKER_IMAGE = "{}/estela-project-demo:test".format(
 # Engine
 BUILD = env("BUILD")
 ENGINE = env("ENGINE")
+RESOURCE_DUAL_WRITE = env("RESOURCE_DUAL_WRITE")
 CREDENTIALS = env("CREDENTIALS")
 SPIDERDATA_DB_ENGINE = env("SPIDERDATA_DB_ENGINE")
 

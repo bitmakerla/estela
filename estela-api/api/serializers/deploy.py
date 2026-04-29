@@ -3,6 +3,7 @@ from rest_framework import serializers
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
 from core.models import Deploy, Spider
+from core.resource_dual_write import attach_deploy_resource
 
 
 class DeploySerializer(serializers.ModelSerializer):
@@ -27,6 +28,11 @@ class DeployCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Deploy
         fields = ["did", "status", "created", "project_zip"]
+
+    def create(self, validated_data):
+        deploy = super().create(validated_data)
+        attach_deploy_resource(deploy)
+        return deploy
 
 
 class DeployUpdateSerializer(serializers.ModelSerializer):
