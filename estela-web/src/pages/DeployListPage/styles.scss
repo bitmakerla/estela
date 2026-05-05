@@ -1,5 +1,8 @@
-.ant-table{
-    border:none;
+$estela-red-full: #e34a46;
+$estela-red-low: #fff5f2;
+
+.ant-table {
+    border: none;
 }
 .ant-table-thead .ant-table-cell {
     background-color: white;
@@ -24,4 +27,36 @@
 @keyframes shimmer {
     0%   { background-position: -120px 0; }
     100% { background-position: 120px 0; }
+}
+// Failure-row affordances: left red bar (always visible),
+// red hover background (override Ant default), "View logs" hint
+// and Failure tag fill only appear on row hover.
+.deploy-row-failure {
+    // Red bar at the leftmost edge of the first cell. Going further left
+    // would require breaking out of the table (it's clipped by the Ant
+    // Table wrapper). This is the most-left we can render reliably.
+    > td:first-child {
+        box-shadow: inset 4px 0 0 $estela-red-full;
+        padding-left: 24px; // push the deploy ID away from the bar
+    }
+
+    .deploy-view-logs-hint {
+        visibility: hidden;
+    }
+
+    &:hover {
+        > td {
+            background-color: $estela-red-low !important;
+        }
+
+        .deploy-view-logs-hint {
+            visibility: visible;
+        }
+
+        .deploy-failure-tag,
+        .deploy-failure-tag .anticon {
+            background-color: $estela-red-full !important;
+            color: #ffffff !important;
+        }
+    }
 }
