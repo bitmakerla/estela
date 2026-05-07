@@ -9,7 +9,7 @@ import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 
 import "./styles.scss";
 import { API_BASE_URL } from "../../constants";
-import { ApiService } from "../../services";
+import { ApiService, AuthService } from "../../services";
 import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
@@ -280,7 +280,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             <p className="text-white">$ cd quotesbot</p>
                                             <p className="text-white">$ estela login</p>
                                             <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
-                                            <p className="text-white">Username: admin</p>
+                                            <p className="text-white">Username: {AuthService.getUserUsername()}</p>
                                             <p className="text-white">Password:</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
                                             <p className="text-white">$ estela deploy</p>
@@ -297,7 +297,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                             <p className="text-white">$ cd &lt;project_name&gt;</p>
                                             <p className="text-white">$ estela login</p>
                                             <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
-                                            <p className="text-white">Username: admin</p>
+                                            <p className="text-white">Username: {AuthService.getUserUsername()}</p>
                                             <p className="text-white">Password:</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
                                             <p className="text-white">$ estela deploy</p>

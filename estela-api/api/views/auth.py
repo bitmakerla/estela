@@ -102,13 +102,13 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         user = User.objects.filter(pk=user_id)
         if not user:
             return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0], {"error": "User does not exist."}
+                settings.FRONTEND_HOST, {"error": "User does not exist."}
             )
 
         user = user.get()
         if user.is_active:
             return redirect(
-                "".join([settings.CORS_ORIGIN_WHITELIST[0], "/activatedAccount"]),
+                "".join([settings.FRONTEND_HOST, "/activatedAccount"]),
                 {"message": "Account already activated!"},
             )
         elif account_reset_token.check_token(user, token):
@@ -129,7 +129,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
             )
             email.send()
             return redirect(
-                "".join([settings.CORS_ORIGIN_WHITELIST[0], "/activatedAccount"]),
+                "".join([settings.FRONTEND_HOST, "/activatedAccount"]),
                 {
                     "message": "Thank you for your email confirmation. You can now log in to your account."
                 },
@@ -137,7 +137,7 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         else:
             self.retry_send_verification_email(user, request)
             return redirect(
-                settings.CORS_ORIGIN_WHITELIST[0],
+                settings.FRONTEND_HOST,
                 {"message": "Activation link is invalid!"},
             )
 

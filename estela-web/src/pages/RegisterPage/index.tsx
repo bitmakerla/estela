@@ -76,6 +76,7 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
     handleSubmit = (data: { email: string; username: string; password: string }): void => {
         this.setState({ loading: true });
         if (!this.validatePassword(data.password)) {
+            this.setState({ loading: false });
             return;
         }
 
