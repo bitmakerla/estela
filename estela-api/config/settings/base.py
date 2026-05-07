@@ -40,6 +40,7 @@ env = environ.Env(
     REDIS_URL=(str, "redis://redis"),
     REDIS_STATS_INTERVAL=(str, "5.0"),
     CORS_ORIGIN_WHITELIST=(str, "http://127.0.0.1:3000"),
+    DJANGO_FRONTEND_HOST=(str, "http://127.0.0.1:3000"),
     AWS_ACCESS_KEY_ID=(str, "dummy"),
     AWS_SECRET_ACCESS_KEY=(str, "dummy"),
     AWS_DEFAULT_REGION=(str, "us-east-2"),
@@ -86,6 +87,7 @@ DEBUG = False
 STAGE = env("STAGE")
 
 DJANGO_API_HOST = env("DJANGO_API_HOST")
+FRONTEND_HOST = env("DJANGO_FRONTEND_HOST")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split(",")
 
 DJANGO_EXTERNAL_APPS = [x for x in env("DJANGO_EXTERNAL_APPS").split(",") if x]
