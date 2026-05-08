@@ -21,11 +21,17 @@ from config.job_manager import job_manager, spiderdata_db_client
 from core.models import (
     DataStatus,
     Permission,
+    Deploy,
     Project,
     ProxyProvider,
     Spider,
     SpiderJob,
     UsageRecord,
+)
+from core.error_logs import (
+    capture_job_error_reason,
+    strip_blanks,
+    write_job_logs_to_mongo,
 )
 from core.tiers import get_tier_resources
 from core.utils import parse_k8s_resource, parse_memory_to_mi
@@ -281,9 +287,11 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
 
 @celery_app.task(name="core.tasks.check_and_update_job_status_errors")
 def check_and_update_job_status_errors():
-    jobs = SpiderJob.objects.filter(
-        status__in=[SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS]
-    )[: settings.CHECK_JOB_ERRORS_BATCH_SIZE]
+    candidate_statuses = [SpiderJob.WAITING_STATUS, SpiderJob.RUNNING_STATUS]
+    jobs = SpiderJob.objects.filter(status__in=candidate_statuses)[
+        : settings.CHECK_JOB_ERRORS_BATCH_SIZE
+    ]
+
     for job in jobs:
         job_status = job_manager.read_job_status(job.name)
         is_waiting = job.status == SpiderJob.WAITING_STATUS
@@ -296,10 +304,65 @@ def check_and_update_job_status_errors():
             try:
                 update_stats_from_redis(job, save_to_database=True)
                 delete_stats_from_redis(job)
-            except:
+            except Exception:
                 pass
+            error_logs = capture_job_error_reason(job)
             job.status = SpiderJob.ERROR_STATUS
             job.save()
+            write_job_logs_to_mongo(job, error_logs)
+
+    # Fallback: jobs already in ERROR but with no entry in job_logs yet.
+    # Covers paths that mark ERROR without writing logs (e.g. the
+    # SpiderJob.job_status property mutation, manual API marks).
+    if not spiderdata_db_client.get_connection():
+        return
+    error_jobs = SpiderJob.objects.filter(
+        status=SpiderJob.ERROR_STATUS
+    ).order_by("-created")[: settings.CHECK_JOB_ERRORS_BATCH_SIZE]
+    for job in error_jobs:
+        db = str(job.spider.project.pid)
+        if spiderdata_db_client.client[db]["job_logs"].find_one(
+            {"job_id": job.jid}, projection={"_id": 1}
+        ):
+            continue
+        error_logs = capture_job_error_reason(job)
+        write_job_logs_to_mongo(job, error_logs)
+
+
+@celery_app.task(name="core.tasks.check_and_update_deploy_status_errors")
+def check_and_update_deploy_status_errors():
+    deploys = Deploy.objects.filter(status=Deploy.BUILDING_STATUS)[
+        : settings.CHECK_JOB_ERRORS_BATCH_SIZE
+    ]
+
+    for deploy in deploys:
+        job_name = f"deploy-project-{deploy.did}"
+        job_status = job_manager.read_job_status(job_name)
+        if job_status is None or (
+            job_status.active is None and job_status.succeeded is None
+        ):
+            build_logs = job_manager.read_build_logs(job_name) or {}
+            if build_logs and spiderdata_db_client.get_connection():
+                parts = []
+                for label, key in (
+                    ("Downloader", "project-downloader"),
+                    ("Build", "kaniko-builder"),
+                    ("Deploy", "spider-status"),
+                ):
+                    log = build_logs.get(key)
+                    excerpt = strip_blanks(log)
+                    if excerpt:
+                        parts.append(f"=== {label} ===\n{excerpt}")
+                combined = "\n\n".join(parts)
+                if combined:
+                    db = str(deploy.project.pid)
+                    spiderdata_db_client.client[db]["deploy_logs"].insert_one({
+                        "deploy_id": deploy.did,
+                        "logs": combined,
+                        "created": datetime.utcnow(),
+                    })
+            deploy.status = Deploy.FAILURE_STATUS
+            deploy.save()
 
 
 @celery_app.task(

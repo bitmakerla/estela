@@ -1,5 +1,6 @@
 import React, { Component, ReactElement } from "react";
 import { Layout, Pagination, Row, Table, Button, Tag, Col, Typography, Modal, Tooltip as TooltipAnt } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { RouteComponentProps } from "react-router-dom";
 import Copy from "../../assets/icons/copy.svg";
 import Info from "../../assets/icons/info.svg";
@@ -14,6 +15,10 @@ import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../service
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 
+interface DeployLogs {
+    logs: string | null;
+}
+
 const { Content } = Layout;
 const { Text, Paragraph } = Typography;
 
@@ -23,6 +28,7 @@ interface DeployListPageState {
     count: number;
     loaded: boolean;
     modalIsOpen: boolean;
+    logsModal: { visible: boolean; loading: boolean; logs: DeployLogs | null };
 }
 
 interface RouteParams {
@@ -37,9 +43,23 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
         current: 0,
         loaded: false,
         modalIsOpen: false,
+        logsModal: { visible: false, loading: false, logs: null },
     };
     apiService = ApiService();
     projectId: string = this.props.match.params.projectId;
+
+    fetchDeployLogs = async (deployId: number): Promise<void> => {
+        this.setState({ logsModal: { visible: true, loading: true, logs: null } });
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/projects/${this.projectId}/deploys/${deployId}/logs`, {
+                headers: AuthService.getDefaultAuthHeaders(),
+            });
+            const logs: DeployLogs = await response.json();
+            this.setState({ logsModal: { visible: true, loading: false, logs } });
+        } catch (e) {
+            this.setState({ logsModal: { visible: true, loading: false, logs: null } });
+        }
+    };
 
     columns = [
         {
@@ -68,6 +88,17 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             render: (count: number): ReactElement => (count === 0 ? <Text>-/-</Text> : <Text>{count}</Text>),
         },
         {
+            title: "",
+            key: "logsHint",
+            width: 110,
+            render: (_: unknown, deploy: Deploy): ReactElement =>
+                deploy.status === "FAILURE" ? (
+                    <Text className="deploy-view-logs-hint text-estela-red-full text-xs">View logs ›</Text>
+                ) : (
+                    <span />
+                ),
+        },
+        {
             title: (
                 <Row className="flex items-center gap-1">
                     STATUS
@@ -81,14 +112,21 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             ),
             key: "status",
             dataIndex: "status",
-            render: (state: string): ReactElement => (
+            render: (state: string, deploy: Deploy): ReactElement => (
                 <Content style={{ display: "flex", alignItems: "center" }}>
                     {state === "BUILDING" ? (
                         <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-yellow">Waiting</Tag>
                     ) : state === "SUCCESS" ? (
                         <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-green">Completed</Tag>
                     ) : (
-                        <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-red-full">
+                        <Tag
+                            icon={<ExclamationCircleOutlined className="mr-1" />}
+                            className="deploy-failure-tag border-0 text-s bg-estela-blue-low rounded-md text-estela-red-full cursor-pointer flex items-center"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (deploy.did) this.fetchDeployLogs(deploy.did);
+                            }}
+                        >
                             Failure
                         </Tag>
                     )}
@@ -145,9 +183,24 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     };
 
     render(): JSX.Element {
-        const { loaded, deploys, count, current, modalIsOpen } = this.state;
+        const { loaded, deploys, count, current, modalIsOpen, logsModal } = this.state;
         return (
             <Content className="bg-white">
+                <Modal
+                    title="Deploy logs"
+                    open={logsModal.visible}
+                    onCancel={() => this.setState({ logsModal: { visible: false, loading: false, logs: null } })}
+                    footer={null}
+                    width={900}
+                >
+                    {logsModal.loading ? (
+                        <Spin />
+                    ) : (
+                        <pre className="text-xs overflow-auto h-[70vh] bg-gray-100 p-3 rounded whitespace-pre-wrap">
+                            {(logsModal.logs && logsModal.logs.logs) || "No logs available."}
+                        </pre>
+                    )}
+                </Modal>
                 {loaded ? (
                     <Layout className="bg-metal rounded-2xl w-full">
                         <Modal open={modalIsOpen} footer={false} width={990} onCancel={this.handleCloseModal}>
@@ -313,6 +366,14 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         size="middle"
                                         className="my-4"
                                         locale={{ emptyText: "No jobs yet." }}
+                                        onRow={(deploy: Deploy) =>
+                                            deploy.status === "FAILURE"
+                                                ? {
+                                                      className: "deploy-row-failure cursor-pointer",
+                                                      onClick: () => deploy.did && this.fetchDeployLogs(deploy.did),
+                                                  }
+                                                : {}
+                                        }
                                     />
                                 </Row>
                                 <Pagination

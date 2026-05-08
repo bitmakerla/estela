@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
@@ -167,6 +169,14 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Job data expiry days.",
     )
+    error_reason = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        max_length=200_000,
+        help_text="Error logs to persist in job_logs (Mongo) on failure.",
+    )
 
     allowed_status_to_stop = [
         SpiderJob.WAITING_STATUS,
@@ -193,12 +203,14 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             "data_status",
             "data_expiry_days",
             "proxy_usage_data",
+            "error_reason",
         )
 
     def update(self, instance, validated_data):
         status = validated_data.get("status", instance.status)
         data_status = validated_data.get("data_status", "")
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
+        error_reason = validated_data.pop("error_reason", None)
 
         if status != instance.status:
             if instance.status == SpiderJob.STOPPED_STATUS:
@@ -223,6 +235,13 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                             pass
                         instance.save()
                     job_manager.delete_job(instance.name)
+            if status == SpiderJob.ERROR_STATUS and error_reason and spiderdata_db_client.get_connection():
+                db = str(instance.spider.project.pid)
+                spiderdata_db_client.client[db]["job_logs"].insert_one({
+                    "job_id": instance.jid,
+                    "logs": error_reason,
+                    "created": datetime.utcnow(),
+                })
         instance.status = status
 
         for field in self.job_fields:

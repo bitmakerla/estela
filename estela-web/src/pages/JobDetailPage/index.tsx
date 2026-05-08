@@ -19,9 +19,12 @@ import {
 import type { RangePickerProps } from "antd/es/date-picker";
 import { Link, RouteComponentProps } from "react-router-dom";
 
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+
 import "./styles.scss";
 import JobCreateModal from "../JobCreateModal";
-import { ApiService } from "../../services";
+import { ApiService, AuthService } from "../../services";
+import { API_BASE_URL } from "../../constants";
 import { BytesMetric, parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
@@ -74,6 +77,9 @@ interface JobDetailPageState {
     activeKey: string;
     created: string | undefined;
     status: string | undefined;
+    errorLogsModal: { visible: boolean; loading: boolean; logs: string | null };
+    errorPreview: string | null;
+    errorLogsState: "idle" | "loading" | "ready" | "missing";
     cronjob: number | undefined | null;
     items: Dictionary[];
     loadedItems: boolean;
@@ -197,6 +203,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         activeKey: "1",
         created: "",
         status: "",
+        errorLogsModal: { visible: false, loading: false, logs: null },
+        errorPreview: null,
+        errorLogsState: "idle",
         cronjob: null,
         items: [],
         loadedItems: false,
@@ -257,6 +266,9 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         : undefined,
                     resourceTier: response.resourceTier || DEFAULT_RESOURCE_TIER,
                 });
+                if (response.jobStatus === "ERROR") {
+                    this.loadErrorLogs();
+                }
             },
             (error: unknown) => {
                 error;
@@ -269,6 +281,34 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             this.getProjectSpiders();
         }, 500);
     }
+
+    loadErrorLogs = async (): Promise<void> => {
+        this.setState({ errorLogsState: "loading" });
+        try {
+            const url = `${API_BASE_URL}/api/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/error_logs`;
+            const response = await fetch(url, { headers: AuthService.getDefaultAuthHeaders() });
+            const data = await response.json();
+            const logs: string | null = data?.logs ?? null;
+            const trimmed = logs ? logs.trim() : "";
+            const preview = trimmed
+                ? (trimmed.split("\n").find((ln) => ln.trim().length > 0) || "").slice(0, 140)
+                : null;
+            this.setState({
+                errorLogsState: trimmed ? "ready" : "missing",
+                errorPreview: preview,
+                errorLogsModal: { ...this.state.errorLogsModal, logs },
+            });
+        } catch {
+            this.setState({ errorLogsState: "missing", errorPreview: null });
+        }
+    };
+
+    openErrorLogsModal = (): void => {
+        if (this.state.errorLogsState !== "ready") return;
+        this.setState({
+            errorLogsModal: { visible: true, loading: false, logs: this.state.errorLogsModal.logs },
+        });
+    };
 
     getProjectSpiders = async (): Promise<void> => {
         const requestParams: ApiProjectsSpidersListRequest = { pid: this.projectId };
@@ -469,6 +509,46 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         return [dataChartProportions, colorChartArray];
     };
 
+    renderErrorBanner = (): React.ReactNode => {
+        if (this.state.status !== "ERROR") return null;
+        const { errorLogsState, errorPreview } = this.state;
+        if (errorLogsState === "loading" || errorLogsState === "idle") {
+            return (
+                <div className="bg-estela-red-low border border-estela-red-full border-l-4 rounded-md p-3 mb-3 flex items-center justify-between text-estela-red-full">
+                    <div className="flex items-center gap-2">
+                        <ExclamationCircleOutlined />
+                        <span>This job ended with an error — loading details…</span>
+                    </div>
+                </div>
+            );
+        }
+        if (errorLogsState === "ready") {
+            return (
+                <div
+                    className="bg-estela-red-low border border-estela-red-full border-l-4 rounded-md p-3 mb-3 cursor-pointer hover:bg-red-100 flex items-center justify-between"
+                    onClick={this.openErrorLogsModal}
+                >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <ExclamationCircleOutlined className="text-estela-red-full" />
+                        <div className="min-w-0 flex-1">
+                            <div className="text-estela-red-full font-medium">This job ended with an error</div>
+                            {errorPreview && (
+                                <code className="text-xs text-estela-black-medium truncate block">{errorPreview}</code>
+                            )}
+                        </div>
+                    </div>
+                    <span className="text-estela-red-full text-xs whitespace-nowrap ml-3">See full error logs ›</span>
+                </div>
+            );
+        }
+        return (
+            <div className="bg-estela-red-low border border-estela-red-full border-l-4 rounded-md p-3 mb-3 flex items-center gap-2 text-estela-black-medium">
+                <ExclamationCircleOutlined className="text-estela-red-full" />
+                <span>This job ended with an error — no logs were captured for this run.</span>
+            </div>
+        );
+    };
+
     overview = (): React.ReactNode => {
         const {
             cronjob,
@@ -513,6 +593,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         };
         return (
             <>
+                {this.renderErrorBanner()}
                 <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
                     <Card
                         className="w-full sm:col-span-1 md:col-span-5 col-span-5 flex flex-col"
@@ -733,7 +814,12 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             )}
                             {status == "ERROR" && (
                                 <Col className="col-span-2 px-2">
-                                    <Tag className="bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md">
+                                    <Tag
+                                        className={`bg-estela-red-low text-estela-red-full border-estela-red-full rounded-md ${
+                                            this.state.errorLogsState === "ready" ? "cursor-pointer" : ""
+                                        }`}
+                                        onClick={this.openErrorLogsModal}
+                                    >
                                         {status}
                                     </Tag>
                                 </Col>
@@ -911,6 +997,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         const {
             loaded,
             status,
+            errorLogsModal,
             modalStop,
             modalClone,
             spiders,
@@ -998,6 +1085,25 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             </Row>
                                         </Modal>
                                     )}
+                                    <Modal
+                                        title="Job Error"
+                                        open={errorLogsModal.visible}
+                                        onCancel={() =>
+                                            this.setState({
+                                                errorLogsModal: { visible: false, loading: false, logs: null },
+                                            })
+                                        }
+                                        footer={null}
+                                        width={800}
+                                    >
+                                        {errorLogsModal.loading ? (
+                                            <Spin />
+                                        ) : (
+                                            <pre className="text-xs overflow-auto h-[70vh] bg-gray-100 p-3 rounded whitespace-pre-wrap">
+                                                {errorLogsModal.logs || "No error details available."}
+                                            </pre>
+                                        )}
+                                    </Modal>
                                     {modalClone && (
                                         <JobCreateModal
                                             openModal={modalClone}

@@ -811,12 +811,9 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         <Text className="text-estela-black-medium">INFO</Text>
                                     </Col>
                                     <Col className="col-span-6">
-                                        <Paragraph
-                                            className="text-estela-black-medium mt-2.5"
-                                            ellipsis={{ rows: 2, expandable: true, symbol: "more" }}
-                                        >
+                                        <div className="text-estela-black-medium break-words py-1.5">
                                             {log.log ?? "No data."}
-                                        </Paragraph>
+                                        </div>
                                     </Col>
                                 </Row>
                             );
