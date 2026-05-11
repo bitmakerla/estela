@@ -31,6 +31,10 @@ app.conf.beat_schedule = {
         "task": "core.tasks.update_mongodb_insertion_progress",
         "schedule": 60,
     },
+    "record-hourly-metered-usage": {
+        "task": "core.tasks.record_hourly_metered_usage",
+        "schedule": 3600,
+    },
 }
 
 
