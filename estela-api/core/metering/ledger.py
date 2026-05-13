@@ -12,7 +12,7 @@ import hashlib
 import logging
 from datetime import datetime, timedelta, timezone as dt_timezone
 from decimal import Decimal
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -82,25 +82,6 @@ def sum_delta_slice_totals_for_job(job_id: int) -> dict:
     }
 
 
-def _job_close_storage_obj_bytes_total_from_redis(job: SpiderJob) -> int:
-    # Import inside: tests patch ``api.utils.read_scrapy_counters_from_redis``.
-    from api.utils import read_scrapy_counters_from_redis
-
-    raw = read_scrapy_counters_from_redis(job)
-    if raw is None:
-        return 0
-    return int(raw.get("storage_obj_bytes_total", 0))
-
-
-def _job_close_proxy_cumulative_from_redis(job: SpiderJob) -> int:
-    from api.utils import read_scrapy_counters_from_redis
-
-    raw = read_scrapy_counters_from_redis(job)
-    if raw is None:
-        return 0
-    return int(raw.get("meter_proxy_redis_bytes", 0))
-
-
 def delta_proxy_bytes_for_flow_row(proxy_name_label: str, delta: int) -> Optional[int]:
     """Persist ``delta_proxy_bytes`` consistent with the model help text.
 
@@ -133,7 +114,12 @@ def append_metered_usage_for_job_close(job: SpiderJob, project) -> None:
     """
     runtime_sec = Decimal(str(job.lifespan.total_seconds()))
     hourly_on = getattr(settings, "METERED_USAGE_HOURLY_ENABLED", False)
-    storage_final = _job_close_storage_obj_bytes_total_from_redis(job)
+    # Import inside: tests patch ``api.utils.read_scrapy_counters_from_redis``.
+    from api.utils import read_scrapy_counters_from_redis
+
+    raw = read_scrapy_counters_from_redis(job) or {}
+    storage_final = int(raw.get("storage_obj_bytes_total", 0))
+    proxy_cumulative = int(raw.get("meter_proxy_redis_bytes", 0))
     proxy_name_label = metered_proxy_name_from_job(job)
 
     if not hourly_on:
@@ -155,7 +141,7 @@ def append_metered_usage_for_job_close(job: SpiderJob, project) -> None:
             delta_storage_bytes=storage_final,
             delta_proxy_bytes=delta_proxy_bytes_for_flow_row(
                 proxy_name_label,
-                _job_close_proxy_cumulative_from_redis(job),
+                proxy_cumulative,
             ),
             delta_runtime_seconds=runtime_sec,
             kind=MeteredUsageRecord.Kind.JOB_CLOSE,
@@ -173,9 +159,7 @@ def append_metered_usage_for_job_close(job: SpiderJob, project) -> None:
     adj_item = int(job.item_count) - sums["item_count"]
     adj_runtime = runtime_sec - sums["runtime_seconds"]
     slice_proxy_total = int(sums["proxy"])
-    adj_proxy_diff = (
-        _job_close_proxy_cumulative_from_redis(job) - slice_proxy_total
-    )
+    adj_proxy_diff = proxy_cumulative - slice_proxy_total
     adj_storage = storage_final - sums["storage_bytes"]
 
     delete_hourly_meter_last_sample_from_redis(job)
