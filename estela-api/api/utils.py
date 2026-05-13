@@ -206,9 +206,12 @@ def delete_hourly_meter_last_sample_from_redis(job) -> None:
 
 
 def metered_proxy_name_from_job(job) -> str:
-    """Denormalize ``SpiderJob.proxy_usage_data['proxy_name']`` onto meter rows (survives job FK nulling)."""
-    if getattr(job, "pk", None) is not None:
-        job.refresh_from_db(fields=["proxy_usage_data"])
+    """Denormalize ``SpiderJob.proxy_usage_data['proxy_name']`` onto meter rows (survives job FK nulling).
+
+    Reads ``proxy_usage_data`` from the given *job* instance only (no DB round-trip).
+    For a value guaranteed to match the database after concurrent updates, refresh that
+    field on *job* before calling.
+    """
     raw = getattr(job, "proxy_usage_data", None)
     if raw is None:
         return ""
