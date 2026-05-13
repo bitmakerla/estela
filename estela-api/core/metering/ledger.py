@@ -120,6 +120,8 @@ def append_metered_usage_for_job_close(job: SpiderJob, project) -> None:
     raw = read_scrapy_counters_from_redis(job) or {}
     storage_final = int(raw.get("storage_obj_bytes_total", 0))
     proxy_cumulative = int(raw.get("meter_proxy_redis_bytes", 0))
+    if job.pk is not None:
+        job.refresh_from_db(fields=["proxy_usage_data"])
     proxy_name_label = metered_proxy_name_from_job(job)
 
     if not hourly_on:
