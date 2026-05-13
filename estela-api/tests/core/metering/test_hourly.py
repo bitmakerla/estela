@@ -59,6 +59,7 @@ class HourlyFirstTickTests(TestCase):
         self.assertEqual(row.delta_item_count, 10)
         self.assertEqual(row.delta_request_count, 50)
         self.assertEqual(row.delta_storage_bytes, 0)
+        self.assertEqual(row.delta_proxy_bytes, 0)
         self.assertEqual(row.proxy_name, "slice-proxy")
         self.assertEqual(
             row.interval_start,
@@ -107,6 +108,7 @@ class HourlyFirstTickTests(TestCase):
         )
         self.assertEqual(row.delta_network_bytes, 1500)
         self.assertEqual(row.delta_storage_bytes, 300)
+        self.assertEqual(row.delta_proxy_bytes, 0)
         self.assertEqual(row.proxy_name, "slice-proxy")
         self.assertEqual(
             row.interval_start,

@@ -101,10 +101,16 @@ def _job_close_proxy_cumulative_from_redis(job: SpiderJob) -> int:
     return int(raw.get("meter_proxy_redis_bytes", 0))
 
 
-def _nonzero_int_or_none(n: int) -> Optional[int]:
-    if n == 0:
-        return None
-    return n
+def delta_proxy_bytes_for_flow_row(proxy_name_label: str, delta: int) -> Optional[int]:
+    """Persist ``delta_proxy_bytes`` consistent with the model help text.
+
+    When ``proxy_name`` applies (non-empty label), store the signed delta including ``0``.
+    When it does not apply and the delta is zero, store NULL. Non-zero deltas without a
+    configured proxy name are still stored so legacy or mis-labeled runs do not drop bytes.
+    """
+    if proxy_name_label:
+        return int(delta)
+    return None if delta == 0 else int(delta)
 
 
 def create_metered_usage_idempotent(**fields: Any) -> Optional[MeteredUsageRecord]:
@@ -147,8 +153,9 @@ def append_metered_usage_for_job_close(job: SpiderJob, project) -> None:
             delta_request_count=int(job.request_count),
             delta_item_count=int(job.item_count),
             delta_storage_bytes=storage_final,
-            delta_proxy_bytes=_nonzero_int_or_none(
-                _job_close_proxy_cumulative_from_redis(job)
+            delta_proxy_bytes=delta_proxy_bytes_for_flow_row(
+                proxy_name_label,
+                _job_close_proxy_cumulative_from_redis(job),
             ),
             delta_runtime_seconds=runtime_sec,
             kind=MeteredUsageRecord.Kind.JOB_CLOSE,
@@ -197,7 +204,10 @@ def append_metered_usage_for_job_close(job: SpiderJob, project) -> None:
         delta_request_count=adj_req,
         delta_item_count=adj_item,
         delta_storage_bytes=adj_storage,
-        delta_proxy_bytes=_nonzero_int_or_none(adj_proxy_diff),
+        delta_proxy_bytes=delta_proxy_bytes_for_flow_row(
+            proxy_name_label,
+            adj_proxy_diff,
+        ),
         delta_runtime_seconds=adj_runtime if adj_runtime else None,
         kind=MeteredUsageRecord.Kind.ADJUSTMENT,
         adjustment_reason=adjustment_reason,
