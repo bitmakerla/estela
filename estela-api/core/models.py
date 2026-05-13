@@ -639,9 +639,13 @@ class MeteredUsageRecord(models.Model):
         default=0,
         help_text=(
             "Signed delta of combined spider-data object byte sizes (items + requests + "
-            "logs) from Redis cumulative stats. On DELTA_SLICE: diff between samples; on "
-            "JOB_CLOSE: full cumulative total when hourly metering is off; on "
-            "close-time ADJUSTMENT: residual vs sum of DELTA_SLICE rows."
+            "logs) from Redis cumulative stats. Unlike network, item, and request hourly "
+            "slice deltas, stored object byte totals can shrink between samples, so "
+            "negative values are legitimate corrections. Downstream billing or analytics "
+            "must not assume non-negativity (for example, ``WHERE delta_storage_bytes > 0`` "
+            "would drop valid rows). On DELTA_SLICE: diff between samples; on JOB_CLOSE: "
+            "full cumulative total when hourly metering is off; on close-time ADJUSTMENT: "
+            "residual vs sum of DELTA_SLICE rows."
         ),
     )
     delta_proxy_bytes = models.BigIntegerField(
