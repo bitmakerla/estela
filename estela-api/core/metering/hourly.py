@@ -25,7 +25,10 @@ from api.utils import (
     metered_proxy_name_from_job,
     read_scrapy_counters_from_redis,
 )
-from core.metering.ledger import create_metered_usage_idempotent
+from core.metering.ledger import (
+    create_metered_usage_idempotent,
+    delta_proxy_bytes_for_flow_row,
+)
 from core.models import MeteredUsageRecord, SpiderJob
 
 
@@ -155,7 +158,7 @@ def process_hourly_metered_usage_for_job(job: SpiderJob) -> None:
         delta_request_count=dr,
         delta_item_count=di,
         delta_storage_bytes=d_storage,
-        delta_proxy_bytes=d_proxy if d_proxy else None,
+        delta_proxy_bytes=delta_proxy_bytes_for_flow_row(proxy_name_label, d_proxy),
         delta_runtime_seconds=Decimal(str(d_elapsed_int)) if d_elapsed_int else None,
         kind=MeteredUsageRecord.Kind.DELTA_SLICE,
         source_ref=f"spider_job:{job.jid}",

@@ -99,6 +99,22 @@ class LedgerTests(TestCase):
         self.assertEqual(row.delta_proxy_bytes, 333)
         self.assertEqual(row.proxy_name, "acme-res")
 
+    @override_settings(METERED_USAGE_HOURLY_ENABLED=False)
+    @patch(
+        "api.utils.read_scrapy_counters_from_redis",
+        return_value={
+            "storage_obj_bytes_total": 0,
+            "meter_proxy_redis_bytes": 0,
+        },
+    )
+    def test_job_close_non_hourly_proxy_configured_zero_delta_not_null(
+        self, _mock_redis
+    ):
+        self.job.proxy_usage_data = {"proxy_name": "acme-res"}
+        self.job.save(update_fields=["proxy_usage_data"])
+        append_metered_usage_for_job_close(self.job, self.project)
+        row = MeteredUsageRecord.objects.get(job=self.job)
+        self.assertEqual(row.delta_proxy_bytes, 0)
     def test_idempotent_second_insert_skipped(self):
         kw = dict(
             idempotency_key="test-key-1",
@@ -168,7 +184,7 @@ class LedgerTests(TestCase):
             adj.delta_runtime_seconds,
             Decimal(str(self.job.lifespan.total_seconds())),
         )
-        self.assertIsNone(adj.delta_proxy_bytes)
+        self.assertEqual(adj.delta_proxy_bytes, 0)
         self.assertEqual(adj.proxy_name, "hourly-close-proxy")
         self.assertEqual(
             adj.adjustment_reason,
