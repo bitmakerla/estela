@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from config.job_manager import job_manager
 from core.tiers import DEFAULT_TIER, TIER_CHOICES
+from estela_resources import ResourceKind, ResourcePhase
 
 
 class DataStatus:
@@ -232,6 +233,14 @@ class Deploy(models.Model):
         default=BUILDING_STATUS,
         help_text="Deploy status.",
     )
+    resource = models.ForeignKey(
+        "Resource",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="deploys",
+        help_text="Optional control-plane resource for this deploy.",
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -384,6 +393,14 @@ class SpiderJob(models.Model):
         default=DEFAULT_TIER,
         help_text="Resource tier for K8s pod allocation.",
     )
+    resource = models.ForeignKey(
+        "Resource",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="spider_jobs",
+        help_text="Optional control-plane resource for this job.",
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -498,6 +515,70 @@ class SpiderJobTag(models.Model):
         blank=True,
         help_text="Related cron jobs to this tag.",
     )
+
+
+class Resource(models.Model):
+    KIND_OPTIONS = [
+        (ResourceKind.SPIDER_JOB, "Spider Job"),
+        (ResourceKind.PROJECT_DEPLOY, "Project Deploy"),
+    ]
+    PHASE_OPTIONS = [
+        (ResourcePhase.PENDING, "Pending"),
+        (ResourcePhase.PROVISIONING, "Provisioning"),
+        (ResourcePhase.RUNNING, "Running"),
+        (ResourcePhase.STOPPING, "Stopping"),
+        (ResourcePhase.TERMINATED, "Terminated"),
+        (ResourcePhase.FAILED, "Failed"),
+    ]
+
+    rid = models.AutoField(
+        primary_key=True, help_text="A unique integer value identifying this resource."
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="resources",
+        help_text="Project UUID.",
+    )
+    kind = models.CharField(
+        max_length=32,
+        choices=KIND_OPTIONS,
+        help_text="Resource kind.",
+    )
+    phase = models.CharField(
+        max_length=32,
+        choices=PHASE_OPTIONS,
+        default=ResourcePhase.PENDING,
+        help_text="Resource lifecycle phase.",
+    )
+    desired_spec = models.JSONField(
+        default=dict,
+        help_text="Desired resource spec managed by the control plane.",
+    )
+    observed_state = models.JSONField(
+        default=dict,
+        help_text="Last observed state reported by workers/backends.",
+    )
+    external_ref = models.JSONField(
+        default=dict,
+        help_text="References to provider/runtime objects (e.g. job names or IDs).",
+    )
+    error_message = models.TextField(
+        blank=True,
+        default="",
+        help_text="Latest reconciliation error message.",
+    )
+    retry_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of reconciliation retries for this resource.",
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, editable=False, help_text="Resource creation date."
+    )
+    updated = models.DateTimeField(auto_now=True, help_text="Resource update date.")
+
+    class Meta:
+        ordering = ["-created"]
 
 
 class UsageRecord(models.Model):
