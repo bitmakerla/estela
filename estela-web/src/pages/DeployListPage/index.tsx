@@ -10,9 +10,10 @@ import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 import "./styles.scss";
 import { API_BASE_URL } from "../../constants";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsDeploysListRequest, Deploy, UserDetail } from "../../services/api";
+import { ApiProjectsDeploysListRequest, Deploy, DeployStatusEnum, UserDetail } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
+import { TourStore } from "../../tour";
 
 const { Content } = Layout;
 const { Text, Paragraph } = Typography;
@@ -28,6 +29,52 @@ interface DeployListPageState {
 interface RouteParams {
     projectId: string;
 }
+
+const STAGE_LABELS: Record<string, string> = {
+    DOWNLOADING: "Downloading project",
+    BUILDING: "Building image",
+};
+
+const STAGE_STEP: Record<string, number> = {
+    DOWNLOADING: 1,
+    BUILDING: 2,
+};
+
+const DeployStageProgress = ({ stage }: { stage: string }) => {
+    const label = STAGE_LABELS[stage] || stage;
+    const stepIndex = STAGE_STEP[stage] || 1;
+
+    return (
+        <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5">
+                <span className="deploy-stage-dot" />
+                <Text className="text-estela-black-medium text-xs">
+                    {label} <span className="text-estela-black-medium/50">· step {stepIndex} of 2</span>
+                </Text>
+            </div>
+            <div className="flex gap-0.5" style={{ width: 160, height: 4 }}>
+                {[1, 2].map((step) => (
+                    <div
+                        key={step}
+                        className="h-full flex-1 rounded-sm"
+                        style={{
+                            backgroundColor:
+                                step < stepIndex ? "#4D47C3" : step === stepIndex ? "transparent" : "#E5E7EB",
+                            backgroundImage:
+                                step === stepIndex
+                                    ? "linear-gradient(90deg, transparent 0%, #4D47C3 50%, transparent 100%)"
+                                    : undefined,
+                            backgroundSize: step === stepIndex ? "200% 100%" : undefined,
+                            animation: step === stepIndex ? "shimmer 1.5s infinite linear" : undefined,
+                        }}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const ACTIVE_STAGES = [DeployStatusEnum.Downloading, DeployStatusEnum.Building, DeployStatusEnum.Deploying];
 
 export class DeployListPage extends Component<RouteComponentProps<RouteParams>, DeployListPageState> {
     PAGE_SIZE = 10;
@@ -83,8 +130,8 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
             dataIndex: "status",
             render: (state: string): ReactElement => (
                 <Content style={{ display: "flex", alignItems: "center" }}>
-                    {state === "BUILDING" ? (
-                        <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-yellow">Waiting</Tag>
+                    {ACTIVE_STAGES.includes(state as DeployStatusEnum) ? (
+                        <DeployStageProgress stage={state} />
                     ) : state === "SUCCESS" ? (
                         <Tag className="border-0 text-s bg-estela-blue-low rounded-md text-estela-green">Completed</Tag>
                     ) : (
@@ -98,6 +145,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     ];
 
     async componentDidMount(): Promise<void> {
+        TourStore.setRoute("deploys");
         await this.getProjectDeploys(1);
     }
 
@@ -132,6 +180,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                     loaded: true,
                     modalIsOpen: results.count === 0,
                 });
+                TourStore.setDeploys(deploys);
             },
             (error: unknown) => {
                 error;

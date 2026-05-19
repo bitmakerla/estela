@@ -14,6 +14,21 @@ class DeploySerializer(serializers.ModelSerializer):
     def get_spiders_count(self, obj):
         return obj.spiders.count()
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.status == Deploy.BUILDING_STATUS:
+            try:
+                import redis as redis_lib
+                from django.conf import settings
+
+                redis_conn = redis_lib.from_url(settings.REDIS_URL)
+                stage = redis_conn.get(f"deploy_stage:{instance.did}")
+                if stage:
+                    data["status"] = stage.decode()
+            except Exception:
+                pass
+        return data
+
     class Meta:
         model = Deploy
         fields = ["did", "project", "user", "status", "spiders_count", "created"]

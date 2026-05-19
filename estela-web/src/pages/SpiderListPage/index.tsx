@@ -8,6 +8,7 @@ import "./styles.scss";
 import { ApiService } from "../../services";
 import { ApiProjectsSpidersListRequest, Spider } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
+import { TourStore } from "../../tour";
 import { ColumnsType } from "antd/lib/table";
 import moment from "moment";
 
@@ -47,6 +48,7 @@ export class SpiderListPage extends Component<RouteComponentProps<RouteParams>, 
     projectId: string = this.props.match.params.projectId;
 
     async componentDidMount(): Promise<void> {
+        TourStore.setRoute("spiders");
         await this.getProjectSpiders(1);
     }
 

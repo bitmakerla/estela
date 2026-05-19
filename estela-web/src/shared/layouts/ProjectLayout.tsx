@@ -3,6 +3,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { Layout } from "antd";
 import { Header, ProjectSideNav } from "..";
 import ExternalVerifier from "ExternalComponents/ExternalVerifier";
+import { TourOverlay } from "../../tour";
 
 interface RouteParams {
     projectId: string;
@@ -42,6 +43,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
                 <ProjectSideNav projectId={projectId} path={path} updatePath={updatePathHandler} />
                 {children}
             </Layout>
+            <TourOverlay />
         </Layout>
     );
 };

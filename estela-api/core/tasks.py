@@ -20,6 +20,7 @@ from config.celery import app as celery_app
 from config.job_manager import job_manager, spiderdata_db_client
 from core.models import (
     DataStatus,
+    Deploy,
     Permission,
     Project,
     ProxyProvider,
@@ -587,5 +588,76 @@ def update_mongodb_insertion_progress():
                     logging.info(f"Job {job.jid} excluded after {stall_count} cycles with no progress")
         except Exception as e:
             logging.error(f"Error updating progress for job {job.jid}: {str(e)}")
-            
+
     logging.info(f"Completed MongoDB insertion progress updates")
+
+
+@celery_app.task(name="core.tasks.update_deploy_stages")
+def update_deploy_stages():
+    deploys = Deploy.objects.filter(status=Deploy.BUILDING_STATUS)[:50]
+
+    if not deploys:
+        return
+
+    try:
+        config.load_incluster_config()
+        core_api = client.CoreV1Api()
+        batch_api = client.BatchV1Api()
+        namespace = getattr(settings, "K8S_NAMESPACE", "default")
+    except Exception:
+        return
+
+    DOWNLOADING = "DOWNLOADING"
+    BUILDING = "BUILDING"
+
+    try:
+        redis_conn = redis.from_url(settings.REDIS_URL)
+    except Exception:
+        redis_conn = None
+
+    active_ids = set()
+    for deploy in deploys:
+        active_ids.add(deploy.did)
+        job_name = f"deploy-project-{deploy.did}"
+        try:
+            batch_api.read_namespaced_job(job_name, namespace)
+            pods = core_api.list_namespaced_pod(
+                namespace, label_selector=f"job-name={job_name}"
+            )
+            if not pods.items:
+                if redis_conn:
+                    redis_conn.delete(f"deploy_stage:{deploy.did}")
+                continue
+
+            pod = pods.items[0]
+            pod_status = pod.status
+            init_statuses = pod_status.init_container_statuses or []
+            new_stage = None
+
+            if init_statuses:
+                for i, ics in enumerate(init_statuses):
+                    if ics.state and (ics.state.running or ics.state.waiting):
+                        new_stage = DOWNLOADING if i == 0 else BUILDING
+                        break
+
+            if redis_conn:
+                if new_stage:
+                    redis_conn.set(f"deploy_stage:{deploy.did}", new_stage, ex=300)
+                else:
+                    redis_conn.delete(f"deploy_stage:{deploy.did}")
+        except Exception:
+            pass
+
+    # Clean up Redis keys for deploys that are no longer BUILDING
+    if redis_conn:
+        try:
+            existing_keys = redis_conn.keys("deploy_stage:*")
+            for key in existing_keys:
+                try:
+                    did = int(key.decode().split(":")[1])
+                    if did not in active_ids:
+                        redis_conn.delete(key)
+                except (ValueError, IndexError):
+                    pass
+        except Exception:
+            pass

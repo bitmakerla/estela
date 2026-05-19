@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
 import { EyeInvisibleOutlined } from "@ant-design/icons";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
@@ -20,6 +20,7 @@ import { ProxySettings } from "../../components/ProxySettingsPage";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
 import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
 import { checkExternalError } from "../../defaultComponents";
+import { TourStore } from "../../tour";
 
 import Run from "../../assets/icons/play.svg";
 import Add from "../../assets/icons/add.svg";
@@ -153,6 +154,11 @@ export default function JobCreateModal({
         pid: projectId,
         sid: "",
     });
+    const runBtnRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        TourStore.setRunButtonEl(runBtnRef.current);
+    }, []);
 
     // MaskedTag component was replaced with inline implementation using EyeInvisibleOutlined
 
@@ -460,6 +466,8 @@ export default function JobCreateModal({
         };
         apiService.apiProjectsSpidersJobsCreate(requests).then(
             (response: SpiderJobCreate) => {
+                TourStore.markStepSeen("step-3");
+                sessionStorage.setItem("tour_just_created", "true");
                 setLoading(false);
                 // Close the modal first if an onClose callback is provided
                 if (onClose) {
@@ -552,26 +560,37 @@ export default function JobCreateModal({
         }
     }, [projectEnvVars, spiderEnvVars, jobData]);
 
+    useEffect(() => {
+        TourStore.setNewJobModalOpen(open);
+        return () => {
+            TourStore.setNewJobModalOpen(false);
+        };
+    }, [open]);
+
     return (
         <>
             {!hideRunButton && (
-                <Button
-                    icon={<Run className="mr-2" width={19} />}
-                    size="large"
-                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                    onClick={() => {
-                        if (spiders.length == 0) {
-                            message.error("No spiders found. Please make a new deploy.");
-                            history.push(`/projects/${projectId}/deploys`);
-                        } else {
-                            setOpen(true);
-                        }
-                    }}
-                    loading={isLoadingSpiders}
-                    disabled={isLoadingSpiders}
-                >
-                    {isLoadingSpiders ? "Loading spiders..." : "Run new job"}
-                </Button>
+                <div ref={runBtnRef} data-tour-target="run-new-job" style={{ display: "inline-flex" }}>
+                    <Button
+                        icon={<Run className="mr-2" width={19} />}
+                        size="large"
+                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                        onClick={() => {
+                            if (spiders.length == 0) {
+                                message.error("No spiders found. Please make a new deploy.");
+                                history.push(`/projects/${projectId}/deploys`);
+                            } else {
+                                setOpen(true);
+                                TourStore.markStepSeen("step-2");
+                                TourStore.markOpenedRunModal();
+                            }
+                        }}
+                        loading={isLoadingSpiders}
+                        disabled={isLoadingSpiders}
+                    >
+                        {isLoadingSpiders ? "Loading spiders..." : "Run new job"}
+                    </Button>
+                </div>
             )}
             {externalComponent}
             <Modal
@@ -588,7 +607,7 @@ export default function JobCreateModal({
                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
                 footer={null}
             >
-                <Row>
+                <Row data-tour-target="spider-field">
                     <p className="my-2 text-base">Spider</p>
                     <Select
                         style={{ borderRadius: 16 }}

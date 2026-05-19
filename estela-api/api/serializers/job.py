@@ -8,6 +8,8 @@ from api.serializers.job_specific import (
     SpiderJobEnvVarSerializer,
     SpiderJobTagSerializer,
 )
+import redis as redis_lib
+from django.conf import settings
 from api.utils import (
     delete_stats_from_redis,
     update_stats_from_redis,
@@ -38,6 +40,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
     spider = serializers.SerializerMethodField("get_spider")
     storage_size = serializers.SerializerMethodField("get_storage_size")
     database_insertion_progress = serializers.SerializerMethodField("get_database_insertion_progress")
+    peak_memory = serializers.SerializerMethodField("get_peak_memory")
 
     class Meta:
         model = SpiderJob
@@ -60,6 +63,7 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "database_insertion_progress",
             "storage_size",
             "resource_tier",
+            "peak_memory",
         )
 
     def get_spider(self, instance):
@@ -84,6 +88,37 @@ class SpiderJobSerializer(serializers.ModelSerializer):
     def get_database_insertion_progress(self, instance):
         # Return the actual database insertion progress value from the model
         return instance.database_insertion_progress
+
+    def get_peak_memory(self, instance):
+        if instance.status == SpiderJob.RUNNING_STATUS:
+            try:
+                redis_conn = redis_lib.from_url(settings.REDIS_URL)
+                raw_stats = redis_conn.hgetall(f"scrapy_stats_{instance.key}")
+                if raw_stats:
+                    job_stats = {key.decode(): value.decode() for key, value in raw_stats.items()}
+                    mem = job_stats.get("resources/peak_memory_bytes") or job_stats.get("memusage/max")
+                    if mem:
+                        mem_bytes = int(float(mem))
+                        if mem_bytes > 0:
+                            return mem_bytes
+            except Exception:
+                pass
+        else:
+            try:
+                if spiderdata_db_client.get_connection():
+                    pid = str(instance.spider.project.pid)
+                    job_collection_name = get_collection_name(instance, "stats")
+                    job_stats = spiderdata_db_client.get_job_stats(pid, job_collection_name)
+                    if job_stats:
+                        for stat in job_stats:
+                            mem = stat.get("resources/peak_memory_bytes")
+                            if mem is not None:
+                                mem_bytes = int(float(mem))
+                                if mem_bytes > 0:
+                                    return mem_bytes
+            except Exception:
+                pass
+        return None
 
 
 class SpiderJobCreateEnvVarSerializer(serializers.Serializer):
