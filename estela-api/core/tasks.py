@@ -36,10 +36,12 @@ from kubernetes import client, config
 WORKERS_CAPACITY_THRESHOLD = settings.WORKERS_CAPACITY_THRESHOLD
 
 def get_default_token(job):
-    user = job.spider.project.users.first()
-    if not user:
+    permission = job.spider.project.permission_set.filter(
+        permission=Permission.OWNER_PERMISSION
+    ).first()
+    if not permission:
         return None
-    token, _ = Token.objects.get_or_create(user=user)
+    token, _ = Token.objects.get_or_create(user=permission.user)
     return token.key
 
 
