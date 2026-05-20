@@ -1,5 +1,4 @@
 import { TourStep, TourContext } from "./types";
-import { TourStore } from "./store";
 
 export const TOUR_STEPS: TourStep[] = [
     {
@@ -11,8 +10,9 @@ export const TOUR_STEPS: TourStep[] = [
             const isDeploys = ctx.currentRoute === "deploys";
             const successDeploys = ctx.deploys.filter((d) => d.status === "SUCCESS");
             const hasExactlyOneSuccess = successDeploys.length === 1;
-            const noJobs = !TourStore.getHasAnyJobs();
-            return isDeploys && hasExactlyOneSuccess && ctx.neverVisitedJobsOverview && noJobs;
+            const noJobs = !ctx.projectHasJobs;
+            const notSeen = !ctx.seenSteps.includes("step-1");
+            return isDeploys && hasExactlyOneSuccess && noJobs && notSeen;
         },
         content: {
             tag: "STEP 1 OF 5",
@@ -31,9 +31,7 @@ export const TOUR_STEPS: TourStep[] = [
         spotlightPadding: { h: 0, v: 0 },
         delayMs: 100,
         trigger: (ctx: TourContext) => {
-            const isJobsOverview = ctx.currentRoute === "jobs";
-            const step1Seen = ctx.seenSteps.includes("step-1");
-            return isJobsOverview && step1Seen && ctx.neverOpenedRunModal;
+            return ctx.currentRoute === "jobs" && ctx.seenSteps.includes("step-1") && !ctx.seenSteps.includes("step-2");
         },
         content: {
             tag: "STEP 2 OF 5",
@@ -50,9 +48,9 @@ export const TOUR_STEPS: TourStep[] = [
         placement: "top",
         spotlight: true,
         spotlightPadding: { h: 12, v: 8 },
+        delayMs: 500,
         trigger: (ctx: TourContext) => {
-            const step2Seen = ctx.seenSteps.includes("step-2");
-            return ctx.newJobModalOpen && step2Seen;
+            return ctx.newJobModalOpen && ctx.seenSteps.includes("step-2") && !ctx.seenSteps.includes("step-3");
         },
         content: {
             tag: "STEP 3 OF 5",
@@ -71,9 +69,12 @@ export const TOUR_STEPS: TourStep[] = [
         spotlight: true,
         delayMs: 100,
         trigger: (ctx: TourContext) => {
-            const isJobDetail = ctx.currentRoute === "job-detail";
-            const step3Seen = ctx.seenSteps.includes("step-3");
-            return isJobDetail && step3Seen && ctx.justCreatedJob && ctx.neverVisitedJobDetail;
+            return (
+                ctx.currentRoute === "job-detail" &&
+                ctx.seenSteps.includes("step-3") &&
+                !ctx.seenSteps.includes("step-4") &&
+                ctx.justCreatedJob
+            );
         },
         content: {
             tag: "STEP 4 OF 5",
@@ -92,13 +93,7 @@ export const TOUR_STEPS: TourStep[] = [
         spotlight: true,
         delayMs: 1000,
         trigger: (ctx: TourContext) => {
-            return (
-                ctx.seenSteps.includes("step-1") &&
-                ctx.seenSteps.includes("step-2") &&
-                ctx.seenSteps.includes("step-3") &&
-                ctx.step4Completed &&
-                ctx.neverVisitedSchedule
-            );
+            return ctx.step4Completed && !ctx.seenSteps.includes("step-5");
         },
         content: {
             tag: "STEP 5 OF 5",
@@ -114,7 +109,6 @@ export const TOUR_STEPS: TourStep[] = [
 
 export function findNextStep(ctx: TourContext): TourStep | null {
     for (const step of TOUR_STEPS) {
-        if (ctx.seenSteps.includes(step.id)) continue;
         if (step.trigger(ctx)) return step;
     }
     return null;

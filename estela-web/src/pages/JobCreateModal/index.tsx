@@ -582,7 +582,6 @@ export default function JobCreateModal({
                             } else {
                                 setOpen(true);
                                 TourStore.markStepSeen("step-2");
-                                TourStore.markOpenedRunModal();
                             }
                         }}
                         loading={isLoadingSpiders}

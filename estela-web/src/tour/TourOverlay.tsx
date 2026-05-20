@@ -229,9 +229,6 @@ export const TourOverlay: React.FC = () => {
     const handleGotIt = () => {
         if (activeStep) {
             TourStore.markStepSeen(activeStep.id);
-            if (activeStep.id === "step-4") {
-                TourStore.markVisitedJobDetail();
-            }
         }
     };
 

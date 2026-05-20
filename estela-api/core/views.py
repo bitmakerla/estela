@@ -8,7 +8,6 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
-import redis as redis_lib
 
 
 def launch_deploy_job(pid, did, container_image):
@@ -43,11 +42,6 @@ def launch_deploy_job(pid, did, container_image):
         isbuild=True,  # Triggers Kaniko 3-container pipeline
     )
 
-    try:
-        redis_conn = redis_lib.from_url(settings.REDIS_URL)
-        redis_conn.set(f"deploy_stage:{did}", "DOWNLOADING", ex=300)
-    except Exception:
-        pass
 
 
 def send_verification_email(user, request):

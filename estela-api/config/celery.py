@@ -27,10 +27,6 @@ app.conf.beat_schedule = {
         "task": "core.tasks.update_mongodb_insertion_progress",
         "schedule": 60,
     },
-    "update-deploy-stages": {
-        "task": "core.tasks.update_deploy_stages",
-        "schedule": 15,
-    },
 }
 
 

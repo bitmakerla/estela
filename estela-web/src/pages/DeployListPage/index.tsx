@@ -10,7 +10,13 @@ import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 import "./styles.scss";
 import { API_BASE_URL } from "../../constants";
 import { ApiService, AuthService } from "../../services";
-import { ApiProjectsDeploysListRequest, Deploy, DeployStatusEnum, UserDetail } from "../../services/api";
+import {
+    ApiProjectsDeploysListRequest,
+    ApiProjectsJobsRequest,
+    Deploy,
+    DeployStatusEnum,
+    UserDetail,
+} from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
 import { convertDateToString } from "../../utils";
 import { TourStore } from "../../tour";
@@ -181,6 +187,17 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                     modalIsOpen: results.count === 0,
                 });
                 TourStore.setDeploys(deploys);
+
+                const successCount = deploys.filter((d) => d.status === "SUCCESS").length;
+                if (successCount === 1) {
+                    const jobsParams: ApiProjectsJobsRequest = { pid: this.projectId, page: 1, pageSize: 1 };
+                    this.apiService
+                        .apiProjectsJobs(jobsParams)
+                        .then((response) => {
+                            TourStore.setProjectHasJobs(response.count > 0);
+                        })
+                        .catch(() => undefined);
+                }
             },
             (error: unknown) => {
                 error;

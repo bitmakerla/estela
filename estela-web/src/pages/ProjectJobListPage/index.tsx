@@ -193,7 +193,6 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
 
     async componentDidMount(): Promise<void> {
         TourStore.setRoute("jobs");
-        TourStore.markVisitedJobsOverview();
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {
@@ -263,10 +262,6 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 count: response.count,
                 current: page,
             });
-            TourStore.setJobs(data);
-            if (response.count > 0) {
-                TourStore.setHasAnyJobs(true);
-            }
         });
     };
 

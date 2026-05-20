@@ -1,8 +1,34 @@
 from rest_framework import serializers
+from django.conf import settings
 
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
 from core.models import Deploy, Spider
+
+
+def _get_deploy_stage(did: int) -> str | None:
+    """Query K8s pod init-container statuses to determine DOWNLOADING vs BUILDING stage."""
+    try:
+        from kubernetes import client, config as k8s_config
+
+        k8s_config.load_incluster_config()
+        core_api = client.CoreV1Api()
+        batch_api = client.BatchV1Api()
+        namespace = getattr(settings, "K8S_NAMESPACE", "default")
+        job_name = f"deploy-project-{did}"
+
+        batch_api.read_namespaced_job(job_name, namespace)
+        pods = core_api.list_namespaced_pod(namespace, label_selector=f"job-name={job_name}")
+        if not pods.items:
+            return None
+
+        init_statuses = pods.items[0].status.init_container_statuses or []
+        for i, ics in enumerate(init_statuses):
+            if ics.state and (ics.state.running or ics.state.waiting):
+                return "DOWNLOADING" if i == 0 else "BUILDING"
+    except Exception:
+        pass
+    return None
 
 
 class DeploySerializer(serializers.ModelSerializer):
@@ -17,16 +43,9 @@ class DeploySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.status == Deploy.BUILDING_STATUS:
-            try:
-                import redis as redis_lib
-                from django.conf import settings
-
-                redis_conn = redis_lib.from_url(settings.REDIS_URL)
-                stage = redis_conn.get(f"deploy_stage:{instance.did}")
-                if stage:
-                    data["status"] = stage.decode()
-            except Exception:
-                pass
+            stage = _get_deploy_stage(instance.did)
+            if stage:
+                data["status"] = stage
         return data
 
     class Meta:

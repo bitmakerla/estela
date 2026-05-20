@@ -210,7 +210,6 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
 
     async componentDidMount(): Promise<void> {
         TourStore.setRoute("cronjobs");
-        TourStore.markVisitedSchedule();
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {
