@@ -37,7 +37,21 @@ class JobDataViewSet(
         page_size = int(
             request.query_params.get("page_size", self.DEFAULT_PAGINATION_SIZE)
         )
-        return page, data_type, page_size
+        search = request.query_params.get("search", "").strip()
+        level = request.query_params.get("level", "").strip().upper()
+        return page, data_type, page_size, search, level
+
+    def build_log_filter(self, search, level):
+        """Build a MongoDB filter for log documents based on search text and level."""
+        conditions = []
+        if level and level != "ALL":
+            # Match the Scrapy log format: "] LEVEL: "
+            conditions.append({"log": {"$regex": f"\\] {level}: "}})
+        if search:
+            conditions.append({"log": {"$regex": search, "$options": "i"}})
+        if not conditions:
+            return None
+        return {"$and": conditions} if len(conditions) > 1 else conditions[0]
 
     def get_paginated_link(self, page_number):
         if page_number < 1:
@@ -85,10 +99,24 @@ class JobDataViewSet(
                 type=openapi.TYPE_STRING,
                 required=False,
             ),
+            openapi.Parameter(
+                "search",
+                openapi.IN_QUERY,
+                description="Search term to filter log entries.",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
+            openapi.Parameter(
+                "level",
+                openapi.IN_QUERY,
+                description="Log level filter (DEBUG, INFO, WARNING, ERROR, CRITICAL).",
+                type=openapi.TYPE_STRING,
+                required=False,
+            ),
         ],
     )
     def list(self, request, *args, **kwargs):
-        page, data_type, page_size = self.get_parameters(request)
+        page, data_type, page_size, search, level = self.get_parameters(request)
         if page_size > self.MAX_PAGINATION_SIZE or page_size < self.MIN_PAGINATION_SIZE:
             raise ParseError({"error": errors.INVALID_PAGE_SIZE})
         if page_size < 1:
@@ -101,9 +129,16 @@ class JobDataViewSet(
         job = SpiderJob.objects.filter(jid=kwargs["jid"]).get()
         job_collection_name = get_collection_name(job, data_type)
 
-        count = spiderdata_db_client.get_estimated_item_count(
-            kwargs["pid"], job_collection_name
-        )
+        log_filter = self.build_log_filter(search, level) if data_type == "logs" else None
+
+        if log_filter:
+            count = spiderdata_db_client.count_documents(
+                kwargs["pid"], job_collection_name, log_filter
+            )
+        else:
+            count = spiderdata_db_client.get_estimated_item_count(
+                kwargs["pid"], job_collection_name
+            )
 
         if data_type == "stats":
             if job.status == SpiderJob.RUNNING_STATUS:
@@ -134,7 +169,7 @@ class JobDataViewSet(
             return Response(response)
         else:
             result = spiderdata_db_client.get_paginated_dataset_data(
-                kwargs["pid"], job_collection_name, page, page_size
+                kwargs["pid"], job_collection_name, page, page_size, query=log_filter
             )
 
         return Response(

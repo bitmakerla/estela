@@ -1186,6 +1186,16 @@ paths:
           description: Spider job data type.
           required: false
           type: string
+        - name: search
+          in: query
+          description: Search term to filter log entries.
+          required: false
+          type: string
+        - name: level
+          in: query
+          description: Log level filter (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+          required: false
+          type: string
       responses:
         '200':
           description: ''
