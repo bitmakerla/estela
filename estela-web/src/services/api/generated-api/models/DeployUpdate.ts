@@ -46,6 +46,7 @@ export interface DeployUpdate {
 export enum DeployUpdateStatusEnum {
     Success = 'SUCCESS',
     Building = 'BUILDING',
+    Downloading = 'DOWNLOADING',
     Failure = 'FAILURE',
     Canceled = 'CANCELED'
 }

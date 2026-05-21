@@ -205,11 +205,13 @@ class Spider(models.Model):
 class Deploy(models.Model):
     SUCCESS_STATUS = "SUCCESS"
     BUILDING_STATUS = "BUILDING"
+    DOWNLOADING_STATUS = "DOWNLOADING"
     FAILURE_STATUS = "FAILURE"
     CANCELED_STATUS = "CANCELED"
     STATUS_OPTIONS = [
         (SUCCESS_STATUS, "Success"),
         (BUILDING_STATUS, "Building"),
+        (DOWNLOADING_STATUS, "Downloading"),
         (FAILURE_STATUS, "Failure"),
         (CANCELED_STATUS, "Canceled"),
     ]

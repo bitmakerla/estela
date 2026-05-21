@@ -69,9 +69,9 @@ export interface Deploy {
 * @enum {string}
 */
 export enum DeployStatusEnum {
-    Downloading = 'DOWNLOADING',
-    Building = 'BUILDING',
     Success = 'SUCCESS',
+    Building = 'BUILDING',
+    Downloading = 'DOWNLOADING',
     Failure = 'FAILURE',
     Canceled = 'CANCELED'
 }

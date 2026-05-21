@@ -2255,6 +2255,7 @@ definitions:
         enum:
           - SUCCESS
           - BUILDING
+          - DOWNLOADING
           - FAILURE
           - CANCELED
       spiders_count:
@@ -2283,6 +2284,7 @@ definitions:
         enum:
           - SUCCESS
           - BUILDING
+          - DOWNLOADING
           - FAILURE
           - CANCELED
       created:
@@ -2312,6 +2314,7 @@ definitions:
         enum:
           - SUCCESS
           - BUILDING
+          - DOWNLOADING
           - FAILURE
           - CANCELED
       spiders_names:
