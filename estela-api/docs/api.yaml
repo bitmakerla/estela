@@ -1753,6 +1753,7 @@ definitions:
       memory_quota:
         title: Memory quota
         type: integer
+        readOnly: true
   User:
     required:
       - username
@@ -2429,6 +2430,10 @@ definitions:
           - XLARGE
           - HUGE
           - XHUGE
+      peak_memory:
+        title: Peak memory
+        type: string
+        readOnly: true
   ProjectJob:
     required:
       - results

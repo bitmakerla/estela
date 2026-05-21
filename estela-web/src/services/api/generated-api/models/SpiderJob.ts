@@ -143,11 +143,11 @@ export interface SpiderJob {
      */
     resourceTier?: SpiderJobResourceTierEnum;
     /**
-     * Peak memory usage in bytes during the spider job run.
-     * @type {number}
+     * 
+     * @type {string}
      * @memberof SpiderJob
      */
-    readonly peakMemory?: number;
+    readonly peakMemory?: string;
 }
 
 /**

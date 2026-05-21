@@ -80,7 +80,7 @@ const DeployStageProgress = ({ stage }: { stage: string }) => {
     );
 };
 
-const ACTIVE_STAGES = [DeployStatusEnum.Downloading, DeployStatusEnum.Building, DeployStatusEnum.Deploying];
+const ACTIVE_STAGES = [DeployStatusEnum.Downloading, DeployStatusEnum.Building];
 
 export class DeployListPage extends Component<RouteComponentProps<RouteParams>, DeployListPageState> {
     PAGE_SIZE = 10;
