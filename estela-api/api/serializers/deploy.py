@@ -4,31 +4,9 @@ from django.conf import settings
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
 from core.models import Deploy, Spider
+from engines.kubernetes import KubernetesEngine
 
-
-def _get_deploy_stage(did: int) -> str | None:
-    """Query K8s pod init-container statuses to determine DOWNLOADING vs BUILDING stage."""
-    try:
-        from kubernetes import client, config as k8s_config
-
-        k8s_config.load_incluster_config()
-        core_api = client.CoreV1Api()
-        batch_api = client.BatchV1Api()
-        namespace = getattr(settings, "K8S_NAMESPACE", "default")
-        job_name = f"deploy-project-{did}"
-
-        batch_api.read_namespaced_job(job_name, namespace)
-        pods = core_api.list_namespaced_pod(namespace, label_selector=f"job-name={job_name}")
-        if not pods.items:
-            return None
-
-        init_statuses = pods.items[0].status.init_container_statuses or []
-        for i, ics in enumerate(init_statuses):
-            if ics.state and (ics.state.running or ics.state.waiting):
-                return "DOWNLOADING" if i == 0 else "BUILDING"
-    except Exception:
-        pass
-    return None
+_k8s = KubernetesEngine()
 
 
 class DeploySerializer(serializers.ModelSerializer):
@@ -43,7 +21,8 @@ class DeploySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.status == Deploy.BUILDING_STATUS:
-            stage = _get_deploy_stage(instance.did)
+            namespace = getattr(settings, "K8S_NAMESPACE", "default")
+            stage = _k8s.get_deploy_stage(instance.did, namespace)
             if stage:
                 data["status"] = stage
         return data
