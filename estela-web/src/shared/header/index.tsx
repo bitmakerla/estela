@@ -1,10 +1,18 @@
 import React, { Component } from "react";
-import { Layout, Row, Col, Dropdown, Badge } from "antd";
+import { Layout, Row, Col, Dropdown, Badge, Tooltip } from "antd";
 import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
 import history from "../../history";
-import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
+import {
+    AuthService,
+    ApiService,
+    ApiNotificationsListRequest,
+    Notification,
+    BillingService,
+    formatWalletBalance,
+} from "../../services";
+import type { CreditsWallet } from "../../services/billing.service";
 import { UserContext, UserContextProps } from "../../context";
 import { RequestTag, ScrapyTag } from "../../components/FrameworkTag";
 
@@ -15,6 +23,7 @@ import Dashboard from "../../assets/icons/dashboard.svg";
 import Settings from "../../assets/icons/setting.svg";
 import Logout from "../../assets/icons/logout.svg";
 import Circle from "../../assets/icons/ellipse.svg";
+import Help from "../../assets/icons/help.svg";
 import userDropdownSideNavItems from "ExternalComponents/DropdownComponent";
 
 const { Header, Content } = Layout;
@@ -25,6 +34,8 @@ interface HeaderState {
     loaded: boolean;
     path: string;
     news: boolean;
+    wallet?: CreditsWallet | null;
+    walletLoaded: boolean;
 }
 
 export class CustomHeader extends Component<unknown, HeaderState> {
@@ -33,6 +44,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         loaded: false,
         path: "",
         news: false,
+        walletLoaded: false,
     };
     timer: NodeJS.Timeout | undefined;
 
@@ -54,6 +66,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
             style: { backgroundColor: "white" },
         });
         this.getNotifications();
+        this.loadWalletBalance();
         this.setState({ path: document.location.pathname });
         this.timer = setInterval(() => {
             this.getNotifications();
@@ -66,6 +79,14 @@ export class CustomHeader extends Component<unknown, HeaderState> {
 
     apiService = ApiService();
     static contextType = UserContext;
+
+    loadWalletBalance = async (): Promise<void> => {
+        const wallet = await BillingService.fetchCurrentUserWallet();
+        this.setState({
+            wallet,
+            walletLoaded: true,
+        });
+    };
 
     getNotifications = async (): Promise<void> => {
         const requestParams: ApiNotificationsListRequest = {
@@ -117,6 +138,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         AuthService.removeUserUsername();
         AuthService.removeUserEmail();
         AuthService.removeUserRole();
+        BillingService.clearCache();
         const { updateUsername, updateAccessToken, updateEmail, updateRole } = this.context as UserContextProps;
         updateUsername("");
         updateEmail("");
@@ -281,6 +303,23 @@ export class CustomHeader extends Component<unknown, HeaderState> {
         },
     ];
 
+    renderWalletBalance = (): React.ReactNode => {
+        const { walletLoaded, wallet } = this.state;
+        if (!walletLoaded || !wallet) {
+            return null;
+        }
+        return (
+            <span className="flex items-center justify-center gap-1.5 rounded-lg h-14 px-4 text-sm font-medium text-estela-black-medium whitespace-nowrap">
+                Credits: {formatWalletBalance(wallet.balance_cents, wallet.currency)}
+                <Tooltip title="Credits are debited at the end of the period during Invoicing.">
+                    <span role="img" aria-label="Credits billing information" className="inline-flex">
+                        <Help className="w-4 h-4 stroke-estela-black-medium" />
+                    </span>
+                </Tooltip>
+            </span>
+        );
+    };
+
     render(): JSX.Element {
         const { path, loaded, notifications, news } = this.state;
         return (
@@ -294,7 +333,8 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                 </Link>
                                 {this.getFramework()}
                             </Col>
-                            <Col className="flex">
+                            <Col className="flex items-center gap-2">
+                                {this.renderWalletBalance()}
                                 <Dropdown
                                     menu={{
                                         items: notifications.length ? this.notificationItems() : this.noNotifications(),
