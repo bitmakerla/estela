@@ -87,6 +87,7 @@ interface SpiderJobData {
     cronjob: number | null | undefined;
     tags: TagsData[] | undefined;
     args: ArgsData[] | undefined;
+    itemCount: number | undefined;
 }
 
 interface OptionDataRepeat {
@@ -283,6 +284,16 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 </Content>
             ),
         },
+        {
+            title: "ITEMS",
+            dataIndex: "itemCount",
+            key: "itemCount",
+            render: (itemCount: number): ReactElement => (
+                <Content>
+                    <span className="text-xs text-estela-black-medium">{itemCount ?? 0}</span>
+                </Content>
+            ),
+        },
     ];
 
     async componentDidMount(): Promise<void> {
@@ -427,6 +438,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             status: job.jobStatus,
             tags: job.tags,
             cronjob: job.cronjob,
+            itemCount: job.itemCount,
         }));
         return { data: data, count: response.count, current: page };
     };

@@ -63,6 +63,7 @@ interface SpiderJobData {
     tags: TagsData[] | undefined;
     args: Args[] | undefined;
     status: string | undefined;
+    resourceTier: string | undefined;
 }
 
 interface ProjectJobListPageState {
@@ -134,6 +135,12 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                     {info.spider.name}
                 </Link>
             ),
+        },
+        {
+            title: "RESOURCE TIER",
+            dataIndex: "resourceTier",
+            key: "resourceTier",
+            render: (tier: string): ReactElement => <Tag color="blue">{(tier || "DEFAULT").toUpperCase()}</Tag>,
         },
         {
             title: "SCHEDULED JOB",
@@ -232,6 +239,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
                 status: job.jobStatus,
                 tags: job.tags,
                 itemCount: job.itemCount,
+                resourceTier: job.resourceTier,
             }));
 
             const waitingJobs = data.filter((job: SpiderJobData) => job.status === "WAITING");
