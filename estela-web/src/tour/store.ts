@@ -68,6 +68,7 @@ export const TourStore = {
 
     setProjectHasJobs(val: boolean) {
         this._ctx.projectHasJobs = val;
+        this._ctx.projectHasJobsLoaded = true;
         this._notify();
     },
 

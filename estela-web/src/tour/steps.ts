@@ -10,7 +10,7 @@ export const TOUR_STEPS: TourStep[] = [
             const isDeploys = ctx.currentRoute === "deploys";
             const successDeploys = ctx.deploys.filter((d) => d.status === "SUCCESS");
             const hasExactlyOneSuccess = successDeploys.length === 1;
-            const noJobs = !ctx.projectHasJobs;
+            const noJobs = ctx.projectHasJobsLoaded && !ctx.projectHasJobs;
             const notSeen = !ctx.seenSteps.includes("step-1");
             return isDeploys && hasExactlyOneSuccess && noJobs && notSeen;
         },
@@ -29,7 +29,7 @@ export const TOUR_STEPS: TourStep[] = [
         placement: "bottom",
         spotlight: true,
         spotlightPadding: { h: 0, v: 0 },
-        delayMs: 100,
+        delayMs: 500,
         trigger: (ctx: TourContext) => {
             return ctx.currentRoute === "jobs" && ctx.seenSteps.includes("step-1") && !ctx.seenSteps.includes("step-2");
         },

@@ -30,6 +30,8 @@ export interface TourContext {
     lastCompletedStepAt: string | null;
     /** True when the project has at least one spider job (fetched lazily in DeployListPage) */
     projectHasJobs: boolean;
+    /** True once the projectHasJobs fetch has completed — prevents step-1 flash */
+    projectHasJobsLoaded: boolean;
     /** Set from sessionStorage when arriving at job detail from Create */
     justCreatedJob: boolean;
     /** Set when step-4 is completed to trigger step-5 on same page */
@@ -43,6 +45,7 @@ export const defaultTourContext: TourContext = {
     seenSteps: [],
     lastCompletedStepAt: null,
     projectHasJobs: false,
+    projectHasJobsLoaded: false,
     justCreatedJob: false,
     step4Completed: false,
 };

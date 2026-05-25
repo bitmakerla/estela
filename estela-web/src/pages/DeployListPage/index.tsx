@@ -196,7 +196,9 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                         .then((response) => {
                             TourStore.setProjectHasJobs(response.count > 0);
                         })
-                        .catch(() => undefined);
+                        .catch(() => TourStore.setProjectHasJobs(false));
+                } else {
+                    TourStore.setProjectHasJobs(false);
                 }
             },
             (error: unknown) => {
