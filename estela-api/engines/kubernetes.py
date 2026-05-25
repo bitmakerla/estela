@@ -230,6 +230,23 @@ class KubernetesEngine:
 
         return self.Status(api_response.status)
 
+    def get_deploy_stage(self, did, namespace="default"):
+        try:
+            core_api = client.CoreV1Api()
+            batch_api = self.get_api_instance()
+            job_name = f"deploy-project-{did}"
+            batch_api.read_namespaced_job(job_name, namespace)
+            pods = core_api.list_namespaced_pod(namespace, label_selector=f"job-name={job_name}")
+            if not pods.items:
+                return None
+            init_statuses = pods.items[0].status.init_container_statuses or []
+            for i, ics in enumerate(init_statuses):
+                if ics.state and (ics.state.running or ics.state.waiting):
+                    return "DOWNLOADING" if i == 0 else "BUILDING"
+        except Exception:
+            pass
+        return None
+
     def _create_build_volumes(self):
         """Create shared volume for build containers"""
         return [

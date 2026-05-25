@@ -1753,6 +1753,7 @@ definitions:
       memory_quota:
         title: Memory quota
         type: integer
+        readOnly: true
   User:
     required:
       - username
@@ -2254,6 +2255,7 @@ definitions:
         enum:
           - SUCCESS
           - BUILDING
+          - DOWNLOADING
           - FAILURE
           - CANCELED
       spiders_count:
@@ -2282,6 +2284,7 @@ definitions:
         enum:
           - SUCCESS
           - BUILDING
+          - DOWNLOADING
           - FAILURE
           - CANCELED
       created:
@@ -2311,6 +2314,7 @@ definitions:
         enum:
           - SUCCESS
           - BUILDING
+          - DOWNLOADING
           - FAILURE
           - CANCELED
       spiders_names:
@@ -2429,6 +2433,10 @@ definitions:
           - XLARGE
           - HUGE
           - XHUGE
+      peak_memory:
+        title: Peak memory
+        type: string
+        readOnly: true
   ProjectJob:
     required:
       - results

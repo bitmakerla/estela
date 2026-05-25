@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button, message, Row, Select, Space, Input, Tag, Checkbox, Tooltip } from "antd";
-import { EyeInvisibleOutlined } from "@ant-design/icons";
+import { EyeInvisibleOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import {
     ApiProjectsSpidersJobsCreateRequest,
@@ -20,6 +20,8 @@ import { ProxySettings } from "../../components/ProxySettingsPage";
 import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
 import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
 import { checkExternalError } from "../../defaultComponents";
+import { TourStore } from "../../tour";
+import { JOB_FIELD_HELP } from "./help";
 
 import Run from "../../assets/icons/play.svg";
 import Add from "../../assets/icons/add.svg";
@@ -101,6 +103,17 @@ const dataPersistenceOptions = [
     { label: "Forever", key: 7, value: 720 },
 ];
 
+function FieldLabel({ label, help, className }: { label: string; help: string; className?: string }) {
+    return (
+        <div className={`flex items-center gap-1.5 ${className ?? ""}`}>
+            <span>{label}</span>
+            <Tooltip title={help} placement="top" overlayStyle={{ maxWidth: 260 }}>
+                <QuestionCircleOutlined className="text-estela-black-medium text-xs cursor-help" />
+            </Tooltip>
+        </div>
+    );
+}
+
 export default function JobCreateModal({
     openModal,
     spider,
@@ -153,6 +166,11 @@ export default function JobCreateModal({
         pid: projectId,
         sid: "",
     });
+    const runBtnRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        TourStore.setRunButtonEl(runBtnRef.current);
+    }, []);
 
     // MaskedTag component was replaced with inline implementation using EyeInvisibleOutlined
 
@@ -460,6 +478,8 @@ export default function JobCreateModal({
         };
         apiService.apiProjectsSpidersJobsCreate(requests).then(
             (response: SpiderJobCreate) => {
+                TourStore.markStepSeen("step-3");
+                sessionStorage.setItem("tour_just_created", "true");
                 setLoading(false);
                 // Close the modal first if an onClose callback is provided
                 if (onClose) {
@@ -552,26 +572,36 @@ export default function JobCreateModal({
         }
     }, [projectEnvVars, spiderEnvVars, jobData]);
 
+    useEffect(() => {
+        TourStore.setNewJobModalOpen(open);
+        return () => {
+            TourStore.setNewJobModalOpen(false);
+        };
+    }, [open]);
+
     return (
         <>
             {!hideRunButton && (
-                <Button
-                    icon={<Run className="mr-2" width={19} />}
-                    size="large"
-                    className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                    onClick={() => {
-                        if (spiders.length == 0) {
-                            message.error("No spiders found. Please make a new deploy.");
-                            history.push(`/projects/${projectId}/deploys`);
-                        } else {
-                            setOpen(true);
-                        }
-                    }}
-                    loading={isLoadingSpiders}
-                    disabled={isLoadingSpiders}
-                >
-                    {isLoadingSpiders ? "Loading spiders..." : "Run new job"}
-                </Button>
+                <div ref={runBtnRef} data-tour-target="run-new-job" style={{ display: "inline-flex" }}>
+                    <Button
+                        icon={<Run className="mr-2" width={19} />}
+                        size="large"
+                        className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                        onClick={() => {
+                            if (spiders.length == 0) {
+                                message.error("No spiders found. Please make a new deploy.");
+                                history.push(`/projects/${projectId}/deploys`);
+                            } else {
+                                setOpen(true);
+                                TourStore.markStepSeen("step-2");
+                            }
+                        }}
+                        loading={isLoadingSpiders}
+                        disabled={isLoadingSpiders}
+                    >
+                        {isLoadingSpiders ? "Loading spiders..." : "Run new job"}
+                    </Button>
+                </div>
             )}
             {externalComponent}
             <Modal
@@ -588,8 +618,8 @@ export default function JobCreateModal({
                 title={<p className="text-xl text-center font-normal">NEW JOB</p>}
                 footer={null}
             >
-                <Row>
-                    <p className="my-2 text-base">Spider</p>
+                <Row data-tour-target="spider-field">
+                    <FieldLabel label="Spider" help={JOB_FIELD_HELP.spider} className="my-2 text-base" />
                     <Select
                         style={{ borderRadius: 16 }}
                         size="large"
@@ -622,7 +652,7 @@ export default function JobCreateModal({
                     </Select>
                 </Row>
                 <Row>
-                    <p className="text-base my-2">Data persistence</p>
+                    <FieldLabel label="Data persistence" help={JOB_FIELD_HELP.persistence} className="text-base my-2" />
                     <Select
                         onChange={handlePersistenceChange}
                         className="w-full"
@@ -637,7 +667,7 @@ export default function JobCreateModal({
                     </Select>
                 </Row>
                 <Row>
-                    <p className="text-base my-2">Resource Tier</p>
+                    <FieldLabel label="Resource Tier" help={JOB_FIELD_HELP.tier} className="text-base my-2" />
                     <Select
                         onChange={(value: string) => setJobData({ ...jobData, resourceTier: value })}
                         className="w-full"
@@ -653,7 +683,11 @@ export default function JobCreateModal({
                 </Row>
                 <Row>
                     <div className="w-full">
-                        <p className="text-base my-2 font-medium">Arguments</p>
+                        <FieldLabel
+                            label="Arguments"
+                            help={JOB_FIELD_HELP.args}
+                            className="text-base my-2 font-medium"
+                        />
                         <div className="border border-gray-200 rounded-lg p-2 mb-3 w-full max-h-[200px] overflow-y-auto">
                             {jobData.args.length > 0 ? (
                                 <div className="space-y-2">
@@ -713,7 +747,11 @@ export default function JobCreateModal({
                         {/* Project ENV vars section */}
                         {getFilteredEnvVars(projectEnvVars).length > 0 && (
                             <div className="mb-3">
-                                <p className="text-sm font-medium mb-1 text-gray-600">Project Variables</p>
+                                <FieldLabel
+                                    label="Project Variables"
+                                    help={JOB_FIELD_HELP.envProject}
+                                    className="text-sm font-medium mb-1 text-gray-600"
+                                />
                                 <div className="border border-gray-200 rounded-lg p-2 max-h-[150px] overflow-y-auto">
                                     <div className="space-y-2">
                                         {getFilteredEnvVars(projectEnvVars).map(
@@ -752,7 +790,11 @@ export default function JobCreateModal({
                         {/* Spider ENV vars section */}
                         {getFilteredEnvVars(spiderEnvVars).length > 0 && (
                             <div className="mb-3">
-                                <p className="text-sm font-medium mb-1 text-gray-600">Spider Variables</p>
+                                <FieldLabel
+                                    label="Spider Variables"
+                                    help={JOB_FIELD_HELP.envSpider}
+                                    className="text-sm font-medium mb-1 text-gray-600"
+                                />
                                 <div className="border border-gray-200 rounded-lg p-2 max-h-[150px] overflow-y-auto">
                                     <div className="space-y-2">
                                         {getFilteredEnvVars(spiderEnvVars).map(
@@ -790,7 +832,11 @@ export default function JobCreateModal({
 
                         {/* Job ENV vars section */}
                         <div className="mb-3">
-                            <p className="text-sm font-medium mb-1 text-gray-600">Job Variables</p>
+                            <FieldLabel
+                                label="Job Variables"
+                                help={JOB_FIELD_HELP.envJob}
+                                className="text-sm font-medium mb-1 text-gray-600"
+                            />
                             <div className="border border-gray-200 rounded-lg p-2 max-h-[150px] overflow-y-auto">
                                 {jobData.envVars.length > 0 ? (
                                     <div className="space-y-2">
@@ -871,7 +917,7 @@ export default function JobCreateModal({
                         <ProxySettings envVars={[]} setEnvVars={handleJobCreateProxy} />
                     </Modal>
                     <Space direction="horizontal">
-                        <p className="text-base">Proxy</p>
+                        <FieldLabel label="Proxy" help={JOB_FIELD_HELP.proxy} className="text-base" />
                         {noProxy ? (
                             <Button
                                 shape="circle"
@@ -901,7 +947,7 @@ export default function JobCreateModal({
                     </Space>
                 </Row>
                 <div className="w-full my-3">
-                    <p className="text-base font-medium mb-2">Tags</p>
+                    <FieldLabel label="Tags" help={JOB_FIELD_HELP.tags} className="text-base font-medium mb-2" />
                     <div className="border border-gray-200 rounded-lg p-2 mb-3 max-h-[150px] overflow-y-auto">
                         {jobData.tags.length > 0 ? (
                             <div className="flex flex-wrap gap-2">

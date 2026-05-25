@@ -88,7 +88,7 @@ const handleDownload = (jsonData: ItemDictionary, filename: string, format: stri
     URL.revokeObjectURL(downloadUrl);
 };
 
-const handleDownloadData = (
+export const handleDownloadData = (
     type_: string,
     projectId: string,
     spiderId: string,
@@ -216,7 +216,7 @@ function Item({ data }: ItemProps) {
     );
 }
 
-const menu = (
+export const menu = (
     datatype: string,
     projectId: string,
     spiderId: string,

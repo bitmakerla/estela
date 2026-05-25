@@ -1,8 +1,12 @@
 from rest_framework import serializers
+from django.conf import settings
 
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
 from core.models import Deploy, Spider
+from engines.kubernetes import KubernetesEngine
+
+_k8s = KubernetesEngine()
 
 
 class DeploySerializer(serializers.ModelSerializer):
@@ -13,6 +17,15 @@ class DeploySerializer(serializers.ModelSerializer):
 
     def get_spiders_count(self, obj):
         return obj.spiders.count()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.status == Deploy.BUILDING_STATUS:
+            namespace = getattr(settings, "K8S_NAMESPACE", "default")
+            stage = _k8s.get_deploy_stage(instance.did, namespace)
+            if stage:
+                data["status"] = stage
+        return data
 
     class Meta:
         model = Deploy

@@ -49,7 +49,10 @@ export const ProjectSideNav: React.FC<ProjectSideNavPropsInterface> = ({ project
                 {
                     key: "jobs",
                     label: (
-                        <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
+                        <Content
+                            className="flex items-center hover:bg-button-hover pl-4 rounded"
+                            data-tour-target="jobs-overview"
+                        >
                             <Link to={`/projects/${projectId}/jobs`} onClick={() => updatePath("jobs")}>
                                 Overview
                             </Link>
@@ -59,7 +62,10 @@ export const ProjectSideNav: React.FC<ProjectSideNavPropsInterface> = ({ project
                 {
                     key: "cronjobs",
                     label: (
-                        <Content className="flex items-center hover:bg-button-hover pl-4 rounded">
+                        <Content
+                            className="flex items-center hover:bg-button-hover pl-4 rounded"
+                            data-tour-target="jobs-schedule"
+                        >
                             <Link to={`/projects/${projectId}/cronjobs`} onClick={() => updatePath("cronjobs")}>
                                 Schedule
                             </Link>

@@ -18,6 +18,7 @@ import {
 } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem, RouteParams } from "../../shared";
 import { convertDateToString } from "../../utils";
+import { TourStore } from "../../tour";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -191,6 +192,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
     ];
 
     async componentDidMount(): Promise<void> {
+        TourStore.setRoute("jobs");
         const requestParams: ApiProjectsReadRequest = { pid: this.projectId };
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {

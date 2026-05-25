@@ -40,6 +40,7 @@ import {
     SpiderJobEnvVar,
 } from "../../services/api";
 import { resourceNotAllowedNotification, Spin, PaginationItem } from "../../shared";
+import { TourStore } from "../../tour";
 import { convertDateToString, handleInvalidDataError } from "../../utils";
 
 const { Content } = Layout;
@@ -202,6 +203,7 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
     ];
 
     async componentDidMount(): Promise<void> {
+        TourStore.setRoute("spider-detail");
         const requestParams: ApiProjectsSpidersReadRequest = { pid: this.projectId, sid: parseInt(this.spiderId) };
         this.apiService.apiProjectsSpidersRead(requestParams).then(
             async (response: Spider) => {

@@ -587,5 +587,5 @@ def update_mongodb_insertion_progress():
                     logging.info(f"Job {job.jid} excluded after {stall_count} cycles with no progress")
         except Exception as e:
             logging.error(f"Error updating progress for job {job.jid}: {str(e)}")
-            
+
     logging.info(f"Completed MongoDB insertion progress updates")

@@ -1,7 +1,5 @@
 import React, { Component } from "react";
 import moment from "moment";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, LinearScale } from "chart.js";
-import { Doughnut } from "react-chartjs-2";
 import {
     Layout,
     Typography,
@@ -14,6 +12,7 @@ import {
     Tabs,
     Card,
     Modal,
+    Dropdown,
     Tooltip as AntdTooltip,
 } from "antd";
 import type { RangePickerProps } from "antd/es/date-picker";
@@ -22,9 +21,10 @@ import { Link, RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
 import JobCreateModal from "../JobCreateModal";
 import { ApiService } from "../../services";
-import { BytesMetric, parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
+import { parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
 import Pause from "../../assets/icons/pause.svg";
+import Export from "../../assets/icons/export.svg";
 
 import {
     ApiProjectsSpidersJobsReadRequest,
@@ -38,16 +38,15 @@ import {
     SpiderJobUpdateDataStatusEnum,
     Spider,
 } from "../../services/api";
-import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData } from "../JobDataPage";
+import { JobItemsData, JobRequestsData, JobLogsData, JobStatsData, menu as downloadMenu } from "../JobDataPage";
 import { resourceNotAllowedNotification, incorrectDataNotification, Spin } from "../../shared";
 import { JobMetrics } from "../../components";
 import { convertDateToString } from "../../utils";
-import { DEFAULT_RESOURCE_TIER } from "../../constants";
+import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
+import { TourStore } from "../../tour";
 
 const { Content } = Layout;
 const { Text } = Typography;
-
-ChartJS.register(ArcElement, LinearScale, Tooltip, Legend);
 
 interface Dictionary {
     [Key: string]: string;
@@ -93,6 +92,8 @@ interface JobDetailPageState {
     storageSize?: number;
     databaseInsertionProgress?: number;
     resourceTier?: string;
+    peakMemory?: number;
+    loadedDownloadButton: boolean;
 }
 
 interface RouteParams {
@@ -180,6 +181,13 @@ class ItemsMetadata extends Component<ItemsMetadataProps> {
     }
 }
 
+const bandwidthColor = (bytes: number): string => {
+    const gb = bytes / 1e9;
+    if (gb > 0.9) return "#E34A46";
+    if (gb > 0.75) return "#FFC002";
+    return "#7DC932";
+};
+
 export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, JobDetailPageState> {
     PAGE_SIZE = 10;
     dataRequests = "requests";
@@ -215,6 +223,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         spiderName: "",
         storageSize: undefined,
         databaseInsertionProgress: undefined,
+        peakMemory: undefined,
+        loadedDownloadButton: false,
     };
 
     apiService = ApiService();
@@ -225,6 +235,8 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
     countKey = 0;
 
     async componentDidMount(): Promise<void> {
+        TourStore.setRoute("job-detail");
+        TourStore.init();
         const requestParams: ApiProjectsSpidersJobsReadRequest = {
             pid: this.projectId,
             sid: this.spiderId,
@@ -256,6 +268,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         ? parseFloat(response.databaseInsertionProgress)
                         : undefined,
                     resourceTier: response.resourceTier || DEFAULT_RESOURCE_TIER,
+                    peakMemory: response.peakMemory,
                 });
             },
             (error: unknown) => {
@@ -444,31 +457,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         );
     };
 
-    chartConfigs = (bytes: BytesMetric): [number[], string[]] => {
-        const dataChartProportions = [1, 0];
-        const colorChartArray = ["#7DC932", "#F1F1F1"];
-        if (bytes.type === "Bytes") {
-            dataChartProportions[0] = 0.05 * (bytes.quantity / 1024);
-            dataChartProportions[1] = 1 - dataChartProportions[0];
-        } else if (bytes.type === "KB") {
-            dataChartProportions[0] = 0.1 * (bytes.quantity / 1024);
-            dataChartProportions[1] = 1 - dataChartProportions[0];
-        } else if (bytes.type === "MB") {
-            dataChartProportions[0] = bytes.quantity / 1024;
-            dataChartProportions[1] = 1 - dataChartProportions[0];
-            if (dataChartProportions[0] > 0.75) {
-                colorChartArray[0] = "#FFC002";
-            }
-            if (dataChartProportions[0] > 0.9) {
-                colorChartArray[0] = "#E34A46";
-            }
-        } else {
-            dataChartProportions[0] = bytes.quantity;
-            colorChartArray[0] = "#E34A46";
-        }
-        return [dataChartProportions, colorChartArray];
-    };
-
     overview = (): React.ReactNode => {
         const {
             cronjob,
@@ -489,68 +477,172 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
             storageSize,
             databaseInsertionProgress,
             resourceTier,
+            peakMemory,
+            loadedDownloadButton,
         } = this.state;
         const getProxyTag = (): string => {
             const desiredItem = envVars.find((item) => item.name === "ESTELA_PROXY_NAME");
             return desiredItem ? desiredItem.value : "";
         };
-        const bandwidth: BytesMetric = formatBytes(Number(totalResponseBytes));
-        const [dataChartProportions, colorChartArray] = this.chartConfigs(bandwidth);
+        const bandwidthFormatted = formatBytes(Number(totalResponseBytes) || 0);
+        const bandwidthColorVal = bandwidthColor(Number(totalResponseBytes) || 0);
+
         const lifespanPercentage: number = Math.round(100 * (Math.log((lifespan || 1) as number) / Math.log(3600)));
-        const dataChart = {
-            datasets: [
-                {
-                    label: "GB",
-                    data: [...dataChartProportions],
-                    backgroundColor: [...colorChartArray],
-                    borderWidth: 1,
-                    cutout: "90%",
-                    circumference: 300,
-                    rotation: 210,
-                    borderRadius: 4,
-                },
-            ],
-        };
+
+        const tier = PREDEFINED_TIERS.find((t) => t.name === (resourceTier || DEFAULT_RESOURCE_TIER));
+        let tierMemLimitBytes = 1536 * 1024 * 1024;
+        if (tier) {
+            const limitStr = tier.memLimit;
+            if (limitStr.endsWith("Gi")) {
+                tierMemLimitBytes = parseFloat(limitStr) * 1024 * 1024 * 1024;
+            } else {
+                tierMemLimitBytes = parseFloat(limitStr) * 1024 * 1024;
+            }
+        }
+        const tierMemLimitFormatted = formatBytes(tierMemLimitBytes);
+        const peakMemoryVal = peakMemory ?? 0;
+        const peakMemoryFraction = tierMemLimitBytes > 0 ? peakMemoryVal / tierMemLimitBytes : 0;
+        const peakMemoryPercent = Math.min(Math.round(peakMemoryFraction * 100), 100);
+
+        const canDownload = itemCountInRedis > 0 && status === "COMPLETED";
+
         return (
             <>
-                <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
+                <Content
+                    className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 lg:w-full"
+                    data-tour-target="job-stats"
+                >
+                    {/* Bandwidth stat card */}
+                    <Card style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-0 text-estela-black-medium font-medium text-base">Bandwidth</Text>
+                        <Row className="grid grid-cols-1 py-1 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-base">
+                                    {`${bandwidthFormatted.quantity} ${bandwidthFormatted.type}`}
+                                </Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">this job</Text>
+                            </Col>
+                            <Col>
+                                <div
+                                    className="w-full h-2.5 rounded-full"
+                                    style={{ backgroundColor: bandwidthColorVal }}
+                                ></div>
+                            </Col>
+                        </Row>
+                    </Card>
+
+                    {/* Storage stat card */}
+                    <Card style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-0 text-estela-black-medium font-medium text-base">Storage</Text>
+                        <Row className="grid grid-cols-1 py-1 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-base">
+                                    {`${formatBytes(storageSize).quantity} ${formatBytes(storageSize).type}`}
+                                </Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">of project</Text>
+                            </Col>
+                            <Col>
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5">
+                                    <div
+                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                        style={{ width: "100%" }}
+                                    ></div>
+                                </Content>
+                            </Col>
+                        </Row>
+                    </Card>
+
+                    {/* Item Count stat card */}
+                    <Card style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Item Count</Text>
+                        <Row className="grid grid-cols-1 py-1 px-2 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-lg">
+                                    {itemCountInRedis || 0}
+                                </Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">this job</Text>
+                            </Col>
+                            <Col>
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5">
+                                    <div
+                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                        style={{ width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%` }}
+                                    ></div>
+                                </Content>
+                            </Col>
+                        </Row>
+                    </Card>
+
+                    {/* Proc. Time stat card */}
+                    <Card style={{ borderRadius: "8px" }} bordered={false}>
+                        <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Proc. Time</Text>
+                        <Row className="grid grid-cols-1 py-1 px-2 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-lg">
+                                    {durationToString(lifespan || 0)}
+                                </Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">this job</Text>
+                            </Col>
+                            <Col>
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5">
+                                    <div
+                                        className="bg-estela-states-green-medium h-2.5 rounded-full"
+                                        style={{ width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%` }}
+                                    ></div>
+                                </Content>
+                            </Col>
+                        </Row>
+                    </Card>
+
+                    {/* Peak Memory stat card */}
+                    <Card style={{ borderRadius: "8px", position: "relative" }} bordered={false}>
+                        <Tag className="absolute top-2.5 right-2.5 text-estela-blue-full border-estela-blue-full rounded text-xs font-semibold px-2 py-0">
+                            {(resourceTier || DEFAULT_RESOURCE_TIER).toUpperCase()}
+                        </Tag>
+                        <Text className="py-2 text-estela-black-medium font-medium text-base">Peak Memory</Text>
+                        <Row className="grid grid-cols-1 py-1 mt-3">
+                            <Col>
+                                <Text className="font-bold text-estela-black-full text-lg">
+                                    {peakMemoryVal > 0
+                                        ? `${formatBytes(peakMemoryVal).quantity} ${formatBytes(peakMemoryVal).type}`
+                                        : "--"}
+                                </Text>
+                            </Col>
+                            <Col>
+                                <Text className="text-estela-black-medium text-xs">
+                                    of {tierMemLimitFormatted.quantity} {tierMemLimitFormatted.type} tier limit
+                                </Text>
+                            </Col>
+                            <Col>
+                                <Content className="w-full bg-estela-white-low rounded-full h-2.5">
+                                    <div
+                                        className="h-2.5 rounded-full"
+                                        style={{
+                                            width: `${peakMemoryPercent}%`,
+                                            backgroundColor:
+                                                peakMemoryFraction > 0.95
+                                                    ? "#E34A46"
+                                                    : peakMemoryFraction > 0.85
+                                                    ? "#EAB308"
+                                                    : "#1D4ED8",
+                                        }}
+                                    ></div>
+                                </Content>
+                            </Col>
+                        </Row>
+                    </Card>
+                </Content>
+                <Content className="my-2 grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
                     <Card
                         className="w-full sm:col-span-1 md:col-span-5 col-span-5 flex flex-col"
-                        style={{ borderRadius: "8px" }}
-                        bordered={false}
-                    >
-                        <Text className="py-2 text-estela-black-medium font-medium text-base">Bandwidth</Text>
-                        <Content className="grid w-full h-1/2 place-content-center">
-                            <Content className="flex items-center justify-center">
-                                <Doughnut
-                                    plugins={[
-                                        {
-                                            id: "storageNeedle",
-                                            afterDatasetDraw(chart: ChartJS) {
-                                                const { ctx } = chart;
-                                                ctx.save();
-                                                const x = chart.getDatasetMeta(0).data[0].x;
-                                                const y = chart.getDatasetMeta(0).data[0].y;
-                                                ctx.textAlign = "center";
-                                                ctx.textBaseline = "middle";
-                                                ctx.font = "1.875rem/2.25rem sans-serif";
-                                                ctx.fillText(`${bandwidth.quantity} ${bandwidth.type}`, x, y - 20);
-                                                ctx.font = "1.25rem/1.75rem sans-serif";
-                                                ctx.fillText("of 1GB", x, y + 20);
-                                            },
-                                        },
-                                    ]}
-                                    options={{
-                                        responsive: true,
-                                        events: [],
-                                    }}
-                                    data={dataChart}
-                                />
-                            </Content>
-                        </Content>
-                    </Card>
-                    <Card
-                        className="w-full sm:col-span-1 md:col-span-7 col-span-7 flex flex-col"
                         style={{ borderRadius: "8px" }}
                         bordered={false}
                     >
@@ -790,94 +882,36 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                             </Col>
                         </Row>
                     </Card>
-                </Content>
-                <Content className="my-2 grid lg:grid-cols-12 grid-cols-6 gap-1 items-start lg:w-full">
-                    <Content className="col-span-5 grid lg:grid-cols-12 grid-cols-12 flex flex-col">
-                        <Card
-                            className="col-span-4 flex flex-col mr-1"
-                            style={{ borderRadius: "8px" }}
-                            bordered={false}
-                        >
-                            <Text className="py-0 text-estela-black-medium font-medium text-base">Storage</Text>
-                            <Row className="grid grid-cols-1 py-1 mt-3">
-                                <Col>
-                                    <Text className="font-bold text-estela-black-full font-small text-base">
-                                        {`${formatBytes(storageSize).quantity} ${formatBytes(storageSize).type}`}
-                                    </Text>
-                                </Col>
-                                <Col>
-                                    <Text className="text-estela-black-medium text-xs">of project</Text>
-                                </Col>
-                                <Col>
-                                    <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-estela-white-low">
-                                        <div
-                                            className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                            style={{
-                                                width: "100%",
-                                            }}
-                                        ></div>
-                                    </Content>
-                                </Col>
-                            </Row>
-                        </Card>
-                        <Card
-                            className="col-span-4 flex flex-col mx-1"
-                            style={{ borderRadius: "8px" }}
-                            bordered={false}
-                        >
-                            <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Item Count</Text>
-                            <Row className="grid grid-cols-1 py-1 px-2 mt-3">
-                                <Col>
-                                    <Text className="font-bold text-estela-black-full text-lg">
-                                        {itemCountInRedis || 0}
-                                    </Text>
-                                </Col>
-                                <Col>
-                                    <Text className="text-estela-black-medium text-xs">this job</Text>
-                                </Col>
-                                <Col>
-                                    <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-[#EEFFCD]">
-                                        <div
-                                            className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                            style={{
-                                                width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
-                                            }}
-                                        ></div>
-                                    </Content>
-                                </Col>
-                            </Row>
-                        </Card>
-                        <Card
-                            className="col-span-4 flex flex-col ml-1 mr-1"
-                            style={{ borderRadius: "8px" }}
-                            bordered={false}
-                        >
-                            <Text className="py-2 m-0 text-estela-black-medium font-medium text-base">Proc. Time</Text>
-                            <Row className="grid grid-cols-1 py-1 px-2 mt-3">
-                                <Col>
-                                    <Text className="font-bold text-estela-black-full text-lg">
-                                        {durationToString(lifespan || 0)}
-                                    </Text>
-                                </Col>
-                                <Col>
-                                    <Text className="text-estela-black-medium text-xs">this job</Text>
-                                </Col>
-                                <Col>
-                                    <Content className="w-full bg-estela-white-low rounded-full h-2.5 dark:bg-[#EEFFCD]">
-                                        <div
-                                            className="bg-estela-states-green-medium h-2.5 rounded-full"
-                                            style={{
-                                                width: `${lifespanPercentage > 98 ? 100 : lifespanPercentage}%`,
-                                            }}
-                                        ></div>
-                                    </Content>
-                                </Col>
-                            </Row>
-                        </Card>
-                    </Content>
-                    <Card className="w-full col-span-7 flex flex-col" style={{ borderRadius: "8px" }} bordered={false}>
+                    <Card
+                        className="w-full sm:col-span-1 md:col-span-7 col-span-7 flex flex-col"
+                        style={{ borderRadius: "8px" }}
+                        bordered={false}
+                    >
                         <Row className="flow-root lg:my-6 my-4">
                             <Text className="py-2 m-4 text-estela-black-medium font-medium text-base">Fields</Text>
+                            <AntdTooltip title={!canDownload ? "No items to download yet" : undefined}>
+                                <Dropdown
+                                    disabled={!canDownload}
+                                    overlay={() =>
+                                        downloadMenu(
+                                            "items",
+                                            this.projectId,
+                                            this.spiderId,
+                                            String(this.jobId),
+                                            (v: boolean) => this.setState({ loadedDownloadButton: v }),
+                                        )
+                                    }
+                                >
+                                    <Button
+                                        loading={loadedDownloadButton}
+                                        size="middle"
+                                        icon={<Export className="h-3.5 w-4 mr-2" />}
+                                        className="float-right flex items-center mr-2 stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
+                                    >
+                                        Download items
+                                    </Button>
+                                </Dropdown>
+                            </AntdTooltip>
                             <Button
                                 onClick={() => {
                                     this.setState({ activeKey: "2" });
@@ -1035,6 +1069,18 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                             children: this.overview(),
                                         },
                                         {
+                                            label: "Metrics (Experimental)",
+                                            key: "6",
+                                            children: (
+                                                <JobMetrics
+                                                    jobId={String(this.jobId)}
+                                                    projectId={this.projectId}
+                                                    spiderId={this.spiderId}
+                                                    jobStatus={status}
+                                                />
+                                            ),
+                                        },
+                                        {
                                             label: "Items",
                                             key: "2",
                                             children: (
@@ -1075,18 +1121,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                                                     projectId={this.projectId}
                                                     spiderId={this.spiderId}
                                                     jobId={String(this.jobId)}
-                                                />
-                                            ),
-                                        },
-                                        {
-                                            label: "Metrics (Experimental)",
-                                            key: "6",
-                                            children: (
-                                                <JobMetrics
-                                                    projectId={this.projectId}
-                                                    spiderId={this.spiderId}
-                                                    jobId={String(this.jobId)}
-                                                    jobStatus={status}
                                                 />
                                             ),
                                         },

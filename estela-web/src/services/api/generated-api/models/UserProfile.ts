@@ -48,7 +48,7 @@ export interface UserProfile {
      * @type {number}
      * @memberof UserProfile
      */
-    memoryQuota?: number;
+    readonly memoryQuota?: number;
 }
 
 export function UserProfileFromJSON(json: any): UserProfile {
@@ -81,7 +81,6 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
         'username': value.username,
         'email': value.email,
         'password': value.password,
-        'memory_quota': value.memoryQuota,
     };
 }
 

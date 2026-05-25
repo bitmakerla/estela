@@ -142,6 +142,12 @@ export interface SpiderJob {
      * @memberof SpiderJob
      */
     resourceTier?: SpiderJobResourceTierEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof SpiderJob
+     */
+    readonly peakMemory?: string;
 }
 
 /**
@@ -195,6 +201,7 @@ export function SpiderJobFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'databaseInsertionProgress': !exists(json, 'database_insertion_progress') ? undefined : json['database_insertion_progress'],
         'storageSize': !exists(json, 'storage_size') ? undefined : json['storage_size'],
         'resourceTier': !exists(json, 'resource_tier') ? undefined : json['resource_tier'],
+        'peakMemory': !exists(json, 'peak_memory') ? undefined : json['peak_memory'],
     };
 }
 

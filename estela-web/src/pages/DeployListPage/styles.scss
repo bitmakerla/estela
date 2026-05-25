@@ -5,3 +5,23 @@
     background-color: white;
     border:none;
 }
+
+.deploy-stage-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #4D47C3;
+    animation: pulseDot 2s infinite;
+    flex-shrink: 0;
+}
+
+@keyframes pulseDot {
+    0%   { box-shadow: 0 0 0 0 rgba(77,71,195,0.55); }
+    70%  { box-shadow: 0 0 0 6px rgba(77,71,195,0); }
+    100% { box-shadow: 0 0 0 0 rgba(77,71,195,0); }
+}
+
+@keyframes shimmer {
+    0%   { background-position: -120px 0; }
+    100% { background-position: 120px 0; }
+}

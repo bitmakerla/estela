@@ -43,6 +43,7 @@ def launch_deploy_job(pid, did, container_image):
     )
 
 
+
 def send_verification_email(user, request):
     mail_subject = "Activate your estela account."
     to_email = user.email
