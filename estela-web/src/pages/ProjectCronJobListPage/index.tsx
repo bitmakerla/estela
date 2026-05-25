@@ -58,6 +58,7 @@ interface SpiderCronJobData {
     dataStatus: string | undefined;
     tags: TagsData[] | undefined;
     args: Args[] | undefined;
+    resourceTier: string | undefined;
 }
 
 interface ProjectCronJobListPageState {
@@ -166,6 +167,13 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
             ),
         },
         {
+            title: "RESOURCE TIER",
+            dataIndex: "resourceTier",
+            key: "resourceTier",
+            align: "center" as const,
+            render: (tier: string): ReactElement => <Tag color="blue">{(tier || "DEFAULT").toUpperCase()}</Tag>,
+        },
+        {
             title: "ARGUMENTS",
             dataIndex: "args",
             key: "args",
@@ -241,6 +249,7 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 dataStatus: cronjob.dataStatus,
                 tags: cronjob.ctags,
                 args: cronjob.cargs,
+                resourceTier: cronjob.resourceTier,
             }));
             const cronjobs: SpiderCronJobData[] = data;
             this.setState({ cronjobs: [...cronjobs], loadedCronjobs: true, count: response.count, current: page });

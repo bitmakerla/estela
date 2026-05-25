@@ -136,6 +136,8 @@ const getData = async (
     spiderId: string,
     jobId: string,
     pageSize?: number,
+    search?: string,
+    level?: string,
 ): Promise<InlineResponse2008> => {
     const requestParams: ApiProjectsSpidersJobsDataListRequest = {
         pid: projectId,
@@ -144,6 +146,8 @@ const getData = async (
         type: type_,
         page: page,
         pageSize: pageSize ?? PAGE_SIZE,
+        search: search || undefined,
+        level: level || undefined,
     };
     return apiService.apiProjectsSpidersJobsDataList(requestParams).then(
         (response) => {
@@ -647,6 +651,23 @@ export function JobRequestsData({ projectId, spiderId, jobId }: JobsDataProps) {
     );
 }
 
+const LOG_LEVELS = ["ALL", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"];
+
+const LEVEL_COLORS: Record<string, string> = {
+    DEBUG: "text-gray-500",
+    INFO: "text-green-600",
+    WARNING: "text-yellow-500",
+    ERROR: "text-red-500",
+    CRITICAL: "text-red-800",
+};
+
+const LEVEL_RE = /\]\s+(DEBUG|INFO|WARNING|ERROR|CRITICAL):\s/;
+
+function parseLogLevel(logText: string): string {
+    const match = LEVEL_RE.exec(logText);
+    return match ? match[1] : "INFO";
+}
+
 export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [openModal, setOpenModal] = useState(false);
     const [loadedDeleteButton, setLoadedDeleteButton] = useState(false);
@@ -655,34 +676,34 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
     const [count, setCount] = useState(0);
     const [loaded, setLoaded] = useState(false);
     const [logs, setLogs] = useState<Dictionary[]>([]);
+    const [searchInput, setSearchInput] = useState("");
+    const [levelInput, setLevelInput] = useState("ALL");
+    const [activeSearch, setActiveSearch] = useState("");
+    const [activeLevel, setActiveLevel] = useState("ALL");
+
+    const fetchLogs = (page: number, search: string, level: string) => {
+        setLoaded(false);
+        getData("logs", page, projectId, spiderId, jobId, PAGE_SIZE, search, level).then((response) => {
+            const safe_data: unknown[] = response.results ?? [];
+            setLogs(safe_data as Dictionary[]);
+            setCurrent(page);
+            setCount(response.count ?? 0);
+            setLoaded(true);
+        });
+    };
 
     useEffect(() => {
-        getData("logs", 1, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
-            if (response.results?.length) {
-                const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
-                setLogs(data);
-                setCurrent(1);
-                setCount(response.count);
-            }
-            setLoaded(true);
-        });
+        fetchLogs(1, "", "ALL");
     }, []);
 
-    const onLogsPageChange = async (page: number): Promise<void> => {
-        setLoaded(false);
-        await getData("logs", page, projectId, spiderId, jobId).then((response) => {
-            let data: Dictionary[] = [];
-            if (response.results?.length) {
-                const safe_data: unknown[] = response.results ?? [];
-                data = safe_data as Dictionary[];
-                setLogs(data);
-                setCurrent(page);
-                setCount(response.count);
-            }
-            setLoaded(true);
-        });
+    const applyFilters = () => {
+        setActiveSearch(searchInput);
+        setActiveLevel(levelInput);
+        fetchLogs(1, searchInput, levelInput);
+    };
+
+    const onLogsPageChange = (page: number) => {
+        fetchLogs(page, activeSearch, activeLevel);
     };
 
     return (
@@ -690,17 +711,43 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
             {loaded ? (
                 <>
                     <Row className="flow-root my-2 w-full space-x-2" align="middle">
-                        <Col className="flex float-left items-center space-x-3">
+                        <Col className="flex float-left items-center space-x-2">
                             <Text className="text-estela-black-medium text-sm">Search:</Text>
-                            <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Enter a word..." />
+                            <Input
+                                className="w-44 h-10 rounded-2xl"
+                                placeholder="Enter a word..."
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                                onPressEnter={applyFilters}
+                            />
+                        </Col>
+                        <Col className="flex float-left items-center space-x-2">
+                            <Text className="text-estela-black-medium text-sm">Level:</Text>
+                            <Dropdown
+                                overlay={
+                                    <Menu onClick={({ key }) => setLevelInput(key as string)}>
+                                        {LOG_LEVELS.map((lvl) => (
+                                            <Menu.Item key={lvl}>{lvl}</Menu.Item>
+                                        ))}
+                                    </Menu>
+                                }
+                            >
+                                <Button
+                                    size="large"
+                                    className="flex items-center w-32 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
+                                >
+                                    <Text className="float-left text-sm text-estela-black-medium">{levelInput}</Text>
+                                    <ArrowDown className="h-3.5 w-4 ml-auto" />
+                                </Button>
+                            </Dropdown>
                         </Col>
                         <Col className="flex float-left">
                             <Button
-                                disabled
                                 size="large"
+                                onClick={applyFilters}
                                 className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
                             >
-                                Update
+                                Apply
                             </Button>
                         </Col>
                         <Col className="flex float-right">
@@ -762,22 +809,10 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                 </Dropdown>
                             </Tooltip>
                         </Col>
-                        <Col className="flex float-right">
-                            <Button
-                                disabled
-                                size="large"
-                                className="flex items-center mr-2 stroke-estela-blue-full border-estela-blue-low bg-estela-blue-low text-estela-blue-full hover:text-estela-blue-full text-sm hover:border-estela rounded-2xl"
-                            >
-                                Go
-                            </Button>
-                        </Col>
-                        <Col className="flex float-right items-center space-x-3">
-                            <Input disabled className="w-36 h-10 rounded-2xl" placeholder="Go to line..." />
-                        </Col>
                     </Row>
                     <Content className="bg-white content-padding">
                         <Row align="middle" className="grid grid-cols-12 py-1 px-2 rounded-lg bg-estela-blue-low">
-                            <Col className=" col-start-2 col-span-3">
+                            <Col className="col-start-2 col-span-3">
                                 <Text className="font-bold estela-black-full text-xs">TIME</Text>
                             </Col>
                             <Col className="col-span-2">
@@ -789,8 +824,10 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                         </Row>
                         {logs.map((log: Dictionary, index: number) => {
                             const logDate = log.datetime
-                                ? new Date(parseFloat(log.datetime) * 1000).toDateString()
+                                ? new Date(parseFloat(log.datetime) * 1000).toLocaleString()
                                 : "no date";
+                            const level = parseLogLevel(log.log ?? "");
+                            const levelColor = LEVEL_COLORS[level] ?? "text-estela-black-medium";
                             return (
                                 <Row
                                     key={index}
@@ -805,10 +842,10 @@ export function JobLogsData({ projectId, spiderId, jobId }: JobsDataProps) {
                                         </Text>
                                     </Col>
                                     <Col className="col-span-3">
-                                        <Text className="text-estela-black-medium">{logDate}</Text>
+                                        <Text className="text-estela-black-medium text-xs">{logDate}</Text>
                                     </Col>
                                     <Col className="col-span-2">
-                                        <Text className="text-estela-black-medium">INFO</Text>
+                                        <Text className={`font-semibold text-xs ${levelColor}`}>{level}</Text>
                                     </Col>
                                     <Col className="col-span-6">
                                         <Paragraph

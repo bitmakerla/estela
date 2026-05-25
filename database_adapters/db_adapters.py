@@ -195,11 +195,12 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
         return list(result)
 
     def get_paginated_dataset_data(
-        self, database_name, collection_name, page, page_size
+        self, database_name, collection_name, page, page_size, query=None
     ):
         collection = self.client[database_name][collection_name]
+        mongo_filter = query or {}
         result = (
-            collection.find({}, {"_id": False})
+            collection.find(mongo_filter, {"_id": False})
             .skip(page_size * (page - 1))
             .limit(page_size)
         )
@@ -213,6 +214,10 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
     def get_estimated_item_count(self, database_name, collection_name):
         collection = self.client[database_name][collection_name]
         return collection.estimated_document_count()
+
+    def count_documents(self, database_name, collection_name, query=None):
+        collection = self.client[database_name][collection_name]
+        return collection.count_documents(query or {})
 
     def get_estimated_item_size(self, database_name, collection_name):
         database = self.client[database_name]
