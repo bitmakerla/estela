@@ -61,6 +61,8 @@ interface SpiderJobData {
     cronjob: number | null | undefined;
     args: SpiderJobArg[] | undefined;
     tags: SpiderJobTag[] | undefined;
+    resourceTier: string | undefined;
+    itemCount: number | undefined;
 }
 
 interface SpiderDetailPageState {
@@ -147,6 +149,13 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             ),
         },
         {
+            title: "RESOURCE TIER",
+            dataIndex: "resourceTier",
+            key: "resourceTier",
+            align: "center" as const,
+            render: (tier: string): ReactElement => <Tag color="blue">{(tier || "DEFAULT").toUpperCase()}</Tag>,
+        },
+        {
             title: "SCHEDULED JOB",
             dataIndex: "cronjob",
             key: "cronjob",
@@ -199,6 +208,14 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
                 ) : (
                     <></>
                 ),
+        },
+        {
+            title: "ITEMS",
+            dataIndex: "itemCount",
+            key: "itemCount",
+            render: (itemCount: number): ReactElement => (
+                <span className="text-xs text-estela-black-medium">{itemCount ?? 0}</span>
+            ),
         },
     ];
 
@@ -285,6 +302,8 @@ export class SpiderDetailPage extends Component<RouteComponentProps<RouteParams>
             tags: job.tags,
             jobStatus: job.jobStatus,
             cronjob: job.cronjob,
+            resourceTier: job.resourceTier,
+            itemCount: job.itemCount,
         }));
         return { data, count: response.count, current: page };
     };

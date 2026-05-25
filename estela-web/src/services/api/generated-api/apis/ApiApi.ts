@@ -388,6 +388,8 @@ export interface ApiProjectsSpidersJobsDataListRequest {
     page?: number;
     pageSize?: number;
     type?: string;
+    search?: string;
+    level?: string;
 }
 
 export interface ApiProjectsSpidersJobsListRequest {
@@ -2229,6 +2231,14 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.type !== undefined) {
             queryParameters['type'] = requestParameters.type;
+        }
+
+        if (requestParameters.search !== undefined) {
+            queryParameters['search'] = requestParameters.search;
+        }
+
+        if (requestParameters.level !== undefined) {
+            queryParameters['level'] = requestParameters.level;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
