@@ -1,5 +1,6 @@
 import React from "react";
 import { Typography } from "antd";
+import { isBillingEnabled } from "../../constants";
 import { BillingService, CreditsWallet, formatWalletBalance } from "../../services/billing.service";
 
 const { Text } = Typography;
@@ -11,6 +12,10 @@ interface ProjectBillingContextProps {
 }
 
 export const ProjectBillingContext: React.FC<ProjectBillingContextProps> = ({ isOwner, ownerUsername, wallet }) => {
+    if (!isBillingEnabled()) {
+        return null;
+    }
+
     if (isOwner && wallet) {
         return (
             <Text className="text-sm text-estela-black-medium whitespace-nowrap">
@@ -67,6 +72,13 @@ export class ProjectBillingContextLoader extends React.Component<
     }
 
     loadWallet = async (): Promise<void> => {
+        if (!isBillingEnabled()) {
+            if (this.mounted) {
+                this.setState({ loaded: true, wallet: undefined });
+            }
+            return;
+        }
+
         if (!this.props.isOwner) {
             if (this.mounted) {
                 this.setState({ loaded: true, wallet: undefined });

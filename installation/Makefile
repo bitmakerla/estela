@@ -113,7 +113,9 @@ setup: update-api-ip makemigrations migrate restart-celery-beat create-minio-sup
 .PHONY: build-web
 build-web:
 	-. ./local/.env && cd $(WEB_DIR) && \
-	 echo "REACT_APP_API_BASE_URL=http://$(LOCAL_API_IP)" > .env.development
+	 ( echo "REACT_APP_API_BASE_URL=http://$(LOCAL_API_IP)"; \
+	   if [ -n "$${REACT_APP_BILLING_APP:-}" ]; then echo "REACT_APP_BILLING_APP=$${REACT_APP_BILLING_APP}"; fi; \
+	 ) > .env.development
 	-cd $(WEB_DIR) && yarn install
 
 

@@ -13,6 +13,7 @@ import {
     formatWalletBalance,
 } from "../../services";
 import type { CreditsWallet } from "../../services/billing.service";
+import { isBillingEnabled } from "../../constants";
 import { UserContext, UserContextProps } from "../../context";
 import { RequestTag, ScrapyTag } from "../../components/FrameworkTag";
 
@@ -81,6 +82,10 @@ export class CustomHeader extends Component<unknown, HeaderState> {
     static contextType = UserContext;
 
     loadWalletBalance = async (): Promise<void> => {
+        if (!isBillingEnabled()) {
+            this.setState({ wallet: null, walletLoaded: true });
+            return;
+        }
         const wallet = await BillingService.fetchCurrentUserWallet();
         this.setState({
             wallet,

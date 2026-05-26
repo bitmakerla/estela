@@ -1,5 +1,9 @@
-import { API_BASE_URL } from "../constants";
+import { API_BASE_URL, BILLING_APP, isBillingEnabled } from "../constants";
 import { AuthService } from "./auth.service";
+
+function billingUserUrl(username: string): string {
+    return `${API_BASE_URL}/${BILLING_APP}/users/${encodeURIComponent(username)}`;
+}
 
 export interface CreditsWallet {
     balance_cents: number;
@@ -30,6 +34,10 @@ export const BillingService = {
     },
 
     async fetchUser(username: string): Promise<BillingUser | null> {
+        if (!isBillingEnabled()) {
+            return null;
+        }
+
         if (userCache.has(username)) {
             return userCache.get(username) ?? null;
         }
@@ -38,12 +46,9 @@ export const BillingService = {
         if (!request) {
             request = (async (): Promise<BillingUser | null> => {
                 try {
-                    const response = await fetch(
-                        `${API_BASE_URL}/bitmaker_billing/users/${encodeURIComponent(username)}`,
-                        {
-                            headers: AuthService.getDefaultAuthHeaders(),
-                        },
-                    );
+                    const response = await fetch(billingUserUrl(username), {
+                        headers: AuthService.getDefaultAuthHeaders(),
+                    });
                     const user = response.ok ? await response.json() : null;
                     userCache.set(username, user);
                     return user;
