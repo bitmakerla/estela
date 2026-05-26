@@ -19,6 +19,7 @@ import {
 import {
     resourceNotAllowedNotification,
     incorrectDataNotification,
+    invalidDataNotification,
     Spin,
     PaginationItem,
     RouteParams,
@@ -274,9 +275,10 @@ export class ProjectCronJobListPage extends Component<RouteComponentProps<RouteP
                 message.success(`ScheduledJob ${response.cjid} ${response.status}`);
                 this.getCronJobs(this.state.page);
             },
-            (error: unknown) => {
-                error;
-                incorrectDataNotification();
+            async (error: unknown) => {
+                const data = await (error as Response).json();
+                const msg = Array.isArray(data?.error) ? data.error[0] : data?.error;
+                msg ? invalidDataNotification(msg) : incorrectDataNotification();
             },
         );
     };

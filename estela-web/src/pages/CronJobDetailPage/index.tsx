@@ -49,7 +49,13 @@ import {
     SpiderCronJobUpdate,
     SpiderCronJobUpdateDataStatusEnum,
 } from "../../services/api";
-import { resourceNotAllowedNotification, incorrectDataNotification, Spin, PaginationItem } from "../../shared";
+import {
+    resourceNotAllowedNotification,
+    incorrectDataNotification,
+    invalidDataNotification,
+    Spin,
+    PaginationItem,
+} from "../../shared";
 import { convertDateToString, getFilteredEnvVars } from "../../utils";
 import { DEFAULT_RESOURCE_TIER } from "../../constants";
 
@@ -509,8 +515,10 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
                 const jobs: SpiderJobData[] = data.data;
                 this.setState({ jobs: [...jobs] });
             },
-            (error: unknown) => {
-                error;
+            async (error: unknown) => {
+                const data = await (error as Response).json();
+                const msg = Array.isArray(data?.error) ? data.error[0] : data?.error;
+                msg ? invalidDataNotification(msg) : incorrectDataNotification();
             },
         );
     };
@@ -532,6 +540,7 @@ export class CronJobDetailPage extends Component<RouteComponentProps<RouteParams
             },
             (error: unknown) => {
                 error;
+                this.setState({ loading_status: false });
                 incorrectDataNotification();
             },
         );

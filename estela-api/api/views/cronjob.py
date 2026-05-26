@@ -40,7 +40,6 @@ class SpiderCronJobViewSet(
         return self.model_class.objects.filter(
             spider__project__pid=self.kwargs["pid"],
             spider__sid=self.kwargs["sid"],
-            spider__deleted=False,
             deleted=False,
         )
 
@@ -154,6 +153,12 @@ class SpiderCronJobViewSet(
     def run_once(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
+
+        if instance.spider.deleted:
+            return Response(
+                {"error": "Cannot run: spider no longer exists in the project."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         cronjob = SpiderCronJobSerializer(instance, partial=partial)
 

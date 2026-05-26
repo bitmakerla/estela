@@ -46,7 +46,7 @@ def run_cronjob_once(data):
 
 def disable_cronjob(key):
     try:
-        cronjob = PeriodicTask.objects.get(name=key, enabled=True)
+        cronjob = PeriodicTask.objects.get(name=key)
         cronjob.enabled = False
         cronjob.save()
         return True
@@ -56,7 +56,7 @@ def disable_cronjob(key):
 
 def enable_cronjob(key):
     try:
-        cronjob = PeriodicTask.objects.get(name=key, enabled=False)
+        cronjob = PeriodicTask.objects.get(name=key)
         cronjob.enabled = True
         cronjob.save()
         return True
