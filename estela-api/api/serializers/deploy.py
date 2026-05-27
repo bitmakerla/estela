@@ -71,7 +71,9 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
                 project.spiders.filter(name__in=spiders_names, deleted=True).update(
                     deleted=False
                 )
-                project.spiders.exclude(name__in=spiders_names).update(deleted=True)
+                for spider in project.spiders.exclude(name__in=spiders_names).filter(deleted=False):
+                    spider.deleted = True
+                    spider.save()
                 new_spiders = [
                     Spider(
                         name=spider_name,

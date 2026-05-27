@@ -159,11 +159,16 @@ class SpiderCronJobUpdateSerializer(
             description = f"changed the schedule of Sche-Job-{instance.cjid}."
 
         if "status" in validated_data:
-            instance.status = status
             if status == SpiderCronJob.ACTIVE_STATUS:
+                if instance.spider.deleted:
+                    raise serializers.ValidationError(
+                        {"error": "Cannot enable: spider no longer exists in the project."}
+                    )
+                instance.status = status
                 enable_cronjob(name)
                 description = f"enabled Sche-Job-{instance.cjid}."
             elif status == SpiderCronJob.DISABLED_STATUS:
+                instance.status = status
                 disable_cronjob(name)
                 description = f"disabled Sche-Job-{instance.cjid}."
 

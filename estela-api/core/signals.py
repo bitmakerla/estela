@@ -1,10 +1,38 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from core.models import SpiderJob, UserProfile
+from core.cronjob import disable_cronjob
+from core.models import Spider, SpiderCronJob, SpiderJob, UserProfile
 from core.tasks import get_chain_to_process_usage_data, record_job_coverage_event
+
+logger = logging.getLogger(__name__)
+
+
+@receiver(post_save, sender=Spider, dispatch_uid="disable_cronjobs_on_spider_delete")
+def disable_cronjobs_on_spider_delete(sender, instance, **kwargs):
+
+    if not instance.deleted:
+        return
+
+    cronjobs = list(instance.cronjobs.filter(deleted=False, status=SpiderCronJob.ACTIVE_STATUS))
+    if not cronjobs:
+        return
+
+    logger.info(
+        "Spider %s (sid=%s) marked deleted — disabling %d active cronjob(s)",
+        instance.name,
+        instance.sid,
+        len(cronjobs),
+    )
+    for cronjob in cronjobs:
+        disable_cronjob(cronjob.name)
+        cronjob.status = SpiderCronJob.DISABLED_STATUS
+        cronjob.save()
+    logger.info("Done disabling cronjobs for spider %s (sid=%s)", instance.name, instance.sid)
 
 
 @receiver(post_save, sender=User, dispatch_uid="create_user_profile")

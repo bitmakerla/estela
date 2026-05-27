@@ -54,7 +54,6 @@ class SpiderJobViewSet(
             .filter(
                 spider__project__pid=self.kwargs["pid"],
                 spider__sid=self.kwargs["sid"],
-                spider__deleted=False,
             )
         )
 
