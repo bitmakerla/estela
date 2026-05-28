@@ -7,7 +7,7 @@ from kubernetes.client.exceptions import ApiException
 
 class KubernetesEngine:
     JOB_TTL_SECONDS_AFTER_FINISHED = 86400  # 24 hours.
-    BACKOFF_LIMIT = 2  # The number of retries before considering a Job as failed.
+    BACKOFF_LIMIT = 0  # The number of retries before considering a Job as failed.
     JOB_TIME_CREATION = 20  # Tolerance time for a Job to be created.
     POD_RESTART_POLICY = "Never"
     IMAGE_PULL_POLICY = "Always"
