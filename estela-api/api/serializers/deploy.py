@@ -1,11 +1,9 @@
-from datetime import datetime
-
 from rest_framework import serializers
 from django.conf import settings
 
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
-from config.job_manager import spiderdata_db_client
+from core.error_logs import write_deploy_logs_to_mongo
 from core.models import Deploy, Spider
 from engines.kubernetes import KubernetesEngine
 
@@ -78,13 +76,8 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
                 )
             else:
                 instance.status = status
-                if status == Deploy.FAILURE_STATUS and error_reason and spiderdata_db_client.get_connection():
-                    db = str(project.pid)
-                    spiderdata_db_client.client[db]["deploy_logs"].insert_one({
-                        "deploy_id": instance.did,
-                        "logs": f"=== Deploy ===\n{error_reason}",
-                        "created": datetime.utcnow(),
-                    })
+                if status == Deploy.FAILURE_STATUS and error_reason:
+                    write_deploy_logs_to_mongo(instance, f"=== Deploy ===\n{error_reason}")
 
             if status == Deploy.SUCCESS_STATUS and spiders_names:
                 project.spiders.filter(name__in=spiders_names, deleted=True).update(

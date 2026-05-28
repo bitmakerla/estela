@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
@@ -18,6 +16,7 @@ from api.utils import (
     get_collection_name,
 )
 from config.job_manager import job_manager, spiderdata_db_client
+from core.error_logs import write_job_logs_to_mongo
 from core.models import (
     DataStatus,
     SpiderJob,
@@ -270,13 +269,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                             pass
                         instance.save()
                     job_manager.delete_job(instance.name)
-            if status == SpiderJob.ERROR_STATUS and error_reason and spiderdata_db_client.get_connection():
-                db = str(instance.spider.project.pid)
-                spiderdata_db_client.client[db]["job_logs"].insert_one({
-                    "job_id": instance.jid,
-                    "logs": error_reason,
-                    "created": datetime.utcnow(),
-                })
+            if status == SpiderJob.ERROR_STATUS and error_reason:
+                write_job_logs_to_mongo(instance, error_reason)
         instance.status = status
 
         for field in self.job_fields:

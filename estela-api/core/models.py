@@ -400,19 +400,6 @@ class SpiderJob(models.Model):
 
     @property
     def job_status(self):
-        if (
-            self.status == self.WAITING_STATUS
-            and timezone.now() - timedelta(seconds=job_manager.JOB_TIME_CREATION)
-            > self.created
-        ):
-            job_status = job_manager.read_job_status(self.name)
-            if job_status is None:
-                self.status = self.ERROR_STATUS
-                self.save()
-            elif job_status.active is None:
-                if job_status.succeeded is None:
-                    self.status = self.ERROR_STATUS
-                    self.save()
         return self.status
 
 

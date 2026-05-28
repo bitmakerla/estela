@@ -17,7 +17,7 @@ app.conf.beat_schedule = {
     },
     "check-and-update-job-status-errors": {
         "task": "core.tasks.check_and_update_job_status_errors",
-        "schedule": 30,
+        "schedule": 60,
     },
     "check-and-update-deploy-status-errors": {
         "task": "core.tasks.check_and_update_deploy_status_errors",

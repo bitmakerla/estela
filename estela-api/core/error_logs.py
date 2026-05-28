@@ -184,12 +184,39 @@ def capture_job_error_reason(job):
 
 
 def write_job_logs_to_mongo(job, logs):
-    """Insert a job_logs record into the project's Mongo database."""
-    if not logs or not spiderdata_db_client.get_connection():
+    """Upsert a job_logs record into the project's Mongo database.
+
+    Uses $setOnInsert so concurrent writes for the same job_id are idempotent —
+    the first writer wins and subsequent calls are no-ops.
+    """
+    if not spiderdata_db_client.get_connection():
         return
     db = str(job.spider.project.pid)
-    spiderdata_db_client.client[db]["job_logs"].insert_one({
-        "job_id": job.jid,
-        "logs": logs,
-        "created": datetime.utcnow(),
-    })
+    spiderdata_db_client.client[db]["job_logs"].update_one(
+        {"job_id": job.jid},
+        {"$setOnInsert": {
+            "job_id": job.jid,
+            "logs": logs,
+            "created": datetime.utcnow(),
+        }},
+        upsert=True,
+    )
+
+
+def write_deploy_logs_to_mongo(deploy, logs):
+    """Upsert a deploy_logs record into the project's Mongo database.
+
+    Uses $setOnInsert so concurrent writes for the same deploy_id are idempotent.
+    """
+    if not spiderdata_db_client.get_connection():
+        return
+    db = str(deploy.project.pid)
+    spiderdata_db_client.client[db]["deploy_logs"].update_one(
+        {"deploy_id": deploy.did},
+        {"$setOnInsert": {
+            "deploy_id": deploy.did,
+            "logs": logs,
+            "created": datetime.utcnow(),
+        }},
+        upsert=True,
+    )

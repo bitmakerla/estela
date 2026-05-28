@@ -59,4 +59,10 @@ $estela-red-low: #fff5f2;
             color: #ffffff !important;
         }
     }
+
+    .deploy-failure-tag,
+    .deploy-failure-tag .anticon {
+        pointer-events: none;
+        transition: none !important;
+    }
 }

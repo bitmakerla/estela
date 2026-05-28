@@ -22,8 +22,6 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 import JobCreateModal from "../JobCreateModal";
-import { ApiService } from "../../services";
-import { parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
 import { ApiService, AuthService } from "../../services";
 import { API_BASE_URL } from "../../constants";
 import { BytesMetric, parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
@@ -615,6 +613,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
 
         return (
             <>
+                {this.renderErrorBanner()}
                 <Content
                     className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 lg:w-full"
                     data-tour-target="job-stats"
@@ -747,8 +746,6 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
                         </Row>
                     </Card>
                 </Content>
-                <Content className="my-2 grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
-                {this.renderErrorBanner()}
                 <Content className="grid sm:grid-cols-1 md:grid-cols-12 lg:grid-cols-12 grid-cols-12 gap-2 items-start lg:w-full">
                     <Card
                         className="w-full sm:col-span-1 md:col-span-5 col-span-5 flex flex-col"
