@@ -24,7 +24,7 @@ export interface SpiderJobEnvVar {
      * @type {number}
      * @memberof SpiderJobEnvVar
      */
-    readonly evid?: number;
+    evid?: number | null;
     /**
      * Env variable name.
      * @type {string}
@@ -71,6 +71,7 @@ export function SpiderJobEnvVarToJSON(value?: SpiderJobEnvVar | null): any {
     }
     return {
         
+        'evid': value.evid,
         'name': value.name,
         'value': value.value,
         'masked': value.masked,

@@ -48,6 +48,7 @@ interface ArgsData {
 }
 
 interface EnvVarsData {
+    evid?: number;
     name: string;
     value: string;
     key: number;
@@ -138,6 +139,7 @@ export default function JobCreateModal({
     const [jobData, setJobData] = useState<JobData>({
         args: initialArgs.map((arg, index) => ({ ...arg, key: index })),
         envVars: initialEnvVars.map((envVar, index) => ({
+            evid: envVar.evid,
             name: envVar.name,
             value: envVar.masked ? "__MASKED__" : envVar.value,
             masked: envVar.masked || false,
@@ -448,14 +450,20 @@ export default function JobCreateModal({
 
         jobData.envVars.map((envVar: EnvVarsData) => {
             const index = envVarsData.findIndex((element: SpiderJobEnvVar) => element.name === envVar.name);
+            const resolvedEvid =
+                envVar.masked && envVar.value === "__MASKED__"
+                    ? envVar.evid ?? (index !== -1 ? envVarsData[index].evid : undefined)
+                    : undefined;
             if (index != -1) {
                 envVarsData[index] = {
+                    evid: resolvedEvid,
                     name: envVar.name,
                     value: envVar.value,
                     masked: envVar.masked,
                 };
             } else {
                 envVarsData.push({
+                    evid: resolvedEvid,
                     name: envVar.name,
                     value: envVar.value,
                     masked: envVar.masked,
