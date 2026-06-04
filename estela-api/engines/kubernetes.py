@@ -230,13 +230,17 @@ class KubernetesEngine:
 
         return self.Status(api_response.status)
 
+    def _get_job_pods(self, job_name, namespace="default"):
+        config.load_incluster_config()
+        v1 = client.CoreV1Api()
+        return v1.list_namespaced_pod(namespace, label_selector=f"job-name={job_name}")
+
     def get_deploy_stage(self, did, namespace="default"):
         try:
-            core_api = client.CoreV1Api()
             batch_api = self.get_api_instance()
             job_name = f"deploy-project-{did}"
             batch_api.read_namespaced_job(job_name, namespace)
-            pods = core_api.list_namespaced_pod(namespace, label_selector=f"job-name={job_name}")
+            pods = self._get_job_pods(job_name, namespace)
             if not pods.items:
                 return None
             init_statuses = pods.items[0].status.init_container_statuses or []
@@ -246,6 +250,71 @@ class KubernetesEngine:
         except Exception:
             pass
         return None
+
+    def read_pod_termination_reason(self, job_name, namespace="default"):
+        try:
+            pods = self._get_job_pods(job_name, namespace)
+            for pod in pods.items:
+                for cs in pod.status.init_container_statuses or []:
+                    t = cs.state.terminated
+                    if t and t.exit_code and t.exit_code != 0:
+                        return {
+                            "reason": t.reason or "Error",
+                            "exit_code": t.exit_code,
+                            "init_container": cs.name,
+                        }
+                for cs in pod.status.container_statuses or []:
+                    t = cs.state.terminated
+                    if t and t.exit_code and t.exit_code != 0:
+                        return {
+                            "reason": t.reason or "Error",
+                            "exit_code": t.exit_code,
+                            "init_container": None,
+                        }
+        except ApiException:
+            pass
+        return None
+
+    def read_pod_logs(self, job_name, namespace="default", tail=None):
+        try:
+            v1 = client.CoreV1Api()
+            pods = self._get_job_pods(job_name, namespace)
+            for pod in pods.items:
+                try:
+                    return v1.read_namespaced_pod_log(
+                        pod.metadata.name,
+                        namespace,
+                        tail_lines=tail,
+                    )
+                except ApiException:
+                    continue
+        except ApiException:
+            pass
+        return None
+
+    def read_build_logs(self, job_name, namespace="default"):
+        logs = {}
+        try:
+            v1 = client.CoreV1Api()
+            pods = self._get_job_pods(job_name, namespace)
+            for pod in pods.items:
+                for container_name in ("project-downloader", "kaniko-builder"):
+                    try:
+                        logs[container_name] = v1.read_namespaced_pod_log(
+                            pod.metadata.name, namespace, container=container_name
+                        )
+                    except ApiException:
+                        logs[container_name] = None
+                try:
+                    logs["spider-status"] = v1.read_namespaced_pod_log(
+                        pod.metadata.name, namespace, container="spider-status"
+                    )
+                except ApiException:
+                    logs["spider-status"] = None
+                break
+        except ApiException:
+            pass
+        return logs
 
     def _create_build_volumes(self):
         """Create shared volume for build containers"""

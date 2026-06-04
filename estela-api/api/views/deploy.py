@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, ParseError, PermissionDenied
 from rest_framework.response import Response
 
@@ -11,7 +12,7 @@ from api.serializers.deploy import (
     DeploySerializer,
     DeployUpdateSerializer,
 )
-from config.job_manager import credentials
+from config.job_manager import credentials, spiderdata_db_client
 from core.models import Deploy, Project
 from core.views import launch_deploy_job
 
@@ -102,3 +103,16 @@ class DeployViewSet(
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    @action(detail=True, methods=["get"], url_path="logs")
+    def logs(self, request, *args, **kwargs):
+        deploy = self.get_object()
+        if not spiderdata_db_client.get_connection():
+            return Response({"error": "Could not connect to database."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        db = str(deploy.project.pid)
+        record = spiderdata_db_client.client[db]["deploy_logs"].find_one(
+            {"deploy_id": deploy.did}, sort=[("created", -1)]
+        )
+        if not record:
+            return Response({"logs": None})
+        return Response({"logs": record.get("logs")})

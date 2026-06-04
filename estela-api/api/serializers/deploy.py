@@ -3,6 +3,7 @@ from django.conf import settings
 
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
+from core.error_logs import write_deploy_logs_to_mongo
 from core.models import Deploy, Spider
 from engines.kubernetes import KubernetesEngine
 
@@ -48,14 +49,23 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Spider names in this deploy.",
     )
+    error_reason = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        max_length=200_000,
+        help_text="Error logs to persist in deploy_logs (Mongo) on failure.",
+    )
 
     class Meta:
         model = Deploy
-        fields = ["did", "status", "spiders_names"]
+        fields = ["did", "status", "spiders_names", "error_reason"]
 
     def update(self, instance, validated_data):
         status = validated_data.get("status", instance.status)
         spiders_names = validated_data.get("spiders_names", [])
+        error_reason = validated_data.pop("error_reason", None)
         project = instance.project
         if status != instance.status:
             if instance.status != Deploy.BUILDING_STATUS:
@@ -66,6 +76,8 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
                 )
             else:
                 instance.status = status
+                if status == Deploy.FAILURE_STATUS and error_reason:
+                    write_deploy_logs_to_mongo(instance, f"=== Deploy ===\n{error_reason}")
 
             if status == Deploy.SUCCESS_STATUS and spiders_names:
                 project.spiders.filter(name__in=spiders_names, deleted=True).update(

@@ -16,6 +16,7 @@ from api.utils import (
     get_collection_name,
 )
 from config.job_manager import job_manager, spiderdata_db_client
+from core.error_logs import write_job_logs_to_mongo
 from core.models import (
     DataStatus,
     SpiderJob,
@@ -202,6 +203,14 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
         required=False,
         help_text="Job data expiry days.",
     )
+    error_reason = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        max_length=200_000,
+        help_text="Error logs to persist in job_logs (Mongo) on failure.",
+    )
 
     allowed_status_to_stop = [
         SpiderJob.WAITING_STATUS,
@@ -228,12 +237,14 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
             "data_status",
             "data_expiry_days",
             "proxy_usage_data",
+            "error_reason",
         )
 
     def update(self, instance, validated_data):
         status = validated_data.get("status", instance.status)
         data_status = validated_data.get("data_status", "")
         data_expiry_days = int(validated_data.get("data_expiry_days", 1))
+        error_reason = validated_data.pop("error_reason", None)
 
         if status != instance.status:
             if instance.status == SpiderJob.STOPPED_STATUS:
@@ -258,6 +269,8 @@ class SpiderJobUpdateSerializer(serializers.ModelSerializer):
                             pass
                         instance.save()
                     job_manager.delete_job(instance.name)
+            if status == SpiderJob.ERROR_STATUS and error_reason:
+                write_job_logs_to_mongo(instance, error_reason)
         instance.status = status
 
         for field in self.job_fields:
