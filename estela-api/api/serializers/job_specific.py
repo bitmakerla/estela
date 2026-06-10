@@ -10,6 +10,12 @@ class SpiderJobArgSerializer(serializers.ModelSerializer):
 
 
 class SpiderJobEnvVarSerializer(serializers.ModelSerializer):
+    evid = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="A unique integer value identifying this job env variable.",
+    )
+
     class Meta:
         model = SpiderJobEnvVar
         fields = ("evid", "name", "value", "masked")

@@ -25,6 +25,7 @@ from core.models import (
     Project,
     ProxyProvider,
     Spider,
+    SpiderCronJob,
     SpiderJob,
     UsageRecord,
 )
@@ -273,6 +274,18 @@ def launch_job(sid_, data_, data_expiry_days=None, token=None):
         data_["data_status"] = DataStatus.PENDING_STATUS
 
     resource_tier = data_.pop("resource_tier", None)
+
+    cjid = data_.get("cronjob")
+    if cjid:
+        cronjob = SpiderCronJob.objects.filter(cjid=cjid).first()
+        if cronjob:
+            cronjob_env_vars = {
+                ev.name: {"name": ev.name, "value": ev.value, "masked": ev.masked}
+                for ev in cronjob.cenv_vars.all()
+            }
+            extra_env_vars = {ev["name"]: ev for ev in data_.get("env_vars", [])}
+            cronjob_env_vars.update(extra_env_vars)
+            data_["env_vars"] = list(cronjob_env_vars.values())
 
     serializer = SpiderJobCreateSerializer(data=data_)
     serializer.is_valid(raise_exception=True)

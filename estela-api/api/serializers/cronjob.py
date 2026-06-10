@@ -1,3 +1,5 @@
+import logging
+
 from croniter import croniter
 from rest_framework import serializers
 
@@ -15,6 +17,8 @@ from core.models import (
     SpiderJobEnvVar,
     SpiderJobTag,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class SpiderCronJobSerializer(serializers.ModelSerializer):
@@ -107,6 +111,22 @@ class SpiderCronJobCreateSerializer(serializers.ModelSerializer):
             SpiderJobArg.objects.create(cronjob=cronjob, **arg)
 
         for env_var in env_vars_data:
+            evid = env_var.pop("evid", None)
+            if evid:
+                source = SpiderJobEnvVar.objects.filter(evid=evid).first()
+                if source:
+                    SpiderJobEnvVar.objects.create(
+                        cronjob=cronjob,
+                        name=source.name,
+                        value=source.value,
+                        masked=source.masked,
+                    )
+                    continue
+                logger.warning(
+                    "evid=%s not found when creating env var '%s' for cronjob %s — skipping.",
+                    evid, env_var.get("name"), cronjob.cjid,
+                )
+                continue
             SpiderJobEnvVar.objects.create(cronjob=cronjob, **env_var)
 
         for tag_data in tags_data:

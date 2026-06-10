@@ -2,13 +2,14 @@ import json
 
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
+from core.models import SpiderCronJob
 from core.tasks import launch_job
 
 
 def create_cronjob(name, key, args, env_vars, tags, schedule, data_expiry_days=None, resource_tier=None):
     minute, hour, day_of_month, month, day_of_week = schedule.split(" ")
     cjid, sid, pid = key.split(".")
-    data = {"cronjob": cjid, "args": args, "env_vars": env_vars, "tags": tags}
+    data = {"cronjob": cjid, "args": args, "env_vars": [], "tags": tags}
     if resource_tier:
         data["resource_tier"] = resource_tier
     schedule, _ = CrontabSchedule.objects.get_or_create(
@@ -28,8 +29,11 @@ def create_cronjob(name, key, args, env_vars, tags, schedule, data_expiry_days=N
 
 
 def run_cronjob_once(data):
-    env_vars = data.get("cenv_vars") or []
-    env_vars = [ev for ev in env_vars if ev.get("value") is not None]
+    cronjob = SpiderCronJob.objects.get(cjid=data.get("cjid"))
+    env_vars = [
+        {"name": ev.name, "value": ev.value, "masked": ev.masked}
+        for ev in cronjob.cenv_vars.all()
+    ]
     _data = {
         "cronjob": data.get("cjid"),
         "args": data.get("cargs"),

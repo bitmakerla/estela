@@ -1886,7 +1886,7 @@ definitions:
         title: Evid
         description: A unique integer value identifying this job env variable.
         type: integer
-        readOnly: true
+        x-nullable: true
       name:
         title: Name
         description: Env variable name.
