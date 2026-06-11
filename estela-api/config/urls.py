@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.http import HttpResponse
 from django.views import View
+from django.conf.urls.static import static
 
 
 class HealthCheckView(View):
@@ -37,3 +38,6 @@ urlpatterns = [
     path("", HealthCheckView.as_view()),
 ]
 urlpatterns = urlpatterns + django_external_apps_url
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
