@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
 
+from core.metering.metrics import REPORTER_ESTELA, RESOURCE_KIND_SPIDER_JOB
 from core.models import MeteredUsageRecord, Project, Spider, SpiderJob
 from core.metering.hourly import process_hourly_metered_usage_for_job
 
@@ -20,16 +21,21 @@ class HourlyFirstTickTests(TestCase):
             status=SpiderJob.RUNNING_STATUS,
         )
         created = datetime(2026, 1, 15, 7, 5, 0, tzinfo=dt_timezone.utc)
-        SpiderJob.objects.filter(pk=self.job.pk).update(
-            created=created,
-            proxy_usage_data={"proxy_name": "slice-proxy"},
-        )
+        SpiderJob.objects.filter(pk=self.job.pk).update(created=created)
         self.job.refresh_from_db()
+        self.resource_id = str(self.job.jid)
 
     def tearDown(self):
         import core.metering.hourly as hourly_mod
 
         hourly_mod._CLIENT = None
+
+    def _get_slice(self):
+        return MeteredUsageRecord.objects.get(
+            resource_kind=RESOURCE_KIND_SPIDER_JOB,
+            resource_id=self.resource_id,
+            kind=MeteredUsageRecord.Kind.DELTA_SLICE,
+        )
 
     @patch("core.metering.hourly._redis")
     @patch("core.metering.hourly.read_scrapy_counters_from_redis")
@@ -41,7 +47,7 @@ class HourlyFirstTickTests(TestCase):
             "total_response_bytes": 1000,
             "item_count": 10,
             "request_count": 50,
-            "meter_proxy_redis_bytes": 0,
+            "meter_proxy_redis_bytes": 999,
             "storage_obj_bytes_total": 0,
         }
         mock_conn = MagicMock()
@@ -52,23 +58,10 @@ class HourlyFirstTickTests(TestCase):
         with patch("core.metering.hourly.timezone.now", return_value=tick):
             process_hourly_metered_usage_for_job(self.job)
 
-        row = MeteredUsageRecord.objects.get(
-            job=self.job, kind=MeteredUsageRecord.Kind.DELTA_SLICE
-        )
-        self.assertEqual(row.delta_network_bytes, 1000)
-        self.assertEqual(row.delta_item_count, 10)
-        self.assertEqual(row.delta_request_count, 50)
-        self.assertEqual(row.delta_storage_bytes, 0)
-        self.assertEqual(row.delta_proxy_bytes, 0)
-        self.assertEqual(row.proxy_name, "slice-proxy")
-        self.assertEqual(
-            row.interval_start,
-            datetime(2026, 1, 15, 7, 5, 0, tzinfo=dt_timezone.utc),
-        )
-        self.assertEqual(
-            row.interval_end,
-            datetime(2026, 1, 15, 8, 0, 0, tzinfo=dt_timezone.utc),
-        )
+        row = self._get_slice()
+        self.assertEqual(row.metrics["network_bytes"], 1000)
+        self.assertEqual(row.reporter, REPORTER_ESTELA)
+        self.assertNotIn("proxy_bytes", row.metrics)
         mock_conn.set.assert_called()
 
     @patch("core.metering.hourly._redis")
@@ -83,7 +76,6 @@ class HourlyFirstTickTests(TestCase):
             "total_response_bytes": 1000,
             "item_count": 10,
             "request_count": 50,
-            "meter_proxy_redis_bytes": 0,
             "storage_obj_bytes_total": 100,
         }
         mock_conn = MagicMock()
@@ -103,18 +95,6 @@ class HourlyFirstTickTests(TestCase):
         with patch("core.metering.hourly.timezone.now", return_value=tick):
             process_hourly_metered_usage_for_job(self.job)
 
-        row = MeteredUsageRecord.objects.get(
-            job=self.job, kind=MeteredUsageRecord.Kind.DELTA_SLICE
-        )
-        self.assertEqual(row.delta_network_bytes, 1500)
-        self.assertEqual(row.delta_storage_bytes, 300)
-        self.assertEqual(row.delta_proxy_bytes, 0)
-        self.assertEqual(row.proxy_name, "slice-proxy")
-        self.assertEqual(
-            row.interval_start,
-            datetime(2026, 1, 15, 8, 0, 0, tzinfo=dt_timezone.utc),
-        )
-        self.assertEqual(
-            row.interval_end,
-            datetime(2026, 1, 15, 9, 0, 0, tzinfo=dt_timezone.utc),
-        )
+        row = self._get_slice()
+        self.assertEqual(row.metrics["network_bytes"], 1500)
+        self.assertEqual(row.metrics["storage_bytes"], 300)

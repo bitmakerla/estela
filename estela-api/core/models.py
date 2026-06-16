@@ -531,11 +531,10 @@ class MeteredUsageRecord(models.Model):
     """Append-only metered usage fact. Do not update or delete rows except retention jobs.
 
     **Flow** rows (``DELTA_SLICE``, ``JOB_CLOSE``, ``ADJUSTMENT``, ``DATA_DELETE``)
-    record per-event consumption: network, requests, items, runtime, proxy bytes,
-    and **storage object bytes** in ``delta_storage_bytes`` (combined Redis
-    ``item_obj_byte_size`` + ``request_obj_byte_size`` + ``log_obj_byte_size``,
-    diffed between Redis samples and reconciled at job close when hourly metering
-    is on). Wallet debit = ``SUM(delta_*)`` over the relevant dimensions.
+    record per-event consumption in the ``metrics`` JSON payload (network_bytes,
+    request_count, item_count, storage_bytes, runtime_seconds, proxy_bytes, …).
+    Storage bytes come from combined Redis object-byte stats, diffed between
+    samples and reconciled at job close when hourly metering is on.
     """
 
     class Kind(models.TextChoices):
@@ -571,33 +570,6 @@ class MeteredUsageRecord(models.Model):
         related_name="metered_usage_records",
         help_text="Project this usage roll ups to.",
     )
-    job = models.ForeignKey(
-        SpiderJob,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="metered_usage_records",
-        help_text="Spider job when attribution applies.",
-    )
-    spider = models.ForeignKey(
-        Spider,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="metered_usage_records",
-        help_text="Spider when attribution applies (typically job.spider when job is set).",
-    )
-    cronjob = models.ForeignKey(
-        SpiderCronJob,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="metered_usage_records",
-        help_text=(
-            "Cronjob when attribution applies; mirrored from job.cronjob on flow rows "
-            "when job is set."
-        ),
-    )
     interval_start = models.DateTimeField(
         null=True,
         blank=True,
@@ -611,55 +583,6 @@ class MeteredUsageRecord(models.Model):
         null=True,
         blank=True,
         help_text="Exclusive end of the half-open interval (see ``interval_start``).",
-    )
-    delta_network_bytes = models.BigIntegerField(
-        default=0,
-        help_text="Signed network bytes delta for this fact.",
-    )
-    delta_request_count = models.BigIntegerField(
-        default=0,
-        help_text="Signed HTTP request count delta.",
-    )
-    delta_item_count = models.BigIntegerField(
-        default=0,
-        help_text="Signed scraped item count delta.",
-    )
-    delta_storage_bytes = models.BigIntegerField(
-        default=0,
-        help_text=(
-            "Signed delta of combined spider-data object byte sizes (items + requests + "
-            "logs) from Redis cumulative stats. Unlike network, item, and request hourly "
-            "slice deltas, stored object byte totals can shrink between samples, so "
-            "negative values are legitimate corrections. Downstream billing or analytics "
-            "must not assume non-negativity (for example, ``WHERE delta_storage_bytes > 0`` "
-            "would drop valid rows). On DELTA_SLICE: diff between samples; on JOB_CLOSE: "
-            "full cumulative total when hourly metering is off; on close-time ADJUSTMENT: "
-            "residual vs sum of DELTA_SLICE rows."
-        ),
-    )
-    delta_proxy_bytes = models.BigIntegerField(
-        null=True,
-        blank=True,
-        help_text=(
-            "Signed proxy response bytes delta. NULL means proxy attribution does not "
-            "apply to this row (vs. 0 which would mean 'applies but no change')."
-        ),
-    )
-    proxy_name = models.CharField(
-        max_length=512,
-        blank=True,
-        default="",
-        help_text="Proxy identifier from job.proxy_usage_data when applicable.",
-    )
-    delta_runtime_seconds = models.DecimalField(
-        max_digits=20,
-        decimal_places=6,
-        null=True,
-        blank=True,
-        help_text=(
-            "Signed seconds of spider-active runtime contributed by this row. NULL "
-            "means runtime attribution does not apply (e.g. DATA_DELETE)."
-        ),
     )
     kind = models.CharField(
         max_length=32,
@@ -679,15 +602,40 @@ class MeteredUsageRecord(models.Model):
         choices=AdjustmentReason.choices,
         help_text="Set for ADJUSTMENT rows.",
     )
+    resource_kind = models.CharField(
+        max_length=64,
+        help_text=(
+            "Generic resource type for control-plane attribution "
+            "(e.g. SpiderJob, BuildJob, RawSink)."
+        ),
+    )
+    resource_id = models.CharField(
+        max_length=512,
+        help_text="Opaque resource identifier within resource_kind.",
+    )
+    reporter = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Service that emitted this row (e.g. estela, bitmaker-proxy).",
+    )
+    metrics = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Open metric payload keyed by canonical names (network_bytes, storage_bytes, "
+            "build_duration_seconds, …). Primary source of truth for usage facts."
+        ),
+    )
 
     class Meta:
         ordering = ["-recorded_at"]
         indexes = [
             models.Index(fields=["project", "interval_start"]),
             models.Index(fields=["project", "recorded_at"]),
-            models.Index(fields=["spider", "interval_start"]),
-            models.Index(fields=["job", "interval_start"]),
-            models.Index(fields=["cronjob", "interval_start"]),
+            models.Index(
+                fields=["project", "resource_kind", "resource_id", "interval_start"]
+            ),
         ]
 
     def __str__(self):

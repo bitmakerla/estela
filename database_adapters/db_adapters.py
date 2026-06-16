@@ -269,6 +269,11 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
                 total_size_bytes += self.get_dataset_size(database_name, collection)
         return total_size_bytes
 
+    def get_project_database_data_size(self, database_name):
+        """Uncompressed BSON ``dataSize`` for a project spiderdata database (``dbStats``)."""
+        stats = self.client[database_name].command("dbstats")
+        return int(stats.get("dataSize", 0))
+
     def get_dataset_size(self, database_name, collection_name):
         database = self.client[database_name]
         collection_size = database.command("collstats", collection_name)["size"]

@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.base")
@@ -34,6 +35,10 @@ app.conf.beat_schedule = {
     "record-hourly-metered-usage": {
         "task": "core.tasks.record_hourly_metered_usage",
         "schedule": 3600,
+    },
+    "record-hourly-storage-metered-usage": {
+        "task": "core.tasks.record_hourly_storage_metered_usage",
+        "schedule": crontab(minute=5),
     },
 }
 

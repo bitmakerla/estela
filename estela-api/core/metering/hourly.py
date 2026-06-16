@@ -1,11 +1,8 @@
 """Periodic DELTA_SLICE flow metering from Redis Scrapy stats.
 
 Each successful sample writes **one** append-only row: the Redis counter delta over
-the real half-open interval ``[interval_start, interval_end)``. No UTC-hour
-splitting is applied at write time; consumers may bucket for display or billing.
-
-Job close (:mod:`core.metering.ledger`) still reconciles finals vs ``SUM`` of
-these slice rows when hourly metering is enabled.
+the real half-open interval ``[interval_start, interval_end)``. Proxy bytes are
+**not** written here — bitmaker-proxy reports those separately.
 """
 
 from __future__ import annotations
@@ -20,17 +17,10 @@ from django.conf import settings
 from django.utils import dateparse
 from django.utils import timezone
 
-from api.utils import (
-    METER_HOURLY_LAST_SAMPLE_KEY,
-    metered_proxy_name_from_job,
-    read_scrapy_counters_from_redis,
-)
-from core.metering.ledger import (
-    create_metered_usage_idempotent,
-    delta_proxy_bytes_for_flow_row,
-)
+from api.utils import METER_HOURLY_LAST_SAMPLE_KEY, read_scrapy_counters_from_redis
+from core.metering.metrics import REPORTER_ESTELA, RESOURCE_KIND_SPIDER_JOB, build_flow_metrics
+from core.metering.report import append_metered_usage
 from core.models import MeteredUsageRecord, SpiderJob
-
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +35,6 @@ def _redis():
 
 
 def _synthetic_zero_prev_snapshot(job: SpiderJob, now) -> dict:
-    """Baseline for first Redis read: counters at zero from ``job.created`` (UTC)."""
     created = job.created
     if timezone.is_naive(created):
         created = timezone.make_aware(created, py_timezone.utc)
@@ -59,22 +48,8 @@ def _synthetic_zero_prev_snapshot(job: SpiderJob, now) -> dict:
         "total_response_bytes": 0,
         "item_count": 0,
         "request_count": 0,
-        "meter_proxy_redis_bytes": 0,
         "storage_obj_bytes_total": 0,
     }
-
-
-def _meter_proxy_redis_cumulative_from_sample(sample: dict) -> int:
-    """Cumulative proxy bytes from a stored Redis meter sample (legacy dict shapes supported)."""
-    if "meter_proxy_redis_bytes" in sample:
-        return int(sample["meter_proxy_redis_bytes"])
-    legacy = sample.get("meter_proxy_from_redis")
-    if isinstance(legacy, dict):
-        return sum(int(v) for v in legacy.values())
-    legacy_b = sample.get("proxy_bytes")
-    if isinstance(legacy_b, dict):
-        return sum(int(v) for v in legacy_b.values())
-    return 0
 
 
 def process_hourly_metered_usage_for_job(job: SpiderJob) -> None:
@@ -86,7 +61,6 @@ def process_hourly_metered_usage_for_job(job: SpiderJob) -> None:
     r = _redis()
     key = METER_HOURLY_LAST_SAMPLE_KEY.format(job.key)
     prev_raw = r.get(key)
-    meter_proxy_redis_bytes = raw_stats["meter_proxy_redis_bytes"]
     storage_obj_bytes_total = int(raw_stats.get("storage_obj_bytes_total", 0))
     payload = {
         "observed_at": now.isoformat(),
@@ -94,7 +68,6 @@ def process_hourly_metered_usage_for_job(job: SpiderJob) -> None:
         "total_response_bytes": raw_stats["total_response_bytes"],
         "item_count": raw_stats["item_count"],
         "request_count": raw_stats["request_count"],
-        "meter_proxy_redis_bytes": meter_proxy_redis_bytes,
         "storage_obj_bytes_total": storage_obj_bytes_total,
     }
     if prev_raw is None:
@@ -128,38 +101,30 @@ def process_hourly_metered_usage_for_job(job: SpiderJob) -> None:
     )
     d_elapsed_int = max(0, int(round(de)))
 
-    proxy_prev_total = _meter_proxy_redis_cumulative_from_sample(prev)
-    proxy_cur_total = meter_proxy_redis_bytes
-    d_proxy = max(0, proxy_cur_total - proxy_prev_total)
-
     storage_prev_total = int(prev.get("storage_obj_bytes_total", 0))
-    # Signed diff (unlike network/items/requests): stored object bytes can shrink.
     d_storage = storage_obj_bytes_total - storage_prev_total
 
-    if dn == 0 and di == 0 and dr == 0 and d_elapsed_int == 0 and d_proxy == 0 and d_storage == 0:
+    if dn == 0 and di == 0 and dr == 0 and d_elapsed_int == 0 and d_storage == 0:
         r.set(key, json.dumps(payload))
         return
 
-    slice_key = f"job:{job.jid}:sample:{t0.isoformat()}:{t1.isoformat()}:v5"
+    slice_key = f"estela:SpiderJob:{job.jid}:sample:{t0.isoformat()}:{t1.isoformat()}:v6"
     project = job.spider.project
-    spider = job.spider
-    cronjob = job.cronjob
-    proxy_name_label = metered_proxy_name_from_job(job)
-    create_metered_usage_idempotent(
+    append_metered_usage(
         idempotency_key=slice_key,
         project=project,
-        job=job,
-        spider=spider,
-        cronjob=cronjob,
+        resource_kind=RESOURCE_KIND_SPIDER_JOB,
+        resource_id=str(job.jid),
         interval_start=t0,
         interval_end=t1,
-        proxy_name=proxy_name_label,
-        delta_network_bytes=dn,
-        delta_request_count=dr,
-        delta_item_count=di,
-        delta_storage_bytes=d_storage,
-        delta_proxy_bytes=delta_proxy_bytes_for_flow_row(proxy_name_label, d_proxy),
-        delta_runtime_seconds=Decimal(str(d_elapsed_int)) if d_elapsed_int else None,
+        reporter=REPORTER_ESTELA,
+        metrics=build_flow_metrics(
+            network_bytes=dn,
+            request_count=dr,
+            item_count=di,
+            storage_bytes=d_storage,
+            runtime_seconds=Decimal(str(d_elapsed_int)) if d_elapsed_int else None,
+        ),
         kind=MeteredUsageRecord.Kind.DELTA_SLICE,
         source_ref=f"spider_job:{job.jid}",
     )
@@ -173,7 +138,7 @@ def record_hourly_metered_usage_batch() -> None:
     max_jobs = getattr(settings, "METERED_USAGE_HOURLY_MAX_JOBS", 2000)
     qs = (
         SpiderJob.objects.filter(status=SpiderJob.RUNNING_STATUS)
-        .select_related("spider__project", "cronjob")
+        .select_related("spider__project")
         .order_by("jid")[:max_jobs]
     )
     for job in qs:

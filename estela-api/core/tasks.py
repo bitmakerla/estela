@@ -36,6 +36,7 @@ from core.error_logs import (
     write_deploy_logs_to_mongo,
 )
 from core.metering.hourly import record_hourly_metered_usage_batch
+from core.metering.storage import record_hourly_storage_metered_usage_batch
 from core.metering.ledger import (
     append_metered_usage_for_data_delete,
     append_metered_usage_for_job_close,
@@ -579,6 +580,11 @@ def record_job_coverage_event(job_id):
 @celery_app.task(name="core.tasks.record_hourly_metered_usage")
 def record_hourly_metered_usage():
     record_hourly_metered_usage_batch()
+
+
+@celery_app.task(name="core.tasks.record_hourly_storage_metered_usage")
+def record_hourly_storage_metered_usage():
+    record_hourly_storage_metered_usage_batch()
 
 
 def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=None):

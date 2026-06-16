@@ -53,23 +53,27 @@ class MeteredUsageRecordAdmin(admin.ModelAdmin):
     list_display = (
         "recorded_at",
         "project",
-        "spider",
-        "cronjob",
-        "job",
+        "reporter",
+        "resource_kind",
+        "resource_id",
         "kind",
         "interval_start",
         "interval_end",
-        "delta_network_bytes",
-        "delta_request_count",
-        "delta_item_count",
-        "delta_storage_bytes",
-        "delta_proxy_bytes",
-        "delta_runtime_seconds",
-        "proxy_name",
+        "metrics_summary",
         "idempotency_key",
     )
-    list_filter = ("kind", "recorded_at")
+    list_filter = ("kind", "resource_kind", "reporter", "recorded_at")
+    search_fields = ("resource_id", "idempotency_key", "source_ref")
     readonly_fields = [f.name for f in MeteredUsageRecord._meta.fields]
+
+    def metrics_summary(self, obj):
+        if not obj.metrics:
+            return "—"
+        parts = [f"{k}={v}" for k, v in sorted(obj.metrics.items())]
+        text = ", ".join(parts)
+        return text if len(text) <= 120 else text[:117] + "…"
+
+    metrics_summary.short_description = "metrics"
 
     def has_add_permission(self, request):
         return False

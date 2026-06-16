@@ -26,6 +26,18 @@ class IsProfileUser(BasePermission):
         )
 
 
+class CanReportMeteringForProject(BasePermission):
+    """Allow metering ingest when the caller can access the target project."""
+
+    def has_permission(self, request, view):
+        if request.user.is_superuser or request.user.is_staff:
+            return True
+        project_id = request.data.get("project_id")
+        if not project_id:
+            return False
+        return Project.objects.filter(pid=project_id, users__in=[request.user]).exists()
+
+
 class IsAdminOrReadOnly(BasePermission):
     """
     Custom permission to only allow admins or developers of an object to edit it.
