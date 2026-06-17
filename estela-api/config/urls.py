@@ -39,5 +39,4 @@ urlpatterns = [
 ]
 urlpatterns = urlpatterns + django_external_apps_url
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

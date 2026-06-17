@@ -165,6 +165,7 @@ googleapis-common-protos==1.60.0
     #   -r base.txt
     #   google-api-core
 gunicorn==20.1.0
+whitenoise==6.7.0
     # via -r base.txt
 idna==2.10
     # via
