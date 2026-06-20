@@ -56,11 +56,15 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         return page, page_size
 
     def get_queryset(self):
-        return (
+        queryset = (
             Project.objects.filter(deleted=False)
             if self.request.user.is_superuser or self.request.user.is_staff
             else self.request.user.project_set.filter(deleted=False)
         )
+        search = self.request.query_params.get("search", "")
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
 
     def perform_create(self, serializer):
         instance = serializer.save()

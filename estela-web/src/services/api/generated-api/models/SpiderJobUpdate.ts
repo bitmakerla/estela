@@ -73,6 +73,12 @@ export interface SpiderJobUpdate {
      * @memberof SpiderJobUpdate
      */
     proxyUsageData?: string;
+    /**
+     * Error logs to persist in job_logs (Mongo) on failure.
+     * @type {string}
+     * @memberof SpiderJobUpdate
+     */
+    errorReason?: string | null;
 }
 
 /**
@@ -115,6 +121,7 @@ export function SpiderJobUpdateFromJSONTyped(json: any, ignoreDiscriminator: boo
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
         'proxyUsageData': !exists(json, 'proxy_usage_data') ? undefined : json['proxy_usage_data'],
+        'errorReason': !exists(json, 'error_reason') ? undefined : json['error_reason'],
     };
 }
 
@@ -135,6 +142,7 @@ export function SpiderJobUpdateToJSON(value?: SpiderJobUpdate | null): any {
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
         'proxy_usage_data': value.proxyUsageData,
+        'error_reason': value.errorReason,
     };
 }
 

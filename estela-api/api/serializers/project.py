@@ -51,6 +51,20 @@ class ProjectSerializer(serializers.ModelSerializer):
     container_image = serializers.CharField(
         read_only=True, help_text="Path of the project's container image."
     )
+    created = serializers.SerializerMethodField()
+    last_modified = serializers.SerializerMethodField()
+
+    def get_created(self, obj):
+        value = obj.created_at
+        if value is None:
+            return None
+        return value.isoformat()
+
+    def get_last_modified(self, obj):
+        value = obj.last_modified
+        if value is None:
+            return None
+        return value.isoformat()
 
     class Meta:
         model = Project
@@ -64,6 +78,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "env_vars",
             "data_status",
             "data_expiry_days",
+            "created",
+            "last_modified",
         )
 
 

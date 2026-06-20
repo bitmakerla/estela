@@ -1,15 +1,39 @@
 import React, { Component, Fragment, ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Button, Layout, Pagination, Space, Typography, Row, Col, Tag, Table, Modal, Input, Select } from "antd";
+import {
+    Button,
+    Layout,
+    Pagination,
+    Space,
+    Typography,
+    Row,
+    Col,
+    Tag,
+    Table,
+    Modal,
+    Input,
+    Select,
+    Dropdown,
+    Menu,
+    message,
+} from "antd";
+import { SettingOutlined, EditOutlined, TagsOutlined, TeamOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import Add from "../../assets/icons/add.svg";
 import Bug from "../../assets/icons/bug.svg";
+import Copy from "../../assets/icons/copy.svg";
 import FolderDotted from "../../assets/icons/folderDotted.svg";
 import WelcomeProjects from "../../assets/images/welcomeProjects.svg";
 import history from "../../history";
-import { ApiProjectsListRequest, ApiProjectsCreateRequest, Project, ProjectCategoryEnum } from "../../services/api";
+import {
+    ApiProjectsListRequest,
+    ApiProjectsCreateRequest,
+    ApiProjectsDeleteRequest,
+    Project,
+    ProjectCategoryEnum,
+} from "../../services/api";
 import { incorrectDataNotification, Spin, PaginationItem } from "../../shared";
 import { UserContext, UserContextProps } from "../../context/UserContext";
 
@@ -17,12 +41,17 @@ const { Content } = Layout;
 const { Option } = Select;
 const { Text, Paragraph } = Typography;
 
+type SortOrder = "asc" | "desc" | null;
+type SortField = "name" | "framework" | "category" | "created" | "lastModified" | "role" | null;
+
 interface ProjectList {
     name: string;
     category?: string;
     pid: string | undefined;
     role: string;
     framework: string | undefined;
+    created?: string;
+    lastModified?: string;
     key: number;
 }
 
@@ -36,6 +65,14 @@ interface ProjectsPageState {
     modalWelcome: boolean;
     newProjectName: string;
     newProjectCategory: ProjectCategoryEnum;
+    searchText: string;
+    sortField: SortField;
+    sortOrder: SortOrder;
+    deleteModal: boolean;
+    deleteTargetPid: string | undefined;
+    deleteTargetName: string;
+    deleteConfirmText: string;
+    copiedPid: string | undefined;
 }
 
 export class ProjectListPage extends Component<unknown, ProjectsPageState> {
@@ -52,14 +89,164 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         modalWelcome: false,
         newProjectName: "",
         newProjectCategory: ProjectCategoryEnum.NotSpecified,
+        searchText: "",
+        sortField: null,
+        sortOrder: null,
+        deleteModal: false,
+        deleteTargetPid: undefined,
+        deleteTargetName: "",
+        deleteConfirmText: "",
+        copiedPid: undefined,
     };
 
     apiService = ApiService();
     static contextType = UserContext;
+    runSearch = async (search: string): Promise<void> => {
+        const data = await this.getProjects(1, search);
+        const projectData = data.data.map((project: Project, id: number) => ({
+            name: project.name,
+            pid: project.pid,
+            framework: project.framework,
+            category: project.category,
+            created: project.created,
+            lastModified: project.lastModified,
+            role:
+                project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
+                "ADMIN",
+            key: id,
+        }));
+        this.setState({ projects: projectData, count: data.count, current: 1 });
+    };
 
-    columns = [
+    formatDate = (date?: string): string => {
+        if (!date) return "—";
+        return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    };
+
+    handleSort = (field: SortField): void => {
+        const { sortField, sortOrder } = this.state;
+        if (sortField !== field) {
+            this.setState({ sortField: field, sortOrder: "desc" });
+        } else if (sortOrder === "desc") {
+            this.setState({ sortOrder: "asc" });
+        } else {
+            this.setState({ sortField: null, sortOrder: null });
+        }
+    };
+
+    getSortIcon = (field: SortField): string => {
+        const { sortField, sortOrder } = this.state;
+        if (sortField !== field) return "";
+        return sortOrder === "asc" ? " ↑" : " ↓";
+    };
+
+    getSortedAndFilteredProjects = (): ProjectList[] => {
+        const { projects, sortField, sortOrder } = this.state;
+
+        if (!sortField || !sortOrder) return projects;
+
+        return [...projects].sort((a, b) => {
+            let valA: string | number = "";
+            let valB: string | number = "";
+
+            if (sortField === "name") {
+                valA = a.name;
+                valB = b.name;
+            } else if (sortField === "framework") {
+                valA = a.framework ?? "";
+                valB = b.framework ?? "";
+            } else if (sortField === "category") {
+                valA = a.category ?? "";
+                valB = b.category ?? "";
+            } else if (sortField === "role") {
+                valA = a.role;
+                valB = b.role;
+            } else if (sortField === "created") {
+                valA = a.created ? new Date(a.created).getTime() : 0;
+                valB = b.created ? new Date(b.created).getTime() : 0;
+            } else if (sortField === "lastModified") {
+                valA = a.lastModified
+                    ? new Date(a.lastModified).getTime()
+                    : a.created
+                    ? new Date(a.created).getTime()
+                    : 0;
+                valB = b.lastModified
+                    ? new Date(b.lastModified).getTime()
+                    : b.created
+                    ? new Date(b.created).getTime()
+                    : 0;
+            }
+
+            if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+            if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+            return 0;
+        });
+    };
+
+    confirmDelete = (pid: string | undefined, name: string): void => {
+        this.setState({ deleteModal: true, deleteTargetPid: pid, deleteTargetName: name, deleteConfirmText: "" });
+    };
+
+    deleteProject = (): void => {
+        const { deleteTargetPid } = this.state;
+        if (!deleteTargetPid) return;
+        const request: ApiProjectsDeleteRequest = { pid: deleteTargetPid };
+        this.apiService.apiProjectsDelete(request).then(
+            () => {
+                this.setState({
+                    deleteModal: false,
+                    deleteTargetPid: undefined,
+                    deleteTargetName: "",
+                    deleteConfirmText: "",
+                });
+                this.onPageChange(1);
+            },
+            () => incorrectDataNotification(),
+        );
+    };
+
+    getActionMenu = (project: ProjectList): ReactElement => (
+        <Menu>
+            <Menu.Item
+                key="edit"
+                icon={<EditOutlined />}
+                onClick={() => history.push(`/projects/${project.pid}/settings`)}
+            >
+                Edit project
+            </Menu.Item>
+            <Menu.Item
+                key="tags"
+                icon={<TagsOutlined />}
+                onClick={() => history.push(`/projects/${project.pid}/settings`)}
+            >
+                Manage tags
+            </Menu.Item>
+            <Menu.Item
+                key="members"
+                icon={<TeamOutlined />}
+                onClick={() => history.push(`/projects/${project.pid}/members`)}
+            >
+                Team permissions
+            </Menu.Item>
+            <Menu.Divider />
+            <Menu.Item
+                key="delete"
+                icon={<DeleteOutlined />}
+                danger
+                onClick={() => this.confirmDelete(project.pid, project.name)}
+            >
+                Delete project
+            </Menu.Item>
+        </Menu>
+    );
+
+    getColumns = () => [
         {
-            title: "NAME",
+            title: (
+                <span className="cursor-pointer select-none" onClick={() => this.handleSort("name")}>
+                    NAME{this.getSortIcon("name")}
+                </span>
+            ),
             dataIndex: "name",
             key: "name",
             render: (name: string, project: ProjectList): ReactElement => (
@@ -79,10 +266,35 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             title: "PID",
             dataIndex: "pid",
             key: "pid",
-            render: (pid: string): ReactElement => <p className="font-courier">{pid}</p>,
+            render: (pid: string): ReactElement => {
+                const copied = this.state.copiedPid === pid;
+                return (
+                    <span className="flex items-center gap-1">
+                        <span className="font-courier text-sm">{pid ? `${pid.slice(0, 8)}...` : ""}</span>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<Copy className="w-4 h-4" style={{ stroke: copied ? "#059669" : "#9CA3AF" }} />}
+                            className={`p-0 border-none transition-colors ${
+                                copied ? "bg-green-50" : "hover:bg-button-hover"
+                            }`}
+                            onClick={() => {
+                                navigator.clipboard.writeText(pid);
+                                message.success("PID copied to clipboard");
+                                this.setState({ copiedPid: pid });
+                                setTimeout(() => this.setState({ copiedPid: undefined }), 1500);
+                            }}
+                        />
+                    </span>
+                );
+            },
         },
         {
-            title: "FRAMEWORK",
+            title: (
+                <span className="cursor-pointer select-none" onClick={() => this.handleSort("framework")}>
+                    FRAMEWORK{this.getSortIcon("framework")}
+                </span>
+            ),
             dataIndex: "framework",
             key: "framework",
             render: (framework: string): ReactElement => (
@@ -90,13 +302,81 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             ),
         },
         {
-            title: "ROLE",
+            title: (
+                <span className="cursor-pointer select-none" onClick={() => this.handleSort("category")}>
+                    INDUSTRY{this.getSortIcon("category")}
+                </span>
+            ),
+            dataIndex: "category",
+            key: "category",
+            render: (category: string): ReactElement => (
+                <Tag className="border-estela-blue-full rounded-md text-estela-blue-full p-1">{category ?? "—"}</Tag>
+            ),
+        },
+        {
+            title: (
+                <span className="cursor-pointer select-none" onClick={() => this.handleSort("created")}>
+                    CREATED{this.getSortIcon("created")}
+                </span>
+            ),
+            dataIndex: "created",
+            key: "created",
+            render: (created: string): ReactElement => <span>{this.formatDate(created)}</span>,
+        },
+        {
+            title: (
+                <span className="cursor-pointer select-none" onClick={() => this.handleSort("lastModified")}>
+                    LAST MODIFIED{this.getSortIcon("lastModified")}
+                </span>
+            ),
+            dataIndex: "lastModified",
+            key: "lastModified",
+            render: (lastModified: string): ReactElement => <span>{this.formatDate(lastModified)}</span>,
+        },
+        {
+            title: (
+                <span className="cursor-pointer select-none" onClick={() => this.handleSort("role")}>
+                    ROLE{this.getSortIcon("role")}
+                </span>
+            ),
             dataIndex: "role",
             key: "role",
-            render: (role: string, project: ProjectList): ReactElement => (
-                <Tag className="text-estela border-0 rounded bg-button-hover float-right" key={project.key}>
-                    {role}
-                </Tag>
+            render: (role: string, project: ProjectList): ReactElement => {
+                const roleStyles: Record<string, React.CSSProperties> = {
+                    OWNER: { background: "#EDE9FE", color: "#5B21B6" },
+                    ADMIN: { background: "#FEF3C7", color: "#B45309" },
+                    DEVELOPER: { background: "#D1FAE5", color: "#065F46" },
+                    VIEWER: { background: "#F3F4F6", color: "#374151" },
+                };
+                const style = roleStyles[role] ?? roleStyles["VIEWER"];
+                return (
+                    <span
+                        key={project.key}
+                        style={{
+                            ...style,
+                            borderRadius: "9999px",
+                            padding: "4px 12px",
+                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                        }}
+                    >
+                        {role}
+                    </span>
+                );
+            },
+        },
+        {
+            title: "",
+            key: "actions",
+            render: (_: unknown, project: ProjectList): ReactElement => (
+                <Dropdown overlay={this.getActionMenu(project)} trigger={["click"]} placement="bottomRight">
+                    <Button
+                        type="text"
+                        icon={<SettingOutlined />}
+                        className="text-estela-black-medium hover:text-estela hover:bg-button-hover"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </Dropdown>
             ),
         },
     ];
@@ -119,6 +399,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 category: project.category,
                 framework: project.framework,
                 pid: project.pid,
+                created: project.created,
+                lastModified: project.lastModified,
                 role:
                     project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
                     "ADMIN",
@@ -175,8 +457,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         return String(AuthService.getUserUsername());
     };
 
-    async getProjects(page: number): Promise<{ data: Project[]; count: number; current: number }> {
-        const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE };
+    async getProjects(page: number, search?: string): Promise<{ data: Project[]; count: number; current: number }> {
+        const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE, search };
         const data = await this.apiService.apiProjectsList(requestParams);
         this.totalProjects = data.count;
         return { data: data.results, count: data.count, current: page };
@@ -184,12 +466,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
 
     onPageChange = async (page: number): Promise<void> => {
         this.setState({ loaded: false });
-        const data = await this.getProjects(page);
+        const data = await this.getProjects(page, this.state.searchText);
         const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
             return {
                 name: project.name,
                 pid: project.pid,
                 framework: project.framework,
+                category: project.category,
+                created: project.created,
+                lastModified: project.lastModified,
                 role:
                     project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
                     "ADMIN",
@@ -206,8 +491,22 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     };
 
     render(): JSX.Element {
-        const { projects, count, current, loaded, modalNewProject, modalWelcome, newProjectName, newProjectCategory } =
-            this.state;
+        const {
+            count,
+            current,
+            loaded,
+            modalNewProject,
+            modalWelcome,
+            newProjectName,
+            newProjectCategory,
+            searchText,
+            deleteModal,
+            deleteTargetName,
+            deleteConfirmText,
+        } = this.state;
+
+        const displayProjects = this.getSortedAndFilteredProjects();
+
         return (
             <>
                 {loaded ? (
@@ -253,6 +552,41 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                     </Col>
                                 </Row>
                             </Modal>
+                            <Modal
+                                open={deleteModal}
+                                title="Delete project"
+                                onCancel={() => this.setState({ deleteModal: false, deleteConfirmText: "" })}
+                                footer={[
+                                    <Button
+                                        key="cancel"
+                                        onClick={() => this.setState({ deleteModal: false, deleteConfirmText: "" })}
+                                    >
+                                        Cancel
+                                    </Button>,
+                                    <Button
+                                        key="delete"
+                                        danger
+                                        type="primary"
+                                        disabled={deleteConfirmText !== deleteTargetName}
+                                        onClick={this.deleteProject}
+                                    >
+                                        Delete
+                                    </Button>,
+                                ]}
+                            >
+                                <p className="mb-3">
+                                    This action <strong>cannot be undone</strong>. Type{" "}
+                                    <strong className="text-red-500">{deleteTargetName}</strong> to confirm.
+                                </p>
+                                <Input
+                                    placeholder={deleteTargetName}
+                                    value={deleteConfirmText}
+                                    onChange={(e) => this.setState({ deleteConfirmText: e.target.value })}
+                                    onPressEnter={() => {
+                                        if (deleteConfirmText === deleteTargetName) this.deleteProject();
+                                    }}
+                                />
+                            </Modal>
                             <Space direction="vertical" className="w-full">
                                 <Content className="float-left">
                                     <Text className="text-3xl">
@@ -267,8 +601,22 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                         </Col>
                                     </Row>
                                     <Row className="flex-row gap-3 mt-4">
-                                        {projects.map((project: ProjectList, index) => {
-                                            return index < 3 ? (
+                                        {[...this.state.projects]
+                                            .sort((a, b) => {
+                                                const ta = a.lastModified
+                                                    ? new Date(a.lastModified).getTime()
+                                                    : a.created
+                                                    ? new Date(a.created).getTime()
+                                                    : 0;
+                                                const tb = b.lastModified
+                                                    ? new Date(b.lastModified).getTime()
+                                                    : b.created
+                                                    ? new Date(b.created).getTime()
+                                                    : 0;
+                                                return tb - ta;
+                                            })
+                                            .slice(0, 5)
+                                            .map((project: ProjectList) => (
                                                 <Button
                                                     key={project.key}
                                                     onClick={() => {
@@ -282,28 +630,22 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                 >
                                                     <Row className="gap-4">
                                                         <Text className="text-sm font-bold">{project.name}</Text>
-                                                        {index === 0 && (
-                                                            <Tag className="text-estela bg-estela-blue-low border-none font-medium rounded-md">
-                                                                New
-                                                            </Tag>
-                                                        )}
                                                     </Row>
                                                     <Row className="rounded-md my-3">
                                                         <Text className="text-xs font-courier">{project.pid}</Text>
                                                     </Row>
-                                                    <Row className="w-full justify-between">
+                                                    <Row className="w-full justify-between gap-2">
                                                         <Tag className="bg-white border-white rounded-md">
                                                             {project.role}
                                                         </Tag>
-                                                        <Tag className="border-estela-blue-full text-estela-blue-full rounded-md">
-                                                            {project.framework}
-                                                        </Tag>
+                                                        {project.category && (
+                                                            <Tag className="border-estela-blue-full text-estela-blue-full rounded-md">
+                                                                {project.category}
+                                                            </Tag>
+                                                        )}
                                                     </Row>
                                                 </Button>
-                                            ) : (
-                                                <Content key={project.key}></Content>
-                                            );
-                                        })}
+                                            ))}
                                     </Row>
                                 </Content>
                                 <Content className="bg-white rounded-md p-6 mx-4">
@@ -432,12 +774,22 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             </Modal>
                                         </Col>
                                     </Row>
+                                    <Row className="mb-4">
+                                        <Input.Search
+                                            placeholder="Search by name"
+                                            value={searchText}
+                                            onChange={(e) => this.setState({ searchText: e.target.value })}
+                                            onSearch={this.runSearch}
+                                            className="border-estela-blue-low rounded-md"
+                                            style={{ maxWidth: 400 }}
+                                        />
+                                    </Row>
                                     <Row className="flex flex-col w-full">
                                         <Table
-                                            showHeader={false}
+                                            showHeader={true}
                                             className="rounded-2xl"
-                                            columns={this.columns}
-                                            dataSource={projects}
+                                            columns={this.getColumns()}
+                                            dataSource={displayProjects}
                                             pagination={false}
                                             size="middle"
                                             locale={{ emptyText: this.emptyText }}

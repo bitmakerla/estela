@@ -84,9 +84,29 @@ class Project(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
     )
+    created = models.DateTimeField(
+        auto_now_add=True, help_text="Project creation date.", null=True
+    )
 
     class Meta:
         ordering = ["name"]
+
+    @property
+    def created_at(self):
+        first_deploy = self.deploy_set.order_by("created").values_list("created", flat=True).first()
+        if first_deploy and (self.created is None or first_deploy < self.created):
+            return first_deploy
+        return self.created
+
+    @property
+    def last_modified(self):
+        from django.db.models import Max
+        result = self.spiders.aggregate(
+            latest_deploy=Max('deploy__created'),
+            latest_job=Max('jobs__created'),
+        )
+        valid_dates = [d for d in result.values() if d is not None]
+        return max(valid_dates) if valid_dates else self.created
 
     @property
     def container_image(self):

@@ -698,6 +698,28 @@ paths:
         in: path
         required: true
         type: string
+  /api/projects/{pid}/deploys/{did}/logs:
+    get:
+      operationId: api_projects_deploys_logs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Deploy'
+      tags:
+        - api
+    parameters:
+      - name: did
+        in: path
+        description: A unique integer value identifying this deploy.
+        required: true
+        type: integer
+      - name: pid
+        in: path
+        required: true
+        type: string
   /api/projects/{pid}/jobs:
     get:
       operationId: api_projects_jobs
@@ -1308,6 +1330,32 @@ paths:
         in: path
         required: true
         type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/error_logs:
+    get:
+      operationId: api_projects_spiders_jobs_error_logs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderJob'
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        description: A unique integer value identifying this job.
+        required: true
+        type: integer
       - name: pid
         in: path
         required: true
@@ -1968,6 +2016,14 @@ definitions:
         type: integer
         maximum: 65535
         minimum: 0
+      created:
+        title: Created
+        type: string
+        readOnly: true
+      last_modified:
+        title: Last modified
+        type: string
+        readOnly: true
   ProjectUpdate:
     type: object
     properties:
@@ -2334,6 +2390,12 @@ definitions:
           type: string
           maxLength: 1000
           minLength: 1
+      error_reason:
+        title: Error reason
+        description: Error logs to persist in deploy_logs (Mongo) on failure.
+        type: string
+        maxLength: 200000
+        x-nullable: true
   SpiderJob:
     description: Project jobs.
     type: object
@@ -2797,6 +2859,12 @@ definitions:
         title: Proxy usage data
         description: Proxy Usage data.
         type: string
+      error_reason:
+        title: Error reason
+        description: Error logs to persist in job_logs (Mongo) on failure.
+        type: string
+        maxLength: 200000
+        x-nullable: true
   UsageRecord:
     required:
       - processing_time
