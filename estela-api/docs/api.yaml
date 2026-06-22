@@ -387,14 +387,22 @@ paths:
       parameters:
         - name: page
           in: query
-          description: A page number within the paginated result set.
           required: false
           type: integer
         - name: page_size
           in: query
-          description: Number of results to return per page.
           required: false
           type: integer
+        - name: search
+          in: query
+          required: false
+          type: string
+        - name: ordering
+          in: query
+          description: 'Order by: name, category, framework, created, last_modified,
+            role (prefix with - for desc)'
+          required: false
+          type: string
       responses:
         '200':
           description: ''

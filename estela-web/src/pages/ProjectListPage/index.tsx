@@ -57,8 +57,10 @@ interface ProjectList {
 
 interface ProjectsPageState {
     projects: ProjectList[];
+    recentProjects: ProjectList[];
     username: string;
     loaded: boolean;
+    tableLoading: boolean;
     count: number;
     current: number;
     modalNewProject: boolean;
@@ -81,8 +83,10 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
 
     state: ProjectsPageState = {
         projects: [],
+        recentProjects: [],
         username: "",
         loaded: false,
+        tableLoading: false,
         count: 0,
         current: 0,
         modalNewProject: false,
@@ -102,20 +106,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     apiService = ApiService();
     static contextType = UserContext;
     runSearch = async (search: string): Promise<void> => {
-        const data = await this.getProjects(1, search);
-        const projectData = data.data.map((project: Project, id: number) => ({
-            name: project.name,
-            pid: project.pid,
-            framework: project.framework,
-            category: project.category,
-            created: project.created,
-            lastModified: project.lastModified,
-            role:
-                project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
-                "ADMIN",
-            key: id,
-        }));
-        this.setState({ projects: projectData, count: data.count, current: 1 });
+        const { sortField, sortOrder } = this.state;
+        this.setState({ searchText: search });
+        await this.loadProjects(1, search, sortField, sortOrder);
     };
 
     formatDate = (date?: string): string => {
@@ -123,64 +116,19 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         return new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
     };
 
+    SERVER_SORT_FIELDS = new Set(["name", "category", "framework", "created", "lastModified", "role"]);
+
     handleSort = (field: SortField): void => {
-        const { sortField, sortOrder } = this.state;
-        if (sortField !== field) {
-            this.setState({ sortField: field, sortOrder: "desc" });
-        } else if (sortOrder === "desc") {
-            this.setState({ sortOrder: "asc" });
-        } else {
-            this.setState({ sortField: null, sortOrder: null });
-        }
+        const { sortField, sortOrder, searchText } = this.state;
+        const newOrder: "asc" | "desc" = sortField === field && sortOrder === "desc" ? "asc" : "desc";
+        this.setState({ sortField: field, sortOrder: newOrder });
+        this.loadProjects(1, searchText, field, newOrder);
     };
 
     getSortIcon = (field: SortField): string => {
         const { sortField, sortOrder } = this.state;
         if (sortField !== field) return "";
         return sortOrder === "asc" ? " ↑" : " ↓";
-    };
-
-    getSortedAndFilteredProjects = (): ProjectList[] => {
-        const { projects, sortField, sortOrder } = this.state;
-
-        if (!sortField || !sortOrder) return projects;
-
-        return [...projects].sort((a, b) => {
-            let valA: string | number = "";
-            let valB: string | number = "";
-
-            if (sortField === "name") {
-                valA = a.name;
-                valB = b.name;
-            } else if (sortField === "framework") {
-                valA = a.framework ?? "";
-                valB = b.framework ?? "";
-            } else if (sortField === "category") {
-                valA = a.category ?? "";
-                valB = b.category ?? "";
-            } else if (sortField === "role") {
-                valA = a.role;
-                valB = b.role;
-            } else if (sortField === "created") {
-                valA = a.created ? new Date(a.created).getTime() : 0;
-                valB = b.created ? new Date(b.created).getTime() : 0;
-            } else if (sortField === "lastModified") {
-                valA = a.lastModified
-                    ? new Date(a.lastModified).getTime()
-                    : a.created
-                    ? new Date(a.created).getTime()
-                    : 0;
-                valB = b.lastModified
-                    ? new Date(b.lastModified).getTime()
-                    : b.created
-                    ? new Date(b.created).getTime()
-                    : 0;
-            }
-
-            if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-            if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-            return 0;
-        });
     };
 
     confirmDelete = (pid: string | undefined, name: string): void => {
@@ -392,23 +340,13 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         const { updateRole } = this.context as UserContextProps;
         updateRole && updateRole("");
         AuthService.removeFramework();
-        const data = await this.getProjects(1);
-        const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
-            return {
-                name: project.name,
-                category: project.category,
-                framework: project.framework,
-                pid: project.pid,
-                created: project.created,
-                lastModified: project.lastModified,
-                role:
-                    project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
-                    "ADMIN",
-                key: id,
-            };
-        });
+        const [data, recentData] = await Promise.all([
+            this.fetchProjects(1),
+            this.apiService.apiProjectsList({ page: 1, pageSize: 5, ordering: "-last_modified" }),
+        ]);
         this.setState({
-            projects: [...projectData],
+            projects: this.toProjectList(data.data),
+            recentProjects: this.toProjectList(recentData.results),
             count: data.count,
             current: data.current,
             loaded: true,
@@ -457,37 +395,56 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         return String(AuthService.getUserUsername());
     };
 
-    async getProjects(page: number, search?: string): Promise<{ data: Project[]; count: number; current: number }> {
-        const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE, search };
+    async fetchProjects(
+        page: number,
+        search?: string,
+        sortField?: SortField,
+        sortOrder?: "asc" | "desc" | null,
+    ): Promise<{ data: Project[]; count: number; current: number }> {
+        let ordering: string | undefined;
+        if (sortField && sortOrder && this.SERVER_SORT_FIELDS.has(sortField)) {
+            const backendField = sortField === "lastModified" ? "last_modified" : sortField;
+            ordering = sortOrder === "desc" ? `-${backendField}` : backendField;
+        }
+        const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE, search, ordering };
         const data = await this.apiService.apiProjectsList(requestParams);
         this.totalProjects = data.count;
         return { data: data.results, count: data.count, current: page };
     }
 
-    onPageChange = async (page: number): Promise<void> => {
-        this.setState({ loaded: false });
-        const data = await this.getProjects(page, this.state.searchText);
-        const projectData: ProjectList[] = data.data.map((project: Project, id: number) => {
-            return {
-                name: project.name,
-                pid: project.pid,
-                framework: project.framework,
-                category: project.category,
-                created: project.created,
-                lastModified: project.lastModified,
-                role:
-                    project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
-                    "ADMIN",
-                key: id,
-            };
-        });
+    toProjectList = (projects: Project[]): ProjectList[] =>
+        projects.map((project, id) => ({
+            name: project.name,
+            pid: project.pid,
+            framework: project.framework,
+            category: project.category,
+            created: project.created,
+            lastModified: project.lastModified,
+            role:
+                project.users?.find((user) => user.user?.username === AuthService.getUserUsername())?.permission ||
+                "ADMIN",
+            key: id,
+        }));
+
+    loadProjects = async (
+        page: number,
+        search?: string,
+        sortField?: SortField,
+        sortOrder?: "asc" | "desc" | null,
+    ): Promise<void> => {
+        this.setState({ tableLoading: true });
+        const data = await this.fetchProjects(page, search, sortField, sortOrder);
         this.setState({
-            projects: [...projectData],
+            projects: this.toProjectList(data.data),
             count: data.count,
             current: data.current,
-            loaded: true,
-            modalWelcome: data.count === 0,
+            tableLoading: false,
         });
+    };
+
+    onPageChange = async (page: number): Promise<void> => {
+        const { sortField, sortOrder, searchText } = this.state;
+        await this.loadProjects(page, searchText, sortField, sortOrder);
     };
 
     render(): JSX.Element {
@@ -495,6 +452,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             count,
             current,
             loaded,
+            tableLoading,
             modalNewProject,
             modalWelcome,
             newProjectName,
@@ -505,7 +463,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             deleteConfirmText,
         } = this.state;
 
-        const displayProjects = this.getSortedAndFilteredProjects();
+        const { projects: displayProjects, recentProjects } = this.state;
 
         return (
             <>
@@ -601,51 +559,36 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                         </Col>
                                     </Row>
                                     <Row className="flex-row gap-3 mt-4">
-                                        {[...this.state.projects]
-                                            .sort((a, b) => {
-                                                const ta = a.lastModified
-                                                    ? new Date(a.lastModified).getTime()
-                                                    : a.created
-                                                    ? new Date(a.created).getTime()
-                                                    : 0;
-                                                const tb = b.lastModified
-                                                    ? new Date(b.lastModified).getTime()
-                                                    : b.created
-                                                    ? new Date(b.created).getTime()
-                                                    : 0;
-                                                return tb - ta;
-                                            })
-                                            .slice(0, 5)
-                                            .map((project: ProjectList) => (
-                                                <Button
-                                                    key={project.key}
-                                                    onClick={() => {
-                                                        const { updateRole } = this.context as UserContextProps;
-                                                        AuthService.setUserRole(project.role);
-                                                        AuthService.setFramework(String(project.framework));
-                                                        updateRole && updateRole(project.role);
-                                                        history.push(`/projects/${project.pid}/dashboard`);
-                                                    }}
-                                                    className="bg-white rounded-md w-fit h-fit px-4 py-3 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
-                                                >
-                                                    <Row className="gap-4">
-                                                        <Text className="text-sm font-bold">{project.name}</Text>
-                                                    </Row>
-                                                    <Row className="rounded-md my-3">
-                                                        <Text className="text-xs font-courier">{project.pid}</Text>
-                                                    </Row>
-                                                    <Row className="w-full justify-between gap-2">
-                                                        <Tag className="bg-white border-white rounded-md">
-                                                            {project.role}
+                                        {recentProjects.map((project: ProjectList) => (
+                                            <Button
+                                                key={project.key}
+                                                onClick={() => {
+                                                    const { updateRole } = this.context as UserContextProps;
+                                                    AuthService.setUserRole(project.role);
+                                                    AuthService.setFramework(String(project.framework));
+                                                    updateRole && updateRole(project.role);
+                                                    history.push(`/projects/${project.pid}/dashboard`);
+                                                }}
+                                                className="bg-white rounded-md w-fit h-fit px-4 py-3 hover:border-none border-none hover:bg-estela-blue-low hover:text-estela-blue-full"
+                                            >
+                                                <Row className="gap-4">
+                                                    <Text className="text-sm font-bold">{project.name}</Text>
+                                                </Row>
+                                                <Row className="rounded-md my-3">
+                                                    <Text className="text-xs font-courier">{project.pid}</Text>
+                                                </Row>
+                                                <Row className="w-full justify-between gap-2">
+                                                    <Tag className="bg-white border-white rounded-md">
+                                                        {project.role}
+                                                    </Tag>
+                                                    {project.category && (
+                                                        <Tag className="border-estela-blue-full text-estela-blue-full rounded-md">
+                                                            {project.category}
                                                         </Tag>
-                                                        {project.category && (
-                                                            <Tag className="border-estela-blue-full text-estela-blue-full rounded-md">
-                                                                {project.category}
-                                                            </Tag>
-                                                        )}
-                                                    </Row>
-                                                </Button>
-                                            ))}
+                                                    )}
+                                                </Row>
+                                            </Button>
+                                        ))}
                                     </Row>
                                 </Content>
                                 <Content className="bg-white rounded-md p-6 mx-4">
@@ -792,6 +735,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             dataSource={displayProjects}
                                             pagination={false}
                                             size="middle"
+                                            loading={tableLoading}
                                             locale={{ emptyText: this.emptyText }}
                                         />
                                         <Pagination

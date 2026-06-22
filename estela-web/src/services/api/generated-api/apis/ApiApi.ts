@@ -303,6 +303,7 @@ export interface ApiProjectsListRequest {
     page?: number;
     pageSize?: number;
     search?: string;
+    ordering?: string;
 }
 
 export interface ApiProjectsPartialUpdateRequest {
@@ -1691,6 +1692,10 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.search !== undefined) {
             queryParameters['search'] = requestParameters.search;
+        }
+
+        if (requestParameters.ordering !== undefined) {
+            queryParameters['ordering'] = requestParameters.ordering;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
