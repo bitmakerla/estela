@@ -383,9 +383,9 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
                                             <p className="break-words text-white">
-                                                $ git clone https://github.com/scrapy/quotesbot.git
+                                                $ git clone https://github.com/bitmakerla/scraping-demo-project
                                             </p>
-                                            <p className="text-white">$ cd quotesbot</p>
+                                            <p className="text-white">$ cd scraping-demo-project</p>
                                             <p className="text-white">$ estela login</p>
                                             <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
                                             <p className="text-white">Username: {AuthService.getUserUsername()}</p>
