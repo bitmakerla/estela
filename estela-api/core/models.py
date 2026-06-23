@@ -95,13 +95,6 @@ class Project(models.Model):
         ordering = ["name"]
 
     @property
-    def created_at(self):
-        first_deploy = self.deploy_set.order_by("created").values_list("created", flat=True).first()
-        if first_deploy and (self.created is None or first_deploy < self.created):
-            return first_deploy
-        return self.created
-
-    @property
     def container_image(self):
         """Get the production container image for this project."""
         return self.get_production_image()

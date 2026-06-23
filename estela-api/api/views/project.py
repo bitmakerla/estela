@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.db.models import Case, Min, OuterRef, Subquery, When
+from django.db.models import OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -66,7 +66,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
     }
 
     def get_queryset(self):
-        from core.models import Permission as PermissionModel, Spider, SpiderJob, Deploy
+
         queryset = (
             Project.objects.filter(deleted=False)
             if self.request.user.is_superuser or self.request.user.is_staff
@@ -80,24 +80,12 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             field = ordering.lstrip("-")
             prefix = "-" if ordering.startswith("-") else ""
             if field == "created":
-                first_deploy = Subquery(
-                    Project.objects.filter(pk=OuterRef("pk")).annotate(
-                        fd=Min("deploy__created")
-                    ).values("fd")[:1]
-                )
-                queryset = queryset.annotate(
-                    first_deploy_date=first_deploy
-                ).annotate(
-                    created_annotation=Case(
-                        When(first_deploy_date__isnull=False, then="first_deploy_date"),
-                        default="created",
-                    )
-                ).order_by(f"{prefix}created_annotation")
+                queryset = queryset.order_by(f"{prefix}created")
             elif field == "last_modified":
                 queryset = queryset.order_by(f"{prefix}last_modified")
             elif field == "role":
                 role_subquery = Subquery(
-                    PermissionModel.objects.filter(
+                    Permission.objects.filter(
                         project=OuterRef("pk"),
                         user=self.request.user,
                     ).values("permission")[:1]

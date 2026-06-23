@@ -55,7 +55,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     last_modified = serializers.SerializerMethodField()
 
     def get_created(self, obj):
-        value = obj.created_at
+        value = obj.created
         if value is None:
             return None
         return value.isoformat()
