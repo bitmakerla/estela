@@ -87,6 +87,9 @@ class Project(models.Model):
     created = models.DateTimeField(
         auto_now_add=True, help_text="Project creation date.", null=True
     )
+    last_modified = models.DateTimeField(
+        null=True, help_text="Date of last activity (deploy or job)."
+    )
 
     class Meta:
         ordering = ["name"]
@@ -97,16 +100,6 @@ class Project(models.Model):
         if first_deploy and (self.created is None or first_deploy < self.created):
             return first_deploy
         return self.created
-
-    @property
-    def last_modified(self):
-        from django.db.models import Max
-        result = self.spiders.aggregate(
-            latest_deploy=Max('deploy__created'),
-            latest_job=Max('jobs__created'),
-        )
-        valid_dates = [d for d in result.values() if d is not None]
-        return max(valid_dates) if valid_dates else self.created
 
     @property
     def container_image(self):

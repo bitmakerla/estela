@@ -38,7 +38,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
         () => sessionStorage.getItem(`project-name-${projectId}`) ?? "",
     );
     const [spiderName, setSpiderName] = useState<string>(() =>
-        spiderId ? sessionStorage.getItem(`spider-name-${spiderId}`) ?? "" : "",
+        spiderId ? sessionStorage.getItem(`spider-name-${spiderId}`) ?? "..." : "",
     );
     const apiService = ApiService();
 
@@ -88,11 +88,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
                     { label: `Schedule-job-${cronjobId}` },
                 ];
             }
-            return [
-                project,
-                { label: "Spiders", path: `/projects/${projectId}/spiders` },
-                { label: spiderName || spiderId },
-            ];
+            return [project, { label: "Spiders", path: `/projects/${projectId}/spiders` }, { label: spiderName }];
         }
 
         return [project];

@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.db.models import Case, Max, Min, OuterRef, Subquery, When
-from django.db.models.functions import Coalesce, Greatest
+from django.db.models import Case, Min, OuterRef, Subquery, When
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -95,12 +94,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
                     )
                 ).order_by(f"{prefix}created_annotation")
             elif field == "last_modified":
-                queryset = queryset.annotate(
-                    last_modified_annotation=Coalesce(
-                        Greatest(Max("spiders__deploy__created"), Max("spiders__jobs__created")),
-                        "created",
-                    )
-                ).order_by(f"{prefix}last_modified_annotation")
+                queryset = queryset.order_by(f"{prefix}last_modified")
             elif field == "role":
                 role_subquery = Subquery(
                     PermissionModel.objects.filter(
