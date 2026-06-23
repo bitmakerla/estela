@@ -35,7 +35,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
     const { projectId, spiderId, jobId, cronjobId } = useParams<RouteParams>();
     const [path, setPath] = useState(lastSegment);
     const [projectName, setProjectName] = useState<string>(
-        () => sessionStorage.getItem(`project-name-${projectId}`) ?? "",
+        () => sessionStorage.getItem(`project-name-${projectId}`) ?? "...",
     );
     const [spiderName, setSpiderName] = useState<string>(() =>
         spiderId ? sessionStorage.getItem(`spider-name-${spiderId}`) ?? "..." : "",
@@ -66,7 +66,7 @@ export const ProjectLayout: React.FC<ProjectLayoutProps> = ({ children }) => {
     };
 
     const getCrumbs = (): Crumb[] => {
-        const project: Crumb = { label: projectName || projectId, path: `/projects/${projectId}/dashboard` };
+        const project: Crumb = { label: projectName, path: `/projects/${projectId}/dashboard` };
 
         if (section === "dashboard") return [project, { label: "Dashboard" }];
         if (section === "jobs") return [project, { label: "Jobs" }];
