@@ -39,9 +39,10 @@ class MeteringReportSerializer(serializers.Serializer):
     )
 
     def validate_project_id(self, value):
-        if not Project.objects.filter(pk=value).exists():
+        project = Project.objects.filter(pk=value).first()
+        if project is None:
             raise serializers.ValidationError("Project not found.")
-        return value
+        return project
 
     def validate(self, attrs):
         if attrs["interval_end"] <= attrs["interval_start"]:

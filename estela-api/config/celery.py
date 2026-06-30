@@ -34,7 +34,7 @@ app.conf.beat_schedule = {
     },
     "record-hourly-metered-usage": {
         "task": "core.tasks.record_hourly_metered_usage",
-        "schedule": 3600,
+        "schedule": crontab(minute=0),
     },
     "record-hourly-storage-metered-usage": {
         "task": "core.tasks.record_hourly_storage_metered_usage",

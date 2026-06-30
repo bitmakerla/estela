@@ -11,7 +11,6 @@ from api.serializers.metering import (
     MeteringReportSerializer,
 )
 from core.metering.report import ingest_metered_usage_report
-from core.models import Project
 
 
 class MeteringReportViewSet(viewsets.GenericViewSet):
@@ -37,7 +36,7 @@ class MeteringReportViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         payload = dict(serializer.validated_data)
-        project = Project.objects.get(pk=payload.pop("project_id"))
+        project = payload.pop("project_id")
         record, created = ingest_metered_usage_report(project, payload)
         body = {
             "id": record.id,

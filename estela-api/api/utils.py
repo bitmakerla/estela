@@ -201,7 +201,7 @@ def delete_hourly_meter_last_sample_from_redis(job) -> None:
     redis_conn = redis.from_url(settings.REDIS_URL)
     try:
         redis_conn.delete(METER_HOURLY_LAST_SAMPLE_KEY.format(job.key))
-    except:
+    except Exception:
         pass
 
 

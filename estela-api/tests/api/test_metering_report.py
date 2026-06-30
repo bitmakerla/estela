@@ -76,6 +76,15 @@ class MeteringReportTests(BaseTestCase):
             status_code=403,
         )
 
+    def test_invalid_project_id_forbidden(self):
+        payload = self._payload(project_id="abc")
+        self.make_request(
+            method="POST",
+            user=self.user,
+            data=payload,
+            status_code=403,
+        )
+
     def test_unauthenticated(self):
         self.make_request(
             method="POST",

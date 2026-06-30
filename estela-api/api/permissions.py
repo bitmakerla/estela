@@ -1,3 +1,5 @@
+import uuid
+
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import User
 
@@ -34,6 +36,10 @@ class CanReportMeteringForProject(BasePermission):
             return True
         project_id = request.data.get("project_id")
         if not project_id:
+            return False
+        try:
+            project_id = uuid.UUID(str(project_id))
+        except (AttributeError, TypeError, ValueError):
             return False
         return Project.objects.filter(pid=project_id, users__in=[request.user]).exists()
 

@@ -1,5 +1,3 @@
-# Single migration: MeteredUsageRecord append-only ledger (final schema).
-
 import uuid
 
 import django.db.models.deletion
@@ -48,8 +46,9 @@ class Migration(migrations.Migration):
                     models.DateTimeField(
                         blank=True,
                         help_text=(
-                            "Half-open [interval_start, interval_end): Redis sample window for "
-                            "DELTA_SLICE; minimal slice [t, t+1us) for JOB_CLOSE / ADJUSTMENT / DATA_DELETE."
+                            "Half-open interval ``[interval_start, interval_end)``. For ``DELTA_SLICE``, "
+                            "the Redis sample window. For ``JOB_CLOSE``, ``ADJUSTMENT``, and ``DATA_DELETE``, "
+                            "a minimal slice ``[t, t + 1 microsecond)`` anchoring event time ``t`` for bucketing."
                         ),
                         null=True,
                     ),
@@ -58,73 +57,7 @@ class Migration(migrations.Migration):
                     "interval_end",
                     models.DateTimeField(
                         blank=True,
-                        help_text="Exclusive end of the half-open interval.",
-                        null=True,
-                    ),
-                ),
-                (
-                    "delta_network_bytes",
-                    models.BigIntegerField(
-                        default=0,
-                        help_text="Signed network bytes delta for this fact.",
-                    ),
-                ),
-                (
-                    "delta_request_count",
-                    models.BigIntegerField(
-                        default=0,
-                        help_text="Signed HTTP request count delta.",
-                    ),
-                ),
-                (
-                    "delta_item_count",
-                    models.BigIntegerField(
-                        default=0,
-                        help_text="Signed scraped item count delta.",
-                    ),
-                ),
-                (
-                    "delta_storage_bytes",
-                    models.BigIntegerField(
-                        default=0,
-                        help_text=(
-                            "Signed delta of combined spider-data object byte sizes (items + requests + "
-                            "logs) from Redis cumulative stats. On DELTA_SLICE: diff between samples; on "
-                            "JOB_CLOSE: full cumulative total when hourly metering is off; on "
-                            "close-time ADJUSTMENT: residual vs sum of DELTA_SLICE rows."
-                        ),
-                    ),
-                ),
-                (
-                    "delta_proxy_bytes",
-                    models.BigIntegerField(
-                        blank=True,
-                        help_text=(
-                            "Signed proxy response bytes delta. NULL means proxy attribution does not "
-                            "apply to this row (vs. 0 which would mean 'applies but no change')."
-                        ),
-                        null=True,
-                    ),
-                ),
-                (
-                    "proxy_name",
-                    models.CharField(
-                        blank=True,
-                        default="",
-                        help_text="Proxy identifier from job.proxy_usage_data when applicable.",
-                        max_length=512,
-                    ),
-                ),
-                (
-                    "delta_runtime_seconds",
-                    models.DecimalField(
-                        blank=True,
-                        decimal_places=6,
-                        help_text=(
-                            "Signed seconds of spider-active runtime contributed by this row. NULL "
-                            "means runtime attribution does not apply (e.g. DATA_DELETE)."
-                        ),
-                        max_digits=20,
+                        help_text="Exclusive end of the half-open interval (see ``interval_start``).",
                         null=True,
                     ),
                 ),
@@ -168,6 +101,43 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    "resource_kind",
+                    models.CharField(
+                        help_text=(
+                            "Generic resource type for control-plane attribution "
+                            "(e.g. SpiderJob, BuildJob, RawSink)."
+                        ),
+                        max_length=64,
+                    ),
+                ),
+                (
+                    "resource_id",
+                    models.CharField(
+                        help_text="Opaque resource identifier within resource_kind.",
+                        max_length=512,
+                    ),
+                ),
+                (
+                    "reporter",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Service that emitted this row (e.g. estela, bitmaker-proxy).",
+                        max_length=64,
+                    ),
+                ),
+                (
+                    "metrics",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text=(
+                            "Open metric payload keyed by canonical names (network_bytes, storage_bytes, "
+                            "build_duration_seconds, …). Primary source of truth for usage facts."
+                        ),
+                    ),
+                ),
+                (
                     "project",
                     models.ForeignKey(
                         help_text="Project this usage roll ups to.",
@@ -176,82 +146,28 @@ class Migration(migrations.Migration):
                         to="core.project",
                     ),
                 ),
-                (
-                    "job",
-                    models.ForeignKey(
-                        blank=True,
-                        help_text="Spider job when attribution applies.",
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="metered_usage_records",
-                        to="core.spiderjob",
-                    ),
-                ),
-                (
-                    "spider",
-                    models.ForeignKey(
-                        blank=True,
-                        help_text=(
-                            "Spider when attribution applies (typically job.spider when job is set)."
-                        ),
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="metered_usage_records",
-                        to="core.spider",
-                    ),
-                ),
-                (
-                    "cronjob",
-                    models.ForeignKey(
-                        blank=True,
-                        help_text=(
-                            "Cronjob when attribution applies; mirrored from job.cronjob on flow rows "
-                            "when job is set."
-                        ),
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="metered_usage_records",
-                        to="core.spidercronjob",
-                    ),
-                ),
             ],
             options={
                 "ordering": ["-recorded_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["project", "interval_start"],
+                        name="core_metere_project_ivs_idx",
+                    ),
+                    models.Index(
+                        fields=["project", "recorded_at"],
+                        name="core_metere_project_84eedd_idx",
+                    ),
+                    models.Index(
+                        fields=[
+                            "project",
+                            "resource_kind",
+                            "resource_id",
+                            "interval_start",
+                        ],
+                        name="core_metere_res_ivs_idx",
+                    ),
+                ],
             },
-        ),
-        migrations.AddIndex(
-            model_name="meteredusagerecord",
-            index=models.Index(
-                fields=["project", "interval_start"],
-                name="core_metere_project_ivs_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="meteredusagerecord",
-            index=models.Index(
-                fields=["project", "recorded_at"],
-                name="core_metere_project_84eedd_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="meteredusagerecord",
-            index=models.Index(
-                fields=["spider", "interval_start"],
-                name="core_metere_spider_ivs_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="meteredusagerecord",
-            index=models.Index(
-                fields=["job", "interval_start"],
-                name="core_metere_job_ivs_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="meteredusagerecord",
-            index=models.Index(
-                fields=["cronjob", "interval_start"],
-                name="core_metere_cronjob_ivs_idx",
-            ),
         ),
     ]

@@ -1,11 +1,13 @@
 """Tests for Scrapy stats parsing from Redis-style string hashes."""
 
 from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
 
 from api.utils import (
     SCRAPY_STAT_PROXY_RESPONSE_BYTES,
+    delete_hourly_meter_last_sample_from_redis,
     metered_proxy_name_from_job,
     parse_scrapy_stats_redis_hash,
 )
@@ -81,3 +83,24 @@ class MeteredProxyNameFromJobTests(SimpleTestCase):
         long_name = "x" * 600
         job = SimpleNamespace(pk=None, proxy_usage_data={"proxy_name": long_name})
         self.assertEqual(len(metered_proxy_name_from_job(job)), 512)
+
+
+class DeleteHourlyMeterLastSampleFromRedisTests(SimpleTestCase):
+    @patch("api.utils.redis.from_url")
+    def test_suppresses_regular_redis_errors(self, mock_from_url):
+        conn = MagicMock()
+        conn.delete.side_effect = Exception("redis unavailable")
+        mock_from_url.return_value = conn
+
+        delete_hourly_meter_last_sample_from_redis(SimpleNamespace(key="job-key"))
+
+        conn.delete.assert_called_once()
+
+    @patch("api.utils.redis.from_url")
+    def test_does_not_suppress_keyboard_interrupt(self, mock_from_url):
+        conn = MagicMock()
+        conn.delete.side_effect = KeyboardInterrupt
+        mock_from_url.return_value = conn
+
+        with self.assertRaises(KeyboardInterrupt):
+            delete_hourly_meter_last_sample_from_redis(SimpleNamespace(key="job-key"))
