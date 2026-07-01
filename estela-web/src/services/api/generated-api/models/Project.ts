@@ -84,6 +84,18 @@ export interface Project {
      * @memberof Project
      */
     dataExpiryDays?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Project
+     */
+    readonly created?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Project
+     */
+    readonly lastModified?: string;
 }
 
 /**
@@ -133,6 +145,8 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'envVars': !exists(json, 'env_vars') ? undefined : ((json['env_vars'] as Array<any>).map(SpiderJobEnvVarFromJSON)),
         'dataStatus': !exists(json, 'data_status') ? undefined : json['data_status'],
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
+        'created': !exists(json, 'created') ? undefined : json['created'],
+        'lastModified': !exists(json, 'last_modified') ? undefined : json['last_modified'],
     };
 }
 

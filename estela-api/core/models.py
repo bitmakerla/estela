@@ -84,6 +84,12 @@ class Project(models.Model):
     deleted = models.BooleanField(
         default=False, help_text="Whether the project was deleted."
     )
+    created = models.DateTimeField(
+        auto_now_add=True, help_text="Project creation date.", null=True
+    )
+    last_modified = models.DateTimeField(
+        null=True, help_text="Date of last activity (deploy or job)."
+    )
 
     class Meta:
         ordering = ["name"]

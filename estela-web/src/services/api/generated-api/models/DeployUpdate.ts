@@ -37,6 +37,12 @@ export interface DeployUpdate {
      * @memberof DeployUpdate
      */
     spidersNames?: Array<string>;
+    /**
+     * Error logs to persist in deploy_logs (Mongo) on failure.
+     * @type {string}
+     * @memberof DeployUpdate
+     */
+    errorReason?: string | null;
 }
 
 /**
@@ -64,6 +70,7 @@ export function DeployUpdateFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'did': !exists(json, 'did') ? undefined : json['did'],
         'status': !exists(json, 'status') ? undefined : json['status'],
         'spidersNames': !exists(json, 'spiders_names') ? undefined : json['spiders_names'],
+        'errorReason': !exists(json, 'error_reason') ? undefined : json['error_reason'],
     };
 }
 
@@ -78,6 +85,7 @@ export function DeployUpdateToJSON(value?: DeployUpdate | null): any {
         
         'status': value.status,
         'spiders_names': value.spidersNames,
+        'error_reason': value.errorReason,
     };
 }
 

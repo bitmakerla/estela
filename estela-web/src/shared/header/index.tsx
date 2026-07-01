@@ -20,6 +20,10 @@ import userDropdownSideNavItems from "ExternalComponents/DropdownComponent";
 const { Header, Content } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 
+interface HeaderProps {
+    breadcrumb?: React.ReactNode;
+}
+
 interface HeaderState {
     notifications: Notification[];
     loaded: boolean;
@@ -27,7 +31,7 @@ interface HeaderState {
     news: boolean;
 }
 
-export class CustomHeader extends Component<unknown, HeaderState> {
+export class CustomHeader extends Component<HeaderProps, HeaderState> {
     state: HeaderState = {
         notifications: [],
         loaded: false,
@@ -283,6 +287,7 @@ export class CustomHeader extends Component<unknown, HeaderState> {
 
     render(): JSX.Element {
         const { path, loaded, notifications, news } = this.state;
+        const { breadcrumb } = this.props;
         return (
             <>
                 {loaded ? (
@@ -292,7 +297,8 @@ export class CustomHeader extends Component<unknown, HeaderState> {
                                 <Link to="/" className=" text-xl hover:text-estela">
                                     estela
                                 </Link>
-                                {this.getFramework()}
+                                {breadcrumb ? <span className="text-estela-black-low text-xl mx-1">/</span> : null}
+                                {breadcrumb ?? null}
                             </Col>
                             <Col className="flex">
                                 <Dropdown

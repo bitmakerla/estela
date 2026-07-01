@@ -3,9 +3,9 @@ import { Layout, Pagination, Row, Table, Button, Tag, Col, Typography, Modal, To
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { RouteComponentProps } from "react-router-dom";
 import Copy from "../../assets/icons/copy.svg";
-import Info from "../../assets/icons/info.svg";
 import Help from "../../assets/icons/help.svg";
 import SpiderIcon from "../../assets/icons/spider.svg";
+import Info from "../../assets/icons/info.svg";
 import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 
 import "./styles.scss";
@@ -317,53 +317,40 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                             </Row>
                         </Modal>
                         <Content className="lg:m-10 md:mx-6 mx-2">
-                            <p className="font-medium text-xl text-silver">SPIDER OVERVIEW</p>
-                            <Row className="bg-white p-5 rounded-lg mt-6" justify="center">
+                            <Row className="flex items-center justify-between mb-1">
+                                <p className="font-medium text-xl text-silver">SPIDER OVERVIEW</p>
+                                <Button
+                                    icon={<SpiderIcon className="mr-2 w-5 h-5 stroke-estela" width={20} />}
+                                    className="flex items-center bg-white border-estela text-estela hover:bg-estela-blue-low hover:text-estela hover:border-estela text-sm rounded-md"
+                                    onClick={() => this.props.history.push(`/projects/${this.projectId}/spiders`)}
+                                >
+                                    View spiders
+                                </Button>
+                            </Row>
+                            <Row className="bg-white p-5 rounded-lg mt-4" justify="center">
                                 <Content>
-                                    <Row className="flex items-center justify-between">
-                                        <Col className="flex gap-4 my-4">
-                                            <Info className="w-9 h-9" />
-                                            <Col>
-                                                <p>
-                                                    <Text strong>Want to know more about estela?</Text> Access our
-                                                    <a
-                                                        target="_blank"
-                                                        href="https://estela.bitmaker.la/"
-                                                        rel="noreferrer"
-                                                    >
-                                                        <Text strong className="text-estela underline mx-1">
-                                                            documentation
-                                                        </Text>
-                                                    </a>
-                                                    .
-                                                </p>
-                                                <p>
-                                                    Install the
-                                                    <a
-                                                        target="_blank"
-                                                        href="https://estela-cli.bitmaker.la/installation/"
-                                                        rel="noreferrer"
-                                                    >
-                                                        <Text strong className="text-estela underline mx-1">
-                                                            estela CLI
-                                                        </Text>
-                                                    </a>
-                                                    to <Text strong>streamline spider deployment</Text>, unlock{" "}
-                                                    <Text strong>advanced developer features</Text>, and access all{" "}
-                                                    <Text strong>estela tools</Text>.
-                                                </p>
-                                            </Col>
-                                        </Col>
-                                        <Button
-                                            icon={<SpiderIcon className="mr-2 w-6 h-6" width={40} />}
-                                            size="large"
-                                            className="flex items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                            onClick={() =>
-                                                this.props.history.push(`/projects/${this.projectId}/spiders`)
-                                            }
-                                        >
-                                            View spiders
-                                        </Button>
+                                    <Row className="flex items-center gap-2 text-sm text-estela-black-medium py-2 mb-3">
+                                        <Info className="w-4 h-4 flex-shrink-0" />
+                                        <span>
+                                            Install the{" "}
+                                            <a
+                                                target="_blank"
+                                                href="https://estela-cli.bitmaker.la/installation/"
+                                                rel="noreferrer"
+                                                className="text-estela underline"
+                                            >
+                                                estela CLI
+                                            </a>{" "}
+                                            to deploy your spiders and access all estela tools.{" "}
+                                            <a
+                                                target="_blank"
+                                                href="https://estela-cli.bitmaker.la/"
+                                                rel="noreferrer"
+                                                className="text-estela underline"
+                                            >
+                                                Read the docs →
+                                            </a>
+                                        </span>
                                     </Row>
                                     <Row
                                         justify="space-between"
@@ -396,9 +383,9 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
                                             <p className="break-words text-white">
-                                                $ git clone https://github.com/scrapy/quotesbot.git
+                                                $ git clone https://github.com/bitmakerla/scraping-demo-project
                                             </p>
-                                            <p className="text-white">$ cd quotesbot</p>
+                                            <p className="text-white">$ cd scraping-demo-project</p>
                                             <p className="text-white">$ estela login</p>
                                             <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
                                             <p className="text-white">Username: {AuthService.getUserUsername()}</p>

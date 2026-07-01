@@ -387,14 +387,22 @@ paths:
       parameters:
         - name: page
           in: query
-          description: A page number within the paginated result set.
           required: false
           type: integer
         - name: page_size
           in: query
-          description: Number of results to return per page.
           required: false
           type: integer
+        - name: search
+          in: query
+          required: false
+          type: string
+        - name: ordering
+          in: query
+          description: 'Order by: name, category, framework, created, last_modified,
+            role (prefix with - for desc)'
+          required: false
+          type: string
       responses:
         '200':
           description: ''
@@ -686,6 +694,28 @@ paths:
       responses:
         '204':
           description: ''
+      tags:
+        - api
+    parameters:
+      - name: did
+        in: path
+        description: A unique integer value identifying this deploy.
+        required: true
+        type: integer
+      - name: pid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/deploys/{did}/logs:
+    get:
+      operationId: api_projects_deploys_logs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Deploy'
       tags:
         - api
     parameters:
@@ -1308,6 +1338,32 @@ paths:
         in: path
         required: true
         type: string
+      - name: pid
+        in: path
+        required: true
+        type: string
+      - name: sid
+        in: path
+        required: true
+        type: string
+  /api/projects/{pid}/spiders/{sid}/jobs/{jid}/error_logs:
+    get:
+      operationId: api_projects_spiders_jobs_error_logs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/SpiderJob'
+      tags:
+        - api
+    parameters:
+      - name: jid
+        in: path
+        description: A unique integer value identifying this job.
+        required: true
+        type: integer
       - name: pid
         in: path
         required: true
@@ -1968,6 +2024,14 @@ definitions:
         type: integer
         maximum: 65535
         minimum: 0
+      created:
+        title: Created
+        type: string
+        readOnly: true
+      last_modified:
+        title: Last modified
+        type: string
+        readOnly: true
   ProjectUpdate:
     type: object
     properties:
@@ -2334,6 +2398,12 @@ definitions:
           type: string
           maxLength: 1000
           minLength: 1
+      error_reason:
+        title: Error reason
+        description: Error logs to persist in deploy_logs (Mongo) on failure.
+        type: string
+        maxLength: 200000
+        x-nullable: true
   SpiderJob:
     description: Project jobs.
     type: object
@@ -2797,6 +2867,12 @@ definitions:
         title: Proxy usage data
         description: Proxy Usage data.
         type: string
+      error_reason:
+        title: Error reason
+        description: Error logs to persist in job_logs (Mongo) on failure.
+        type: string
+        maxLength: 200000
+        x-nullable: true
   UsageRecord:
     required:
       - processing_time

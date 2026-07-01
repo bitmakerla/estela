@@ -271,6 +271,11 @@ export interface ApiProjectsDeploysListRequest {
     pageSize?: number;
 }
 
+export interface ApiProjectsDeploysLogsRequest {
+    did: number;
+    pid: string;
+}
+
 export interface ApiProjectsDeploysPartialUpdateRequest {
     did: number;
     pid: string;
@@ -297,6 +302,8 @@ export interface ApiProjectsJobsRequest {
 export interface ApiProjectsListRequest {
     page?: number;
     pageSize?: number;
+    search?: string;
+    ordering?: string;
 }
 
 export interface ApiProjectsPartialUpdateRequest {
@@ -390,6 +397,12 @@ export interface ApiProjectsSpidersJobsDataListRequest {
     type?: string;
     search?: string;
     level?: string;
+}
+
+export interface ApiProjectsSpidersJobsErrorLogsRequest {
+    jid: number;
+    pid: string;
+    sid: string;
 }
 
 export interface ApiProjectsSpidersJobsListRequest {
@@ -1473,6 +1486,41 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
+    async apiProjectsDeploysLogsRaw(requestParameters: ApiProjectsDeploysLogsRequest): Promise<runtime.ApiResponse<Deploy>> {
+        if (requestParameters.did === null || requestParameters.did === undefined) {
+            throw new runtime.RequiredError('did','Required parameter requestParameters.did was null or undefined when calling apiProjectsDeploysLogs.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsDeploysLogs.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/deploys/{did}/logs`.replace(`{${"did"}}`, encodeURIComponent(String(requestParameters.did))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DeployFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsDeploysLogs(requestParameters: ApiProjectsDeploysLogsRequest): Promise<Deploy> {
+        const response = await this.apiProjectsDeploysLogsRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiProjectsDeploysPartialUpdateRaw(requestParameters: ApiProjectsDeploysPartialUpdateRequest): Promise<runtime.ApiResponse<Deploy>> {
         if (requestParameters.did === null || requestParameters.did === undefined) {
             throw new runtime.RequiredError('did','Required parameter requestParameters.did was null or undefined when calling apiProjectsDeploysPartialUpdate.');
@@ -1640,6 +1688,14 @@ export class ApiApi extends runtime.BaseAPI {
 
         if (requestParameters.pageSize !== undefined) {
             queryParameters['page_size'] = requestParameters.pageSize;
+        }
+
+        if (requestParameters.search !== undefined) {
+            queryParameters['search'] = requestParameters.search;
+        }
+
+        if (requestParameters.ordering !== undefined) {
+            queryParameters['ordering'] = requestParameters.ordering;
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -2260,6 +2316,45 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2008> {
         const response = await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsErrorLogsRaw(requestParameters: ApiProjectsSpidersJobsErrorLogsRequest): Promise<runtime.ApiResponse<SpiderJob>> {
+        if (requestParameters.jid === null || requestParameters.jid === undefined) {
+            throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsErrorLogs.');
+        }
+
+        if (requestParameters.pid === null || requestParameters.pid === undefined) {
+            throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsErrorLogs.');
+        }
+
+        if (requestParameters.sid === null || requestParameters.sid === undefined) {
+            throw new runtime.RequiredError('sid','Required parameter requestParameters.sid was null or undefined when calling apiProjectsSpidersJobsErrorLogs.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/{pid}/spiders/{sid}/jobs/{jid}/error_logs`.replace(`{${"jid"}}`, encodeURIComponent(String(requestParameters.jid))).replace(`{${"pid"}}`, encodeURIComponent(String(requestParameters.pid))).replace(`{${"sid"}}`, encodeURIComponent(String(requestParameters.sid))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SpiderJobFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProjectsSpidersJobsErrorLogs(requestParameters: ApiProjectsSpidersJobsErrorLogsRequest): Promise<SpiderJob> {
+        const response = await this.apiProjectsSpidersJobsErrorLogsRaw(requestParameters);
         return await response.value();
     }
 

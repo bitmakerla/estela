@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.db.models import OuterRef, Subquery
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -55,12 +56,58 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         )
         return page, page_size
 
+    ALLOWED_ORDERING_FIELDS = {
+        "name", "-name",
+        "category", "-category",
+        "framework", "-framework",
+        "created", "-created",
+        "last_modified", "-last_modified",
+        "role", "-role",
+    }
+
     def get_queryset(self):
-        return (
+
+        queryset = (
             Project.objects.filter(deleted=False)
             if self.request.user.is_superuser or self.request.user.is_staff
             else self.request.user.project_set.filter(deleted=False)
         )
+        search = self.request.query_params.get("search", "")
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        ordering = self.request.query_params.get("ordering", "")
+        if ordering in self.ALLOWED_ORDERING_FIELDS:
+            field = ordering.lstrip("-")
+            prefix = "-" if ordering.startswith("-") else ""
+            if field == "created":
+                queryset = queryset.order_by(f"{prefix}created")
+            elif field == "last_modified":
+                queryset = queryset.order_by(f"{prefix}last_modified")
+            elif field == "role":
+                role_subquery = Subquery(
+                    Permission.objects.filter(
+                        project=OuterRef("pk"),
+                        user=self.request.user,
+                    ).values("permission")[:1]
+                )
+                queryset = queryset.annotate(
+                    user_role=role_subquery
+                ).order_by(f"{prefix}user_role")
+            else:
+                queryset = queryset.order_by(ordering)
+        return queryset
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter("page", openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False),
+            openapi.Parameter("page_size", openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False),
+            openapi.Parameter("search", openapi.IN_QUERY, type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter("ordering", openapi.IN_QUERY, type=openapi.TYPE_STRING, required=False,
+                              description="Order by: name, category, framework, created, last_modified, role (prefix with - for desc)"),
+        ],
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         instance = serializer.save()
