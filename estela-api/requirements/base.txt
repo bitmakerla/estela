@@ -116,6 +116,7 @@ google-resumable-media==2.5.0
 googleapis-common-protos==1.60.0
     # via google-api-core
 gunicorn==20.1.0
+whitenoise==6.7.0
     # via -r base.in
 idna==2.10
     # via requests
