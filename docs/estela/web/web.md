@@ -15,6 +15,7 @@ from metadata.
 ## Local Setup
 Set `.env.local` using the `.env.local.example` file where:
 - `REACT_APP_API_BASE_URL`: The base API URL where the estela API is deployed.
+- `REACT_APP_BILLING_APP` (optional): External billing app slug mounted by the API (must match an entry in `DJANGO_EXTERNAL_APPS`). When unset, credits wallet UI and billing API calls are disabled.
 
 To run the app, use `yarn install`. Then, you can:
 - Run in dev mode, use `yarn dev`.
