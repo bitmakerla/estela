@@ -4,6 +4,10 @@ from django.conf import settings
 from api.serializers.project import UserDetailSerializer
 from api.serializers.spider import SpiderSerializer
 from core.error_logs import write_deploy_logs_to_mongo
+from core.metering.build import (
+    TERMINAL_BUILD_STATUSES,
+    append_metered_usage_for_build_close,
+)
 from core.models import Deploy, Spider
 from engines.kubernetes import KubernetesEngine
 
@@ -67,8 +71,9 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
         spiders_names = validated_data.get("spiders_names", [])
         error_reason = validated_data.pop("error_reason", None)
         project = instance.project
-        if status != instance.status:
-            if instance.status != Deploy.BUILDING_STATUS:
+        previous_status = instance.status
+        if status != previous_status:
+            if previous_status != Deploy.BUILDING_STATUS:
                 raise serializers.ValidationError(
                     {
                         "error": "The deploy has finished and its status cannot be changed."
@@ -101,4 +106,9 @@ class DeployUpdateSerializer(serializers.ModelSerializer):
                     spider = project.spiders.filter(name=spider_name).get()
                     instance.spiders.add(spider)
             instance.save()
+            if (
+                previous_status == Deploy.BUILDING_STATUS
+                and status in TERMINAL_BUILD_STATUSES
+            ):
+                append_metered_usage_for_build_close(instance)
         return instance

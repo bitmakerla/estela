@@ -11,6 +11,7 @@ from api.views import (
     stats as stats_views,
     notification as notification_views,
     proxyprovider as proxyprovider_views,
+    metering as metering_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -77,6 +78,12 @@ router.register(
     prefix=r"account/changePassword",
     viewset=auth_views.ChangePasswordViewSet,
     basename="change-password",
+)
+
+router.register(
+    prefix=r"v1/metering",
+    viewset=metering_views.MeteringReportViewSet,
+    basename="metering",
 )
 
 urlpatterns = router.urls

@@ -35,6 +35,12 @@ from core.error_logs import (
     write_job_logs_to_mongo,
     write_deploy_logs_to_mongo,
 )
+from core.metering.hourly import record_hourly_metered_usage_batch
+from core.metering.storage import record_hourly_storage_metered_usage_batch
+from core.metering.ledger import (
+    append_metered_usage_for_data_delete,
+    append_metered_usage_for_job_close,
+)
 from core.tiers import get_tier_resources
 from core.utils import parse_k8s_resource, parse_memory_to_mi
 
@@ -402,6 +408,8 @@ def record_project_usage_after_data_delete(project_id, job_id):
     new_usage_record.logs_data_size = logs_data_size
     new_usage_record.save()
 
+    append_metered_usage_for_data_delete(job, project)
+
     return json.dumps(
         {
             "job_id": job_id,
@@ -514,6 +522,8 @@ def record_project_usage_after_job_event(job_id):
         **updated_values,
     )
 
+    append_metered_usage_for_job_close(job, project)
+
     return json.dumps(
         {
             "spider_id": job.spider.sid,
@@ -565,6 +575,16 @@ def record_job_coverage_event(job_id):
             str(pid), "job_stats", job_stats_id, {"coverage": coverage}
         ):
             raise TaskError("Could not add the coverage stat to the job.")
+
+
+@celery_app.task(name="core.tasks.record_hourly_metered_usage")
+def record_hourly_metered_usage():
+    record_hourly_metered_usage_batch()
+
+
+@celery_app.task(name="core.tasks.record_hourly_storage_metered_usage")
+def record_hourly_storage_metered_usage():
+    record_hourly_storage_metered_usage_batch()
 
 
 def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=None):

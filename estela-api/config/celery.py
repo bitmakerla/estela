@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.base")
@@ -30,6 +31,14 @@ app.conf.beat_schedule = {
     "update-mongodb-insertion-progress": {
         "task": "core.tasks.update_mongodb_insertion_progress",
         "schedule": 60,
+    },
+    "record-hourly-metered-usage": {
+        "task": "core.tasks.record_hourly_metered_usage",
+        "schedule": crontab(minute=0),
+    },
+    "record-hourly-storage-metered-usage": {
+        "task": "core.tasks.record_hourly_storage_metered_usage",
+        "schedule": crontab(minute=5),
     },
 }
 

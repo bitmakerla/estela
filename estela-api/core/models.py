@@ -533,6 +533,121 @@ class UsageRecord(models.Model):
         ordering = ["-created_at"]
 
 
+class MeteredUsageRecord(models.Model):
+    """Append-only metered usage fact. Do not update or delete rows except retention jobs.
+
+    **Flow** rows (``DELTA_SLICE``, ``JOB_CLOSE``, ``ADJUSTMENT``, ``DATA_DELETE``)
+    record per-event consumption in the ``metrics`` JSON payload (network_bytes,
+    request_count, item_count, storage_bytes, runtime_seconds, proxy_bytes, …).
+    Storage bytes come from combined Redis object-byte stats, diffed between
+    samples and reconciled at job close when hourly metering is on.
+    """
+
+    class Kind(models.TextChoices):
+        JOB_CLOSE = "JOB_CLOSE", "Job close"
+        DATA_DELETE = "DATA_DELETE", "Data delete"
+        ADJUSTMENT = "ADJUSTMENT", "Adjustment"
+        DELTA_SLICE = "DELTA_SLICE", "Delta slice"
+
+    class AdjustmentReason(models.TextChoices):
+        RECONCILE_SCRAPY_FINAL = (
+            "RECONCILE_SCRAPY_FINAL",
+            "Reconcile hourly slices vs final Scrapy totals",
+        )
+        RECONCILE_STORAGE = "RECONCILE_STORAGE", "Reconcile storage totals"
+        MANUAL = "MANUAL", "Manual adjustment"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    recorded_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+        help_text="Server time when this row was inserted.",
+    )
+    idempotency_key = models.CharField(
+        max_length=512,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Unique when set so Celery retries do not double-insert.",
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="metered_usage_records",
+        help_text="Project this usage roll ups to.",
+    )
+    interval_start = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Half-open interval ``[interval_start, interval_end)``. For ``DELTA_SLICE``, "
+            "the Redis sample window. For ``JOB_CLOSE``, ``ADJUSTMENT``, and ``DATA_DELETE``, "
+            "a minimal slice ``[t, t + 1 microsecond)`` anchoring event time ``t`` for bucketing."
+        ),
+    )
+    interval_end = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Exclusive end of the half-open interval (see ``interval_start``).",
+    )
+    kind = models.CharField(
+        max_length=32,
+        choices=Kind.choices,
+        help_text="Fact classification.",
+    )
+    source_ref = models.CharField(
+        max_length=512,
+        blank=True,
+        default="",
+        help_text="Optional cross-system reference (e.g. spider run id).",
+    )
+    adjustment_reason = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        choices=AdjustmentReason.choices,
+        help_text="Set for ADJUSTMENT rows.",
+    )
+    resource_kind = models.CharField(
+        max_length=64,
+        help_text=(
+            "Generic resource type for control-plane attribution "
+            "(e.g. SpiderJob, BuildJob, RawSink)."
+        ),
+    )
+    resource_id = models.CharField(
+        max_length=512,
+        help_text="Opaque resource identifier within resource_kind.",
+    )
+    reporter = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Service that emitted this row (e.g. estela, bitmaker-proxy).",
+    )
+    metrics = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Open metric payload keyed by canonical names (network_bytes, storage_bytes, "
+            "build_duration_seconds, …). Primary source of truth for usage facts."
+        ),
+    )
+
+    class Meta:
+        ordering = ["-recorded_at"]
+        indexes = [
+            models.Index(fields=["project", "interval_start"]),
+            models.Index(fields=["project", "recorded_at"]),
+            models.Index(
+                fields=["project", "resource_kind", "resource_id", "interval_start"]
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.kind} project={self.project_id} at {self.recorded_at}"
+
+
 class Activity(models.Model):
     aid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this activity."
