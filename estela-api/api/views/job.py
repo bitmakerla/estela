@@ -11,6 +11,7 @@ from api.filters import SpiderJobFilter
 from api.mixins import ActionHandlerMixin, BaseViewSet
 from api.serializers.job import (
     SpiderJobCreateSerializer,
+    SpiderJobDetailSerializer,
     SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
@@ -196,7 +197,7 @@ class SpiderJobViewSet(
         if job.status == SpiderJob.RUNNING_STATUS:
             update_stats_from_redis(job)
 
-        serializer = SpiderJobSerializer(job)
+        serializer = SpiderJobDetailSerializer(job)
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
