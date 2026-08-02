@@ -67,7 +67,7 @@ CREDENTIALS: "" # local
 CORS_ORIGIN_WHITELIST: ""
 DJANGO_API_HOST: dummy
 DJANGO_ALLOWED_HOSTS: ""
-DJANGO_EXTERNAL_APPS: "" # "app_1,app_2,..."
+DJANGO_EXTERNAL_APPS: "" # "app_1,app_2,..." - when including a billing app, set REACT_APP_BILLING_APP at web build time
 EXTERNAL_APP_KEYS: "" # "key_1,key_2,..."
 EXTERNAL_MIDDLEWARES: "" # "app1.middlware,app2.middlware"
 DEDICATED_SPIDER_NODES: "" # "False"

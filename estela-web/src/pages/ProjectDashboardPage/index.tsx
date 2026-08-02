@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import { Layout, Button, Row, Col, Typography, notification } from "antd";
 import { RouteComponentProps } from "react-router-dom";
 import "./styles.scss";
-import { ApiService, AuthService } from "../../services";
+import { ApiService, AuthService, getProjectOwnerUsername, isCurrentUserProjectOwner } from "../../services";
 import Copy from "../../assets/icons/copy.svg";
 import { ApiProjectsReadRequest, Project, ProjectUsage, ProjectStats } from "../../services/api";
 import { BytesMetric, formatBytes } from "../../utils";
@@ -11,12 +11,14 @@ import { UserContext, UserContextProps } from "../../context";
 import moment from "moment";
 import type { RangePickerProps } from "antd/es/date-picker";
 import { HeaderSection, ChartsSection, StatsTableSection } from "../../components";
+import { ProjectBillingContextLoader } from "../../components/ProjectBillingContext";
 
 const { Text } = Typography;
 const { Content } = Layout;
 
 interface ProjectDashboardPageState {
     name: string;
+    project?: Project;
     loaded: boolean;
     formattedNetwork: BytesMetric;
     processingTime: number;
@@ -64,7 +66,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         this.apiService.apiProjectsRead(requestParams).then(
             (response: Project) => {
                 if (!this.mounted) return;
-                this.setState({ name: response.name });
+                this.setState({ name: response.name, project: response });
                 const { updateRole } = this.context as UserContextProps;
                 const userRole = AuthService.getUserRole();
                 if (userRole) {
@@ -160,6 +162,7 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
         const {
             name,
             loaded,
+            project,
             projectStats,
             loadedStats,
             formattedNetwork,
@@ -168,14 +171,23 @@ export class ProjectDashboardPage extends Component<RouteComponentProps<RoutePar
             statsStartDate,
             statsEndDate,
         } = this.state;
+        const currentUsername = AuthService.getUserUsername() ?? "";
+        const ownerUsername = project ? getProjectOwnerUsername(project) : undefined;
+        const isOwner = project ? isCurrentUserProjectOwner(project, currentUsername) : false;
 
         return (
             <Layout className="bg-metal rounded-2xl">
                 {loaded ? (
                     <Fragment>
                         <Row className="flow-root lg:m-8 m-4">
-                            <Col className="float-left flex items-center gap-4 text-xl leading-6 text-estela-black-medium font-medium">
-                                {name}
+                            <Col className="float-left flex flex-col gap-1">
+                                <span className="text-xl leading-6 text-estela-black-medium font-medium">{name}</span>
+                                <ProjectBillingContextLoader
+                                    projectLoaded={Boolean(project)}
+                                    isOwner={isOwner}
+                                    ownerUsername={ownerUsername}
+                                    currentUsername={currentUsername}
+                                />
                             </Col>
                             <Col className="flex justify-end float-right lg:mx-4 mx-2">
                                 <Text className="my-1 mr-2 text-base text-estela-black-medium">
