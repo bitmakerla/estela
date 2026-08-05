@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { Button, Form, Input, Layout, Typography, Row } from "antd";
+import { Button, Form, Input, Layout, Typography, Row, message } from "antd";
 import { Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 
 import "./styles.scss";
 import history from "../../history";
@@ -9,20 +10,23 @@ import { ApiAuthLoginRequest, Token } from "../../services/api";
 import { handleInvalidDataError } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
 import { EstelaBanner } from "../../components";
-import { REGISTER_PAGE_ENABLED } from "../../constants";
+import { RECAPTCHA_ENABLED, RECAPTCHA_SITE_KEY, REGISTER_PAGE_ENABLED } from "../../constants";
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 interface LoginState {
     loading: boolean;
+    captchaToken: string;
 }
 
 export class LoginPage extends Component<unknown, LoginState> {
     state: LoginState = {
         loading: false,
+        captchaToken: "",
     };
     apiService = ApiService();
+    captchaRef = React.createRef<ReCAPTCHA>();
     static contextType = UserContext;
 
     componentDidMount(): void {
@@ -38,9 +42,28 @@ export class LoginPage extends Component<unknown, LoginState> {
         }
     }
 
+    handleCaptchaChange = (token: string | null): void => {
+        this.setState({ captchaToken: token ?? "" });
+    };
+
+    // The token is single use, so a new one is needed for every attempt.
+    resetCaptcha = (): void => {
+        this.captchaRef.current?.reset();
+        this.setState({ captchaToken: "" });
+    };
+
     handleSubmit = (data: { username: string; password: string }): void => {
+        // The button is deliberately left enabled so a captcha that fails to
+        // load never leaves the form with no way forward.
+        if (RECAPTCHA_ENABLED && !this.state.captchaToken) {
+            message.error("Please confirm you are not a robot.");
+            return;
+        }
+
         this.setState({ loading: true });
-        const request: ApiAuthLoginRequest = { data };
+        const request: ApiAuthLoginRequest = {
+            data: { ...data, recaptchaToken: this.state.captchaToken },
+        };
         const { updateUsername, updateEmail, updateAccessToken } = this.context as UserContextProps;
         this.apiService.apiAuthLogin(request).then(
             (response: Token) => {
@@ -57,6 +80,7 @@ export class LoginPage extends Component<unknown, LoginState> {
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
+                this.resetCaptcha();
                 this.setState({ loading: false });
             },
         );
@@ -98,6 +122,17 @@ export class LoginPage extends Component<unknown, LoginState> {
                                 </Link>
                             </Row>
                         </Content>
+                        {RECAPTCHA_ENABLED && (
+                            <Row justify="center" className="mb-4">
+                                <ReCAPTCHA
+                                    ref={this.captchaRef}
+                                    sitekey={RECAPTCHA_SITE_KEY}
+                                    onChange={this.handleCaptchaChange}
+                                    onExpired={this.resetCaptcha}
+                                    onErrored={this.resetCaptcha}
+                                />
+                            </Row>
+                        )}
                         <Button
                             loading={loading}
                             block

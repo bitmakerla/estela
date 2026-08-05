@@ -14,14 +14,20 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
-from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
+from rest_framework.exceptions import (
+    MethodNotAllowed,
+    PermissionDenied,
+    ValidationError,
+)
 from rest_framework.response import Response
 
 from api import errors
+from api.captcha import get_client_ip, verify_captcha
 from api.exceptions import EmailServiceError, UserNotFoundError
 from api.permissions import IsProfileUser
 from api.serializers.auth import (
     ChangePasswordSerializer,
+    LoginSerializer,
     ResetPasswordConfirmSerializer,
     ResetPasswordRequestSerializer,
     TokenSerializer,
@@ -39,6 +45,16 @@ from core.views import (
 class AuthAPIViewSet(viewsets.GenericViewSet):
     serializer_class = AuthTokenSerializer
 
+    def check_captcha(self, request):
+        """Reject the request unless the captcha token checks out.
+
+        A no-op for deployments that have not configured a secret key.
+        """
+        if not verify_captcha(
+            request.data.get("recaptcha_token"), remote_ip=get_client_ip(request)
+        ):
+            raise ValidationError({"error": errors.INVALID_CAPTCHA})
+
     def retry_send_verification_email(self, user, request):
         if (
             int((datetime.now(timezone.utc) - user.last_login).total_seconds())
@@ -50,9 +66,11 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     @swagger_auto_schema(
         methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
     )
-    @action(methods=["POST"], detail=False)
+    @action(methods=["POST"], detail=False, serializer_class=LoginSerializer)
     def login(self, request, *args, **kwargs):
-        serializer: AuthTokenSerializer = self.get_serializer(
+        self.check_captcha(request)
+
+        serializer: LoginSerializer = self.get_serializer(
             data=request.data, context={"request": self.request}
         )
 
@@ -78,7 +96,9 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         if not settings.REGISTER == "True":
             raise MethodNotAllowed({"error": "This action is disabled"})
 
-        serializer: AuthTokenSerializer = self.get_serializer(data=request.data)
+        self.check_captcha(request)
+
+        serializer: UserSerializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         user.is_active = False

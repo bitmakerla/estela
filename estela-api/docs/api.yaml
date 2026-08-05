@@ -1791,6 +1791,9 @@ definitions:
         title: Password
         type: string
         minLength: 1
+      recaptcha_token:
+        title: Recaptcha token
+        type: string
   UserProfile:
     required:
       - username
@@ -1848,6 +1851,9 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
+      recaptcha_token:
+        title: Recaptcha token
+        type: string
   ProjectDetail:
     description: Project where the activity was performed.
     type: object

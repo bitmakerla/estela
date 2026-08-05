@@ -31,6 +31,12 @@ export interface AuthToken {
      * @memberof AuthToken
      */
     password: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AuthToken
+     */
+    recaptchaToken?: string;
 }
 
 export function AuthTokenFromJSON(json: any): AuthToken {
@@ -45,6 +51,7 @@ export function AuthTokenFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         
         'username': json['username'],
         'password': json['password'],
+        'recaptchaToken': !exists(json, 'recaptcha_token') ? undefined : json['recaptcha_token'],
     };
 }
 
@@ -59,6 +66,7 @@ export function AuthTokenToJSON(value?: AuthToken | null): any {
         
         'username': value.username,
         'password': value.password,
+        'recaptcha_token': value.recaptchaToken,
     };
 }
 

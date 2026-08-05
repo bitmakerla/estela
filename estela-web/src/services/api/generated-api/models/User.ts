@@ -43,6 +43,12 @@ export interface User {
      * @memberof User
      */
     password: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof User
+     */
+    recaptchaToken?: string;
 }
 
 export function UserFromJSON(json: any): User {
@@ -59,6 +65,7 @@ export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User
         'email': !exists(json, 'email') ? undefined : json['email'],
         'username': json['username'],
         'password': json['password'],
+        'recaptchaToken': !exists(json, 'recaptcha_token') ? undefined : json['recaptcha_token'],
     };
 }
 
@@ -74,6 +81,7 @@ export function UserToJSON(value?: User | null): any {
         'email': value.email,
         'username': value.username,
         'password': value.password,
+        'recaptcha_token': value.recaptchaToken,
     };
 }
 

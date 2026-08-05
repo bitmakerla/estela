@@ -5,16 +5,38 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.validators import UniqueValidator
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CaptchaTokenMixin(metaclass=serializers.SerializerMetaclass):
+    """Adds the captcha token to a serializer's input.
+
+    The field is optional so that deployments without captcha keys configured
+    keep working unchanged. Whether a token is actually required is decided by
+    the view, based on RECAPTCHA_SECRET_KEY.
+    """
+
+    recaptcha_token = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
+
+
+class LoginSerializer(CaptchaTokenMixin, AuthTokenSerializer):
+    """Credentials plus the captcha token."""
+
+    class Meta:
+        # Keeps the generated API client's model name stable.
+        ref_name = "AuthToken"
+
+
+class UserSerializer(CaptchaTokenMixin, serializers.ModelSerializer):
     """A serializer for our user objects."""
 
     class Meta:
         model = User
-        fields = ["id", "email", "username", "password"]
+        fields = ["id", "email", "username", "password", "recaptcha_token"]
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, attrs):

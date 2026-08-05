@@ -170,8 +170,22 @@ All the queue platform variables should be written as children of the _<QUEUE\_P
 
 * _\<REGISTER\>_ (Required): Set this value to `"False"` to disable the user registration.
 
+* _<EMAIL\_BACKEND>_ (Optional): Django email backend. Set it to
+`django.core.mail.backends.console.EmailBackend` to print emails in the API output
+instead of sending them, which lets accounts be verified without an SMTP server.
+
 {: .note }
 > The mailing configuration is used to send email regarding users creation on the estela system.
+
+#### Captcha
+* _<RECAPTCHA\_SECRET\_KEY>_ (Optional): Secret key of a reCAPTCHA v2 "I'm not a robot"
+checkbox site. When set, the login and register endpoints reject requests whose captcha
+token does not verify. Leave it empty to disable the check.
+
+{: .note }
+> The frontend needs the matching site key of the same reCAPTCHA site, set as
+> `RECAPTCHA_SITE_KEY` in its build environment. Without it no captcha is shown, and
+> requests would be rejected if the API has a secret key configured.
 
 #### Data Downloads
 * _<MAX\_CLI\_DOWNLOAD\_CHUNK\_MB>_ (Required): This is the maximum size of the chunks when downloading data
