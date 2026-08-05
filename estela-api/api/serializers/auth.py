@@ -24,11 +24,12 @@ class CaptchaTokenMixin(metaclass=serializers.SerializerMetaclass):
 
 
 class LoginSerializer(CaptchaTokenMixin, AuthTokenSerializer):
-    """Credentials plus the captcha token."""
+    """Credentials plus the captcha token.
 
-    class Meta:
-        # Keeps the generated API client's model name stable.
-        ref_name = "AuthToken"
+    Cannot reuse AuthTokenSerializer's ref_name: DRF's own serializer is still
+    used elsewhere in the viewset, and drf-yasg refuses two distinct serializers
+    sharing a schema name. So this one shows up as `Login` in the API client.
+    """
 
 
 class UserSerializer(CaptchaTokenMixin, serializers.ModelSerializer):

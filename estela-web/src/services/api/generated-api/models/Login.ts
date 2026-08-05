@@ -16,39 +16,46 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface AuthToken
+ * @interface Login
  */
-export interface AuthToken {
+export interface Login {
     /**
      * 
      * @type {string}
-     * @memberof AuthToken
+     * @memberof Login
+     */
+    recaptchaToken?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Login
      */
     username: string;
     /**
      * 
      * @type {string}
-     * @memberof AuthToken
+     * @memberof Login
      */
     password: string;
 }
 
-export function AuthTokenFromJSON(json: any): AuthToken {
-    return AuthTokenFromJSONTyped(json, false);
+export function LoginFromJSON(json: any): Login {
+    return LoginFromJSONTyped(json, false);
 }
 
-export function AuthTokenFromJSONTyped(json: any, ignoreDiscriminator: boolean): AuthToken {
+export function LoginFromJSONTyped(json: any, ignoreDiscriminator: boolean): Login {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
+        'recaptchaToken': !exists(json, 'recaptcha_token') ? undefined : json['recaptcha_token'],
         'username': json['username'],
         'password': json['password'],
     };
 }
 
-export function AuthTokenToJSON(value?: AuthToken | null): any {
+export function LoginToJSON(value?: Login | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -57,6 +64,7 @@ export function AuthTokenToJSON(value?: AuthToken | null): any {
     }
     return {
         
+        'recaptcha_token': value.recaptchaToken,
         'username': value.username,
         'password': value.password,
     };

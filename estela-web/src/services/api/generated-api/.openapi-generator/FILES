@@ -24,7 +24,10 @@ models/InlineResponse2009.ts
 models/InlineResponse401.ts
 models/JobsPagination.ts
 models/JobsStats.ts
+models/Login.ts
 models/LogsStats.ts
+models/MeteringReport.ts
+models/MeteringReportResponse.ts
 models/Notification.ts
 models/NotificationUpdate.ts
 models/PagesStats.ts
