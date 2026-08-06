@@ -22,7 +22,7 @@ from rest_framework.exceptions import (
 from rest_framework.response import Response
 
 from api import errors
-from api.captcha import get_client_ip, verify_captcha
+from api.captcha import EXPIRED_TOKEN, get_client_ip, verify_captcha
 from api.exceptions import EmailServiceError, UserNotFoundError
 from api.permissions import IsProfileUser
 from api.serializers.auth import (
@@ -48,12 +48,21 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
     def check_captcha(self, request):
         """Reject the request unless the captcha token checks out.
 
-        A no-op for deployments that have not configured a secret key.
+        A no-op for deployments that have not configured a secret key. An
+        expired token gets its own message, since it is the usual outcome of
+        taking a while to fill the form in and the fix is simply to tick again.
         """
-        if not verify_captcha(
+        failure = verify_captcha(
             request.data.get("recaptcha_token"), remote_ip=get_client_ip(request)
-        ):
-            raise ValidationError({"error": errors.INVALID_CAPTCHA})
+        )
+
+        if failure is None:
+            return
+
+        if failure == EXPIRED_TOKEN:
+            raise ValidationError({"error": errors.EXPIRED_CAPTCHA})
+
+        raise ValidationError({"error": errors.INVALID_CAPTCHA})
 
     def retry_send_verification_email(self, user, request):
         if (

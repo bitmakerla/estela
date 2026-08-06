@@ -8,6 +8,14 @@ logger = logging.getLogger(__name__)
 VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
 VERIFY_TIMEOUT = 5
 
+# Google's code for a token that has expired or was already used. Tokens are
+# only valid for a couple of minutes, so this is the common failure for a form
+# that took a while to fill in, and it deserves its own message.
+EXPIRED_TOKEN = "timeout-or-duplicate"
+MISSING_TOKEN = "missing-input-response"
+UNREACHABLE = "verification-unreachable"
+REJECTED = "invalid-input-response"
+
 
 def captcha_enabled():
     """Whether captcha verification is active for this deployment.
@@ -35,16 +43,17 @@ def get_client_ip(request):
 def verify_captcha(token, remote_ip=None):
     """Check a reCAPTCHA token with Google.
 
-    Returns True only when Google positively confirms the token. Every other
-    outcome -- missing token, rejection, network failure -- counts as a failed
-    check, so a deployment that has opted in never silently stops verifying.
+    Returns None when the check passes, or the reason it failed. Only a positive
+    confirmation from Google passes: a missing token, a rejection or a network
+    failure all fail, so a deployment that has opted in never silently stops
+    verifying.
     """
     if not captcha_enabled():
-        return True
+        return None
 
     if not token:
         logger.warning("Request received without a captcha token")
-        return False
+        return MISSING_TOKEN
 
     payload = {"secret": settings.RECAPTCHA_SECRET_KEY, "response": token}
 
@@ -56,13 +65,11 @@ def verify_captcha(token, remote_ip=None):
         result = response.json()
     except (requests.RequestException, ValueError):
         logger.exception("Could not reach the captcha verification service")
-        return False
+        return UNREACHABLE
 
     if not result.get("success"):
-        logger.warning(
-            "Captcha verification rejected | error_codes=%s",
-            result.get("error-codes"),
-        )
-        return False
+        error_codes = result.get("error-codes") or []
+        logger.warning("Captcha verification rejected | error_codes=%s", error_codes)
+        return error_codes[0] if error_codes else REJECTED
 
-    return True
+    return None
