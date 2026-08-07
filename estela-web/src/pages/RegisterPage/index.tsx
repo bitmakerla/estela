@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { Button, Form, Typography, Input, Layout, Row } from "antd";
+import { Button, Form, Typography, Input, Layout, Row, message } from "antd";
 import { Link } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
 
 import "./styles.scss";
 import history from "../../history";
@@ -10,6 +11,7 @@ import { insecurePasswordNotification, emailConfirmationNotification } from "../
 import { EstelaBanner } from "../../components";
 
 import { handleInvalidDataError } from "../../utils";
+import { RECAPTCHA_ENABLED, RECAPTCHA_SITE_KEY } from "../../constants";
 
 import {
     RegistrationContext,
@@ -24,15 +26,18 @@ const { Text } = Typography;
 interface RegisterPageState {
     loading: boolean;
     successRegister: boolean;
+    captchaToken: string;
 }
 
 export class RegisterPage extends Component<unknown, RegisterPageState> {
     state: RegisterPageState = {
         loading: false,
         successRegister: false,
+        captchaToken: "",
     };
 
     apiService = ApiService();
+    captchaRef = React.createRef<ReCAPTCHA>();
 
     componentDidMount(): void {
         if (AuthService.getAuthToken()) {
@@ -73,14 +78,33 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
         return false;
     }
 
+    handleCaptchaChange = (token: string | null): void => {
+        this.setState({ captchaToken: token ?? "" });
+    };
+
+    // The token is single use, so a new one is needed for every attempt.
+    resetCaptcha = (): void => {
+        this.captchaRef.current?.reset();
+        this.setState({ captchaToken: "" });
+    };
+
     handleSubmit = (data: { email: string; username: string; password: string }): void => {
+        // The button is deliberately not gated on the captcha so one that fails
+        // to load never leaves the form with no way forward.
+        if (RECAPTCHA_ENABLED && !this.state.captchaToken) {
+            message.error("Please confirm you are not a robot.");
+            return;
+        }
+
         this.setState({ loading: true });
         if (!this.validatePassword(data.password)) {
             this.setState({ loading: false });
             return;
         }
 
-        const request: ApiAuthRegisterRequest = { data };
+        const request: ApiAuthRegisterRequest = {
+            data: { ...data, recaptchaToken: this.state.captchaToken },
+        };
         this.apiService.apiAuthRegister(request).then(
             (response: Token) => {
                 if (response.user !== undefined) {
@@ -92,6 +116,7 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
             },
             (error: unknown) => {
                 handleInvalidDataError(error);
+                this.resetCaptcha();
                 this.setState({ loading: false });
             },
         );
@@ -139,6 +164,17 @@ export class RegisterPage extends Component<unknown, RegisterPageState> {
                                     </Form.Item>
                                 </Content>
                                 <CheckBoxRegistration />
+                                {RECAPTCHA_ENABLED && (
+                                    <Row justify="center" className="my-4">
+                                        <ReCAPTCHA
+                                            ref={this.captchaRef}
+                                            sitekey={RECAPTCHA_SITE_KEY}
+                                            onChange={this.handleCaptchaChange}
+                                            onExpired={this.resetCaptcha}
+                                            onErrored={this.resetCaptcha}
+                                        />
+                                    </Row>
+                                )}
                                 <RegistrationContext.Consumer>
                                     {(context: RegistrationContextProps) => (
                                         <Button

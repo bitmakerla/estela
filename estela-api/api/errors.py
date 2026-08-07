@@ -21,6 +21,8 @@ ERROR_SENDING_VERIFICATION_EMAIL = (
     " the verification email. Please try to log in later."
 )
 UNAUTHORIZED_PROFILE = "You are unauthorized to see this user profile."
+INVALID_CAPTCHA = "Captcha verification failed. Please try again."
+EXPIRED_CAPTCHA = "Your captcha expired. Please check the box again."
 SEND_EMAIL_LATER = (
     "There was an error sending the verification email. Please try again later."
 )

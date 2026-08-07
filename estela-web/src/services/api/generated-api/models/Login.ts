@@ -16,60 +16,46 @@ import { exists, mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface User
+ * @interface Login
  */
-export interface User {
-    /**
-     * 
-     * @type {number}
-     * @memberof User
-     */
-    readonly id?: number;
+export interface Login {
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof Login
      */
-    email?: string;
+    recaptchaToken?: string;
     /**
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     * 
      * @type {string}
-     * @memberof User
+     * @memberof Login
      */
     username: string;
     /**
      * 
      * @type {string}
-     * @memberof User
+     * @memberof Login
      */
     password: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof User
-     */
-    recaptchaToken?: string;
 }
 
-export function UserFromJSON(json: any): User {
-    return UserFromJSONTyped(json, false);
+export function LoginFromJSON(json: any): Login {
+    return LoginFromJSONTyped(json, false);
 }
 
-export function UserFromJSONTyped(json: any, ignoreDiscriminator: boolean): User {
+export function LoginFromJSONTyped(json: any, ignoreDiscriminator: boolean): Login {
     if ((json === undefined) || (json === null)) {
         return json;
     }
     return {
         
-        'id': !exists(json, 'id') ? undefined : json['id'],
-        'email': !exists(json, 'email') ? undefined : json['email'],
+        'recaptchaToken': !exists(json, 'recaptcha_token') ? undefined : json['recaptcha_token'],
         'username': json['username'],
         'password': json['password'],
-        'recaptchaToken': !exists(json, 'recaptcha_token') ? undefined : json['recaptcha_token'],
     };
 }
 
-export function UserToJSON(value?: User | null): any {
+export function LoginToJSON(value?: Login | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -78,10 +64,9 @@ export function UserToJSON(value?: User | null): any {
     }
     return {
         
-        'email': value.email,
+        'recaptcha_token': value.recaptchaToken,
         'username': value.username,
         'password': value.password,
-        'recaptcha_token': value.recaptchaToken,
     };
 }
 

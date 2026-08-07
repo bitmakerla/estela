@@ -145,7 +145,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/AuthToken'
+            $ref: '#/definitions/Login'
       responses:
         '200':
           description: ''
@@ -1701,6 +1701,28 @@ paths:
         in: path
         required: true
         type: string
+  /api/v1/metering/report:
+    post:
+      operationId: api_v1_metering_report
+      description: Append one metered usage fact. Deduplicated by ``idempotency_key``.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/MeteringReport'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/MeteringReportResponse'
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/MeteringReportResponse'
+      tags:
+        - api
+    parameters: []
 definitions:
   ChangePassword:
     required:
@@ -1791,6 +1813,23 @@ definitions:
         title: Password
         type: string
         minLength: 1
+  Login:
+    required:
+      - username
+      - password
+    type: object
+    properties:
+      recaptcha_token:
+        title: Recaptcha token
+        type: string
+      username:
+        title: Username
+        type: string
+        minLength: 1
+      password:
+        title: Password
+        type: string
+        minLength: 1
   UserProfile:
     required:
       - username
@@ -1848,6 +1887,9 @@ definitions:
         type: string
         maxLength: 128
         minLength: 1
+      recaptcha_token:
+        title: Recaptcha token
+        type: string
   ProjectDetail:
     description: Project where the activity was performed.
     type: object
@@ -3317,3 +3359,104 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Spider'
+  MeteringReport:
+    required:
+      - project_id
+      - resource_kind
+      - resource_id
+      - interval_start
+      - interval_end
+      - metrics
+      - idempotency_key
+    type: object
+    properties:
+      project_id:
+        title: Project id
+        description: Project UUID (``Project.pid``) this usage rolls up to.
+        type: string
+        format: uuid
+      resource_kind:
+        title: Resource kind
+        type: string
+        maxLength: 64
+        minLength: 1
+      resource_id:
+        title: Resource id
+        type: string
+        maxLength: 512
+        minLength: 1
+      interval_start:
+        title: Interval start
+        type: string
+        format: date-time
+      interval_end:
+        title: Interval end
+        type: string
+        format: date-time
+      metrics:
+        title: Metrics
+        description: "Open metric payload (network_bytes, storage_bytes, \u2026)."
+        type: object
+        additionalProperties:
+          type: object
+      idempotency_key:
+        title: Idempotency key
+        type: string
+        maxLength: 512
+        minLength: 1
+      kind:
+        title: Kind
+        type: string
+        enum:
+          - JOB_CLOSE
+          - DATA_DELETE
+          - ADJUSTMENT
+          - DELTA_SLICE
+        default: DELTA_SLICE
+      source_ref:
+        title: Source ref
+        type: string
+        default: ''
+        maxLength: 512
+      reporter:
+        title: Reporter
+        description: Emitting service (e.g. bitmaker-proxy). Defaults to estela.
+        type: string
+        default: ''
+        maxLength: 64
+      adjustment_reason:
+        title: Adjustment reason
+        type: string
+        enum:
+          - RECONCILE_SCRAPY_FINAL
+          - RECONCILE_STORAGE
+          - MANUAL
+        default: ''
+  MeteringReportResponse:
+    required:
+      - id
+      - recorded_at
+      - duplicate
+      - resource_kind
+      - resource_id
+    type: object
+    properties:
+      id:
+        title: Id
+        type: string
+        format: uuid
+      recorded_at:
+        title: Recorded at
+        type: string
+        format: date-time
+      duplicate:
+        title: Duplicate
+        type: boolean
+      resource_kind:
+        title: Resource kind
+        type: string
+        minLength: 1
+      resource_id:
+        title: Resource id
+        type: string
+        minLength: 1

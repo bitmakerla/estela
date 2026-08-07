@@ -72,6 +72,8 @@ env = environ.Env(
     EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
     PROXY_PROVIDERS_TO_TRACK=(str, ""),
+    RECAPTCHA_SECRET_KEY=(str, ""),
+    EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
 )
 environ.Env.read_env(env_file=".env")
 
@@ -312,6 +314,10 @@ SPIDERDATA_DB_PRODUCTION = True
 SPIDERDATA_DB_CERTIFICATE_PATH = env("SPIDERDATA_DB_CERTIFICATE_PATH")
 
 # Email confirmation
+# Set EMAIL_BACKEND to django.core.mail.backends.console.EmailBackend to print
+# emails in the API output instead of sending them, which lets accounts be
+# verified locally without an SMTP server.
+EMAIL_BACKEND = env("EMAIL_BACKEND")
 EMAIL_USE_TLS = True
 EMAIL_HOST = env("EMAIL_HOST")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
@@ -324,6 +330,10 @@ REGISTER = env("REGISTER")
 
 # Verification email
 VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
+
+# reCAPTCHA on the login and register endpoints. Leave empty to disable the
+# check, which is the default for self-hosted deployments without Google keys.
+RECAPTCHA_SECRET_KEY = env("RECAPTCHA_SECRET_KEY")
 
 # Proxy Settings
 PROXY_PROVIDERS_TO_TRACK = (

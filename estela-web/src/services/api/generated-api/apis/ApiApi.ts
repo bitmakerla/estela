@@ -69,6 +69,15 @@ import {
     JobsPagination,
     JobsPaginationFromJSON,
     JobsPaginationToJSON,
+    Login,
+    LoginFromJSON,
+    LoginToJSON,
+    MeteringReport,
+    MeteringReportFromJSON,
+    MeteringReportToJSON,
+    MeteringReportResponse,
+    MeteringReportResponseFromJSON,
+    MeteringReportResponseToJSON,
     Notification,
     NotificationFromJSON,
     NotificationToJSON,
@@ -175,7 +184,7 @@ export interface ApiAccountResetPasswordValidateRequest {
 }
 
 export interface ApiAuthLoginRequest {
-    data: AuthToken;
+    data: Login;
 }
 
 export interface ApiAuthProfileCreateRequest {
@@ -535,6 +544,10 @@ export interface ApiStatsSpidersRequest {
     offset?: number;
 }
 
+export interface ApiV1MeteringReportRequest {
+    data: MeteringReport;
+}
+
 /**
  * 
  */
@@ -749,7 +762,7 @@ export class ApiApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: AuthTokenToJSON(requestParameters.data),
+            body: LoginToJSON(requestParameters.data),
         });
 
         return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
@@ -3240,6 +3253,42 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiStatsSpiders(requestParameters: ApiStatsSpidersRequest): Promise<SpidersPagination> {
         const response = await this.apiStatsSpidersRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Append one metered usage fact. Deduplicated by ``idempotency_key``.
+     */
+    async apiV1MeteringReportRaw(requestParameters: ApiV1MeteringReportRequest): Promise<runtime.ApiResponse<MeteringReportResponse>> {
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiV1MeteringReport.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/v1/metering/report`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: MeteringReportToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MeteringReportResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Append one metered usage fact. Deduplicated by ``idempotency_key``.
+     */
+    async apiV1MeteringReport(requestParameters: ApiV1MeteringReportRequest): Promise<MeteringReportResponse> {
+        const response = await this.apiV1MeteringReportRaw(requestParameters);
         return await response.value();
     }
 

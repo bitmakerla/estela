@@ -1,6 +1,8 @@
 export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 export const ESTELA_PROXIES = process.env.ESTELA_PROXIES ? process.env.ESTELA_PROXIES : "Estela Proxy";
 export const REGISTER_PAGE_ENABLED = process.env.REGISTER_PAGE_ENABLED === "true";
+export const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY ?? "";
+export const RECAPTCHA_ENABLED = RECAPTCHA_SITE_KEY !== "";
 export const DEFAULT_RESOURCE_TIER = "LARGE";
 
 export const PREDEFINED_TIERS = [
