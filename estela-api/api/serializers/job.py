@@ -39,7 +39,6 @@ class SpiderJobSerializer(serializers.ModelSerializer):
         required=False, read_only=True, help_text="Current job status."
     )
     spider = serializers.SerializerMethodField("get_spider")
-    storage_size = serializers.SerializerMethodField("get_storage_size")
     database_insertion_progress = serializers.SerializerMethodField("get_database_insertion_progress")
     peak_memory = serializers.SerializerMethodField("get_peak_memory")
 
@@ -62,29 +61,12 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             "data_expiry_days",
             "data_status",
             "database_insertion_progress",
-            "storage_size",
             "resource_tier",
             "peak_memory",
         )
 
     def get_spider(self, instance):
         return {"sid": instance.spider.sid, "name": instance.spider.name}
-
-    def get_storage_size(self, instance):
-        if not spiderdata_db_client.get_connection():
-            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
-
-        pid = str(instance.spider.project.pid)
-        collections = ["items", "requests", "logs"]
-        total_size = sum(
-            [
-                spiderdata_db_client.get_dataset_size(
-                    pid, get_collection_name(instance, collection)
-                )
-                for collection in collections
-            ]
-        )
-        return total_size
 
     def get_database_insertion_progress(self, instance):
         # Return the actual database insertion progress value from the model
@@ -120,6 +102,29 @@ class SpiderJobSerializer(serializers.ModelSerializer):
             except Exception:
                 pass
         return None
+
+
+class SpiderJobDetailSerializer(SpiderJobSerializer):
+    storage_size = serializers.SerializerMethodField("get_storage_size")
+
+    class Meta(SpiderJobSerializer.Meta):
+        fields = SpiderJobSerializer.Meta.fields + ("storage_size",)
+
+    def get_storage_size(self, instance):
+        if not spiderdata_db_client.get_connection():
+            raise DataBaseError({"error": errors.UNABLE_CONNECT_DB})
+
+        pid = str(instance.spider.project.pid)
+        collections = ["items", "requests", "logs"]
+        total_size = sum(
+            [
+                spiderdata_db_client.get_dataset_size(
+                    pid, get_collection_name(instance, collection)
+                )
+                for collection in collections
+            ]
+        )
+        return total_size
 
 
 class SpiderJobCreateEnvVarSerializer(serializers.Serializer):
