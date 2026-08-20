@@ -4,7 +4,7 @@
 #
 #    pip-compile test.in
 #
-amqp==5.0.6
+amqp==5.3.1
     # via
     #   -r base.txt
     #   kombu
@@ -16,13 +16,11 @@ asgiref==3.2.10
     # via
     #   -r base.txt
     #   django
-attrs==20.2.0
-    # via pytest
 awscli==1.18.150
     # via
     #   -r base.txt
     #   eks-token
-billiard==3.6.4.0
+billiard==4.2.1
     # via
     #   -r base.txt
     #   celery
@@ -40,7 +38,7 @@ cachetools==4.2.1
     # via
     #   -r base.txt
     #   google-auth
-celery==5.0.5
+celery==5.4.0
     # via
     #   -r base.txt
     #   django-celery-beat
@@ -55,7 +53,7 @@ chardet==4.0.0
     # via
     #   -r base.txt
     #   requests
-click==7.1.2
+click==8.1.8
     # via
     #   -r base.txt
     #   black
@@ -63,7 +61,7 @@ click==7.1.2
     #   click-didyoumean
     #   click-plugins
     #   click-repl
-click-didyoumean==0.0.3
+click-didyoumean==0.3.1
     # via
     #   -r base.txt
     #   celery
@@ -71,7 +69,7 @@ click-plugins==1.1.1
     # via
     #   -r base.txt
     #   celery
-click-repl==0.1.6
+click-repl==0.2.0
     # via
     #   -r base.txt
     #   celery
@@ -134,6 +132,8 @@ elasticsearch==7.13.4
     # via -r base.txt
 estela-queue-adapter @ git+https://github.com/bitmakerla/estela-queue-adapter.git
     # via -r base.txt
+exceptiongroup==1.3.1
+    # via pytest
 google-api-core==2.10.2
     # via
     #   -r base.txt
@@ -165,7 +165,6 @@ googleapis-common-protos==1.60.0
     #   -r base.txt
     #   google-api-core
 gunicorn==20.1.0
-whitenoise==6.7.0
     # via -r base.txt
 idna==2.10
     # via
@@ -194,7 +193,7 @@ kafka-python==2.0.2
     # via
     #   -r base.txt
     #   estela-queue-adapter
-kombu==5.0.2
+kombu==5.4.2
     # via
     #   -r base.txt
     #   celery
@@ -206,8 +205,6 @@ markupsafe==2.0.1
     #   jinja2
 minio==7.1.7
     # via -r base.txt
-more-itertools==8.5.0
-    # via pytest
 mypy-extensions==0.4.3
     # via
     #   -r base.txt
@@ -238,8 +235,6 @@ protobuf==4.24.0
     #   -r base.txt
     #   google-api-core
     #   googleapis-common-protos
-py==1.10.0
-    # via pytest
 pyasn1==0.4.8
     # via
     #   -r base.txt
@@ -257,25 +252,27 @@ pyparsing==2.4.7
     # via
     #   -r base.txt
     #   packaging
-pytest==6.0.2
-    # via pytest-django
-pytest-django==3.10.0
+pytest==7.4.4
+    # via
+    #   -r test.in
+    #   pytest-django
+pytest-django==4.14.0
     # via -r test.in
 python-crontab==2.5.1
     # via
     #   -r base.txt
     #   django-celery-beat
-python-dateutil==2.8.1
+python-dateutil==2.9.0.post0
     # via
     #   -r base.txt
     #   botocore
+    #   celery
     #   croniter
     #   kubernetes
     #   python-crontab
 pytz==2020.1
     # via
     #   -r base.txt
-    #   celery
     #   django
     #   django-timezone-field
 pyyaml==5.3.1
@@ -310,8 +307,6 @@ ruamel-yaml==0.17.10
     # via
     #   -r base.txt
     #   drf-yasg
-ruamel-yaml-clib==0.2.8
-    # via -r base.txt
 s3transfer==0.3.6
     # via
     #   -r base.txt
@@ -333,7 +328,15 @@ toml==0.10.2
     # via
     #   -r base.txt
     #   black
-    #   pytest
+tomli==2.4.1
+    # via pytest
+typing-extensions==4.16.0
+    # via exceptiongroup
+tzdata==2025.1
+    # via
+    #   -r base.txt
+    #   celery
+    #   kombu
 uritemplate==3.0.1
     # via
     #   -r base.txt
@@ -347,11 +350,12 @@ urllib3==1.25.11
     #   kubernetes
     #   minio
     #   requests
-vine==5.0.0
+vine==5.1.0
     # via
     #   -r base.txt
     #   amqp
     #   celery
+    #   kombu
 wcwidth==0.2.5
     # via
     #   -r base.txt
@@ -360,6 +364,8 @@ websocket-client==0.58.0
     # via
     #   -r base.txt
     #   kubernetes
+whitenoise==6.7.0
+    # via -r base.txt
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
