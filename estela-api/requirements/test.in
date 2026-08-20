@@ -1,4 +1,6 @@
 -r base.txt
-pytest-django
+# pytest 6.0.2 cannot compile test modules on Python 3.10 (ast alias lineno).
+pytest>=7.4
+pytest-django>=4.5
 django-storages
 
