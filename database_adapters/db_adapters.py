@@ -172,9 +172,11 @@ class MongoAdapter(DatabaseWriterInterface, DatabaseReaderInterface):
     ):
         collection = self.client[database_name][collection_name]
         result = (
-            collection.find({"_id": {"$gt": ObjectId(current_chunk)}}).limit(chunk_size)
+            collection.find({"_id": {"$gt": ObjectId(current_chunk)}})
+            .sort("_id", 1)
+            .limit(chunk_size)
             if current_chunk
-            else collection.find().limit(chunk_size)
+            else collection.find().sort("_id", 1).limit(chunk_size)
         )
         data = list(result)
         next_chunk = str(data[-1]["_id"]) if len(data) > 0 else None
