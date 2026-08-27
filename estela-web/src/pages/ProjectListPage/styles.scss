@@ -5,3 +5,21 @@ Button:hover {
         color: $estela-blue-full;
     }
 }
+
+.project-search.ant-input-affix-wrapper {
+    max-width: 420px;
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 9999px;
+    background-color: #f6f6f6;
+
+    .ant-input {
+        background-color: transparent;
+        font-size: 15px;
+    }
+
+    .anticon {
+        margin-right: 12px;
+        font-size: 18px;
+    }
+}
