@@ -17,6 +17,64 @@ securityDefinitions:
 security:
   - Basic: []
 paths:
+  /api/account/api-keys:
+    get:
+      operationId: api_account_api-keys_list
+      summary: Manage the caller's own API keys.
+      description: |-
+        ApiKeyAuthentication is listed so a request made with a key is recognised and
+        then refused by IsSessionAuthenticated: a leaked key must not be able to mint
+        more keys.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ApiKey'
+      tags:
+        - api
+    post:
+      operationId: api_account_api-keys_create
+      summary: Manage the caller's own API keys.
+      description: |-
+        ApiKeyAuthentication is listed so a request made with a key is recognised and
+        then refused by IsSessionAuthenticated: a leaked key must not be able to mint
+        more keys.
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ApiKeyCreate'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/ApiKeyCreateResponse'
+      tags:
+        - api
+    parameters: []
+  /api/account/api-keys/{id}:
+    delete:
+      operationId: api_account_api-keys_delete
+      summary: Manage the caller's own API keys.
+      description: |-
+        ApiKeyAuthentication is listed so a request made with a key is recognised and
+        then refused by IsSessionAuthenticated: a leaked key must not be able to mint
+        more keys.
+      parameters: []
+      responses:
+        '204':
+          description: Key revoked
+      tags:
+        - api
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
   /api/account/changePassword/change:
     patch:
       operationId: api_account_changePassword_change
@@ -1724,6 +1782,113 @@ paths:
         - api
     parameters: []
 definitions:
+  ApiKey:
+    required:
+      - name
+      - prefix
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        description: What this key is used for.
+        type: string
+        maxLength: 100
+        minLength: 1
+      prefix:
+        title: Prefix
+        description: Leading fragment, shown so keys can be told apart.
+        type: string
+        maxLength: 32
+        minLength: 1
+      scopes:
+        type: array
+        items:
+          type: string
+          minLength: 1
+        readOnly: true
+      created:
+        title: Created
+        description: Creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      last_used_at:
+        title: Last used at
+        description: Last time this key authenticated a request.
+        type: string
+        format: date-time
+        x-nullable: true
+  ApiKeyCreate:
+    required:
+      - name
+    type: object
+    properties:
+      name:
+        title: Name
+        description: What this key is used for.
+        type: string
+        maxLength: 100
+        minLength: 1
+      scopes:
+        description: Extra permissions. Empty means read-only.
+        type: array
+        items:
+          type: string
+          enum:
+            - data
+            - run
+            - deploy
+        default: []
+  ApiKeyCreateResponse:
+    required:
+      - name
+      - prefix
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        description: What this key is used for.
+        type: string
+        maxLength: 100
+        minLength: 1
+      prefix:
+        title: Prefix
+        description: Leading fragment, shown so keys can be told apart.
+        type: string
+        maxLength: 32
+        minLength: 1
+      scopes:
+        type: array
+        items:
+          type: string
+          minLength: 1
+        readOnly: true
+      created:
+        title: Created
+        description: Creation date.
+        type: string
+        format: date-time
+        readOnly: true
+      last_used_at:
+        title: Last used at
+        description: Last time this key authenticated a request.
+        type: string
+        format: date-time
+        x-nullable: true
+      key:
+        title: Key
+        description: The key itself. It is not stored and never shown again.
+        type: string
+        readOnly: true
+        minLength: 1
   ChangePassword:
     required:
       - new_password

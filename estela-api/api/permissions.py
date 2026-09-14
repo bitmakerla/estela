@@ -3,7 +3,38 @@ import uuid
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import User
 
-from core.models import Project, Permission
+from core.models import ApiKey, Project, Permission
+
+
+class HasApiKeyScope(BasePermission):
+    """Narrows what an API key may do. Sessions are unaffected.
+
+    A key reads whatever its owner can read, unless the view asks for a scope.
+    Writing always needs a scope, so a view that declares none is session-only.
+    """
+
+    message = "This API key does not have the required scope."
+
+    def has_permission(self, request, view):
+        api_key = request.auth
+        if not isinstance(api_key, ApiKey):
+            return True
+
+        if request.method in SAFE_METHODS:
+            required = getattr(view, "api_key_read_scope", None)
+            return required is None or api_key.has_scope(required)
+
+        required = getattr(view, "api_key_write_scope", None)
+        return required is not None and api_key.has_scope(required)
+
+
+class IsSessionAuthenticated(BasePermission):
+    """Blocks API keys outright, for anything only a person should do."""
+
+    message = "This action requires a login session, not an API key."
+
+    def has_permission(self, request, view):
+        return not isinstance(request.auth, ApiKey)
 
 
 class IsProjectUser(BasePermission):

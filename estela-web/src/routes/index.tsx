@@ -24,6 +24,7 @@ import { ProjectDashboardPage } from "../pages/ProjectDashboardPage";
 import { SettingsProfilePage } from "../pages/SettingsProfilePage";
 import { SettingsPasswordPage } from "../pages/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../pages/SettingsDataPersistencePage";
+import { SettingsApiKeysPage } from "../pages/SettingsApiKeysPage";
 import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { ProjectLayout, AuthLayout, MainLayout, NotificationsLayout, SettingsLayout } from "../shared";
@@ -113,11 +114,15 @@ export const MainRoutes: React.FC = () => {
                 </MainLayout>
             </PrivateRoute>
 
-            <PrivateRoute path={["/settings/profile", "/settings/password", "/settings/dataPersistence"]} exact>
+            <PrivateRoute
+                path={["/settings/profile", "/settings/password", "/settings/apiKeys", "/settings/dataPersistence"]}
+                exact
+            >
                 <MainLayout>
                     <SettingsLayout>
                         <Route path="/settings/profile" component={SettingsProfilePage} exact />
                         <Route path="/settings/password" component={SettingsPasswordPage} exact />
+                        <Route path="/settings/apiKeys" component={SettingsApiKeysPage} exact />
                         <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
                     </SettingsLayout>
                 </MainLayout>
