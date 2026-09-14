@@ -159,6 +159,49 @@ class UserProfile(models.Model):
     )
 
 
+class ApiKey(models.Model):
+    """A revocable credential a user issues for a program. Only the hash is stored."""
+
+    KEY_PREFIX = "estela_"
+    PREFIX_LENGTH = len(KEY_PREFIX) + 12
+
+    DATA_SCOPE = "data"
+    RUN_SCOPE = "run"
+    DEPLOY_SCOPE = "deploy"
+    SCOPES = [DATA_SCOPE, RUN_SCOPE, DEPLOY_SCOPE]
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="api_keys", help_text="Owner."
+    )
+    name = models.CharField(max_length=100, help_text="What this key is used for.")
+    prefix = models.CharField(
+        max_length=32, help_text="Leading fragment, shown so keys can be told apart."
+    )
+    key_hash = models.CharField(
+        max_length=64, unique=True, help_text="SHA-256 of the key."
+    )
+    scopes = models.JSONField(
+        default=list, help_text="Extra permissions. Empty means read-only."
+    )
+    created = models.DateTimeField(auto_now_add=True, help_text="Creation date.")
+    last_used_at = models.DateTimeField(
+        null=True, blank=True, help_text="Last time this key authenticated a request."
+    )
+    revoked_at = models.DateTimeField(
+        null=True, blank=True, help_text="Revocation date. Null while usable."
+    )
+
+    class Meta:
+        ordering = ["-created"]
+
+    @property
+    def revoked(self):
+        return self.revoked_at is not None
+
+    def has_scope(self, scope):
+        return scope in self.scopes
+
+
 class Spider(models.Model):
     sid = models.AutoField(
         primary_key=True, help_text="A unique integer value identifying this spider."
