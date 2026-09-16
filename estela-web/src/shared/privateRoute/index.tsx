@@ -45,13 +45,15 @@ export const PrivateRoute: React.FC<RouteProps> = (route) => {
             path={route.path}
             exact={route.exact}
             render={() => {
-                if (!authToken)
+                if (!authToken) {
+                    const next = encodeURIComponent(window.location.pathname + window.location.search);
                     return (
                         <>
-                            <Redirect to="/login" />
+                            <Redirect to={`/login?next=${next}`} />
                             {authNotification()}
                         </>
                     );
+                }
                 return route.children;
             }}
         />

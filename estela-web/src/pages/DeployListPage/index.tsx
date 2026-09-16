@@ -386,10 +386,20 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 $ git clone https://github.com/bitmakerla/scraping-demo-project
                                             </p>
                                             <p className="text-white">$ cd scraping-demo-project</p>
-                                            <p className="text-white">$ estela login</p>
-                                            <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
-                                            <p className="text-white">Username: {AuthService.getUserUsername()}</p>
-                                            <p className="text-white">Password:</p>
+                                            <p className="break-words text-white">$ estela set-host {API_BASE_URL}</p>
+                                            <p className="text-estela-black-low">&nbsp;</p>
+                                            <p className="text-estela-black-low">
+                                                # optional &mdash; skip if you already have a key
+                                            </p>
+                                            <p className="text-white">$ estela create-api-token</p>
+                                            <p className="text-estela-black-low">Opening your browser&hellip;</p>
+                                            <p className="text-estela-black-low">&nbsp;</p>
+                                            <p className="text-white">$ estela set-token</p>
+                                            <p className="text-estela-black-low">
+                                                Paste your API key: &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
+                                            </p>
+                                            <p className="text-white">Logged in as {AuthService.getUserUsername()}</p>
+                                            <p className="text-estela-black-low">&nbsp;</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
                                             <p className="text-white">$ estela deploy</p>
                                         </div>
@@ -403,10 +413,20 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
                                             <p className="text-white">$ cd &lt;project_name&gt;</p>
-                                            <p className="text-white">$ estela login</p>
-                                            <p className="text-white">Host [http://localhost]: {API_BASE_URL}</p>
-                                            <p className="text-white">Username: {AuthService.getUserUsername()}</p>
-                                            <p className="text-white">Password:</p>
+                                            <p className="break-words text-white">$ estela set-host {API_BASE_URL}</p>
+                                            <p className="text-estela-black-low">&nbsp;</p>
+                                            <p className="text-estela-black-low">
+                                                # optional &mdash; skip if you already have a key
+                                            </p>
+                                            <p className="text-white">$ estela create-api-token</p>
+                                            <p className="text-estela-black-low">Opening your browser&hellip;</p>
+                                            <p className="text-estela-black-low">&nbsp;</p>
+                                            <p className="text-white">$ estela set-token</p>
+                                            <p className="text-estela-black-low">
+                                                Paste your API key: &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
+                                            </p>
+                                            <p className="text-white">Logged in as {AuthService.getUserUsername()}</p>
+                                            <p className="text-estela-black-low">&nbsp;</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
                                             <p className="text-white">$ estela deploy</p>
                                         </div>
