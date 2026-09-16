@@ -410,18 +410,11 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                     </Row>
                     {forCli && (
                         <Row className="mt-4">
-                            <Text className="text-estela-black-medium text-sm">Then run:</Text>
-                            <div className="flex items-center gap-2 w-full bg-estela-white-low rounded-lg p-3 mt-2">
-                                <span className="font-courier text-sm break-all flex-1 text-estela-black-full">
-                                    estela login {createdKey}
-                                </span>
-                                <Button
-                                    icon={<CopyOutlined />}
-                                    onClick={() => this.copyText(`estela login ${createdKey}`, "Command copied.")}
-                                >
-                                    Copy
-                                </Button>
-                            </div>
+                            <Text className="text-estela-black-medium text-sm">
+                                Copy the key above, then run{" "}
+                                <span className="font-courier text-estela-black-full">estela set-token</span> and paste
+                                it when asked.
+                            </Text>
                         </Row>
                     )}
                     <Row className="flow-root mt-6">
