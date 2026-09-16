@@ -55,6 +55,12 @@ export interface ApiKey {
      * @memberof ApiKey
      */
     lastUsedAt?: Date | null;
+    /**
+     * Expiry date. Null only for keys issued before expiry existed.
+     * @type {Date}
+     * @memberof ApiKey
+     */
+    expiresAt?: Date | null;
 }
 
 export function ApiKeyFromJSON(json: any): ApiKey {
@@ -73,6 +79,7 @@ export function ApiKeyFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ap
         'scopes': !exists(json, 'scopes') ? undefined : json['scopes'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
         'lastUsedAt': !exists(json, 'last_used_at') ? undefined : (json['last_used_at'] === null ? null : new Date(json['last_used_at'])),
+        'expiresAt': !exists(json, 'expires_at') ? undefined : (json['expires_at'] === null ? null : new Date(json['expires_at'])),
     };
 }
 
@@ -88,6 +95,7 @@ export function ApiKeyToJSON(value?: ApiKey | null): any {
         'name': value.name,
         'prefix': value.prefix,
         'last_used_at': value.lastUsedAt === undefined ? undefined : (value.lastUsedAt === null ? null : value.lastUsedAt.toISOString()),
+        'expires_at': value.expiresAt === undefined ? undefined : (value.expiresAt === null ? null : value.expiresAt.toISOString()),
     };
 }
 

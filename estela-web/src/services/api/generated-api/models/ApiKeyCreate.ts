@@ -31,6 +31,12 @@ export interface ApiKeyCreate {
      * @memberof ApiKeyCreate
      */
     scopes?: Array<ApiKeyCreateScopesEnum>;
+    /**
+     * How long the key lasts. Omit it to get the deployment's default.
+     * @type {string}
+     * @memberof ApiKeyCreate
+     */
+    expiresInDays?: ApiKeyCreateExpiresInDaysEnum;
 }
 
 /**
@@ -40,7 +46,16 @@ export interface ApiKeyCreate {
 export enum ApiKeyCreateScopesEnum {
     Data = 'data',
     Run = 'run',
-    Deploy = 'deploy'
+    Manage = 'manage'
+}/**
+* @export
+* @enum {string}
+*/
+export enum ApiKeyCreateExpiresInDaysEnum {
+    _7 = '7',
+    _30 = '30',
+    _90 = '90',
+    _365 = '365'
 }
 
 export function ApiKeyCreateFromJSON(json: any): ApiKeyCreate {
@@ -55,6 +70,7 @@ export function ApiKeyCreateFromJSONTyped(json: any, ignoreDiscriminator: boolea
         
         'name': json['name'],
         'scopes': !exists(json, 'scopes') ? undefined : json['scopes'],
+        'expiresInDays': !exists(json, 'expires_in_days') ? undefined : json['expires_in_days'],
     };
 }
 
@@ -69,6 +85,7 @@ export function ApiKeyCreateToJSON(value?: ApiKeyCreate | null): any {
         
         'name': value.name,
         'scopes': value.scopes,
+        'expires_in_days': value.expiresInDays,
     };
 }
 

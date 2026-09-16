@@ -56,6 +56,12 @@ export interface ApiKeyCreateResponse {
      */
     lastUsedAt?: Date | null;
     /**
+     * Expiry date. Null only for keys issued before expiry existed.
+     * @type {Date}
+     * @memberof ApiKeyCreateResponse
+     */
+    expiresAt?: Date | null;
+    /**
      * The key itself. It is not stored and never shown again.
      * @type {string}
      * @memberof ApiKeyCreateResponse
@@ -79,6 +85,7 @@ export function ApiKeyCreateResponseFromJSONTyped(json: any, ignoreDiscriminator
         'scopes': !exists(json, 'scopes') ? undefined : json['scopes'],
         'created': !exists(json, 'created') ? undefined : (new Date(json['created'])),
         'lastUsedAt': !exists(json, 'last_used_at') ? undefined : (json['last_used_at'] === null ? null : new Date(json['last_used_at'])),
+        'expiresAt': !exists(json, 'expires_at') ? undefined : (json['expires_at'] === null ? null : new Date(json['expires_at'])),
         'key': !exists(json, 'key') ? undefined : json['key'],
     };
 }
@@ -95,6 +102,7 @@ export function ApiKeyCreateResponseToJSON(value?: ApiKeyCreateResponse | null):
         'name': value.name,
         'prefix': value.prefix,
         'last_used_at': value.lastUsedAt === undefined ? undefined : (value.lastUsedAt === null ? null : value.lastUsedAt.toISOString()),
+        'expires_at': value.expiresAt === undefined ? undefined : (value.expiresAt === null ? null : value.expiresAt.toISOString()),
     };
 }
 

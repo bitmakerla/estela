@@ -1,10 +1,24 @@
 import React, { Component, ReactElement } from "react";
-import { Button, Checkbox, Input, Layout, Modal, Row, Space, Table, Tag, Tooltip, Typography, message } from "antd";
+import {
+    Button,
+    Checkbox,
+    Input,
+    Layout,
+    Modal,
+    Row,
+    Select,
+    Space,
+    Table,
+    Tag,
+    Tooltip,
+    Typography,
+    message,
+} from "antd";
 import { CopyOutlined, QuestionCircleOutlined, WarningOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 import { ApiService } from "../../services";
-import { ApiKey, ApiKeyCreateScopesEnum } from "../../services/api";
+import { ApiKey, ApiKeyCreateExpiresInDaysEnum, ApiKeyCreateScopesEnum } from "../../services/api";
 import { Spin } from "../../shared";
 
 const { Content } = Layout;
@@ -12,12 +26,21 @@ const { Text } = Typography;
 
 const SCOPES = [
     { value: "data", label: "Read job data", help: "Download items, logs, requests and stats." },
-    { value: "run", label: "Run jobs", help: "Launch and stop spider jobs." },
+    { value: "run", label: "Run jobs", help: "Launch and stop jobs and cronjobs." },
+    { value: "manage", label: "Manage the project", help: "Deploy code, and create, edit or delete projects." },
+];
+
+const DURATIONS = [
+    { value: ApiKeyCreateExpiresInDaysEnum._7, label: "7 days" },
+    { value: ApiKeyCreateExpiresInDaysEnum._30, label: "30 days" },
+    { value: ApiKeyCreateExpiresInDaysEnum._90, label: "90 days" },
+    { value: ApiKeyCreateExpiresInDaysEnum._365, label: "1 year" },
 ];
 
 const FIELD_HELP = {
     name: "Where this key will be used, so you can recognise it later. For example, the DAG or the machine.",
     permissions: "Every key can list your projects, spiders and jobs. Add only what this one needs.",
+    expiry: "The key stops working on this date. Create a new one to replace it.",
 };
 
 function FieldLabel({ label, help, className }: { label: string; help: string; className?: string }) {
@@ -38,6 +61,7 @@ interface ApiKeysPageState {
     creating: boolean;
     newName: string;
     newScopes: string[];
+    newDuration: ApiKeyCreateExpiresInDaysEnum;
     createdKey: string | null;
     revoking: number | null;
 }
@@ -50,6 +74,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         creating: false,
         newName: "",
         newScopes: [],
+        newDuration: ApiKeyCreateExpiresInDaysEnum._90,
         createdKey: null,
         revoking: null,
     };
@@ -76,7 +101,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     };
 
     createKey = async (): Promise<void> => {
-        const { newName, newScopes } = this.state;
+        const { newName, newScopes, newDuration } = this.state;
         if (!newName.trim()) {
             message.error("Give the key a name so you can recognise it later.");
             return;
@@ -84,7 +109,11 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         this.setState({ creating: true });
         try {
             const created = await this.apiService.apiAccountApiKeysCreate({
-                data: { name: newName.trim(), scopes: newScopes as ApiKeyCreateScopesEnum[] },
+                data: {
+                    name: newName.trim(),
+                    scopes: newScopes as ApiKeyCreateScopesEnum[],
+                    expiresInDays: newDuration,
+                },
             });
             this.setState({ createModal: false, creating: false, createdKey: created.key ?? null });
             await this.loadKeys();
@@ -126,7 +155,12 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     };
 
     openCreateModal = (): void => {
-        this.setState({ createModal: true, newName: "", newScopes: [] });
+        this.setState({
+            createModal: true,
+            newName: "",
+            newScopes: [],
+            newDuration: ApiKeyCreateExpiresInDaysEnum._90,
+        });
     };
 
     columns = [
@@ -189,6 +223,17 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
             render: (lastUsed?: Date | null): string => this.formatDate(lastUsed),
         },
         {
+            title: "EXPIRES",
+            dataIndex: "expiresAt",
+            key: "expiresAt",
+            render: (expires?: Date | null): ReactElement => {
+                if (!expires) return <Text className="text-estela-black-medium">Never</Text>;
+                const days = Math.ceil((new Date(expires).getTime() - Date.now()) / 86400000);
+                if (days <= 0) return <Text className="text-estela-red-full">Expired</Text>;
+                return <Text className={days <= 7 ? "text-estela-red-full" : ""}>{this.formatDate(expires)}</Text>;
+            },
+        },
+        {
             title: "",
             key: "actions",
             render: (_: unknown, key: ApiKey): ReactElement => (
@@ -200,7 +245,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     ];
 
     render(): JSX.Element {
-        const { keys, loaded, createModal, creating, newName, newScopes, createdKey } = this.state;
+        const { keys, loaded, createModal, creating, newName, newScopes, newDuration, createdKey } = this.state;
 
         if (!loaded) return <Spin />;
 
@@ -278,6 +323,21 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                                 </Space>
                             </Checkbox.Group>
                         </Space>
+                    </Row>
+                    <Row className="mt-6">
+                        <FieldLabel label="Expires" help={FIELD_HELP.expiry} className="my-2 text-base" />
+                        <Select
+                            size="large"
+                            className="w-full"
+                            value={newDuration}
+                            onChange={(value) => this.setState({ newDuration: value })}
+                        >
+                            {DURATIONS.map((d) => (
+                                <Select.Option key={d.value} value={d.value}>
+                                    {d.label}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Row>
                     <Row className="flow-root mt-6">
                         <div className="flex justify-between w-full">

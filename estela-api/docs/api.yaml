@@ -1822,6 +1822,12 @@ definitions:
         type: string
         format: date-time
         x-nullable: true
+      expires_at:
+        title: Expires at
+        description: Expiry date. Null only for keys issued before expiry existed.
+        type: string
+        format: date-time
+        x-nullable: true
   ApiKeyCreate:
     required:
       - name
@@ -1841,8 +1847,17 @@ definitions:
           enum:
             - data
             - run
-            - deploy
+            - manage
         default: []
+      expires_in_days:
+        title: Expires in days
+        description: How long the key lasts. Omit it to get the deployment's default.
+        type: string
+        enum:
+          - 7
+          - 30
+          - 90
+          - 365
   ApiKeyCreateResponse:
     required:
       - name
@@ -1880,6 +1895,12 @@ definitions:
       last_used_at:
         title: Last used at
         description: Last time this key authenticated a request.
+        type: string
+        format: date-time
+        x-nullable: true
+      expires_at:
+        title: Expires at
+        description: Expiry date. Null only for keys issued before expiry existed.
         type: string
         format: date-time
         x-nullable: true
