@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, permissions, status, viewsets
@@ -39,6 +42,9 @@ class ApiKeyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         serializer = ApiKeyCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        days = serializer.validated_data.get(
+            "expires_in_days", settings.API_KEY_DEFAULT_DAYS
+        )
         plaintext, prefix, key_hash = generate_key()
         api_key = ApiKey.objects.create(
             user=request.user,
@@ -46,6 +52,7 @@ class ApiKeyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
             scopes=serializer.validated_data["scopes"],
             prefix=prefix,
             key_hash=key_hash,
+            expires_at=timezone.now() + timedelta(days=int(days)),
         )
 
         data = ApiKeySerializer(api_key).data

@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from core.models import ApiKey
@@ -11,7 +12,15 @@ class ApiKeySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiKey
-        fields = ["id", "name", "prefix", "scopes", "created", "last_used_at"]
+        fields = [
+            "id",
+            "name",
+            "prefix",
+            "scopes",
+            "created",
+            "last_used_at",
+            "expires_at",
+        ]
 
 
 class ApiKeyCreateSerializer(serializers.ModelSerializer):
@@ -22,9 +31,16 @@ class ApiKeyCreateSerializer(serializers.ModelSerializer):
         help_text="Extra permissions. Empty means read-only.",
     )
 
+    expires_in_days = serializers.ChoiceField(
+        choices=settings.API_KEY_EXPIRY_CHOICES,
+        required=False,
+        write_only=True,
+        help_text="How long the key lasts. Omit it to get the deployment's default.",
+    )
+
     class Meta:
         model = ApiKey
-        fields = ["name", "scopes"]
+        fields = ["name", "scopes", "expires_in_days"]
 
     def validate_scopes(self, value):
         return sorted(set(value))

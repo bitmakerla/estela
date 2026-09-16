@@ -50,6 +50,13 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         if api_key.revoked:
             raise exceptions.AuthenticationFailed("This API key was revoked.")
 
+        if api_key.expired:
+            raise exceptions.AuthenticationFailed(
+                "This API key expired on {}.".format(
+                    api_key.expires_at.date().isoformat()
+                )
+            )
+
         if not api_key.user.is_active:
             raise exceptions.AuthenticationFailed("User inactive or deleted.")
 
