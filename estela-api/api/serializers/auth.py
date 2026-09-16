@@ -164,9 +164,17 @@ class ResetPasswordConfirmSerializer(serializers.Serializer):
         return attrs
 
 
-class WhoAmISerializer(serializers.ModelSerializer):
-    """Just enough for a CLI to print who it is connected as."""
+class WhoAmISerializer(serializers.Serializer):
+    """Who the caller is, and what the credential in hand may do.
 
-    class Meta:
-        model = User
-        fields = ["username", "email"]
+    A key carries no username and no visible permissions, so a program holding
+    one cannot tell whether it is about to be refused until it tries.
+    """
+
+    username = serializers.CharField(read_only=True)
+    email = serializers.CharField(read_only=True)
+    scopes = serializers.ListField(
+        child=serializers.CharField(),
+        read_only=True,
+        help_text="Extra permissions of the API key used. Absent for a session.",
+    )
