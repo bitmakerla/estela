@@ -4,7 +4,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
-from api.permissions import IsAdminOrReadOnly, IsProjectUser
+from api.authentication import ApiKeyAuthentication
+from api.permissions import HasApiKeyScope, IsAdminOrReadOnly, IsProjectUser
 from core.models import Notification, Activity
 
 
@@ -17,8 +18,13 @@ class APIPageNumberPagination(PageNumberPagination):
 class BaseViewSet(viewsets.GenericViewSet):
     """A custom viewset that contains reusable customized settings."""
 
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, IsProjectUser, IsAdminOrReadOnly]
+    authentication_classes = [ApiKeyAuthentication, TokenAuthentication]
+    permission_classes = [
+        IsAuthenticated,
+        HasApiKeyScope,
+        IsProjectUser,
+        IsAdminOrReadOnly,
+    ]
     pagination_class = APIPageNumberPagination
 
 

@@ -15,7 +15,7 @@ from api.serializers.cronjob import (
     SpiderCronJobUpdateSerializer,
 )
 from core.cronjob import create_cronjob, disable_cronjob, run_cronjob_once
-from core.models import DataStatus, Spider, SpiderCronJob, Project
+from core.models import ApiKey, DataStatus, Spider, SpiderCronJob, Project
 from core.tiers import DEFAULT_TIER
 
 
@@ -27,6 +27,8 @@ class SpiderCronJobViewSet(
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,
 ):
+    api_key_write_scope = ApiKey.RUN_SCOPE
+
     model_class = SpiderCronJob
     serializer_class = SpiderCronJobSerializer
     lookup_field = "cjid"

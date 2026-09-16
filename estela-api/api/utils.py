@@ -4,11 +4,12 @@ from typing import Any, Dict, Optional, Tuple
 
 from django.conf import settings
 import redis
+from rest_framework.authtoken.models import Token
 
 from api import errors
 from api.exceptions import DataBaseError
 from config.job_manager import spiderdata_db_client
-from core.models import SpiderJobEnvVar
+from core.models import Permission, SpiderJobEnvVar
 
 
 def update_env_vars(instance, env_vars, level="project", delete=True):
@@ -309,3 +310,25 @@ def get_job_spiderdata_corpus_sizes_bytes(job) -> Optional[Tuple[int, int, int]]
         spiderdata_db_client.get_dataset_size(pid, get_collection_name(job, "logs"))
     )
     return (items_size, requests_size, logs_size)
+
+
+def get_project_owner_token(job):
+    """The project owner's DRF token, used by job containers to call back."""
+    permission = job.spider.project.permission_set.filter(
+        permission=Permission.OWNER_PERMISSION
+    ).first()
+    if not permission:
+        return None
+    token, _ = Token.objects.get_or_create(user=permission.user)
+    return token.key
+
+
+def get_job_callback_token(auth, job):
+    """An API key cannot be forwarded to the container: only its hash is stored.
+
+    So a request authenticated with one falls back to the owner's token, which is
+    what queued jobs already use.
+    """
+    if isinstance(auth, Token):
+        return auth.key
+    return get_project_owner_token(job)
