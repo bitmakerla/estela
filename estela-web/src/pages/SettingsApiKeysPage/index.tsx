@@ -65,7 +65,7 @@ interface ApiKeysPageState {
     creating: boolean;
     newName: string;
     newScopes: string[];
-    newDuration?: ApiKeyCreateExpiresInDaysEnum;
+    newDuration: ApiKeyCreateExpiresInDaysEnum;
     forCli: boolean;
     createdKey: string | null;
     revoking: number | null;
@@ -96,9 +96,8 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
             this.setState({
                 createModal: true,
                 forCli: true,
-                newName: `estela-cli @ ${AuthService.getUserUsername() ?? ""}`,
+                newName: `estela-cli@${AuthService.getUserUsername() ?? ""}`,
                 newScopes: CLI_SCOPES,
-                newDuration: undefined,
             });
         }
     }
@@ -130,7 +129,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                 data: {
                     name: newName.trim(),
                     scopes: newScopes as ApiKeyCreateScopesEnum[],
-                    ...(newDuration ? { expiresInDays: newDuration } : {}),
+                    expiresInDays: newDuration,
                 },
             });
             this.setState({ createModal: false, creating: false, createdKey: created.key ?? null });
@@ -349,22 +348,18 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                     </Row>
                     <Row className="mt-6">
                         <FieldLabel label="Expires" help={FIELD_HELP.expiry} className="my-2 text-base" />
-                        {forCli ? (
-                            <Text className="text-estela-black-medium">After this estela&apos;s default period.</Text>
-                        ) : (
-                            <Select
-                                size="large"
-                                className="w-full"
-                                value={newDuration}
-                                onChange={(value) => this.setState({ newDuration: value })}
-                            >
-                                {DURATIONS.map((d) => (
-                                    <Select.Option key={d.value} value={d.value}>
-                                        {d.label}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        )}
+                        <Select
+                            size="large"
+                            className="w-full"
+                            value={newDuration}
+                            onChange={(value) => this.setState({ newDuration: value })}
+                        >
+                            {DURATIONS.map((d) => (
+                                <Select.Option key={d.value} value={d.value}>
+                                    {d.label}
+                                </Select.Option>
+                            ))}
+                        </Select>
                     </Row>
                     <Row className="flow-root mt-6">
                         <div className="flex justify-between w-full">
