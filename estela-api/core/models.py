@@ -167,8 +167,8 @@ class ApiKey(models.Model):
 
     DATA_SCOPE = "data"
     RUN_SCOPE = "run"
-    DEPLOY_SCOPE = "deploy"
-    SCOPES = [DATA_SCOPE, RUN_SCOPE, DEPLOY_SCOPE]
+    MANAGE_SCOPE = "manage"
+    SCOPES = [DATA_SCOPE, RUN_SCOPE, MANAGE_SCOPE]
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="api_keys", help_text="Owner."
@@ -190,6 +190,9 @@ class ApiKey(models.Model):
     revoked_at = models.DateTimeField(
         null=True, blank=True, help_text="Revocation date. Null while usable."
     )
+    expires_at = models.DateTimeField(
+        null=True, blank=True, help_text="Expiry date. Null only for keys issued before expiry existed."
+    )
 
     class Meta:
         ordering = ["-created"]
@@ -197,6 +200,10 @@ class ApiKey(models.Model):
     @property
     def revoked(self):
         return self.revoked_at is not None
+
+    @property
+    def expired(self):
+        return self.expires_at is not None and self.expires_at <= timezone.now()
 
     def has_scope(self, scope):
         return scope in self.scopes

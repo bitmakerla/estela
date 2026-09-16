@@ -22,7 +22,7 @@ class DeployViewSet(
     viewsets.ModelViewSet,
     ActionHandlerMixin,
 ):
-    api_key_write_scope = ApiKey.DEPLOY_SCOPE
+    api_key_write_scope = ApiKey.MANAGE_SCOPE
 
     model_class = Deploy
     serializer_class = DeploySerializer
