@@ -162,3 +162,11 @@ class ResetPasswordConfirmSerializer(serializers.Serializer):
                 {"new_password": "New passwords do not match."}
             )
         return attrs
+
+
+class WhoAmISerializer(serializers.ModelSerializer):
+    """Just enough for a CLI to print who it is connected as."""
+
+    class Meta:
+        model = User
+        fields = ["username", "email"]
