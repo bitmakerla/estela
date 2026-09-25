@@ -70,6 +70,14 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
+                    "expires_at",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Expiry date. Null only for keys issued before expiry existed.",
+                        null=True,
+                    ),
+                ),
+                (
                     "user",
                     models.ForeignKey(
                         help_text="Owner.",
