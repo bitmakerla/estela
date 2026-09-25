@@ -171,6 +171,9 @@ import {
     UserProfile,
     UserProfileFromJSON,
     UserProfileToJSON,
+    WhoAmI,
+    WhoAmIFromJSON,
+    WhoAmIToJSON,
 } from '../models';
 
 export interface ApiAccountApiKeysCreateRequest {
@@ -1124,6 +1127,35 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiAuthRegister(requestParameters: ApiAuthRegisterRequest): Promise<Token> {
         const response = await this.apiAuthRegisterRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Who the caller is. An API key carries no username, so this is how a program finds out which account it is acting as.
+     */
+    async apiAuthWhoamiRaw(): Promise<runtime.ApiResponse<WhoAmI>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/auth/whoami`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => WhoAmIFromJSON(jsonValue));
+    }
+
+    /**
+     * Who the caller is. An API key carries no username, so this is how a program finds out which account it is acting as.
+     */
+    async apiAuthWhoami(): Promise<WhoAmI> {
+        const response = await this.apiAuthWhoamiRaw();
         return await response.value();
     }
 

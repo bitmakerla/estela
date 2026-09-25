@@ -66,3 +66,4 @@ export * from './UsageRecord';
 export * from './User';
 export * from './UserDetail';
 export * from './UserProfile';
+export * from './WhoAmI';
