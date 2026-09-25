@@ -226,6 +226,11 @@ STATIC_ROOT = "/static/"
 MAX_CLI_DOWNLOAD_CHUNK_SIZE = env("MAX_CLI_DOWNLOAD_CHUNK_MB") * 1024 * 1024
 MAX_WEB_DOWNLOAD_SIZE = env("MAX_WEB_DOWNLOAD_SIZE_MB") * 1024 * 1024
 
+# API keys. The default is what a request that omits a duration gets, so changing
+# it here changes what estela-cli hands out without touching estela-cli.
+API_KEY_EXPIRY_CHOICES = [7, 30, 90, 365]
+API_KEY_DEFAULT_DAYS = 90
+
 # Pagination settings used in api_app
 API_PAGE_SIZE = 100  # Paginator page size
 API_MAX_PAGE_SIZE = 100  # Maximum allowable requested page size

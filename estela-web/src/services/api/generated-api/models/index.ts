@@ -1,4 +1,7 @@
 export * from './Activity';
+export * from './ApiKey';
+export * from './ApiKeyCreate';
+export * from './ApiKeyCreateResponse';
 export * from './AuthToken';
 export * from './ChangePassword';
 export * from './CoverageStats';
