@@ -322,6 +322,21 @@ paths:
       tags:
         - api
     parameters: []
+  /api/auth/whoami:
+    get:
+      operationId: api_auth_whoami
+      description: |-
+        Who the caller is. An API key carries no username, so this is how a
+        program finds out which account it is acting as.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/WhoAmI'
+      tags:
+        - api
+    parameters: []
   /api/notifications:
     get:
       operationId: api_notifications_list
@@ -2076,6 +2091,26 @@ definitions:
       recaptcha_token:
         title: Recaptcha token
         type: string
+  WhoAmI:
+    type: object
+    properties:
+      username:
+        title: Username
+        type: string
+        readOnly: true
+        minLength: 1
+      email:
+        title: Email
+        type: string
+        readOnly: true
+        minLength: 1
+      scopes:
+        description: Extra permissions of the API key used. Absent for a session.
+        type: array
+        items:
+          type: string
+          minLength: 1
+        readOnly: true
   ProjectDetail:
     description: Project where the activity was performed.
     type: object

@@ -17,7 +17,7 @@ import {
 import { CopyOutlined, QuestionCircleOutlined, WarningOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
-import { ApiService } from "../../services";
+import { ApiService, AuthService } from "../../services";
 import { ApiKey, ApiKeyCreateExpiresInDaysEnum, ApiKeyCreateScopesEnum } from "../../services/api";
 import { Spin } from "../../shared";
 
@@ -36,6 +36,10 @@ const DURATIONS = [
     { value: ApiKeyCreateExpiresInDaysEnum._90, label: "90 days" },
     { value: ApiKeyCreateExpiresInDaysEnum._365, label: "1 year" },
 ];
+
+// estela-cli sends people here with ?cli=1. It needs everything except reading
+// job data is optional — it deploys, runs jobs and manages the project.
+const CLI_SCOPES = ["data", "run", "manage"];
 
 const FIELD_HELP = {
     name: "Where this key will be used, so you can recognise it later. For example, the DAG or the machine.",
@@ -62,6 +66,7 @@ interface ApiKeysPageState {
     newName: string;
     newScopes: string[];
     newDuration: ApiKeyCreateExpiresInDaysEnum;
+    forCli: boolean;
     createdKey: string | null;
     revoking: number | null;
 }
@@ -75,6 +80,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         newName: "",
         newScopes: [],
         newDuration: ApiKeyCreateExpiresInDaysEnum._90,
+        forCli: false,
         createdKey: null,
         revoking: null,
     };
@@ -83,6 +89,17 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
 
     async componentDidMount(): Promise<void> {
         await this.loadKeys();
+        if (new URLSearchParams(window.location.search).get("cli") === "1") {
+            // Prefilled, never created on arrival: a link someone sends you must not
+            // mint a key by itself. The duration is left out so the key inherits
+            // whatever default this deployment sets.
+            this.setState({
+                createModal: true,
+                forCli: true,
+                newName: `estela-cli@${AuthService.getUserUsername() ?? ""}`,
+                newScopes: CLI_SCOPES,
+            });
+        }
     }
 
     loadKeys = async (): Promise<void> => {
@@ -157,6 +174,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     openCreateModal = (): void => {
         this.setState({
             createModal: true,
+            forCli: false,
             newName: "",
             newScopes: [],
             newDuration: ApiKeyCreateExpiresInDaysEnum._90,
@@ -245,7 +263,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     ];
 
     render(): JSX.Element {
-        const { keys, loaded, createModal, creating, newName, newScopes, newDuration, createdKey } = this.state;
+        const { keys, loaded, createModal, creating, newName, newScopes, newDuration, forCli, createdKey } = this.state;
 
         if (!loaded) return <Spin />;
 
@@ -284,7 +302,11 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                     style={{ overflow: "hidden", padding: 0 }}
                     open={createModal}
                     width={700}
-                    title={<p className="text-xl text-center font-normal">NEW API KEY</p>}
+                    title={
+                        <p className="text-xl text-center font-normal">
+                            {forCli ? "NEW KEY FOR ESTELA-CLI" : "NEW API KEY"}
+                        </p>
+                    }
                     footer={null}
                     onCancel={() => this.setState({ createModal: false })}
                 >
@@ -386,6 +408,15 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                             Copy
                         </Button>
                     </Row>
+                    {forCli && (
+                        <Row className="mt-4">
+                            <Text className="text-estela-black-medium text-sm">
+                                Copy the key above, then run{" "}
+                                <span className="font-courier text-estela-black-full">estela set-token</span> and paste
+                                it when asked.
+                            </Text>
+                        </Row>
+                    )}
                     <Row className="flow-root mt-6">
                         <div className="flex justify-end w-full">
                             <Button

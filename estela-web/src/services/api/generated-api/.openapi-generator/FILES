@@ -70,5 +70,6 @@ models/UsageRecord.ts
 models/User.ts
 models/UserDetail.ts
 models/UserProfile.ts
+models/WhoAmI.ts
 models/index.ts
 runtime.ts
