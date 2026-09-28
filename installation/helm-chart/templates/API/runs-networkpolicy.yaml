@@ -1,0 +1,62 @@
+{{- /*
+Spiders and builds run code estela did not write, so they are fenced in. Out of the cluster
+they reach DNS, estela's API (to report with their run token), estela's Redis (stats) and the
+internet (what spiders scrape, what builds install). Nothing else: not the gateway or its
+sessions, not the identity provider, not another product, not the cloud metadata service.
+
+Anything a run legitimately needs on a private address (the local docker-compose services,
+a database inside the VPC) goes in runsAllowedPrivateCIDRs. Nothing needs to reach a run, so
+all ingress is denied.
+
+Needs a CNI that enforces NetworkPolicy (Calico, Cilium; k3s's default does). On one that
+does not, this is silently ignored.
+*/}}
+{{- if ne .Values.runsNetworkPolicy false }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: estela-runs
+spec:
+  podSelector:
+    matchExpressions:
+      - key: estela.run
+        operator: Exists
+  policyTypes: [Ingress, Egress]
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: estela-django-api
+      ports:
+        - {protocol: TCP, port: 8000}
+    - to:
+        - podSelector:
+            matchLabels:
+              app: estela-redis
+      ports:
+        - {protocol: TCP, port: 6379}
+    {{- with .Values.runsAllowedPrivateCIDRs }}
+    - to:
+        {{- range . }}
+        - ipBlock:
+            cidr: {{ . }}
+        {{- end }}
+    {{- end }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
+{{- end }}

@@ -85,10 +85,19 @@ EMAIL_HOST_USER: ""
 EMAIL_HOST_PASSWORD: ""
 EMAILS_TO_ALERT: ""
 VERIFICATION_EMAIL: ""
-REGISTER: "" # "True"
 
 EMAIL_BACKEND: "" # Set to django.core.mail.backends.console.EmailBackend to print emails in the
-RECAPTCHA_SECRET_KEY: ""
+# The identity provider the gateway signs people in against, exactly as the browser sees it,
+# and the gateway's client id there. zitadel/local/bootstrap.sh prints both locally.
+OIDC_ISSUER: "" # http://192.168.49.2:30080
+OIDC_AUDIENCE: ""
+# Signing key of the provider's identity-events target (zitadel/local/bootstrap.sh prints it).
+IDENTITY_EVENTS_SIGNING_KEY: ""
+
+# Spiders and builds can only reach estela's API and Redis, DNS and the internet
+# (templates/API/runs-networkpolicy.yaml). Private addresses they need go here.
+runsNetworkPolicy: true
+runsAllowedPrivateCIDRs: [] # local docker-compose services: ["<hostIp>/32"]
 
 # Data Downloads
 MAX_CLI_DOWNLOAD_CHUNK_MB: "2"

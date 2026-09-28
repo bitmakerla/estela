@@ -46,7 +46,11 @@ class KubernetesEngine:
         body.status = client.V1JobStatus()
 
         template = client.V1PodTemplate()
-        template.template = client.V1PodTemplateSpec()
+        # Code estela did not write runs here (spiders, and the builds that install their
+        # requirements). The label is what the chart's NetworkPolicy fences in.
+        template.template = client.V1PodTemplateSpec(
+            metadata=client.V1ObjectMeta(labels={"estela.run": "build" if isbuild else "spider"})
+        )
 
         env_list = []
         for env_name, env_value in env_vars.items():
