@@ -4,7 +4,7 @@ import secrets
 from django.utils import timezone
 from rest_framework import authentication, exceptions
 
-from core.models import ApiKey
+from core.models import ApiKey, RunToken
 
 KEYWORD = "Token"
 LAST_USED_RESOLUTION = 300
@@ -20,6 +20,18 @@ def hash_key(plaintext):
     return hashlib.sha256(plaintext.encode()).hexdigest()
 
 
+def token_with_prefix(request, prefix):
+    """The `Authorization: Token <value>` value if it starts with prefix, else None."""
+    header = authentication.get_authorization_header(request).split()
+    if len(header) != 2 or header[0].decode().lower() != KEYWORD.lower():
+        return None
+    try:
+        plaintext = header[1].decode()
+    except UnicodeError:
+        return None
+    return plaintext if plaintext.startswith(prefix) else None
+
+
 class ApiKeyAuthentication(authentication.BaseAuthentication):
     """Authenticates `Authorization: Token estela_...`.
 
@@ -28,16 +40,8 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     """
 
     def authenticate(self, request):
-        header = authentication.get_authorization_header(request).split()
-        if len(header) != 2 or header[0].decode().lower() != KEYWORD.lower():
-            return None
-
-        try:
-            plaintext = header[1].decode()
-        except UnicodeError:
-            return None
-
-        if not plaintext.startswith(ApiKey.KEY_PREFIX):
+        plaintext = token_with_prefix(request, ApiKey.KEY_PREFIX)
+        if plaintext is None:
             return None
 
         try:
@@ -79,3 +83,43 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
     def authenticate_header(self, request):
         return KEYWORD
+
+
+def issue_run_token(user, job=None, deploy=None):
+    """A token for one job's or one deploy's container. Returns the plaintext, which goes
+    into the container and is never stored."""
+    plaintext = RunToken.KEY_PREFIX + secrets.token_urlsafe(32)
+    RunToken.objects.create(key_hash=hash_key(plaintext), user=user, job=job, deploy=deploy)
+    return plaintext
+
+
+class RunTokenAuthentication(authentication.BaseAuthentication):
+    """Authenticates `Authorization: Token estela-run_...`, what a job or deploy container
+    reports back with. Only the two views a run reports to list it (RUN_AUTHENTICATION_CLASSES);
+    anywhere else the token is not recognised at all, and api.permissions.IsOwnRun keeps it
+    to its own job or deploy."""
+
+    def authenticate(self, request):
+        plaintext = token_with_prefix(request, RunToken.KEY_PREFIX)
+        if plaintext is None:
+            return None
+        run_token = (
+            RunToken.objects.select_related("user", "job", "deploy")
+            .filter(key_hash=hash_key(plaintext))
+            .first()
+        )
+        if run_token is None or run_token.run_is_over:
+            raise exceptions.AuthenticationFailed("This run token is not valid any more.")
+        return (run_token.user, run_token)
+
+    def authenticate_header(self, request):
+        return KEYWORD
+
+
+# The job and deploy endpoints, which a run's container also reports to. RunToken goes before
+# DRF's class, which would otherwise reject its `Token estela-run_...` as an unknown token.
+RUN_AUTHENTICATION_CLASSES = [
+    ApiKeyAuthentication,
+    RunTokenAuthentication,
+    authentication.TokenAuthentication,
+]

@@ -3,7 +3,7 @@ import uuid
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import User
 
-from core.models import ApiKey, Project, Permission
+from core.models import ApiKey, Project, Permission, RunToken
 
 
 class HasApiKeyScope(BasePermission):
@@ -26,6 +26,26 @@ class HasApiKeyScope(BasePermission):
 
         required = getattr(view, "api_key_write_scope", None)
         return required is not None and api_key.has_scope(required)
+
+
+class IsOwnRun(BasePermission):
+    """A run token updates exactly one thing: its own job or deploy.
+
+    A view opts in by naming which of its URL arguments identifies the run, e.g.
+    `run_token_target = ("job", "jid")`. Everything else refuses run tokens.
+    """
+
+    message = "A run token only updates its own job or deploy."
+
+    def has_permission(self, request, view):
+        run_token = request.auth
+        if not isinstance(run_token, RunToken):
+            return True
+        target = getattr(view, "run_token_target", None)
+        if target is None or request.method not in ("PUT", "PATCH"):
+            return False
+        field, url_kwarg = target
+        return str(getattr(run_token, f"{field}_id")) == str(view.kwargs.get(url_kwarg))
 
 
 class IsSessionAuthenticated(BasePermission):
