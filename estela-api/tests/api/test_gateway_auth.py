@@ -95,3 +95,14 @@ class GatewayAuthTest(APITestCase):
         self.assertEqual(refused.status_code, 401)
         self.assertEqual(refused.json()["code"], "reauthenticate")
         self.assertEqual(self.whoami(token(auth_time=now + 1)).status_code, 200)
+
+    def test_writes_from_another_site_are_refused(self):
+        bearer = f"Bearer {token()}"
+        refused = self.client.post(
+            "/api/projects", HTTP_AUTHORIZATION=bearer, HTTP_SEC_FETCH_SITE="same-site"
+        )
+        self.assertEqual(refused.status_code, 403)
+        read = self.client.get(
+            "/api/auth/whoami", HTTP_AUTHORIZATION=bearer, HTTP_SEC_FETCH_SITE="same-site"
+        )
+        self.assertEqual(read.status_code, 200)

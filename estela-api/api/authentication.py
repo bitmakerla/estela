@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import authentication, exceptions
+from rest_framework.permissions import SAFE_METHODS
 
 from core.models import ApiKey, RunToken, UserProfile
 
@@ -167,6 +168,11 @@ class GatewayJWTAuthentication(authentication.BaseAuthentication):
         header = authentication.get_authorization_header(request).split()
         if len(header) != 2 or header[0].lower() != b"bearer" or not settings.OIDC_ISSUER:
             return None
+        # The gateway's cookie is on the parent domain, so a page on any sibling subdomain can
+        # make the browser send it along with a form. Browsers say where a request comes from.
+        site = request.headers.get("Sec-Fetch-Site", "same-origin")
+        if request.method not in SAFE_METHODS and site != "same-origin":
+            raise exceptions.PermissionDenied("Requests from other sites cannot change anything.")
 
         token = header[1].decode(errors="replace")
         try:
