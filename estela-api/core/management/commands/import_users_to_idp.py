@@ -15,7 +15,8 @@ Safe to run again: a person who already exists in Zitadel (same username) is onl
     echo "$PAT" | python manage.py import_users_to_idp --issuer https://auth.example --dry-run
     echo "$PAT" | python manage.py import_users_to_idp --issuer https://auth.example
 
-The token is read from stdin (or ZITADEL_PAT) so it never shows up in the process list.
+The token is read from stdin (or ZITADEL_PAT) so it never shows up in the process list. It can
+be a PAT or the JWT of a system user with IAM_OWNER, such as the one bootstrap.sh signs.
 """
 
 import base64
@@ -66,6 +67,12 @@ class Command(BaseCommand):
         self.api = requests.Session()
         self.api.headers["Authorization"] = f"Bearer {token}"
         self.issuer = issuer.rstrip("/")
+        # Users are created inside one organization. A PAT's machine user belongs to one; a
+        # system user signing with its key belongs to none, so name it on every call.
+        org = self.api.get(f"{self.issuer}/admin/v1/orgs/default", timeout=15)
+        if not org.ok:
+            raise CommandError(f"Cannot read the default organization: {org.status_code} {org.text[:200]}")
+        self.api.headers["x-zitadel-orgid"] = org.json()["org"]["id"]
 
         self.stdout.write(f"{'usuario':18} {'acción':22} {'contraseña':14} {'activo':7} proyectos")
         for user in User.objects.select_related("profile").order_by("id"):
