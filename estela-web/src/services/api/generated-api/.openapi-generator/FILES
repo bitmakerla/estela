@@ -3,6 +3,9 @@ apis/ApiApi.ts
 apis/index.ts
 index.ts
 models/Activity.ts
+models/ApiKey.ts
+models/ApiKeyCreate.ts
+models/ApiKeyCreateResponse.ts
 models/AuthToken.ts
 models/ChangePassword.ts
 models/CoverageStats.ts

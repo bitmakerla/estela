@@ -8,11 +8,11 @@ from celery import chain
 from celery.exceptions import TaskError
 from django.conf import settings
 from django.utils import timezone
-from rest_framework.authtoken.models import Token
 
 from api.serializers.job import SpiderJobCreateSerializer
 from api.utils import (
     delete_stats_from_redis,
+    get_project_owner_token,
     get_proxy_provider_envs,
     update_stats_from_redis,
 )
@@ -48,16 +48,6 @@ import redis
 from kubernetes import client, config
 
 WORKERS_CAPACITY_THRESHOLD = settings.WORKERS_CAPACITY_THRESHOLD
-
-def get_default_token(job):
-    permission = job.spider.project.permission_set.filter(
-        permission=Permission.OWNER_PERMISSION
-    ).first()
-    if not permission:
-        return None
-    token, _ = Token.objects.get_or_create(user=permission.user)
-    return token.key
-
 
 RUN_SPIDER_JOBS_LOCK_KEY = "estela:run_spider_jobs:lock"
 RUN_SPIDER_JOBS_LOCK_TIMEOUT = 120
@@ -177,7 +167,7 @@ def _dispatch_single_job(job):
         collection = "scj{}".format(job.cronjob.key)
         unique = True
 
-    token = get_default_token(job)
+    token = get_project_owner_token(job)
 
     job_manager.create_job(
         job.name,

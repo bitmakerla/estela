@@ -15,7 +15,7 @@ from api.exceptions import DataBaseError
 from api.mixins import BaseViewSet
 from api.utils import get_collection_name
 from config.job_manager import spiderdata_db_client
-from core.models import SpiderJob
+from core.models import ApiKey, SpiderJob
 from core.tasks import get_chain_to_process_usage_data
 
 
@@ -23,6 +23,8 @@ class JobDataViewSet(
     BaseViewSet,
     mixins.ListModelMixin,
 ):
+    api_key_read_scope = ApiKey.DATA_SCOPE
+
     MAX_PAGINATION_SIZE = 100
     MIN_PAGINATION_SIZE = 1
     DEFAULT_PAGINATION_SIZE = 50

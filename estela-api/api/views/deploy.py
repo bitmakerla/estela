@@ -13,7 +13,7 @@ from api.serializers.deploy import (
     DeployUpdateSerializer,
 )
 from config.job_manager import credentials, spiderdata_db_client
-from core.models import Deploy, Project
+from core.models import ApiKey, Deploy, Project
 from core.views import launch_deploy_job
 
 
@@ -22,6 +22,8 @@ class DeployViewSet(
     viewsets.ModelViewSet,
     ActionHandlerMixin,
 ):
+    api_key_write_scope = ApiKey.MANAGE_SCOPE
+
     model_class = Deploy
     serializer_class = DeploySerializer
     lookup_field = "did"

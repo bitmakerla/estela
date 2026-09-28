@@ -29,6 +29,16 @@ export const ProfileSettingsSideNav: React.FC<ProfileSettingsSideNavPropsInterfa
                     ),
                 },
                 {
+                    key: "apiKeys",
+                    label: (
+                        <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
+                            <Link to={`/settings/apiKeys`} onClick={() => updatePath("apiKeys")}>
+                                API keys
+                            </Link>
+                        </Content>
+                    ),
+                },
+                {
                     key: "password",
                     label: (
                         <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">

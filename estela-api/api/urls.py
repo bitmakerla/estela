@@ -12,6 +12,7 @@ from api.views import (
     notification as notification_views,
     proxyprovider as proxyprovider_views,
     metering as metering_views,
+    apikey as apikey_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -63,6 +64,11 @@ router.register(
 router.register(
     prefix=r"proxy_provider",
     viewset=proxyprovider_views.ProxyProviderViewSet,
+)
+router.register(
+    prefix=r"account/api-keys",
+    viewset=apikey_views.ApiKeyViewSet,
+    basename="api-key",
 )
 router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="auth")
 router.register(

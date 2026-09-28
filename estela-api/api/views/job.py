@@ -14,9 +14,13 @@ from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
-from api.utils import get_proxy_provider_envs, update_stats_from_redis
+from api.utils import (
+    get_job_callback_token,
+    get_proxy_provider_envs,
+    update_stats_from_redis,
+)
 from config.job_manager import job_manager, spiderdata_db_client
-from core.models import DataStatus, Project, ProxyProvider, Spider, SpiderJob
+from core.models import ApiKey, DataStatus, Project, ProxyProvider, Spider, SpiderJob
 from core.tiers import DEFAULT_TIER
 
 
@@ -28,6 +32,8 @@ class SpiderJobViewSet(
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,
 ):
+    api_key_write_scope = ApiKey.RUN_SCOPE
+
     model_class = SpiderJob
     queryset = SpiderJob.objects.all()
     serializer_class = SpiderJobSerializer
@@ -140,7 +146,7 @@ class SpiderJobViewSet(
                         }
                     )
 
-            token = request.auth.key if request.auth else None
+            token = get_job_callback_token(request.auth, job)
             job_manager.create_job(
                 job.name,
                 job.key,

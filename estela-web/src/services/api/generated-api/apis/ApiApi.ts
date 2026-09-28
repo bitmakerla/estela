@@ -15,6 +15,15 @@
 
 import * as runtime from '../runtime';
 import {
+    ApiKey,
+    ApiKeyFromJSON,
+    ApiKeyToJSON,
+    ApiKeyCreate,
+    ApiKeyCreateFromJSON,
+    ApiKeyCreateToJSON,
+    ApiKeyCreateResponse,
+    ApiKeyCreateResponseFromJSON,
+    ApiKeyCreateResponseToJSON,
     AuthToken,
     AuthTokenFromJSON,
     AuthTokenToJSON,
@@ -163,6 +172,14 @@ import {
     UserProfileFromJSON,
     UserProfileToJSON,
 } from '../models';
+
+export interface ApiAccountApiKeysCreateRequest {
+    data: ApiKeyCreate;
+}
+
+export interface ApiAccountApiKeysDeleteRequest {
+    id: string;
+}
 
 export interface ApiAccountChangePasswordChangeRequest {
     data: ChangePassword;
@@ -552,6 +569,109 @@ export interface ApiV1MeteringReportRequest {
  * 
  */
 export class ApiApi extends runtime.BaseAPI {
+
+    /**
+     * ApiKeyAuthentication is listed so a request made with a key is recognised and then refused by IsSessionAuthenticated: a leaked key must not be able to mint more keys.
+     * Manage the caller\'s own API keys.
+     */
+    async apiAccountApiKeysCreateRaw(requestParameters: ApiAccountApiKeysCreateRequest): Promise<runtime.ApiResponse<ApiKeyCreateResponse>> {
+        if (requestParameters.data === null || requestParameters.data === undefined) {
+            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAccountApiKeysCreate.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/account/api-keys`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ApiKeyCreateToJSON(requestParameters.data),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApiKeyCreateResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * ApiKeyAuthentication is listed so a request made with a key is recognised and then refused by IsSessionAuthenticated: a leaked key must not be able to mint more keys.
+     * Manage the caller\'s own API keys.
+     */
+    async apiAccountApiKeysCreate(requestParameters: ApiAccountApiKeysCreateRequest): Promise<ApiKeyCreateResponse> {
+        const response = await this.apiAccountApiKeysCreateRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * ApiKeyAuthentication is listed so a request made with a key is recognised and then refused by IsSessionAuthenticated: a leaked key must not be able to mint more keys.
+     * Manage the caller\'s own API keys.
+     */
+    async apiAccountApiKeysDeleteRaw(requestParameters: ApiAccountApiKeysDeleteRequest): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling apiAccountApiKeysDelete.');
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/account/api-keys/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * ApiKeyAuthentication is listed so a request made with a key is recognised and then refused by IsSessionAuthenticated: a leaked key must not be able to mint more keys.
+     * Manage the caller\'s own API keys.
+     */
+    async apiAccountApiKeysDelete(requestParameters: ApiAccountApiKeysDeleteRequest): Promise<void> {
+        await this.apiAccountApiKeysDeleteRaw(requestParameters);
+    }
+
+    /**
+     * ApiKeyAuthentication is listed so a request made with a key is recognised and then refused by IsSessionAuthenticated: a leaked key must not be able to mint more keys.
+     * Manage the caller\'s own API keys.
+     */
+    async apiAccountApiKeysListRaw(): Promise<runtime.ApiResponse<Array<ApiKey>>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/account/api-keys`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(ApiKeyFromJSON));
+    }
+
+    /**
+     * ApiKeyAuthentication is listed so a request made with a key is recognised and then refused by IsSessionAuthenticated: a leaked key must not be able to mint more keys.
+     * Manage the caller\'s own API keys.
+     */
+    async apiAccountApiKeysList(): Promise<Array<ApiKey>> {
+        const response = await this.apiAccountApiKeysListRaw();
+        return await response.value();
+    }
 
     /**
      */

@@ -26,6 +26,7 @@ from api.serializers.project import (
 from api.utils import update_env_vars, update_stats_from_redis
 from core.models import (
     Activity,
+    ApiKey,
     DataStatus,
     Permission,
     Project,
@@ -40,6 +41,8 @@ from core.utils import parse_memory_to_mi
 
 
 class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
+    api_key_write_scope = ApiKey.MANAGE_SCOPE
+
     model_class = Project
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer

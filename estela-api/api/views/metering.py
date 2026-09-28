@@ -5,7 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.permissions import CanReportMeteringForProject
+from api.authentication import ApiKeyAuthentication
+from api.permissions import CanReportMeteringForProject, HasApiKeyScope
 from api.serializers.metering import (
     MeteringReportResponseSerializer,
     MeteringReportSerializer,
@@ -16,8 +17,12 @@ from core.metering.report import ingest_metered_usage_report
 class MeteringReportViewSet(viewsets.GenericViewSet):
     """Control-plane ingest for append-only metered usage facts."""
 
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, CanReportMeteringForProject]
+    authentication_classes = [ApiKeyAuthentication, TokenAuthentication]
+    permission_classes = [
+        IsAuthenticated,
+        HasApiKeyScope,
+        CanReportMeteringForProject,
+    ]
     serializer_class = MeteringReportSerializer
 
     @swagger_auto_schema(
