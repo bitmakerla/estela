@@ -1,19 +1,16 @@
 import React, { Component } from "react";
 import { UserContext, UserContextProps } from "../../context";
-import { Button, Layout, Space, Row, Col, Input, Form, Modal, Typography } from "antd";
-import type { FormInstance } from "antd/es/form/Form";
+import { Button, Layout, Space, Row, Input, Form } from "antd";
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthProfileUpdateRequest, UserProfile } from "../../services/api";
 import { invalidDataNotification, Spin } from "../../shared";
 
 const { Content } = Layout;
-const { Text } = Typography;
 
 interface ProfileSettingsPageState {
     loaded: boolean;
     updatedProfile: boolean;
-    showPasswordModal: boolean;
     username: string;
     email: string;
 }
@@ -22,18 +19,12 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
     state: ProfileSettingsPageState = {
         loaded: false,
         updatedProfile: false,
-        showPasswordModal: false,
         username: "Loading...",
         email: "Loading...",
     };
 
     static contextType = UserContext;
     apiService = ApiService();
-    passwordFormRef = React.createRef<
-        FormInstance<{
-            password: string;
-        }>
-    >();
 
     async componentDidMount(): Promise<void> {
         this.setProfileData();
@@ -62,12 +53,8 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
     };
 
     onFinishProfileFormHandler = (): void => {
-        this.setState({ showPasswordModal: true });
-    };
-
-    onFinishPasswordFormHandler = ({ password }: { password: string }): void => {
         const { username, email } = this.state;
-        const newUserProfileData: UserProfile = { username: username, email: email, password: password };
+        const newUserProfileData: UserProfile = { username: username, email: email };
         const requestParams: ApiAuthProfileUpdateRequest = { username: this.getUsername(), data: newUserProfileData };
         this.apiService.apiAuthProfileUpdate(requestParams).then(
             (user: UserProfile) => {
@@ -76,8 +63,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                 updateEmail(user.email);
                 AuthService.setUserUsername(user.username);
                 AuthService.setUserEmail(user.email);
-                this.passwordFormRef.current?.resetFields();
-                this.setState({ showPasswordModal: false, updatedProfile: false });
+                this.setState({ updatedProfile: false });
             },
             async (error) => {
                 try {
@@ -93,7 +79,7 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
     };
 
     render(): JSX.Element {
-        const { username, email, loaded, updatedProfile, showPasswordModal } = this.state;
+        const { username, email, loaded, updatedProfile } = this.state;
         return (
             <>
                 {loaded ? (
@@ -103,61 +89,6 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
                                 <p className="text-3xl">Profile settings</p>
                             </div>
                         </Row>
-                        <Modal
-                            open={showPasswordModal}
-                            footer={false}
-                            width={600}
-                            title={
-                                <p className="text-xl text-center text-estela-black-medium font-normal">
-                                    CONFIRM ACTION
-                                </p>
-                            }
-                            onCancel={() => {
-                                this.setState({ showPasswordModal: false });
-                            }}
-                        >
-                            <div className="p-2 grid justify-items-center">
-                                <Text className="text-estela-black-full text-base">
-                                    Enter your password to save your changes.
-                                </Text>
-                            </div>
-                            <div className="py-4 px-8">
-                                <Form
-                                    labelCol={{ span: 24 }}
-                                    wrapperCol={{ span: 24 }}
-                                    onFinish={this.onFinishPasswordFormHandler}
-                                    ref={this.passwordFormRef}
-                                >
-                                    <Form.Item
-                                        label={<p className="text-estela-black-full text-base">Password</p>}
-                                        name="password"
-                                        rules={[{ required: true, message: "Please input your Password!" }]}
-                                    >
-                                        <Input className="input_profile" type="password" />
-                                    </Form.Item>
-                                    <Row className="mt-4 grid grid-cols-2 gap-2" align="middle" justify="center">
-                                        <Col>
-                                            <Button
-                                                size="large"
-                                                className="w-full h-12 items-center stroke-white border-estela hover:stroke-estela bg-estela text-white hover:text-estela text-sm hover:border-estela rounded-md"
-                                                htmlType="submit"
-                                            >
-                                                Confirm
-                                            </Button>
-                                        </Col>
-                                        <Col>
-                                            <Button
-                                                size="large"
-                                                className="w-full h-12 ml-1 bg-white text-estela-blue-full border-estela-blue-full hover:text-estela-blue-full hover:border-estela-blue-full hover:bg-estela-blue-low rounded-lg"
-                                                onClick={() => this.setState({ showPasswordModal: false })}
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </Col>
-                                    </Row>
-                                </Form>
-                            </div>
-                        </Modal>
                         <Form
                             labelCol={{ span: 24 }}
                             wrapperCol={{ span: 24 }}
