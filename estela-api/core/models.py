@@ -783,3 +783,43 @@ class ProxyProvider(models.Model):
         return self.name
 
 
+
+
+class RunToken(models.Model):
+    """What a job's or a deploy's container reports back with. One per run: it reaches only
+    that run's own endpoint, and stops working as soon as the run is over. Only the hash is
+    stored.
+
+    It replaces handing the container a person's DRF token, which never expires and can do
+    anything that person can.
+    """
+
+    # A hyphen, not the API keys' underscore, so nothing that tells API keys apart by their
+    # `estela_` prefix (ApiKeyAuthentication, a proxy rule) can mistake one for the other.
+    KEY_PREFIX = "estela-run_"
+
+    key_hash = models.CharField(max_length=64, unique=True, help_text="SHA-256 of the token.")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, help_text="Who the run acts as."
+    )
+    job = models.ForeignKey(
+        SpiderJob, null=True, blank=True, on_delete=models.CASCADE, related_name="run_tokens"
+    )
+    deploy = models.ForeignKey(
+        Deploy, null=True, blank=True, on_delete=models.CASCADE, related_name="run_tokens"
+    )
+    created = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def run_is_over(self):
+        if self.job_id:
+            return self.job.status in (
+                SpiderJob.COMPLETED_STATUS,
+                SpiderJob.ERROR_STATUS,
+                SpiderJob.STOPPED_STATUS,
+            )
+        return self.deploy.status in (
+            Deploy.SUCCESS_STATUS,
+            Deploy.FAILURE_STATUS,
+            Deploy.CANCELED_STATUS,
+        )
