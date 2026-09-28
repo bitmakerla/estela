@@ -75,143 +75,6 @@ paths:
         in: path
         required: true
         type: string
-  /api/account/changePassword/change:
-    patch:
-      operationId: api_account_changePassword_change
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ChangePassword'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Token'
-      tags:
-        - api
-    parameters: []
-  /api/account/resetPassword/confirm:
-    patch:
-      operationId: api_account_resetPassword_confirm
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ResetPasswordConfirm'
-        - name: token
-          in: query
-          description: Token
-          required: true
-          type: string
-        - name: pair
-          in: query
-          description: Pair
-          required: true
-          type: string
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Token'
-        '401':
-          description: ''
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-      tags:
-        - api
-    parameters: []
-  /api/account/resetPassword/request:
-    post:
-      operationId: api_account_resetPassword_request
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/ResetPasswordRequest'
-      responses:
-        '201':
-          description: ''
-          schema:
-            $ref: '#/definitions/ResetPasswordRequest'
-      tags:
-        - api
-    parameters: []
-  /api/account/resetPassword/validate:
-    get:
-      operationId: api_account_resetPassword_validate
-      description: ''
-      parameters:
-        - name: token
-          in: query
-          description: Token
-          required: true
-          type: string
-        - name: pair
-          in: query
-          description: Pair
-          required: true
-          type: string
-      responses:
-        '200':
-          description: ''
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-        '400':
-          description: ''
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-      tags:
-        - api
-    parameters: []
-  /api/auth/activate:
-    get:
-      operationId: api_auth_activate
-      description: ''
-      parameters: []
-      responses:
-        '200':
-          description: ''
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/AuthToken'
-      tags:
-        - api
-    parameters: []
-  /api/auth/login:
-    post:
-      operationId: api_auth_login
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/Login'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Token'
-      tags:
-        - api
-    parameters: []
   /api/auth/profile:
     get:
       operationId: api_auth_profile_list
@@ -304,36 +167,29 @@ paths:
         required: true
         type: string
         pattern: ^[\w.@+-]+$
-  /api/auth/register:
-    post:
-      operationId: api_auth_register
-      description: ''
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/User'
-      responses:
-        '200':
-          description: ''
-          schema:
-            $ref: '#/definitions/Token'
-      tags:
-        - api
-    parameters: []
   /api/auth/whoami:
     get:
       operationId: api_auth_whoami
       description: |-
-        Who the caller is. An API key carries no username, so this is how a
-        program finds out which account it is acting as.
+        Who the caller is. The web asks this to learn who signed in, and a program asks it
+        because an API key carries no username.
       parameters: []
       responses:
         '200':
           description: ''
           schema:
             $ref: '#/definitions/WhoAmI'
+      tags:
+        - api
+    parameters: []
+  /api/identity/events:
+    post:
+      operationId: api_identity_events_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
       tags:
         - api
     parameters: []
@@ -1925,117 +1781,10 @@ definitions:
         type: string
         readOnly: true
         minLength: 1
-  ChangePassword:
-    required:
-      - new_password
-      - confirm_new_password
-      - old_password
-    type: object
-    properties:
-      new_password:
-        title: New password
-        type: string
-        minLength: 1
-      confirm_new_password:
-        title: Confirm new password
-        type: string
-        minLength: 1
-      old_password:
-        title: Old password
-        type: string
-        minLength: 1
-  UserDetail:
-    description: User details.
-    required:
-      - username
-    type: object
-    properties:
-      username:
-        title: Username
-        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-          only.
-        type: string
-        pattern: ^[\w.@+-]+$
-        maxLength: 150
-        minLength: 1
-      email:
-        title: Email address
-        type: string
-        format: email
-        maxLength: 254
-  Token:
-    required:
-      - key
-    type: object
-    properties:
-      user:
-        $ref: '#/definitions/UserDetail'
-      key:
-        title: Key
-        description: User's auth token key.
-        type: string
-        maxLength: 40
-        minLength: 1
-  ResetPasswordConfirm:
-    required:
-      - new_password
-      - confirm_new_password
-    type: object
-    properties:
-      new_password:
-        title: New password
-        type: string
-        minLength: 1
-      confirm_new_password:
-        title: Confirm new password
-        type: string
-        minLength: 1
-  ResetPasswordRequest:
-    required:
-      - email
-    type: object
-    properties:
-      email:
-        title: Email
-        type: string
-        format: email
-        minLength: 1
-  AuthToken:
-    required:
-      - username
-      - password
-    type: object
-    properties:
-      username:
-        title: Username
-        type: string
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        minLength: 1
-  Login:
-    required:
-      - username
-      - password
-    type: object
-    properties:
-      recaptcha_token:
-        title: Recaptcha token
-        type: string
-      username:
-        title: Username
-        type: string
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        minLength: 1
   UserProfile:
     required:
       - username
       - email
-      - password
     type: object
     properties:
       username:
@@ -2044,10 +1793,6 @@ definitions:
         minLength: 1
       email:
         title: Email
-        type: string
-        minLength: 1
-      password:
-        title: Password
         type: string
         minLength: 1
       is_superuser:
@@ -2060,37 +1805,6 @@ definitions:
         title: Memory quota
         type: integer
         readOnly: true
-  User:
-    required:
-      - username
-      - password
-    type: object
-    properties:
-      id:
-        title: ID
-        type: integer
-        readOnly: true
-      email:
-        title: Email address
-        type: string
-        format: email
-        maxLength: 254
-      username:
-        title: Username
-        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-          only.
-        type: string
-        pattern: ^[\w.@+-]+$
-        maxLength: 150
-        minLength: 1
-      password:
-        title: Password
-        type: string
-        maxLength: 128
-        minLength: 1
-      recaptcha_token:
-        title: Recaptcha token
-        type: string
   WhoAmI:
     type: object
     properties:
@@ -2111,6 +1825,25 @@ definitions:
           type: string
           minLength: 1
         readOnly: true
+  UserDetail:
+    description: User who performed the deploy.
+    required:
+      - username
+    type: object
+    properties:
+      username:
+        title: Username
+        description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+          only.
+        type: string
+        pattern: ^[\w.@+-]+$
+        maxLength: 150
+        minLength: 1
+      email:
+        title: Email address
+        type: string
+        format: email
+        maxLength: 254
   ProjectDetail:
     description: Project where the activity was performed.
     type: object
@@ -2285,8 +2018,6 @@ definitions:
         title: Data expiry days
         description: Days before data is deleted.
         type: integer
-        maximum: 65535
-        minimum: 0
       created:
         title: Created
         type: string
@@ -2478,8 +2209,6 @@ definitions:
         title: Data expiry days
         description: Days before data is deleted.
         type: integer
-        maximum: 65535
-        minimum: 0
         x-nullable: true
       resource_tier:
         title: Resource tier
@@ -2531,8 +2260,6 @@ definitions:
         title: Network usage
         description: Amount of network bytes used.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       processing_time:
         title: Processing time
         type: string
@@ -2541,32 +2268,22 @@ definitions:
         title: Item count
         description: Amount of items extracted.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       request_count:
         title: Request count
         description: Amount of requests made.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       items_data_size:
         title: Items data size
         description: Amount in bytes occupied by items in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       requests_data_size:
         title: Requests data size
         description: Amount in bytes occupied by requests in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       logs_data_size:
         title: Logs data size
         description: Amount in bytes occupied by logs in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
   Deploy:
     required:
       - project
@@ -2700,20 +2417,14 @@ definitions:
         title: Total response bytes
         description: The total bytes received in responses.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       item_count:
         title: Item count
         description: The number of items extracted in the job.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       request_count:
         title: Request count
         description: The number of requests made by the spider job.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       args:
         description: Job arguments.
         type: array
@@ -2744,8 +2455,6 @@ definitions:
         title: Data expiry days
         description: Days before data is deleted.
         type: integer
-        maximum: 65535
-        minimum: 0
         x-nullable: true
       data_status:
         title: Data status
@@ -2967,8 +2676,6 @@ definitions:
         title: Data expiry days
         description: Days before data is deleted.
         type: integer
-        maximum: 65535
-        minimum: 0
         x-nullable: true
       resource_tier:
         title: Resource tier
@@ -3100,20 +2807,14 @@ definitions:
         title: Total response bytes
         description: The total bytes received in responses.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       item_count:
         title: Item count
         description: The number of items extracted in the job.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       request_count:
         title: Request count
         description: The number of requests made by the spider job.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       data_status:
         title: Data status
         description: Job data status.
@@ -3161,38 +2862,26 @@ definitions:
         title: Network usage
         description: Amount of network bytes used.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       item_count:
         title: Item count
         description: Amount of items extracted.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       request_count:
         title: Request count
         description: Amount of requests made.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       items_data_size:
         title: Items data size
         description: Amount in bytes occupied by items in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       requests_data_size:
         title: Requests data size
         description: Amount in bytes occupied by requests in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       logs_data_size:
         title: Logs data size
         description: Amount in bytes occupied by logs in the database
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
   ProxyProvider:
     required:
       - name
@@ -3473,20 +3162,14 @@ definitions:
         title: Total response bytes
         description: The total bytes received in responses.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       item_count:
         title: Item count
         description: The number of items extracted in the job.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       request_count:
         title: Request count
         description: The number of requests made by the spider job.
         type: integer
-        maximum: 18446744073709551615
-        minimum: 0
       args:
         description: Job arguments.
         type: array
@@ -3517,8 +3200,6 @@ definitions:
         title: Data expiry days
         description: Days before data is deleted.
         type: integer
-        maximum: 65535
-        minimum: 0
         x-nullable: true
       data_status:
         title: Data status

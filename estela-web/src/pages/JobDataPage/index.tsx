@@ -11,8 +11,8 @@ import {
     ApiProjectsSpidersJobsDataListRequest,
     ApiProjectsSpidersJobsDataDeleteRequest,
     ApiProjectsSpidersJobsDataDownloadRequest,
+    InlineResponse2007,
     InlineResponse2008,
-    InlineResponse2009,
 } from "../../services/api";
 import { ApiService } from "../../services";
 
@@ -112,7 +112,7 @@ export const handleDownloadData = (
             console.log(error);
             resourceNotAllowedNotification();
             setLoadedDownloadButton(false);
-            return {} as InlineResponse2009;
+            return {} as InlineResponse2008;
         },
     );
 };
@@ -138,7 +138,7 @@ const getData = async (
     pageSize?: number,
     search?: string,
     level?: string,
-): Promise<InlineResponse2008> => {
+): Promise<InlineResponse2007> => {
     const requestParams: ApiProjectsSpidersJobsDataListRequest = {
         pid: projectId,
         sid: spiderId,
@@ -156,7 +156,7 @@ const getData = async (
         (error: unknown) => {
             console.log(error);
             resourceNotAllowedNotification();
-            return {} as InlineResponse2008;
+            return {} as InlineResponse2007;
         },
     );
 };

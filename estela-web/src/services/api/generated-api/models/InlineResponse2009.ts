@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    ProxyProvider,
+    ProxyProviderFromJSON,
+    ProxyProviderFromJSONTyped,
+    ProxyProviderToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -20,11 +27,29 @@ import { exists, mapValues } from '../runtime';
  */
 export interface InlineResponse2009 {
     /**
-     * Data items.
-     * @type {Array<object>}
+     * 
+     * @type {number}
      * @memberof InlineResponse2009
      */
-    results: Array<object>;
+    count: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof InlineResponse2009
+     */
+    next?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof InlineResponse2009
+     */
+    previous?: string | null;
+    /**
+     * 
+     * @type {Array<ProxyProvider>}
+     * @memberof InlineResponse2009
+     */
+    results: Array<ProxyProvider>;
 }
 
 export function InlineResponse2009FromJSON(json: any): InlineResponse2009 {
@@ -37,7 +62,10 @@ export function InlineResponse2009FromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'results': json['results'],
+        'count': json['count'],
+        'next': !exists(json, 'next') ? undefined : json['next'],
+        'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'results': ((json['results'] as Array<any>).map(ProxyProviderFromJSON)),
     };
 }
 
@@ -50,7 +78,10 @@ export function InlineResponse2009ToJSON(value?: InlineResponse2009 | null): any
     }
     return {
         
-        'results': value.results,
+        'count': value.count,
+        'next': value.next,
+        'previous': value.previous,
+        'results': ((value.results as Array<any>).map(ProxyProviderToJSON)),
     };
 }
 

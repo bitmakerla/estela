@@ -32,12 +32,6 @@ export interface UserProfile {
      */
     email: string;
     /**
-     * 
-     * @type {string}
-     * @memberof UserProfile
-     */
-    password: string;
-    /**
      * Designates that this user has all permissions without explicitly assigning them.
      * @type {boolean}
      * @memberof UserProfile
@@ -63,7 +57,6 @@ export function UserProfileFromJSONTyped(json: any, ignoreDiscriminator: boolean
         
         'username': json['username'],
         'email': json['email'],
-        'password': json['password'],
         'isSuperuser': !exists(json, 'is_superuser') ? undefined : json['is_superuser'],
         'memoryQuota': !exists(json, 'memory_quota') ? undefined : json['memory_quota'],
     };
@@ -80,7 +73,6 @@ export function UserProfileToJSON(value?: UserProfile | null): any {
         
         'username': value.username,
         'email': value.email,
-        'password': value.password,
     };
 }
 

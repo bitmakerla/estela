@@ -24,12 +24,6 @@ import {
     ApiKeyCreateResponse,
     ApiKeyCreateResponseFromJSON,
     ApiKeyCreateResponseToJSON,
-    AuthToken,
-    AuthTokenFromJSON,
-    AuthTokenToJSON,
-    ChangePassword,
-    ChangePasswordFromJSON,
-    ChangePasswordToJSON,
     Deploy,
     DeployFromJSON,
     DeployToJSON,
@@ -45,9 +39,6 @@ import {
     InlineResponse2001,
     InlineResponse2001FromJSON,
     InlineResponse2001ToJSON,
-    InlineResponse20010,
-    InlineResponse20010FromJSON,
-    InlineResponse20010ToJSON,
     InlineResponse2002,
     InlineResponse2002FromJSON,
     InlineResponse2002ToJSON,
@@ -72,15 +63,9 @@ import {
     InlineResponse2009,
     InlineResponse2009FromJSON,
     InlineResponse2009ToJSON,
-    InlineResponse401,
-    InlineResponse401FromJSON,
-    InlineResponse401ToJSON,
     JobsPagination,
     JobsPaginationFromJSON,
     JobsPaginationToJSON,
-    Login,
-    LoginFromJSON,
-    LoginToJSON,
     MeteringReport,
     MeteringReportFromJSON,
     MeteringReportToJSON,
@@ -123,12 +108,6 @@ import {
     ProxyProviderUpdate,
     ProxyProviderUpdateFromJSON,
     ProxyProviderUpdateToJSON,
-    ResetPasswordConfirm,
-    ResetPasswordConfirmFromJSON,
-    ResetPasswordConfirmToJSON,
-    ResetPasswordRequest,
-    ResetPasswordRequestFromJSON,
-    ResetPasswordRequestToJSON,
     Spider,
     SpiderFromJSON,
     SpiderToJSON,
@@ -159,15 +138,9 @@ import {
     SpidersStats,
     SpidersStatsFromJSON,
     SpidersStatsToJSON,
-    Token,
-    TokenFromJSON,
-    TokenToJSON,
     UsageRecord,
     UsageRecordFromJSON,
     UsageRecordToJSON,
-    User,
-    UserFromJSON,
-    UserToJSON,
     UserProfile,
     UserProfileFromJSON,
     UserProfileToJSON,
@@ -182,29 +155,6 @@ export interface ApiAccountApiKeysCreateRequest {
 
 export interface ApiAccountApiKeysDeleteRequest {
     id: string;
-}
-
-export interface ApiAccountChangePasswordChangeRequest {
-    data: ChangePassword;
-}
-
-export interface ApiAccountResetPasswordConfirmRequest {
-    token: string;
-    pair: string;
-    data: ResetPasswordConfirm;
-}
-
-export interface ApiAccountResetPasswordRequestRequest {
-    data: ResetPasswordRequest;
-}
-
-export interface ApiAccountResetPasswordValidateRequest {
-    token: string;
-    pair: string;
-}
-
-export interface ApiAuthLoginRequest {
-    data: Login;
 }
 
 export interface ApiAuthProfileCreateRequest {
@@ -227,10 +177,6 @@ export interface ApiAuthProfileReadRequest {
 export interface ApiAuthProfileUpdateRequest {
     username: string;
     data: UserProfile;
-}
-
-export interface ApiAuthRegisterRequest {
-    data: User;
 }
 
 export interface ApiNotificationsCreateRequest {
@@ -678,228 +624,6 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiAccountChangePasswordChangeRaw(requestParameters: ApiAccountChangePasswordChangeRequest): Promise<runtime.ApiResponse<Token>> {
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAccountChangePasswordChange.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/account/changePassword/change`,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ChangePasswordToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiAccountChangePasswordChange(requestParameters: ApiAccountChangePasswordChangeRequest): Promise<Token> {
-        const response = await this.apiAccountChangePasswordChangeRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiAccountResetPasswordConfirmRaw(requestParameters: ApiAccountResetPasswordConfirmRequest): Promise<runtime.ApiResponse<Token>> {
-        if (requestParameters.token === null || requestParameters.token === undefined) {
-            throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling apiAccountResetPasswordConfirm.');
-        }
-
-        if (requestParameters.pair === null || requestParameters.pair === undefined) {
-            throw new runtime.RequiredError('pair','Required parameter requestParameters.pair was null or undefined when calling apiAccountResetPasswordConfirm.');
-        }
-
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAccountResetPasswordConfirm.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.token !== undefined) {
-            queryParameters['token'] = requestParameters.token;
-        }
-
-        if (requestParameters.pair !== undefined) {
-            queryParameters['pair'] = requestParameters.pair;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/account/resetPassword/confirm`,
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ResetPasswordConfirmToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiAccountResetPasswordConfirm(requestParameters: ApiAccountResetPasswordConfirmRequest): Promise<Token> {
-        const response = await this.apiAccountResetPasswordConfirmRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiAccountResetPasswordRequestRaw(requestParameters: ApiAccountResetPasswordRequestRequest): Promise<runtime.ApiResponse<ResetPasswordRequest>> {
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAccountResetPasswordRequest.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/account/resetPassword/request`,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ResetPasswordRequestToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ResetPasswordRequestFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiAccountResetPasswordRequest(requestParameters: ApiAccountResetPasswordRequestRequest): Promise<ResetPasswordRequest> {
-        const response = await this.apiAccountResetPasswordRequestRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiAccountResetPasswordValidateRaw(requestParameters: ApiAccountResetPasswordValidateRequest): Promise<runtime.ApiResponse<InlineResponse200>> {
-        if (requestParameters.token === null || requestParameters.token === undefined) {
-            throw new runtime.RequiredError('token','Required parameter requestParameters.token was null or undefined when calling apiAccountResetPasswordValidate.');
-        }
-
-        if (requestParameters.pair === null || requestParameters.pair === undefined) {
-            throw new runtime.RequiredError('pair','Required parameter requestParameters.pair was null or undefined when calling apiAccountResetPasswordValidate.');
-        }
-
-        const queryParameters: any = {};
-
-        if (requestParameters.token !== undefined) {
-            queryParameters['token'] = requestParameters.token;
-        }
-
-        if (requestParameters.pair !== undefined) {
-            queryParameters['pair'] = requestParameters.pair;
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/account/resetPassword/validate`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse200FromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiAccountResetPasswordValidate(requestParameters: ApiAccountResetPasswordValidateRequest): Promise<InlineResponse200> {
-        const response = await this.apiAccountResetPasswordValidateRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiAuthActivateRaw(): Promise<runtime.ApiResponse<Array<AuthToken>>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/auth/activate`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AuthTokenFromJSON));
-    }
-
-    /**
-     */
-    async apiAuthActivate(): Promise<Array<AuthToken>> {
-        const response = await this.apiAuthActivateRaw();
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiAuthLoginRaw(requestParameters: ApiAuthLoginRequest): Promise<runtime.ApiResponse<Token>> {
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthLogin.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/auth/login`,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: LoginToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiAuthLogin(requestParameters: ApiAuthLoginRequest): Promise<Token> {
-        const response = await this.apiAuthLoginRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     */
     async apiAuthProfileCreateRaw(requestParameters: ApiAuthProfileCreateRequest): Promise<runtime.ApiResponse<UserProfile>> {
         if (requestParameters.data === null || requestParameters.data === undefined) {
             throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthProfileCreate.');
@@ -1097,41 +821,7 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     */
-    async apiAuthRegisterRaw(requestParameters: ApiAuthRegisterRequest): Promise<runtime.ApiResponse<Token>> {
-        if (requestParameters.data === null || requestParameters.data === undefined) {
-            throw new runtime.RequiredError('data','Required parameter requestParameters.data was null or undefined when calling apiAuthRegister.');
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
-            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
-        }
-        const response = await this.request({
-            path: `/api/auth/register`,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UserToJSON(requestParameters.data),
-        });
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => TokenFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiAuthRegister(requestParameters: ApiAuthRegisterRequest): Promise<Token> {
-        const response = await this.apiAuthRegisterRaw(requestParameters);
-        return await response.value();
-    }
-
-    /**
-     * Who the caller is. An API key carries no username, so this is how a program finds out which account it is acting as.
+     * Who the caller is. The web asks this to learn who signed in, and a program asks it because an API key carries no username.
      */
     async apiAuthWhoamiRaw(): Promise<runtime.ApiResponse<WhoAmI>> {
         const queryParameters: any = {};
@@ -1152,11 +842,37 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
-     * Who the caller is. An API key carries no username, so this is how a program finds out which account it is acting as.
+     * Who the caller is. The web asks this to learn who signed in, and a program asks it because an API key carries no username.
      */
     async apiAuthWhoami(): Promise<WhoAmI> {
         const response = await this.apiAuthWhoamiRaw();
         return await response.value();
+    }
+
+    /**
+     */
+    async apiIdentityEventsCreateRaw(): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/identity/events`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiIdentityEventsCreate(): Promise<void> {
+        await this.apiIdentityEventsCreateRaw();
     }
 
     /**
@@ -1225,7 +941,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiNotificationsListRaw(requestParameters: ApiNotificationsListRequest): Promise<runtime.ApiResponse<InlineResponse2001>> {
+    async apiNotificationsListRaw(requestParameters: ApiNotificationsListRequest): Promise<runtime.ApiResponse<InlineResponse200>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -1248,12 +964,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2001FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse200FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiNotificationsList(requestParameters: ApiNotificationsListRequest): Promise<InlineResponse2001> {
+    async apiNotificationsList(requestParameters: ApiNotificationsListRequest): Promise<InlineResponse200> {
         const response = await this.apiNotificationsListRaw(requestParameters);
         return await response.value();
     }
@@ -1612,7 +1328,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsDeploysListRaw(requestParameters: ApiProjectsDeploysListRequest): Promise<runtime.ApiResponse<InlineResponse2003>> {
+    async apiProjectsDeploysListRaw(requestParameters: ApiProjectsDeploysListRequest): Promise<runtime.ApiResponse<InlineResponse2002>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsDeploysList.');
         }
@@ -1639,12 +1355,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2003FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2002FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsDeploysList(requestParameters: ApiProjectsDeploysListRequest): Promise<InlineResponse2003> {
+    async apiProjectsDeploysList(requestParameters: ApiProjectsDeploysListRequest): Promise<InlineResponse2002> {
         const response = await this.apiProjectsDeploysListRaw(requestParameters);
         return await response.value();
     }
@@ -1844,7 +1560,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsListRaw(requestParameters: ApiProjectsListRequest): Promise<runtime.ApiResponse<InlineResponse2002>> {
+    async apiProjectsListRaw(requestParameters: ApiProjectsListRequest): Promise<runtime.ApiResponse<InlineResponse2001>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -1875,12 +1591,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2002FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2001FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsList(requestParameters: ApiProjectsListRequest): Promise<InlineResponse2002> {
+    async apiProjectsList(requestParameters: ApiProjectsListRequest): Promise<InlineResponse2001> {
         const response = await this.apiProjectsListRaw(requestParameters);
         return await response.value();
     }
@@ -1956,7 +1672,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsResourceStatusRaw(requestParameters: ApiProjectsResourceStatusRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
+    async apiProjectsResourceStatusRaw(requestParameters: ApiProjectsResourceStatusRequest): Promise<runtime.ApiResponse<InlineResponse2003>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsResourceStatus.');
         }
@@ -1975,12 +1691,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2003FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsResourceStatus(requestParameters: ApiProjectsResourceStatusRequest): Promise<InlineResponse2004> {
+    async apiProjectsResourceStatus(requestParameters: ApiProjectsResourceStatusRequest): Promise<InlineResponse2003> {
         const response = await this.apiProjectsResourceStatusRaw(requestParameters);
         return await response.value();
     }
@@ -2067,7 +1783,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
+    async apiProjectsSpidersCronjobsListRaw(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<runtime.ApiResponse<InlineResponse2005>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersCronjobsList.');
         }
@@ -2102,12 +1818,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2006FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2005FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2006> {
+    async apiProjectsSpidersCronjobsList(requestParameters: ApiProjectsSpidersCronjobsListRequest): Promise<InlineResponse2005> {
         const response = await this.apiProjectsSpidersCronjobsListRaw(requestParameters);
         return await response.value();
     }
@@ -2376,7 +2092,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersJobsDataDownloadRaw(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<runtime.ApiResponse<InlineResponse2009>> {
+    async apiProjectsSpidersJobsDataDownloadRaw(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<runtime.ApiResponse<InlineResponse2008>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataDownload.');
         }
@@ -2415,19 +2131,19 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2009FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2008FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataDownload(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<InlineResponse2009> {
+    async apiProjectsSpidersJobsDataDownload(requestParameters: ApiProjectsSpidersJobsDataDownloadRequest): Promise<InlineResponse2008> {
         const response = await this.apiProjectsSpidersJobsDataDownloadRaw(requestParameters);
         return await response.value();
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2008>> {
+    async apiProjectsSpidersJobsDataListRaw(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<runtime.ApiResponse<InlineResponse2007>> {
         if (requestParameters.jid === null || requestParameters.jid === undefined) {
             throw new runtime.RequiredError('jid','Required parameter requestParameters.jid was null or undefined when calling apiProjectsSpidersJobsDataList.');
         }
@@ -2474,12 +2190,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2008FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2007FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2008> {
+    async apiProjectsSpidersJobsDataList(requestParameters: ApiProjectsSpidersJobsDataListRequest): Promise<InlineResponse2007> {
         const response = await this.apiProjectsSpidersJobsDataListRaw(requestParameters);
         return await response.value();
     }
@@ -2525,7 +2241,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2007>> {
+    async apiProjectsSpidersJobsListRaw(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<runtime.ApiResponse<InlineResponse2006>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersJobsList.');
         }
@@ -2568,12 +2284,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2007FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2006FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2007> {
+    async apiProjectsSpidersJobsList(requestParameters: ApiProjectsSpidersJobsListRequest): Promise<InlineResponse2006> {
         const response = await this.apiProjectsSpidersJobsListRaw(requestParameters);
         return await response.value();
     }
@@ -2711,7 +2427,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProjectsSpidersListRaw(requestParameters: ApiProjectsSpidersListRequest): Promise<runtime.ApiResponse<InlineResponse2005>> {
+    async apiProjectsSpidersListRaw(requestParameters: ApiProjectsSpidersListRequest): Promise<runtime.ApiResponse<InlineResponse2004>> {
         if (requestParameters.pid === null || requestParameters.pid === undefined) {
             throw new runtime.RequiredError('pid','Required parameter requestParameters.pid was null or undefined when calling apiProjectsSpidersList.');
         }
@@ -2742,12 +2458,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2005FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2004FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProjectsSpidersList(requestParameters: ApiProjectsSpidersListRequest): Promise<InlineResponse2005> {
+    async apiProjectsSpidersList(requestParameters: ApiProjectsSpidersListRequest): Promise<InlineResponse2004> {
         const response = await this.apiProjectsSpidersListRaw(requestParameters);
         return await response.value();
     }
@@ -3014,7 +2730,7 @@ export class ApiApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiProxyProviderListRaw(requestParameters: ApiProxyProviderListRequest): Promise<runtime.ApiResponse<InlineResponse20010>> {
+    async apiProxyProviderListRaw(requestParameters: ApiProxyProviderListRequest): Promise<runtime.ApiResponse<InlineResponse2009>> {
         const queryParameters: any = {};
 
         if (requestParameters.page !== undefined) {
@@ -3037,12 +2753,12 @@ export class ApiApi extends runtime.BaseAPI {
             query: queryParameters,
         });
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse20010FromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => InlineResponse2009FromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProxyProviderList(requestParameters: ApiProxyProviderListRequest): Promise<InlineResponse20010> {
+    async apiProxyProviderList(requestParameters: ApiProxyProviderListRequest): Promise<InlineResponse2009> {
         const response = await this.apiProxyProviderListRaw(requestParameters);
         return await response.value();
     }

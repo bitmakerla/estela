@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import {
-    Deploy,
-    DeployFromJSON,
-    DeployFromJSONTyped,
-    DeployToJSON,
-} from './';
-
 /**
  * 
  * @export
@@ -27,29 +20,23 @@ import {
  */
 export interface InlineResponse2003 {
     /**
-     * 
+     * Memory currently in use (Mi).
      * @type {number}
      * @memberof InlineResponse2003
      */
-    count: number;
+    memoryUsed?: number;
     /**
-     * 
-     * @type {string}
+     * Owner's total memory quota across all their projects (Mi).
+     * @type {number}
      * @memberof InlineResponse2003
      */
-    next?: string | null;
+    memoryQuota?: number;
     /**
-     * 
-     * @type {string}
+     * Percentage of quota in use.
+     * @type {number}
      * @memberof InlineResponse2003
      */
-    previous?: string | null;
-    /**
-     * 
-     * @type {Array<Deploy>}
-     * @memberof InlineResponse2003
-     */
-    results: Array<Deploy>;
+    usedPct?: number;
 }
 
 export function InlineResponse2003FromJSON(json: any): InlineResponse2003 {
@@ -62,10 +49,9 @@ export function InlineResponse2003FromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'count': json['count'],
-        'next': !exists(json, 'next') ? undefined : json['next'],
-        'previous': !exists(json, 'previous') ? undefined : json['previous'],
-        'results': ((json['results'] as Array<any>).map(DeployFromJSON)),
+        'memoryUsed': !exists(json, 'memory_used') ? undefined : json['memory_used'],
+        'memoryQuota': !exists(json, 'memory_quota') ? undefined : json['memory_quota'],
+        'usedPct': !exists(json, 'used_pct') ? undefined : json['used_pct'],
     };
 }
 
@@ -78,10 +64,9 @@ export function InlineResponse2003ToJSON(value?: InlineResponse2003 | null): any
     }
     return {
         
-        'count': value.count,
-        'next': value.next,
-        'previous': value.previous,
-        'results': ((value.results as Array<any>).map(DeployToJSON)),
+        'memory_used': value.memoryUsed,
+        'memory_quota': value.memoryQuota,
+        'used_pct': value.usedPct,
     };
 }
 

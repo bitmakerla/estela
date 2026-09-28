@@ -6,8 +6,6 @@ models/Activity.ts
 models/ApiKey.ts
 models/ApiKeyCreate.ts
 models/ApiKeyCreateResponse.ts
-models/AuthToken.ts
-models/ChangePassword.ts
 models/CoverageStats.ts
 models/Deploy.ts
 models/DeployCreate.ts
@@ -15,7 +13,6 @@ models/DeployUpdate.ts
 models/FieldCoverageStats.ts
 models/InlineResponse200.ts
 models/InlineResponse2001.ts
-models/InlineResponse20010.ts
 models/InlineResponse2002.ts
 models/InlineResponse2003.ts
 models/InlineResponse2004.ts
@@ -24,10 +21,8 @@ models/InlineResponse2006.ts
 models/InlineResponse2007.ts
 models/InlineResponse2008.ts
 models/InlineResponse2009.ts
-models/InlineResponse401.ts
 models/JobsPagination.ts
 models/JobsStats.ts
-models/Login.ts
 models/LogsStats.ts
 models/MeteringReport.ts
 models/MeteringReportResponse.ts
@@ -46,8 +41,6 @@ models/ProjectUsage.ts
 models/ProxyProvider.ts
 models/ProxyProviderResponse.ts
 models/ProxyProviderUpdate.ts
-models/ResetPasswordConfirm.ts
-models/ResetPasswordRequest.ts
 models/Spider.ts
 models/SpiderCronJob.ts
 models/SpiderCronJobCreate.ts
@@ -65,9 +58,7 @@ models/SpidersPagination.ts
 models/SpidersStats.ts
 models/Stats.ts
 models/StatusCodesStats.ts
-models/Token.ts
 models/UsageRecord.ts
-models/User.ts
 models/UserDetail.ts
 models/UserProfile.ts
 models/WhoAmI.ts

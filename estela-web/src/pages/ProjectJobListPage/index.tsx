@@ -10,7 +10,7 @@ import {
     ApiProjectsReadRequest,
     ApiProjectsJobsRequest,
     ApiProjectsResourceStatusRequest,
-    InlineResponse2004,
+    InlineResponse2003,
     ProjectJob,
     Spider,
     SpiderJob,
@@ -213,7 +213,7 @@ export class ProjectJobListPage extends Component<RouteComponentProps<RouteParam
 
         const resourceParams: ApiProjectsResourceStatusRequest = { pid: this.projectId };
         this.apiService.apiProjectsResourceStatus(resourceParams).then(
-            (response: InlineResponse2004) => {
+            (response: InlineResponse2003) => {
                 this.setState({ memoryUsed: response.memoryUsed ?? 0, memoryQuota: response.memoryQuota ?? 0 });
             },
             (error: unknown) => {

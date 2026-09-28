@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import {
+    Spider,
+    SpiderFromJSON,
+    SpiderFromJSONTyped,
+    SpiderToJSON,
+} from './';
+
 /**
  * 
  * @export
@@ -20,23 +27,29 @@ import { exists, mapValues } from '../runtime';
  */
 export interface InlineResponse2004 {
     /**
-     * Memory currently in use (Mi).
+     * 
      * @type {number}
      * @memberof InlineResponse2004
      */
-    memoryUsed?: number;
+    count: number;
     /**
-     * Owner's total memory quota across all their projects (Mi).
-     * @type {number}
+     * 
+     * @type {string}
      * @memberof InlineResponse2004
      */
-    memoryQuota?: number;
+    next?: string | null;
     /**
-     * Percentage of quota in use.
-     * @type {number}
+     * 
+     * @type {string}
      * @memberof InlineResponse2004
      */
-    usedPct?: number;
+    previous?: string | null;
+    /**
+     * 
+     * @type {Array<Spider>}
+     * @memberof InlineResponse2004
+     */
+    results: Array<Spider>;
 }
 
 export function InlineResponse2004FromJSON(json: any): InlineResponse2004 {
@@ -49,9 +62,10 @@ export function InlineResponse2004FromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'memoryUsed': !exists(json, 'memory_used') ? undefined : json['memory_used'],
-        'memoryQuota': !exists(json, 'memory_quota') ? undefined : json['memory_quota'],
-        'usedPct': !exists(json, 'used_pct') ? undefined : json['used_pct'],
+        'count': json['count'],
+        'next': !exists(json, 'next') ? undefined : json['next'],
+        'previous': !exists(json, 'previous') ? undefined : json['previous'],
+        'results': ((json['results'] as Array<any>).map(SpiderFromJSON)),
     };
 }
 
@@ -64,9 +78,10 @@ export function InlineResponse2004ToJSON(value?: InlineResponse2004 | null): any
     }
     return {
         
-        'memory_used': value.memoryUsed,
-        'memory_quota': value.memoryQuota,
-        'used_pct': value.usedPct,
+        'count': value.count,
+        'next': value.next,
+        'previous': value.previous,
+        'results': ((value.results as Array<any>).map(SpiderToJSON)),
     };
 }
 
