@@ -80,6 +80,10 @@ class IsAdminOrReadOnly(BasePermission):
     Custom permission to only allow admins or developers of an object to edit it.
     """
 
+    # Named so it cannot be mistaken for the API key's own refusal: a key with the
+    # right scope still gets nowhere if its owner is a viewer on the project.
+    message = "Your role on this project does not allow this action."
+
     def has_permission(self, request, view):
         pid = view.kwargs.get("pid")
         # Read permissions are allowed to any request,

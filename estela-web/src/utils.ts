@@ -168,3 +168,11 @@ export const mergeArrays = (array1: SpiderJobEnvVar[], array2: SpiderJobEnvVar[]
     // Convert the map values to an array and return
     return Array.from(mergedMap.values());
 };
+
+export function safeNextPath(search: string): string {
+    // Only same-site paths: a bare "/..." that is not "//host", which the browser
+    // would read as another origin.
+    const next = new URLSearchParams(search).get("next");
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/projects";
+    return next;
+}

@@ -7,7 +7,7 @@ import "./styles.scss";
 import history from "../../history";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthLoginRequest, Token } from "../../services/api";
-import { handleInvalidDataError } from "../../utils";
+import { handleInvalidDataError, safeNextPath } from "../../utils";
 import { UserContext, UserContextProps } from "../../context";
 import { EstelaBanner } from "../../components";
 import { RECAPTCHA_ENABLED, RECAPTCHA_SITE_KEY, REGISTER_PAGE_ENABLED } from "../../constants";
@@ -38,7 +38,7 @@ export class LoginPage extends Component<unknown, LoginState> {
             if (AuthService.getUserRole() && updateRole) {
                 updateRole(AuthService.getUserRole() ?? "");
             }
-            history.push("/projects");
+            history.push(safeNextPath(window.location.search));
         }
     }
 
@@ -76,7 +76,7 @@ export class LoginPage extends Component<unknown, LoginState> {
                     updateEmail(response.user.email ?? "");
                 }
                 this.setState({ loading: false });
-                history.push("/projects");
+                history.push(safeNextPath(window.location.search));
             },
             (error: unknown) => {
                 handleInvalidDataError(error);

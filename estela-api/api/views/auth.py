@@ -22,6 +22,8 @@ from rest_framework.exceptions import (
 from rest_framework.response import Response
 
 from api import errors
+from api.authentication import ApiKeyAuthentication
+from core.models import ApiKey
 from api.captcha import EXPIRED_TOKEN, get_client_ip, verify_captcha
 from api.exceptions import EmailServiceError, UserNotFoundError
 from api.permissions import IsProfileUser
@@ -33,6 +35,7 @@ from api.serializers.auth import (
     TokenSerializer,
     UserProfileSerializer,
     UserSerializer,
+    WhoAmISerializer,
 )
 from api.tokens import account_reset_token
 from core.views import (
@@ -96,6 +99,24 @@ class AuthAPIViewSet(viewsets.GenericViewSet):
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
         return Response(TokenSerializer(token).data)
+
+    @swagger_auto_schema(
+        methods=["GET"], responses={status.HTTP_200_OK: WhoAmISerializer()}
+    )
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        authentication_classes=[ApiKeyAuthentication, TokenAuthentication],
+        serializer_class=WhoAmISerializer,
+    )
+    def whoami(self, request, *args, **kwargs):
+        """Who the caller is. An API key carries no username, so this is how a
+        program finds out which account it is acting as."""
+        data = {"username": request.user.username, "email": request.user.email}
+        if isinstance(request.auth, ApiKey):
+            data["scopes"] = request.auth.scopes
+        return Response(data)
 
     @swagger_auto_schema(
         methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
