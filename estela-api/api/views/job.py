@@ -14,8 +14,8 @@ from api.serializers.job import (
     SpiderJobSerializer,
     SpiderJobUpdateSerializer,
 )
+from api.authentication import RUN_AUTHENTICATION_CLASSES, issue_run_token
 from api.utils import (
-    get_job_callback_token,
     get_proxy_provider_envs,
     update_stats_from_redis,
 )
@@ -33,6 +33,9 @@ class SpiderJobViewSet(
     mixins.ListModelMixin,
 ):
     api_key_write_scope = ApiKey.RUN_SCOPE
+    # The spider's container reports its status here with its run token.
+    authentication_classes = RUN_AUTHENTICATION_CLASSES
+    run_token_target = ("job", "jid")
 
     model_class = SpiderJob
     queryset = SpiderJob.objects.all()
@@ -146,7 +149,7 @@ class SpiderJobViewSet(
                         }
                     )
 
-            token = get_job_callback_token(request.auth, job)
+            token = issue_run_token(request.user, job=job)
             job_manager.create_job(
                 job.name,
                 job.key,
