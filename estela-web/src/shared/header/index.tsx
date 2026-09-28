@@ -3,7 +3,6 @@ import { Layout, Row, Col, Dropdown, Badge } from "antd";
 import type { MenuProps } from "antd";
 import { Link } from "react-router-dom";
 
-import history from "../../history";
 import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
 import { UserContext, UserContextProps } from "../../context";
 import { RequestTag, ScrapyTag } from "../../components/FrameworkTag";
@@ -92,10 +91,6 @@ export class CustomHeader extends Component<HeaderProps, HeaderState> {
         });
     };
 
-    isLogged = (): boolean => {
-        return Boolean(AuthService.getAuthToken());
-    };
-
     getUser = (): string => {
         const { username } = this.context as UserContextProps;
         return username;
@@ -117,16 +112,16 @@ export class CustomHeader extends Component<HeaderProps, HeaderState> {
     };
 
     logout = (): void => {
-        AuthService.removeAuthToken();
         AuthService.removeUserUsername();
         AuthService.removeUserEmail();
         AuthService.removeUserRole();
-        const { updateUsername, updateAccessToken, updateEmail, updateRole } = this.context as UserContextProps;
+        const { updateUsername, updateEmail, updateRole } = this.context as UserContextProps;
         updateUsername("");
         updateEmail("");
         updateRole && updateRole("");
-        updateAccessToken("");
-        history.push("/login");
+        // The gateway deletes the session every product shares and ends the one at the
+        // provider, so this signs out of all of them. Coming back to "/" means a new sign-in.
+        window.location.assign("/oauth2/sign_out?rd=%2F");
     };
 
     renderNotificationIcon = (inbox: boolean, news: boolean): React.ReactNode => {

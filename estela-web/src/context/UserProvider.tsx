@@ -8,7 +8,6 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = (props) => {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
-    const [accessToken, setAccessToken] = useState("");
     const [role, setRole] = useState("");
 
     const updateUsername = (newUsername: string) => {
@@ -17,10 +16,6 @@ export const UserProvider: React.FC<UserProviderProps> = (props) => {
 
     const updateEmail = (newEmail: string) => {
         setEmail(newEmail);
-    };
-
-    const updateAccessToken = (newAccessToken: string) => {
-        setAccessToken(newAccessToken);
     };
 
     const updateRole = (newRole: string) => {
@@ -32,11 +27,9 @@ export const UserProvider: React.FC<UserProviderProps> = (props) => {
             value={{
                 username,
                 email,
-                accessToken,
                 role,
                 updateUsername,
                 updateEmail,
-                updateAccessToken,
                 updateRole,
             }}
         >

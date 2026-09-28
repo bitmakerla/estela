@@ -22,7 +22,7 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 import JobCreateModal from "../JobCreateModal";
-import { ApiService, AuthService } from "../../services";
+import { ApiService } from "../../services";
 import { API_BASE_URL } from "../../constants";
 import { BytesMetric, parseDuration, durationToString, formatBytes, getFilteredEnvVars } from "../../utils";
 import Copy from "../../assets/icons/copy.svg";
@@ -299,7 +299,7 @@ export class JobDetailPage extends Component<RouteComponentProps<RouteParams>, J
         this.setState({ errorLogsState: "loading" });
         try {
             const url = `${API_BASE_URL}/api/projects/${this.projectId}/spiders/${this.spiderId}/jobs/${this.jobId}/error_logs`;
-            const response = await fetch(url, { headers: AuthService.getDefaultAuthHeaders() });
+            const response = await fetch(url);
             const data = await response.json();
             const logs: string | null = data?.logs ?? null;
             const trimmed = logs ? logs.trim() : "";

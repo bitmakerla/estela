@@ -104,9 +104,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     fetchDeployLogs = async (deployId: number): Promise<void> => {
         this.setState({ logsModal: { visible: true, loading: true, logs: null } });
         try {
-            const response = await fetch(`${API_BASE_URL}/api/projects/${this.projectId}/deploys/${deployId}/logs`, {
-                headers: AuthService.getDefaultAuthHeaders(),
-            });
+            const response = await fetch(`${API_BASE_URL}/api/projects/${this.projectId}/deploys/${deployId}/logs`);
             const logs: DeployLogs = await response.json();
             this.setState({ logsModal: { visible: true, loading: false, logs } });
         } catch (e) {

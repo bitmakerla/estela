@@ -38,16 +38,6 @@ export const ProfileSettingsSideNav: React.FC<ProfileSettingsSideNavPropsInterfa
                         </Content>
                     ),
                 },
-                {
-                    key: "password",
-                    label: (
-                        <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/settings/password`} onClick={() => updatePath("password")}>
-                                Password
-                            </Link>
-                        </Content>
-                    ),
-                },
             ],
             type: "group",
         },

@@ -1,11 +1,6 @@
 import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
-import { REGISTER_PAGE_ENABLED } from "../constants";
-
-import { ActivatedAccountPage } from "../pages/ActivatedAccountPage";
-import { LoginPage } from "../pages/LoginPage";
-import { RegisterPage } from "../pages/RegisterPage";
 import { NotificationsInboxPage } from "../pages/NotificationsInboxPage";
 import { NotificationsSettingsPage } from "../pages/NotificationsSettingsPage";
 import { ProjectListPage } from "../pages/ProjectListPage";
@@ -22,38 +17,18 @@ import { CronJobDetailPage } from "../pages/CronJobDetailPage";
 import { JobDataListPage } from "../pages/JobDataListPage";
 import { ProjectDashboardPage } from "../pages/ProjectDashboardPage";
 import { SettingsProfilePage } from "../pages/SettingsProfilePage";
-import { SettingsPasswordPage } from "../pages/SettingsPasswordPage";
 import { SettingsDataPersistencePage } from "../pages/SettingsDataPersistencePage";
 import { SettingsApiKeysPage } from "../pages/SettingsApiKeysPage";
-import { ForgotPasswordPage } from "../pages/ForgotPasswordPage";
-import { ResetPasswordPage } from "../pages/ResetPasswordPage";
-import { ProjectLayout, AuthLayout, MainLayout, NotificationsLayout, SettingsLayout } from "../shared";
+import { ProjectLayout, MainLayout, NotificationsLayout, SettingsLayout } from "../shared";
 import { PrivateRoute } from "../shared";
 
 export const MainRoutes: React.FC = () => {
     return (
         <Switch>
-            <Route path="/" exact>
-                <Redirect to="/login" />
-            </Route>
-
-            <Route
-                path={[
-                    "/login",
-                    REGISTER_PAGE_ENABLED ? "/register" : null,
-                    "/forgotPassword",
-                    "/resetPassword",
-                    "/activatedAccount",
-                ].filter(Boolean)}
-                exact
-            >
-                <AuthLayout>
-                    <Route path="/login" component={LoginPage} exact />
-                    {REGISTER_PAGE_ENABLED && <Route path="/register" component={RegisterPage} exact />}
-                    <Route path="/forgotPassword" component={ForgotPasswordPage} exact />
-                    <Route path="/resetPassword" component={ResetPasswordPage} exact />
-                    <Route path="/activatedAccount" component={ActivatedAccountPage} exact />
-                </AuthLayout>
+            {/* Signing in happens at the gateway before this app even loads, so /login only
+                survives for old links and bookmarks. */}
+            <Route path={["/", "/login"]} exact>
+                <Redirect to="/projects" />
             </Route>
 
             <PrivateRoute path={["/projects"]} exact>
@@ -114,14 +89,10 @@ export const MainRoutes: React.FC = () => {
                 </MainLayout>
             </PrivateRoute>
 
-            <PrivateRoute
-                path={["/settings/profile", "/settings/password", "/settings/apiKeys", "/settings/dataPersistence"]}
-                exact
-            >
+            <PrivateRoute path={["/settings/profile", "/settings/apiKeys", "/settings/dataPersistence"]} exact>
                 <MainLayout>
                     <SettingsLayout>
                         <Route path="/settings/profile" component={SettingsProfilePage} exact />
-                        <Route path="/settings/password" component={SettingsPasswordPage} exact />
                         <Route path="/settings/apiKeys" component={SettingsApiKeysPage} exact />
                         <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
                     </SettingsLayout>
