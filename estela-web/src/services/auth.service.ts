@@ -4,6 +4,14 @@ const USERNAME_EMAIL = "user_email";
 const FRAMEWORK = "framework";
 
 export const AuthService = {
+    // bitmaker_billing's micro-frontend imports this service and still asks for a token. Signing
+    // in now lives in the gateway's cookie, so there is no token to give and no header to add.
+    getAuthToken(): string | null {
+        return null;
+    },
+    getDefaultAuthHeaders(): Record<string, never> {
+        return {};
+    },
     getUserUsername(): string | null {
         return localStorage.getItem(USERNAME_ITEM_NAME);
     },
