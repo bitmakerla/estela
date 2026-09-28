@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework import routers
 
 from api.views import (
@@ -13,6 +14,7 @@ from api.views import (
     proxyprovider as proxyprovider_views,
     metering as metering_views,
     apikey as apikey_views,
+    identity_events as identity_events_views,
 )
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -75,21 +77,11 @@ router.register(
     prefix=r"auth/profile", viewset=auth_views.UserProfileViewSet, basename="profile"
 )
 router.register(
-    prefix=r"account/resetPassword",
-    viewset=auth_views.ResetPasswordViewSet,
-    basename="reset-password",
-)
-
-router.register(
-    prefix=r"account/changePassword",
-    viewset=auth_views.ChangePasswordViewSet,
-    basename="change-password",
-)
-
-router.register(
     prefix=r"v1/metering",
     viewset=metering_views.MeteringReportViewSet,
     basename="metering",
 )
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path("identity/events", identity_events_views.IdentityEventsView.as_view()),
+]

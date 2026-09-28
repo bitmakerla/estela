@@ -1,7 +1,0 @@
-{% autoescape off %}
-Hello {{ user.username }},
-
-Please click on the link below to confirm your registration:
-
-http://{{ domain }}{% url "auth-activate" %}?token={{ token }}&pair={{ uid }}
-{% endautoescape %}

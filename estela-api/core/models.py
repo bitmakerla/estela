@@ -169,6 +169,14 @@ class UserProfile(models.Model):
         default=None,
         help_text="Subject claim from the identity provider.",
     )
+    # Sign-ins older than this are refused. Set when the password changes at the provider,
+    # which does not revoke the refresh tokens already out there: tokens refreshed from them
+    # keep their original auth_time, so this is what tells them apart from a new sign-in.
+    sessions_valid_after = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Sign-ins before this moment are no longer accepted.",
+    )
 
 
 class ApiKey(models.Model):

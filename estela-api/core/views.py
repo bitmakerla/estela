@@ -1,19 +1,14 @@
-from api.tokens import account_reset_token
 from config.job_manager import job_manager
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
-from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+
+from core.models import Deploy
 
 
 def launch_deploy_job(pid, did, container_image):
     # The build acts as deploy_manager, as before, but holds a token good for this deploy
     # only instead of deploy_manager's DRF token, which could report on any deploy anywhere.
     from api.authentication import issue_run_token
-    from core.models import Deploy
 
     deploy_user = User.objects.get(username="deploy_manager")
     run_token = issue_run_token(deploy_user, deploy=Deploy.objects.get(did=did))
@@ -45,58 +40,3 @@ def launch_deploy_job(pid, did, container_image):
         command=["estela-report-deploy"],  # Command for spider-status container
         isbuild=True,  # Triggers Kaniko 3-container pipeline
     )
-
-
-
-def send_verification_email(user, request):
-    mail_subject = "Activate your estela account."
-    to_email = user.email
-    current_site = get_current_site(request)
-
-    message = render_to_string(
-        "acc_active_email.html",
-        {
-            "user": user,
-            "domain": current_site.domain,
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "token": account_reset_token.make_token(user),
-        },
-    )
-    email = EmailMessage(
-        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
-    )
-    email.send()
-
-
-def send_change_password_email(user):
-    mail_subject = "Change your estela password."
-    to_email = user.email
-    estela_domain = settings.FRONTEND_HOST
-    message = render_to_string(
-        "change_password_email.html",
-        {
-            "user": user,
-            "domain": estela_domain,
-            "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-            "token": account_reset_token.make_token(user),
-        },
-    )
-    email = EmailMessage(
-        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
-    )
-    email.send()
-
-
-def send_alert_password_changed(user):
-    mail_subject = "Your estela password has been changed."
-    to_email = user.email
-    message = render_to_string(
-        "alert_password_changed.html",
-        {
-            "user": user,
-        },
-    )
-    email = EmailMessage(
-        mail_subject, message, from_email=settings.VERIFICATION_EMAIL, to=[to_email]
-    )
-    email.send()

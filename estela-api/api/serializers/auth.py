@@ -1,69 +1,14 @@
+"""Serializers for what is left of accounts: who is calling, and the profile screen.
+
+The login, registration, password-change and password-reset serializers are gone along with
+the views that used them: signing in is the gateway's and the identity provider's job now.
+"""
+
 from api.serializers.project import UserDetailSerializer
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.authtoken.serializers import AuthTokenSerializer
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.validators import UniqueValidator
-
-
-class CaptchaTokenMixin(metaclass=serializers.SerializerMetaclass):
-    """Adds the captcha token to a serializer's input.
-
-    The field is optional so that deployments without captcha keys configured
-    keep working unchanged. Whether a token is actually required is decided by
-    the view, based on RECAPTCHA_SECRET_KEY.
-    """
-
-    recaptcha_token = serializers.CharField(
-        write_only=True, required=False, allow_blank=True
-    )
-
-
-class LoginSerializer(CaptchaTokenMixin, AuthTokenSerializer):
-    """Credentials plus the captcha token.
-
-    Cannot reuse AuthTokenSerializer's ref_name: DRF's own serializer is still
-    used elsewhere in the viewset, and drf-yasg refuses two distinct serializers
-    sharing a schema name. So this one shows up as `Login` in the API client.
-    """
-
-
-class UserSerializer(CaptchaTokenMixin, serializers.ModelSerializer):
-    """A serializer for our user objects."""
-
-    class Meta:
-        model = User
-        fields = ["id", "email", "username", "password", "recaptcha_token"]
-        extra_kwargs = {"password": {"write_only": True}}
-
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        if User.objects.filter(email=attrs["email"]).exists():
-            raise serializers.ValidationError(
-                {"email": "A user with that email already exists."}
-            )
-        return attrs
-
-    def create(self, validated_data):
-        """Create and return a new user."""
-        user = User(
-            email=validated_data["email"],
-            username=validated_data["username"],
-        )
-
-        try:
-            validate_password(validated_data["password"], user)
-        except ValidationError as e:
-            raise serializers.ValidationError({"password": str(e)})
-
-        user.set_password(validated_data["password"])
-        user.save()
-
-        return user
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -92,76 +37,12 @@ class UserProfileSerializer(serializers.HyperlinkedModelSerializer):
             )
         ]
     )
-    password = serializers.CharField(style={"input_type": "password"}, write_only=True)
     memory_quota = serializers.IntegerField(source="profile.memory_quota", read_only=True)
 
     class Meta:
         model = User
-        fields = ["username", "email", "password", "is_superuser", "memory_quota"]
+        fields = ["username", "email", "is_superuser", "memory_quota"]
         read_only_fields = ["is_superuser", "memory_quota"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance:
-            self.fields.pop("password")
-
-
-class ChangePasswordSerializer(serializers.Serializer):
-    new_password = serializers.CharField(
-        required=True, style={"input_type": "password"}
-    )
-    confirm_new_password = serializers.CharField(
-        required=True, style={"input_type": "password"}
-    )
-    old_password = serializers.CharField(
-        required=True, style={"input_type": "password"}
-    )
-
-    def validate(self, attrs):
-        if attrs["new_password"] != attrs["confirm_new_password"]:
-            raise serializers.ValidationError(
-                {"new_password": "The new passwords do not match."}
-            )
-
-        try:
-            validate_password(attrs["new_password"])
-        except ValidationError as e:
-            raise serializers.ValidationError({"new_password": str(e)})
-
-        if self.context["user"].check_password(attrs["new_password"]):
-            raise serializers.ValidationError(
-                {
-                    "new_password": "The new password cannot be the same as the old password."
-                }
-            )
-
-        return attrs
-
-    def validate_old_password(self, value):
-        if not self.context["user"].check_password(value):
-            msg = _("Incorrect authentication credentials.")
-            raise AuthenticationFailed(msg, code="authentication_failed")
-        return value
-
-
-class ResetPasswordRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-
-
-class ResetPasswordConfirmSerializer(serializers.Serializer):
-    new_password = serializers.CharField(
-        required=True, style={"input_type": "password"}
-    )
-    confirm_new_password = serializers.CharField(
-        required=True, style={"input_type": "password"}
-    )
-
-    def validate(serlf, attrs):
-        if attrs["new_password"] != attrs["confirm_new_password"]:
-            raise serializers.ValidationError(
-                {"new_password": "New passwords do not match."}
-            )
-        return attrs
 
 
 class WhoAmISerializer(serializers.Serializer):

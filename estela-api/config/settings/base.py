@@ -67,12 +67,18 @@ env = environ.Env(
     EMAIL_HOST_USER=(str, "dummy"),
     EMAIL_HOST_PASSWORD=(str, "dummy"),
     EMAILS_TO_ALERT=(str, "dummy"),
-    REGISTER=(str, "dummy"),
     EMAIL_HOST=(str, "dummy"),
     EMAIL_PORT=(int, "dummy"),
     VERIFICATION_EMAIL=(str, "dummy"),
     PROXY_PROVIDERS_TO_TRACK=(str, ""),
-    RECAPTCHA_SECRET_KEY=(str, ""),
+    # The identity provider, as the browser sees it: every token's `iss` must match it
+    # exactly. Empty = the gateway's tokens are not accepted at all.
+    OIDC_ISSUER=(str, ""),
+    # The gateway's client id in the provider: tokens issued for anything else are refused.
+    OIDC_AUDIENCE=(str, ""),
+    # Key the provider signs its identity events with (password changed, user deactivated).
+    # Empty = events are ignored, and a password change does not end existing sessions.
+    IDENTITY_EVENTS_SIGNING_KEY=(str, ""),
     EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
 )
 environ.Env.read_env(env_file=".env")
@@ -330,15 +336,13 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = env("EMAIL_PORT")
 EMAILS_TO_ALERT = env("EMAILS_TO_ALERT")
 
-# Enable/disable the user register endpoint
-REGISTER = env("REGISTER")
-
 # Verification email
 VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
 
-# reCAPTCHA on the login and register endpoints. Leave empty to disable the
-# check, which is the default for self-hosted deployments without Google keys.
-RECAPTCHA_SECRET_KEY = env("RECAPTCHA_SECRET_KEY")
+# Sign-in happens at the gateway, against this issuer (see api/authentication.py).
+OIDC_ISSUER = env("OIDC_ISSUER")
+OIDC_AUDIENCE = env("OIDC_AUDIENCE")
+IDENTITY_EVENTS_SIGNING_KEY = env("IDENTITY_EVENTS_SIGNING_KEY")
 
 # Proxy Settings
 PROXY_PROVIDERS_TO_TRACK = (

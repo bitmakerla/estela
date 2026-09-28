@@ -4,10 +4,9 @@ from django.conf import settings
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, permissions, status, viewsets
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 
-from api.authentication import ApiKeyAuthentication, generate_key
+from api.authentication import AUTHENTICATION_CLASSES, generate_key
 from api.permissions import IsSessionAuthenticated
 from api.serializers.apikey import (
     ApiKeyCreateResponseSerializer,
@@ -25,7 +24,7 @@ class ApiKeyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     more keys.
     """
 
-    authentication_classes = [ApiKeyAuthentication, TokenAuthentication]
+    authentication_classes = AUTHENTICATION_CLASSES
     permission_classes = [permissions.IsAuthenticated, IsSessionAuthenticated]
     serializer_class = ApiKeySerializer
 
