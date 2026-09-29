@@ -17,7 +17,14 @@ import {
     Menu,
     message,
 } from "antd";
-import { SettingOutlined, EditOutlined, TagsOutlined, TeamOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+    SettingOutlined,
+    EditOutlined,
+    TagsOutlined,
+    TeamOutlined,
+    DeleteOutlined,
+    SearchOutlined,
+} from "@ant-design/icons";
 
 import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
@@ -80,6 +87,11 @@ interface ProjectsPageState {
 export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     PAGE_SIZE = 10;
     totalProjects = 0;
+    SEARCH_DEBOUNCE_MS = 300;
+    MIN_SEARCH_LEN = 3;
+    searchTimer?: ReturnType<typeof setTimeout>;
+    searchAbort?: AbortController;
+    projectCache = new Map<string, { data: Project[]; count: number }>();
 
     state: ProjectsPageState = {
         projects: [],
@@ -105,11 +117,39 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
 
     apiService = ApiService();
     static contextType = UserContext;
-    runSearch = async (search: string): Promise<void> => {
-        const { sortField, sortOrder } = this.state;
-        this.setState({ searchText: search });
-        await this.loadProjects(1, search, sortField, sortOrder);
+
+    cancelPendingSearch = (): void => {
+        clearTimeout(this.searchTimer);
+        this.searchTimer = undefined;
+        this.searchAbort?.abort();
+        this.searchAbort = undefined;
     };
+
+    componentWillUnmount(): void {
+        this.cancelPendingSearch();
+        this.projectCache.clear();
+    }
+
+    onSearchChange = (value: string): void => {
+        this.setState({ searchText: value });
+        this.cancelPendingSearch();
+        const term = value.length < this.MIN_SEARCH_LEN ? "" : value;
+        this.searchTimer = setTimeout(() => this.executeSearch(term), this.SEARCH_DEBOUNCE_MS);
+    };
+
+    runSearch = (search: string): void => {
+        this.cancelPendingSearch();
+        this.executeSearch(search);
+    };
+
+    executeSearch = (search: string): void => {
+        const { sortField, sortOrder } = this.state;
+        this.searchAbort = new AbortController();
+        this.loadProjects(1, search, sortField, sortOrder, this.searchAbort.signal);
+    };
+
+    cacheKey = (page: number, search?: string, sortField?: SortField, sortOrder?: "asc" | "desc" | null): string =>
+        `${search ?? ""}|${page}|${sortField ?? ""}|${sortOrder ?? ""}`;
 
     formatDate = (date?: string): string => {
         if (!date) return "—";
@@ -121,6 +161,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
     handleSort = (field: SortField): void => {
         const { sortField, sortOrder, searchText } = this.state;
         const newOrder: "asc" | "desc" = sortField === field && sortOrder === "desc" ? "asc" : "desc";
+        this.cancelPendingSearch();
         this.setState({ sortField: field, sortOrder: newOrder });
         this.loadProjects(1, searchText, field, newOrder);
     };
@@ -147,6 +188,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                     deleteTargetName: "",
                     deleteConfirmText: "",
                 });
+                this.projectCache.clear();
                 this.onPageChange(1);
             },
             () => incorrectDataNotification(),
@@ -400,6 +442,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         search?: string,
         sortField?: SortField,
         sortOrder?: "asc" | "desc" | null,
+        signal?: AbortSignal,
     ): Promise<{ data: Project[]; count: number; current: number }> {
         let ordering: string | undefined;
         if (sortField && sortOrder && this.SERVER_SORT_FIELDS.has(sortField)) {
@@ -407,7 +450,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             ordering = sortOrder === "desc" ? `-${backendField}` : backendField;
         }
         const requestParams: ApiProjectsListRequest = { page, pageSize: this.PAGE_SIZE, search, ordering };
-        const data = await this.apiService.apiProjectsList(requestParams);
+        const api = signal ? ApiService(signal) : this.apiService;
+        const data = await api.apiProjectsList(requestParams);
         this.totalProjects = data.count;
         return { data: data.results, count: data.count, current: page };
     }
@@ -431,19 +475,40 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         search?: string,
         sortField?: SortField,
         sortOrder?: "asc" | "desc" | null,
+        signal?: AbortSignal,
     ): Promise<void> => {
+        const key = this.cacheKey(page, search, sortField, sortOrder);
+        const hit = this.projectCache.get(key);
+        if (hit) {
+            this.totalProjects = hit.count;
+            this.setState({
+                projects: this.toProjectList(hit.data),
+                count: hit.count,
+                current: page,
+                tableLoading: false,
+            });
+            return;
+        }
         this.setState({ tableLoading: true });
-        const data = await this.fetchProjects(page, search, sortField, sortOrder);
-        this.setState({
-            projects: this.toProjectList(data.data),
-            count: data.count,
-            current: data.current,
-            tableLoading: false,
-        });
+        try {
+            const data = await this.fetchProjects(page, search, sortField, sortOrder, signal);
+            this.projectCache.set(key, { data: data.data, count: data.count });
+            this.setState({
+                projects: this.toProjectList(data.data),
+                count: data.count,
+                current: data.current,
+                tableLoading: false,
+            });
+        } catch (err) {
+            if ((err as Error)?.name === "AbortError") return;
+            this.setState({ tableLoading: false });
+            incorrectDataNotification();
+        }
     };
 
     onPageChange = async (page: number): Promise<void> => {
         const { sortField, sortOrder, searchText } = this.state;
+        this.cancelPendingSearch();
         await this.loadProjects(page, searchText, sortField, sortOrder);
     };
 
@@ -718,13 +783,15 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                         </Col>
                                     </Row>
                                     <Row className="mb-4">
-                                        <Input.Search
-                                            placeholder="Search by name"
+                                        <Input
+                                            prefix={<SearchOutlined className="text-estela-black-low" />}
+                                            placeholder="Search projects by name"
                                             value={searchText}
-                                            onChange={(e) => this.setState({ searchText: e.target.value })}
-                                            onSearch={this.runSearch}
-                                            className="border-estela-blue-low rounded-md"
-                                            style={{ maxWidth: 400 }}
+                                            onChange={(e) => this.onSearchChange(e.target.value)}
+                                            onPressEnter={() => this.runSearch(searchText)}
+                                            allowClear
+                                            bordered={false}
+                                            className="project-search"
                                         />
                                     </Row>
                                     <Row className="flex flex-col w-full">
