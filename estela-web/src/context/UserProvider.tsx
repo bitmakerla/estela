@@ -31,6 +31,8 @@ export const UserProvider: React.FC<UserProviderProps> = (props) => {
                 updateUsername,
                 updateEmail,
                 updateRole,
+                accessToken: "",
+                updateAccessToken: () => undefined,
             }}
         >
             {props.children}
