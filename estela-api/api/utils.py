@@ -312,7 +312,7 @@ def get_job_spiderdata_corpus_sizes_bytes(job) -> Optional[Tuple[int, int, int]]
 
 
 def project_owner(job):
-    """Who a scheduled job acts as: nobody launched it, so its project's owner."""
+    """Who a queued job acts as, whether started by hand or by a cron job: its project's owner."""
     permission = job.spider.project.permission_set.filter(
         permission=Permission.OWNER_PERMISSION
     ).first()
