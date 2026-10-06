@@ -3,6 +3,9 @@ export const ESTELA_PROXIES = process.env.ESTELA_PROXIES ? process.env.ESTELA_PR
 export const REGISTER_PAGE_ENABLED = process.env.REGISTER_PAGE_ENABLED === "true";
 export const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY ?? "";
 export const RECAPTCHA_ENABLED = RECAPTCHA_SITE_KEY !== "";
+// How people sign in: "local" (estela's own login pages) or "oidc" (a gateway in front of estela,
+// such as oauth2-proxy). Must match the API's AUTH_MODE.
+export const AUTH_MODE = process.env.REACT_APP_AUTH_MODE === "oidc" ? "oidc" : "local";
 export const DEFAULT_RESOURCE_TIER = "LARGE";
 
 export const PREDEFINED_TIERS = [

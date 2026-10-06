@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 
 import history from "../../history";
 import { AuthService, ApiService, ApiNotificationsListRequest, Notification } from "../../services";
+import { signOut } from "../../services/oidc";
+import { AUTH_MODE } from "../../constants";
 import { UserContext, UserContextProps } from "../../context";
 import { RequestTag, ScrapyTag } from "../../components/FrameworkTag";
 
@@ -126,6 +128,10 @@ export class CustomHeader extends Component<HeaderProps, HeaderState> {
         updateEmail("");
         updateRole && updateRole("");
         updateAccessToken("");
+        if (AUTH_MODE === "oidc") {
+            signOut();
+            return;
+        }
         history.push("/login");
     };
 
