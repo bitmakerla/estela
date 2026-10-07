@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.bitmaker.la/metering/usage-recorded/v1.json",
+  "title": "la.bitmaker.usage.recorded v1",
+  "description": "One metered usage fact, as a CloudEvent (structured mode). ADR 0013: this schema is the contract between the Products and billing, and it is open: a new Product, metric or dimension needs no change here. What billing meters and prices is its catalogue, not this schema. Product-specific rules live in each Product's profile (profiles/). The four time rules in ADR 0013 go with it. Money is never in an event: prices live in OpenMeter's rate cards.",
+  "type": "object",
+  "required": ["specversion", "type", "source", "id", "subject", "time", "dataschema", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {"const": "1.0"},
+    "type": {"const": "la.bitmaker.usage.recorded"},
+    "source": {
+      "description": "The producing Product, a lowercase slug fixed for its lifetime (estela, bitmaker-proxy, ...). Half of OpenMeter's dedupe identity (source, id): changing it re-bills every retry. data.reporter carries the same value.",
+      "$ref": "#/$defs/slug"
+    },
+    "id": {
+      "description": "The fact's idempotency key, deterministic across retries: {source}:{scope}:{...}:v{n}, e.g. estela:job:{jid}:slice:{slice_index}:v1. It starts with its own source (a Product's profile enforces that). Never a random id.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,39}:[A-Za-z0-9_.:-]+:v[0-9]+$",
+      "maxLength": 256
+    },
+    "subject": {
+      "description": "The paying Org's billing account id, stored on the Project or Proxy endpoint when it was created (ADR 0004, ADR 0005). Never a User.",
+      "type": "string",
+      "pattern": "^acct_[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "time": {
+      "description": "UTC, with a Z. A slice: its interval_start, on the 5-minute grid. An adjustment: when it is sent. Never ahead of the producer's clock (ADR 0013, rule 1).",
+      "$ref": "#/$defs/instant"
+    },
+    "dataschema": {"const": "https://schemas.bitmaker.la/metering/usage-recorded/v1.json"},
+    "datacontenttype": {"const": "application/json"},
+    "data": {"$ref": "#/$defs/data"}
+  },
+  "allOf": [
+    {
+      "description": "A slice is stamped at its interval_start, on the UTC 5-minute grid, so it never straddles a period boundary (periods start at 00:00 UTC, ADR 0011).",
+      "if": {"properties": {"data": {"properties": {"kind": {"const": "DELTA_SLICE"}}}}},
+      "then": {"properties": {"time": {"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-5][05]:00Z$"}}}
+    }
+  ],
+  "$defs": {
+    "slug": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,39}$"},
+    "instant": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "data": {
+      "type": "object",
+      "required": ["reporter", "kind", "resource_kind", "resource_id", "interval_start", "interval_end", "metrics"],
+      "additionalProperties": false,
+      "properties": {
+        "reporter": {"description": "The same value as the event's source: the one copy a meter can read (envelope attributes are not addressable).", "$ref": "#/$defs/slug"},
+        "kind": {
+          "description": "Only these reach OpenMeter. A Product's own job totals (JOB_CLOSE) stay in the Product as its reconciliation anchor (ADR 0013).",
+          "enum": ["DELTA_SLICE", "ADJUSTMENT"]
+        },
+        "resource_kind": {
+          "description": "What the usage ran in, as a lowercase name (spider_job, project_storage, proxy_endpoint, ...). The Product names its own.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{1,39}$"
+        },
+        "resource_id": {
+          "description": "Which one, for drill-down through the event list; never a meter dimension (unbounded).",
+          "type": "string", "minLength": 1, "maxLength": 128
+        },
+        "interval_start": {"$ref": "#/$defs/instant"},
+        "interval_end": {"$ref": "#/$defs/instant"},
+        "dimensions": {
+          "description": "Everything a meter may group by or a price may depend on (project_id, machine_tier, proxy_class, ...): bounded, short string values. Meters read them as $.dimensions.<key> (research §31). A price that depends on a dimension always has a catch-all line, so a missing or unknown value is billed, not lost (ADR 0013).",
+          "type": "object",
+          "maxProperties": 8,
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,39}$"},
+          "additionalProperties": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$"}
+        },
+        "references_id": {
+          "description": "An ADJUSTMENT: the id of the fact it corrects, or of the slice it replaces when that slice was late (ADR 0013, rule 2).",
+          "type": "string", "minLength": 1, "maxLength": 256
+        },
+        "adjustment_reason": {"type": "string", "minLength": 1, "maxLength": 500},
+        "metrics": {
+          "description": "Integers in base units, the unit in the name: *_seconds, *_bytes, *_count, *_byte_seconds (storage: bytes held x seconds held). Open: a new metric needs no schema change, only a meter on billing's side to be counted. Invoices convert (GiB = 2^30 bytes, GiB-hours, hours), so events never round.",
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 16,
+          "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,59}_(seconds|bytes|count|byte_seconds)$"},
+          "additionalProperties": {"type": "integer"}
+        }
+      },
+      "allOf": [
+        {
+          "description": "A slice carries no negative value.",
+          "if": {"properties": {"kind": {"const": "DELTA_SLICE"}}},
+          "then": {"properties": {"metrics": {"additionalProperties": {"type": "integer", "minimum": 0}}}}
+        },
+        {
+          "description": "An adjustment says what it corrects and why.",
+          "if": {"properties": {"kind": {"const": "ADJUSTMENT"}}},
+          "then": {"required": ["references_id", "adjustment_reason"]}
+        }
+      ]
+    }
+  }
+}

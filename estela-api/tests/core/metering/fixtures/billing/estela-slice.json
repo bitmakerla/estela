@@ -1,0 +1,28 @@
+{
+  "specversion": "1.0",
+  "type": "la.bitmaker.usage.recorded",
+  "source": "estela",
+  "id": "estela:job:6f1c2a:slice:124:v1",
+  "subject": "acct_01M3MXJASAFW9C5HCN4RNNBEQ3",
+  "time": "2026-10-01T10:05:00Z",
+  "dataschema": "https://schemas.bitmaker.la/metering/usage-recorded/v1.json",
+  "datacontenttype": "application/json",
+  "data": {
+    "reporter": "estela",
+    "kind": "DELTA_SLICE",
+    "resource_kind": "spider_job",
+    "resource_id": "6f1c2a",
+    "interval_start": "2026-10-01T10:05:00Z",
+    "interval_end": "2026-10-01T10:10:00Z",
+    "dimensions": {
+      "project_id": "p_3fa9",
+      "machine_tier": "MEDIUM"
+    },
+    "metrics": {
+      "runtime_seconds": 300,
+      "network_bytes": 18462304,
+      "request_count": 812,
+      "item_count": 790
+    }
+  }
+}

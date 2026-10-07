@@ -17,7 +17,9 @@ asgiref==3.2.10
     #   -r base.txt
     #   django
 attrs==20.2.0
-    # via pytest
+    # via
+    #   jsonschema
+    #   pytest
 awscli==1.18.150
     # via
     #   -r base.txt
@@ -200,6 +202,8 @@ jmespath==0.10.0
     #   -r base.txt
     #   boto3
     #   botocore
+jsonschema==4.17.3
+    # via -r test.in
 kafka-python==2.0.2
     # via
     #   -r base.txt
@@ -267,6 +271,8 @@ pyparsing==2.4.7
     # via
     #   -r base.txt
     #   packaging
+pyrsistent==0.20.0
+    # via jsonschema
 pytest==6.0.2
     # via pytest-django
 pytest-django==3.10.0
