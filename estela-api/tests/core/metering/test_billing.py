@@ -1,11 +1,13 @@
 """Tests for :mod:`core.metering.billing` (usage CloudEvents to OpenMeter, ADR 0013)."""
 
 import json
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime, timedelta, timezone as dt_timezone
 from io import StringIO
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import redis
+from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 
@@ -41,6 +43,7 @@ class FakeRedis:
 
     def __init__(self):
         self.strings, self.hashes = {}, {}
+        self.on_watch = None
 
     def get(self, key):
         return self.strings.get(key)
@@ -63,13 +66,36 @@ class FakeRedis:
 
 
 class FakePipeline:
+    """WATCH reads straight from the store; after MULTI, calls queue until EXECUTE, which
+    raises WatchError if a watched key changed meanwhile (``on_watch`` lets a test change it)."""
+
     def __init__(self, r):
-        self.r, self.calls = r, []
+        self.r, self.calls, self.watched = r, [], {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.calls, self.watched = [], {}
+        return False
+
+    def watch(self, *keys):
+        self.watched = {key: self.r.strings.get(key) for key in keys}
+        if self.r.on_watch:
+            self.r.on_watch(self.r)
+
+    def get(self, key):
+        return self.r.get(key)
+
+    def multi(self):
+        pass
 
     def __getattr__(self, name):
         return lambda *args, **kwargs: self.calls.append((name, args, kwargs))
 
     def execute(self):
+        if any(self.r.strings.get(k) != v for k, v in self.watched.items()):
+            raise redis.WatchError()
         for name, args, kwargs in self.calls:
             getattr(self.r, name)(*args, **kwargs)
 
@@ -270,6 +296,182 @@ class EmitBillingUsageBatchTests(TestCase):
         self._tick(2026, 10, 6, 12, 0, 3, elapsed_time_seconds=100)
         self.assertEqual(self.posted, [])
         self.assertEqual(self.redis.strings, {})
+
+
+@override_settings(
+    BILLING_EMIT_ENABLED=True,
+    OPENMETER_INGEST_URL="http://openmeter.test/api/v3/openmeter/events",
+)
+class JobCloseAdjustmentTests(TestCase):
+    """What a job used after its last tick, sent once at close (omx-6uu.7)."""
+
+    setUp = EmitBillingUsageBatchTests.setUp
+    _read = EmitBillingUsageBatchTests._read
+    _post = EmitBillingUsageBatchTests._post
+    _tick = EmitBillingUsageBatchTests._tick
+    _outbox = EmitBillingUsageBatchTests._outbox
+
+    def _finish(self, *, runtime, network=0, requests=0, items=0):
+        # update(), not save(): save() fires the post_save that schedules the real close.
+        SpiderJob.objects.filter(pk=self.job.pk).update(
+            status=SpiderJob.COMPLETED_STATUS,
+            lifespan=timedelta(seconds=runtime),
+            total_response_bytes=network,
+            request_count=requests,
+            item_count=items,
+        )
+        self.job.refresh_from_db()
+
+    def _close(self, *at):
+        billing.emit_job_close_adjustment(self.job, now=utc(*at))
+
+    def _sent(self):
+        return [event for batch in self.posted for event in batch]
+
+    def _baseline(self):
+        raw = self.redis.get(billing.LAST_SAMPLE_KEY.format(self.job.key))
+        return json.loads(raw) if raw else None
+
+    def test_sends_what_came_after_the_last_slice(self):
+        # Job 15223 on staging, 2026-10-07: the 14:45 tick was its last.
+        self._tick(
+            2026, 10, 7, 14, 45, 0,
+            elapsed_time_seconds=2170, total_response_bytes=24484065,
+            request_count=375, item_count=314,
+        )
+        self._finish(runtime=2314, network=26104134, requests=383, items=314)
+        self._close(2026, 10, 7, 14, 48, 0)
+
+        slice_, adjustment = self._sent()
+        self.assertEqual(adjustment["id"], f"estela:job:{self.job.jid}:adjust:close:v1")
+        self.assertEqual(adjustment["time"], "2026-10-07T14:48:00Z")
+        data = adjustment["data"]
+        self.assertEqual(data["kind"], "ADJUSTMENT")
+        self.assertEqual(data["references_id"], f"estela:job:{self.job.jid}:close:v1")
+        self.assertEqual(data["interval_start"], "2026-10-07T14:45:00Z")
+        self.assertEqual(data["interval_end"], "2026-10-07T14:48:00Z")
+        self.assertEqual(data["dimensions"]["machine_tier"], "SMALL")
+        # Only what is left: items were all sent already, so they are not in it.
+        self.assertEqual(
+            data["metrics"],
+            {"runtime_seconds": 144, "network_bytes": 1620069, "request_count": 8},
+        )
+        self.assertEqual(list(_validator().iter_errors(adjustment)), [])
+        # Slices plus adjustment come to the job's final totals.
+        total = {
+            m: slice_["data"]["metrics"][m] + data["metrics"].get(m, 0)
+            for m in slice_["data"]["metrics"]
+        }
+        self.assertEqual(
+            total,
+            {"runtime_seconds": 2314, "network_bytes": 26104134,
+             "request_count": 383, "item_count": 314},
+        )
+        self.assertEqual(self._outbox(), {})
+        self.assertTrue(self._baseline()["closed"])
+
+    def test_a_job_no_tick_saw_sends_its_whole_usage(self):
+        self._finish(runtime=170, network=5000, requests=12, items=9)
+        billing.emit_job_close_adjustment(
+            self.job, now=self.job.created + timedelta(minutes=3)
+        )
+        (event,) = self._sent()
+        self.assertEqual(
+            event["data"]["metrics"],
+            {"runtime_seconds": 170, "network_bytes": 5000, "request_count": 12, "item_count": 9},
+        )
+        self.assertEqual(event["data"]["interval_start"], billing.iso(self.job.created))
+        self.assertEqual(list(_validator().iter_errors(event)), [])
+
+    def test_a_repeated_close_sends_nothing_more(self):
+        self._finish(runtime=170, network=5000)
+        self._close(2026, 10, 7, 14, 48, 0)
+        self._close(2026, 10, 7, 14, 49, 0)
+        self.assertEqual(len(self._sent()), 1)
+
+    def test_a_tick_after_the_close_does_nothing(self):
+        # A tick that loaded the job while it was still RUNNING reaches it after the close.
+        self._finish(runtime=170, network=5000)
+        self._close(2026, 10, 7, 14, 48, 0)
+        self.counters[self.job.jid] = {"elapsed_time_seconds": 175, "total_response_bytes": 5100}
+        billing.sample_job(self.job, utc(2026, 10, 7, 14, 45), utc(2026, 10, 7, 14, 50))
+        self.assertEqual(len(self._sent()), 1)
+        self.assertEqual(self._outbox(), {})
+
+    def test_a_tick_that_moves_the_baseline_meanwhile_is_read_again(self):
+        self._tick(2026, 10, 7, 14, 40, 0, elapsed_time_seconds=1870)
+        self._finish(runtime=2314)
+        key = billing.LAST_SAMPLE_KEY.format(self.job.key)
+
+        def tick_lands(r):
+            r.on_watch = None
+            r.set(key, json.dumps({"elapsed_time_seconds": 2170, "window_end": "2026-10-07T14:45:00Z"}))
+
+        self.redis.on_watch = tick_lands
+        self._close(2026, 10, 7, 14, 48, 0)
+        adjustment = self._sent()[-1]
+        self.assertEqual(adjustment["data"]["metrics"], {"runtime_seconds": 144})
+        self.assertEqual(adjustment["data"]["interval_start"], "2026-10-07T14:45:00Z")
+
+    def test_a_tick_that_loses_to_the_close_queues_nothing(self):
+        self._tick(2026, 10, 7, 14, 40, 0, elapsed_time_seconds=1870)
+        key = billing.LAST_SAMPLE_KEY.format(self.job.key)
+
+        def close_lands(r):
+            r.on_watch = None
+            r.set(key, json.dumps({"elapsed_time_seconds": 2314, "closed": True}))
+
+        self.redis.on_watch = close_lands
+        self._tick(2026, 10, 7, 14, 45, 0, elapsed_time_seconds=2170)
+        self.assertEqual(len(self._sent()), 1)  # only the 14:40 slice
+        self.assertEqual(self._outbox(), {})
+
+    def test_a_final_total_under_what_was_sent_takes_nothing_back(self):
+        self._tick(2026, 10, 7, 14, 45, 0, elapsed_time_seconds=300, item_count=40)
+        self._finish(runtime=290, items=40, network=900)
+        self._close(2026, 10, 7, 14, 48, 0)
+        adjustment = self._sent()[-1]
+        self.assertEqual(adjustment["data"]["metrics"], {"network_bytes": 900})
+
+    def test_a_row_whose_stats_were_never_copied_does_not_erase_the_slices(self):
+        # Stopped or found dead while Redis was down: the row keeps zeros (except: pass).
+        self._tick(2026, 10, 7, 14, 45, 0, elapsed_time_seconds=300, total_response_bytes=5000)
+        self._finish(runtime=0)
+        self._close(2026, 10, 7, 14, 48, 0)
+        self.assertEqual(len(self._sent()), 1)  # the slice only
+        self.assertTrue(self._baseline()["closed"])
+
+    def test_nothing_left_sends_nothing_but_closes(self):
+        self._tick(2026, 10, 7, 14, 45, 0, elapsed_time_seconds=300, item_count=40)
+        self._finish(runtime=300, items=40)
+        self._close(2026, 10, 7, 14, 48, 0)
+        self.assertEqual(len(self._sent()), 1)
+        self.assertTrue(self._baseline()["closed"])
+
+    def test_a_project_without_an_account_sends_nothing(self):
+        Project.objects.filter(pk=self.project.pk).update(billing_account_id=None)
+        self._finish(runtime=170, network=5000)
+        self._close(2026, 10, 7, 14, 48, 0)
+        self.assertEqual(self.posted, [])
+        self.assertEqual(self.redis.strings, {})
+
+    @override_settings(BILLING_EMIT_ENABLED=False)
+    def test_disabled_does_nothing(self):
+        self._finish(runtime=170, network=5000)
+        self._close(2026, 10, 7, 14, 48, 0)
+        self.assertEqual(self.posted, [])
+        self.assertEqual(self.redis.strings, {})
+
+    def test_a_job_reaching_a_final_status_schedules_the_close(self):
+        with patch("core.signals.emit_billing_job_close") as task, patch(
+            "core.signals.get_chain_to_process_usage_data"
+        ), patch("core.signals.record_job_coverage_event"):
+            self.job.status = SpiderJob.COMPLETED_STATUS
+            self.job.save()
+        task.apply_async.assert_called_once_with(
+            args=[self.job.jid],
+            countdown=settings.COUNTDOWN_RECORD_PROJECT_USAGE_AFTER_JOB_EVENT,
+        )
 
 
 @override_settings(

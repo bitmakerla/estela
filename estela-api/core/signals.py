@@ -9,7 +9,11 @@ from django.utils import timezone
 
 from core.cronjob import disable_cronjob
 from core.models import Deploy, Project, Spider, SpiderCronJob, SpiderJob, UserProfile
-from core.tasks import get_chain_to_process_usage_data, record_job_coverage_event
+from core.tasks import (
+    emit_billing_job_close,
+    get_chain_to_process_usage_data,
+    record_job_coverage_event,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -71,4 +75,11 @@ def update_usage(sender, instance: SpiderJob, created, **kwargs):
         record_job_coverage_event.apply_async(
             args=[instance.jid],
             countdown=settings.COUNTDOWN_RECORD_COVERAGE_AFTER_JOB_EVENT,
+        )
+        # Billing's close adjustment, apart from the chain above: that one waits on MongoDB, and
+        # usage should not. Same countdown, so the job's row has its final totals. Runs once per
+        # job however often this fires (billing.emit_job_close_adjustment).
+        emit_billing_job_close.apply_async(
+            args=[instance.jid],
+            countdown=settings.COUNTDOWN_RECORD_PROJECT_USAGE_AFTER_JOB_EVENT,
         )
