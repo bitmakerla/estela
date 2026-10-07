@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import authentication, exceptions
 
@@ -116,6 +117,12 @@ class RunTokenAuthentication(authentication.BaseAuthentication):
         return KEYWORD
 
 
+# How a person is recognised: their sign-in. With AUTH_MODE=local, the DRF token the login hands
+# out; with AUTH_MODE=oidc, the provider's token the gateway forwards (api/auth/oidc.py) first.
+# DRF's token stays in oidc mode too, for the programs and runs that still hold one.
+SIGN_IN_CLASSES = [authentication.TokenAuthentication]
+# Every other endpoint also takes an API key.
+AUTHENTICATION_CLASSES = [ApiKeyAuthentication, authentication.TokenAuthentication]
 # The job and deploy endpoints, which a run's container also reports to. RunToken goes before
 # DRF's class, which would otherwise reject its `Token estela-run_...` as an unknown token.
 RUN_AUTHENTICATION_CLASSES = [
@@ -123,3 +130,13 @@ RUN_AUTHENTICATION_CLASSES = [
     RunTokenAuthentication,
     authentication.TokenAuthentication,
 ]
+
+if settings.AUTH_MODE == "oidc":
+    from api.auth.oidc import OIDCAuthentication
+
+    for classes in (
+        SIGN_IN_CLASSES,
+        AUTHENTICATION_CLASSES,
+        RUN_AUTHENTICATION_CLASSES,
+    ):
+        classes.insert(0, OIDCAuthentication)

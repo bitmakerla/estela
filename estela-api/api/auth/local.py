@@ -1,0 +1,310 @@
+"""Sign-in with estela's own usernames and passwords (AUTH_MODE=local, the default).
+
+Login hands out a DRF token, which the web keeps and sends as `Authorization: Token ...`.
+Registration, account activation and password changes and resets live here too. None of these
+routes exist with AUTH_MODE=oidc, where the provider owns passwords (see api/urls.py).
+"""
+
+from datetime import datetime, timezone
+
+from django.conf import settings
+from django.contrib.auth.models import User, update_last_login
+from django.core.mail import EmailMessage
+from django.shortcuts import redirect
+from django.template.loader import render_to_string
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions, status, viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.decorators import action
+from rest_framework.exceptions import (
+    MethodNotAllowed,
+    PermissionDenied,
+    ValidationError,
+)
+from rest_framework.response import Response
+
+from api import errors
+from api.captcha import EXPIRED_TOKEN, get_client_ip, verify_captcha
+from api.exceptions import EmailServiceError, UserNotFoundError
+from api.serializers.auth import (
+    ChangePasswordSerializer,
+    LoginSerializer,
+    ResetPasswordConfirmSerializer,
+    ResetPasswordRequestSerializer,
+    TokenSerializer,
+    UserSerializer,
+)
+from api.tokens import account_reset_token
+from core.views import (
+    send_alert_password_changed,
+    send_change_password_email,
+    send_verification_email,
+)
+
+
+class LocalAuthViewSet(viewsets.GenericViewSet):
+    serializer_class = AuthTokenSerializer
+
+    def check_captcha(self, request):
+        """Reject the request unless the captcha token checks out.
+
+        A no-op for deployments that have not configured a secret key. An
+        expired token gets its own message, since it is the usual outcome of
+        taking a while to fill the form in and the fix is simply to tick again.
+        """
+        failure = verify_captcha(
+            request.data.get("recaptcha_token"), remote_ip=get_client_ip(request)
+        )
+
+        if failure is None:
+            return
+
+        if failure == EXPIRED_TOKEN:
+            raise ValidationError({"error": errors.EXPIRED_CAPTCHA})
+
+        raise ValidationError({"error": errors.INVALID_CAPTCHA})
+
+    def retry_send_verification_email(self, user, request):
+        if (
+            int((datetime.now(timezone.utc) - user.last_login).total_seconds())
+            > settings.PASSWORD_RESET_TIMEOUT
+        ):
+            update_last_login(None, user)
+            send_verification_email(user, request)
+
+    @swagger_auto_schema(
+        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+    )
+    @action(methods=["POST"], detail=False, serializer_class=LoginSerializer)
+    def login(self, request, *args, **kwargs):
+        self.check_captcha(request)
+
+        serializer: LoginSerializer = self.get_serializer(
+            data=request.data, context={"request": self.request}
+        )
+
+        user = User.objects.filter(username=request.data["username"])
+        if user and not user.get().is_active:
+            user = user.get()
+            self.retry_send_verification_email(user, request)
+            raise PermissionDenied(
+                {"error": "Check the verification email that was sent to you."}
+            )
+
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.validated_data["user"]
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+
+    @swagger_auto_schema(
+        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+    )
+    @action(methods=["POST"], detail=False, serializer_class=UserSerializer)
+    def register(self, request, *args, **kwargs):
+        if not settings.REGISTER == "True":
+            raise MethodNotAllowed({"error": "This action is disabled"})
+
+        self.check_captcha(request)
+
+        serializer: UserSerializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        user.is_active = False
+        user.save()
+        update_last_login(None, user)
+
+        try:
+            send_verification_email(user, request)
+        except Exception:
+            raise EmailServiceError({"error": errors.ERROR_SENDING_VERIFICATION_EMAIL})
+
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+
+    @action(methods=["GET"], detail=False)
+    def activate(self, request, *args, **kwargs):
+        token = request.query_params.get("token", "")
+        user_id_base64 = request.query_params.get("pair", "")
+        user_id = force_text(urlsafe_base64_decode(user_id_base64))
+
+        user = User.objects.filter(pk=user_id)
+        if not user:
+            return redirect(settings.FRONTEND_HOST, {"error": "User does not exist."})
+
+        user = user.get()
+        if user.is_active:
+            return redirect(
+                "".join([settings.FRONTEND_HOST, "/activatedAccount"]),
+                {"message": "Account already activated!"},
+            )
+        elif account_reset_token.check_token(user, token):
+            user.is_active = True
+            user.save()
+            mail_subject = "New User Registered."
+            message = render_to_string(
+                "alert_new_user.html",
+                {
+                    "user": user,
+                },
+            )
+            email = EmailMessage(
+                mail_subject,
+                message,
+                from_email=settings.VERIFICATION_EMAIL,
+                to=settings.EMAILS_TO_ALERT.split(","),
+            )
+            email.send()
+            return redirect(
+                "".join([settings.FRONTEND_HOST, "/activatedAccount"]),
+                {
+                    "message": "Thank you for your email confirmation. You can now log in to your account."
+                },
+            )
+        else:
+            self.retry_send_verification_email(user, request)
+            return redirect(
+                settings.FRONTEND_HOST,
+                {"message": "Activation link is invalid!"},
+            )
+
+
+class ChangePasswordViewSet(viewsets.GenericViewSet):
+    @swagger_auto_schema(
+        request_body=ChangePasswordSerializer,
+        responses={status.HTTP_200_OK: TokenSerializer()},
+    )
+    @action(
+        methods=["PATCH"],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        authentication_classes=[TokenAuthentication],
+        serializer_class=ChangePasswordSerializer,
+    )
+    def change(self, request, *args, **kwargs):
+        user = request.user
+        serializer = ChangePasswordSerializer(data=request.data, context={"user": user})
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.data["new_password"])
+        user.save()
+        send_alert_password_changed(user)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+
+
+class ResetPasswordViewSet(viewsets.GenericViewSet):
+    manual_parameters = [
+        openapi.Parameter(
+            "token",
+            openapi.IN_QUERY,
+            description="Token",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+        openapi.Parameter(
+            "pair",
+            openapi.IN_QUERY,
+            description="Pair",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+    ]
+
+    def get_parameters(self, request):
+        token = request.query_params.get("token", "")
+        user_id_base64 = request.query_params.get("pair", "")
+        user_id = force_text(urlsafe_base64_decode(user_id_base64))
+        return token, user_id
+
+    @swagger_auto_schema(
+        methods=["POST"], responses={status.HTTP_200_OK: TokenSerializer()}
+    )
+    @action(
+        methods=["POST"],
+        detail=False,
+        serializer_class=ResetPasswordRequestSerializer,
+    )
+    def request(self, request, *args, **kwargs):
+        serializer = ResetPasswordRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        user = User.objects.filter(email=email)
+        if not user:
+            raise UserNotFoundError()
+        user = user.get()
+        try:
+            send_change_password_email(user)
+        except Exception:
+            raise EmailServiceError({"error": errors.SEND_EMAIL_LATER})
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)
+
+    @swagger_auto_schema(
+        methods=["GET"],
+        manual_parameters=manual_parameters,
+        responses={
+            status.HTTP_200_OK: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+            status.HTTP_400_BAD_REQUEST: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "message": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+        },
+    )
+    @action(methods=["GET"], detail=False)
+    def validate(self, request, *args, **kwargs):
+        token, user_id = self.get_parameters(request)
+        user = User.objects.filter(pk=user_id)
+        if not user:
+            raise UserNotFoundError()
+        user = user.get()
+        if account_reset_token.check_token(user, token):
+            return Response(
+                data={"message": "Token is valid."}, status=status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                data={"message": "Token is invalid."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @swagger_auto_schema(
+        methods=["PATCH"],
+        manual_parameters=manual_parameters,
+        responses={
+            status.HTTP_200_OK: TokenSerializer(),
+            status.HTTP_401_UNAUTHORIZED: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "error": openapi.Schema(type=openapi.TYPE_STRING),
+                },
+            ),
+        },
+    )
+    @action(
+        methods=["PATCH"], detail=False, serializer_class=ResetPasswordConfirmSerializer
+    )
+    def confirm(self, request, *args, **kwargs):
+        token, user_id = self.get_parameters(request)
+        user = User.objects.filter(pk=user_id)
+        if not user:
+            raise UserNotFoundError()
+        user = user.get()
+        serializer = ResetPasswordConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+        send_alert_password_changed(user)
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response(TokenSerializer(token).data)

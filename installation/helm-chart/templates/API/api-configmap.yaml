@@ -27,6 +27,9 @@ data:
   EMAILS_TO_ALERT: {{ .Values.EMAILS_TO_ALERT }}
   VERIFICATION_EMAIL: {{ .Values.VERIFICATION_EMAIL }}
   REGISTER: {{ .Values.REGISTER | quote }}
+  AUTH_MODE: {{ .Values.AUTH_MODE | default "local" | quote }}
+  OIDC_ISSUER: {{ .Values.OIDC_ISSUER | default "" | quote }}
+  OIDC_AUDIENCE: {{ .Values.OIDC_AUDIENCE | default "" | quote }}
   {{- if .Values.EMAIL_BACKEND }}
   EMAIL_BACKEND: {{ .Values.EMAIL_BACKEND | quote }}
   {{- end }}

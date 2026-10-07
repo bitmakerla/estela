@@ -14,6 +14,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 from estela_queue_adapter import get_queue_env_vars
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -73,6 +74,9 @@ env = environ.Env(
     VERIFICATION_EMAIL=(str, "dummy"),
     PROXY_PROVIDERS_TO_TRACK=(str, ""),
     RECAPTCHA_SECRET_KEY=(str, ""),
+    AUTH_MODE=(str, "local"),
+    OIDC_ISSUER=(str, ""),
+    OIDC_AUDIENCE=(str, ""),
     EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
 )
 environ.Env.read_env(env_file=".env")
@@ -339,6 +343,22 @@ VERIFICATION_EMAIL = env("VERIFICATION_EMAIL")
 # reCAPTCHA on the login and register endpoints. Leave empty to disable the
 # check, which is the default for self-hosted deployments without Google keys.
 RECAPTCHA_SECRET_KEY = env("RECAPTCHA_SECRET_KEY")
+
+# How people sign in. "local": estela's own username and password (api/auth/local.py),
+# the default. "oidc": an OpenID Connect provider, through a gateway in front of estela
+# that forwards the provider's ID token on every request (api/auth/oidc.py). API keys
+# and run tokens work in both.
+AUTH_MODE = env("AUTH_MODE")
+if AUTH_MODE not in ("local", "oidc"):
+    raise ImproperlyConfigured(
+        f"AUTH_MODE must be 'local' or 'oidc', not {AUTH_MODE!r}."
+    )
+# The provider exactly as its tokens name it (`iss`), and the gateway's client id there
+# (`aud`).
+OIDC_ISSUER = env("OIDC_ISSUER").rstrip("/")
+OIDC_AUDIENCE = env("OIDC_AUDIENCE")
+if AUTH_MODE == "oidc" and not (OIDC_ISSUER and OIDC_AUDIENCE):
+    raise ImproperlyConfigured("AUTH_MODE=oidc needs OIDC_ISSUER and OIDC_AUDIENCE.")
 
 # Proxy Settings
 PROXY_PROVIDERS_TO_TRACK = (
