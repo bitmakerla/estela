@@ -4,6 +4,7 @@ from datetime import timedelta
 from typing import List
 import logging
 
+import redis
 from celery import chain
 from celery.exceptions import TaskError
 from django.conf import settings
@@ -36,6 +37,7 @@ from core.error_logs import (
     write_job_logs_to_mongo,
     write_deploy_logs_to_mongo,
 )
+from core.metering.billing import emit_billing_usage_batch, emit_job_close_adjustment
 from core.metering.hourly import record_hourly_metered_usage_batch
 from core.metering.storage import record_hourly_storage_metered_usage_batch
 from core.metering.ledger import (
@@ -577,6 +579,22 @@ def record_hourly_metered_usage():
 @celery_app.task(name="core.tasks.record_hourly_storage_metered_usage")
 def record_hourly_storage_metered_usage():
     record_hourly_storage_metered_usage_batch()
+
+
+@celery_app.task(name="core.tasks.emit_billing_usage")
+def emit_billing_usage():
+    emit_billing_usage_batch()
+
+
+@celery_app.task(
+    name="core.tasks.emit_billing_job_close",
+    autoretry_for=(redis.RedisError,),
+    retry_kwargs={"max_retries": 10, "countdown": 60},
+)
+def emit_billing_job_close(job_id):
+    """What the job used after its last 5-minute slice, as one ADJUSTMENT (billing.py)."""
+    job = SpiderJob.objects.select_related("spider__project").get(jid=job_id)
+    emit_job_close_adjustment(job)
 
 
 def get_chain_to_process_usage_data(after_delete=False, project_id=None, job_id=None):

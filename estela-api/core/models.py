@@ -90,6 +90,12 @@ class Project(models.Model):
     last_modified = models.DateTimeField(
         null=True, help_text="Date of last activity (deploy or job)."
     )
+    billing_account_id = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        help_text="The paying Org's billing account (acct_...). Usage is emitted to billing only when set.",
+    )
 
     class Meta:
         ordering = ["name"]
