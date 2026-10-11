@@ -9,9 +9,14 @@ provider.
 An account is found by the token's `sub` (UserProfile.oidc_sub), and created the first
 time someone signs in. Existing accounts are linked ahead of time by setting their
 oidc_sub.
+
+The account also records, once, the User's own Org (the token's OIDC_ORG_CLAIM) and
+Bitmaker's id for them (usr_, from the Account Registry, ADR 0017). Neither ever blocks a
+sign-in: a Registry that cannot answer is retried on the next request.
 """
 
 import functools
+import logging
 import re
 
 import jwt
@@ -22,7 +27,10 @@ from django.db import IntegrityError, transaction
 from rest_framework import authentication, exceptions
 from rest_framework.permissions import SAFE_METHODS
 
+from core.metering.billing import resolve_user_id
 from core.models import UserProfile
+
+logger = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=1)
@@ -49,28 +57,56 @@ def free_username(claims):
 
 def account_for(claims):
     """The account of the token's subject, created the first time they sign in."""
+    profile = _profile_for(claims)
+    record_identity(profile, claims)
+    return profile.user
+
+
+def _profile_for(claims):
     sub = claims["sub"]
     profile = UserProfile.objects.select_related("user").filter(oidc_sub=sub).first()
     if profile:
-        return profile.user
+        return profile
     try:
         with transaction.atomic():
             user = User.objects.create_user(
                 username=free_username(claims), email=claims.get("email", "")
             )
             UserProfile.objects.filter(user=user).update(oidc_sub=sub)
-            return user
     except IntegrityError:
         # A page fires several requests at once, so a first sign-in races itself. The
         # one that lost finds the account the winner just made.
-        profile = (
-            UserProfile.objects.select_related("user").filter(oidc_sub=sub).first()
+        pass
+    profile = UserProfile.objects.select_related("user").filter(oidc_sub=sub).first()
+    if profile is None:
+        raise exceptions.AuthenticationFailed("Could not set up your account, retry.")
+    return profile
+
+
+def record_identity(profile, claims):
+    """Fill in, once, the User's own Org and their usr_. Every request passes here, so it
+    writes only what is still missing, and nothing once both are known."""
+    changed = []
+    org_id = claims.get(settings.OIDC_ORG_CLAIM)
+    if org_id and not profile.idp_org_id:
+        profile.idp_org_id = org_id
+        changed.append("idp_org_id")
+    elif org_id and org_id != profile.idp_org_id:
+        # A User never moves between Orgs (ADR 0005); keep the first, and say so.
+        logger.warning(
+            "user %s: token names Org %s, account has %s; kept",
+            profile.user_id, org_id, profile.idp_org_id,
         )
-        if profile is None:
-            raise exceptions.AuthenticationFailed(
-                "Could not set up your account, retry."
-            )
-        return profile.user
+    if not profile.bitmaker_user_id and settings.ACCOUNT_REGISTRY_URL:
+        try:
+            profile.bitmaker_user_id = resolve_user_id(claims["iss"], claims["sub"])
+            changed.append("bitmaker_user_id")
+        except Exception as exc:  # the sign-in stands; the next request tries again
+            logger.warning("user %s: no usr_ from the Account Registry yet: %s", profile.user_id, exc)
+    if changed:
+        UserProfile.objects.filter(pk=profile.pk).update(
+            **{field: getattr(profile, field) for field in changed}
+        )
 
 
 class OIDCAuthentication(authentication.BaseAuthentication):

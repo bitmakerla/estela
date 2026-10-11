@@ -175,6 +175,26 @@ class UserProfile(models.Model):
         default=None,
         help_text="Subject claim from the identity provider.",
     )
+    # The User's own Org at the identity provider, from the token (OIDC_ORG_CLAIM). A User belongs
+    # to one Org for life (ADR 0005 in bitmaker-cloud-openmeter), so it is set once. What a
+    # Project's owner Org is checked against (ADR 0018).
+    idp_org_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="The user's own Org at the identity provider.",
+    )
+    # Bitmaker's id for this person (usr_...), minted by the Account Registry on first sight (ADR
+    # 0017). What billing history and usage events record, never the provider's sub.
+    bitmaker_user_id = models.CharField(
+        max_length=30,
+        unique=True,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Bitmaker's User id (usr_...), from the Account Registry.",
+    )
 
 
 class ApiKey(models.Model):

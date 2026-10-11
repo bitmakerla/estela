@@ -245,6 +245,27 @@ def resolve_billing_account(zitadel_org_id: str) -> str:
     return account_id
 
 
+USER_ID_RE = re.compile(r"^usr_[0-9A-HJKMNP-TV-Z]{26}$")
+
+
+def resolve_user_id(issuer: str, idp_user_id: str) -> str:
+    """The person's ``usr_`` from the Account Registry, minted the first time this identity is seen
+    (ADR 0017). Raises on any failure; the caller decides whether that matters."""
+    if not settings.ACCOUNT_REGISTRY_URL:
+        raise RuntimeError("ACCOUNT_REGISTRY_URL is not set")
+    response = requests.post(
+        f"{settings.ACCOUNT_REGISTRY_URL.rstrip('/')}/users/resolve",
+        json={"issuer": issuer, "idp_user_id": idp_user_id},
+        headers={"Authorization": f"Bearer {settings.ACCOUNT_REGISTRY_TOKEN}"},
+        timeout=5,
+    )
+    response.raise_for_status()
+    user_id = response.json()["user_id"]
+    if not USER_ID_RE.match(user_id):
+        raise ValueError(f"Registry returned a malformed user id: {user_id!r}")
+    return user_id
+
+
 def post_events(events: List[dict]) -> int:
     """POST a batch to OpenMeter's ingest; returns the HTTP status (0 when unreachable)."""
     try:

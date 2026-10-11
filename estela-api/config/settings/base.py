@@ -357,6 +357,9 @@ if AUTH_MODE not in ("local", "oidc"):
 # (`aud`).
 OIDC_ISSUER = env("OIDC_ISSUER").rstrip("/")
 OIDC_AUDIENCE = env("OIDC_AUDIENCE")
+# The token claim naming the User's own Org. The provider's name for it lives only here (ADR 0017:
+# one adapter per service); Zitadel's by default.
+OIDC_ORG_CLAIM = env.str("OIDC_ORG_CLAIM", default="urn:zitadel:iam:user:resourceowner:id")
 if AUTH_MODE == "oidc" and not (OIDC_ISSUER and OIDC_AUDIENCE):
     raise ImproperlyConfigured("AUTH_MODE=oidc needs OIDC_ISSUER and OIDC_AUDIENCE.")
 
