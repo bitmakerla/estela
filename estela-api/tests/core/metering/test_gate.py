@@ -90,6 +90,14 @@ class BillingStateTests(GateTestCase):
         get.return_value = answer("stopped")
         self.assertEqual(self.refused().reason, gate.STOPPED)
 
+    def test_an_org_out_of_prepaid_credit_is_refused_and_told_why(self, get):
+        """ADR 0019: a cardless Org at zero credit starts no new Jobs until a Prepayment."""
+        get.return_value = answer("out_of_credit")
+        refusal = self.refused()
+        self.assertEqual(refusal.reason, gate.OUT_OF_CREDIT)
+        self.assertIn("prepaid credit is used up", refusal.message)
+        self.assertFalse(refusal.transient)
+
     def test_a_project_with_no_acct_is_refused_without_asking(self, get):
         Project.objects.filter(pk=self.project.pk).update(billing_account_id=None)
         self.project.refresh_from_db()

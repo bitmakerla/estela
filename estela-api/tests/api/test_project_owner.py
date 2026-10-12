@@ -99,15 +99,22 @@ class ProjectOwnerTests(BaseTestCase):
         self.assertIn("owned by owner@customer.example", Activity.objects.get(project_id=body["pid"]).description)
 
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)
-    def test_a_project_for_another_org_needs_one_of_its_users_as_owner(self, accounts):
+    def test_the_named_owner_must_be_of_that_org(self, accounts):
         outsider = with_org(User.objects.create_user(username="outsider", email="x@other.example"), "another-org")
-        for email, why in ((None, "Name a User"), ("nobody@customer.example", "sign in to estela once"),
-                           (outsider.email, "not in the Organization")):
-            with self.subTest(email=email):
-                data = {"owner_org_id": CUSTOMER_ORG, **({"owner_email": email} if email else {})}
-                body = self.create(self.operator, status_code=400, **data)
-                self.assertIn(why, body["owner_email"])
+        body = self.create(self.operator, status_code=400, owner_org_id=CUSTOMER_ORG, owner_email=outsider.email)
+        self.assertIn("not in the Organization", body["owner_email"])
         self.assertFalse(Project.objects.exists())
+
+    @patch("api.ownership.list_accounts", return_value=ONBOARDED)
+    def test_naming_nobody_makes_a_managed_project(self, accounts):
+        """A managed customer never signs in (ADR 0019): Bitmaker runs the Project, billed to them."""
+        body = self.create(self.operator, owner_org_id=CUSTOMER_ORG)
+        project = Project.objects.get(pid=body["pid"])
+        self.assertEqual((project.owner_org_id, project.billing_account_id, project.pending_owner_email),
+                         (CUSTOMER_ORG, CUSTOMER_ACCT, None))
+        roles = dict(Permission.objects.filter(project=project).values_list("user__username", "permission"))
+        self.assertEqual(roles, {"operator": "OWNER"})
+        self.assertIn("managed by Bitmaker", Activity.objects.get(project=project).description)
 
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)
     @patch("api.ownership.resolve_billing_account")
@@ -154,3 +161,72 @@ class ProjectWithoutBillingTests(BaseTestCase):
         project = Project.objects.get(pid=body["pid"])
         self.assertEqual((project.owner_org_id, project.billing_account_id), (None, None))
         resolve.assert_not_called()
+
+
+ISSUER = "https://auth.hetzner-staging.bitmaker.dev"
+
+
+def first_sign_in(email, org=CUSTOMER_ORG, verified=True, sub="sub-new"):
+    """What the gate's token brings the first time an invited person signs in."""
+    from api.auth.oidc import account_for
+    return account_for({"iss": ISSUER, "sub": sub, "preferred_username": email.split("@")[0],
+                        "email": email, "email_verified": verified,
+                        "urn:zitadel:iam:user:resourceowner:id": org})
+
+
+@override_settings(ACCOUNT_REGISTRY_URL="http://registry.test", ACCOUNT_REGISTRY_TOKEN="t")
+class PendingOwnerTests(BaseTestCase):
+    """An Operator sets a customer's Project up before anyone of the customer has signed in
+    (option B, omx-8q5.4.27): it is theirs from their first sign-in."""
+
+    resource = "project-list"
+
+    def setUp(self):
+        super().setUp()
+        for target, value in (("api.auth.oidc.resolve_user_id", "usr_01M4J7DSWSQ0C678WDJYS0NFR4"),
+                              ("api.ownership.list_accounts", ONBOARDED)):
+            patcher = patch(target, return_value=value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.operator = with_org(
+            User.objects.create_user(username="operator", is_staff=True), BITMAKER_ORG
+        )
+        self.pid = self.make_request(
+            method="POST", user=self.operator, status_code=201,
+            data={"name": "managed", "owner_org_id": CUSTOMER_ORG, "owner_email": "New.Owner@customer.example"},
+        )["pid"]
+
+    def roles(self):
+        return dict(Permission.objects.filter(project_id=self.pid).values_list("user__username", "permission"))
+
+    def test_until_then_the_operator_owns_it_and_it_says_who_will(self):
+        project = Project.objects.get(pid=self.pid)
+        self.assertEqual(project.pending_owner_email, "new.owner@customer.example")
+        self.assertEqual(self.roles(), {"operator": "OWNER"})
+        self.assertIn("from their first sign-in", Activity.objects.get(project=project).description)
+
+    def test_at_their_first_sign_in_they_own_it_and_the_operator_is_admin(self):
+        user = first_sign_in("new.owner@CUSTOMER.example")
+        self.assertEqual(self.roles(), {"operator": "ADMIN", user.username: "OWNER"})
+        self.assertIsNone(Project.objects.get(pid=self.pid).pending_owner_email)
+        self.assertTrue(Activity.objects.filter(project_id=self.pid, user=user,
+                                                description__contains="first sign-in").exists())
+
+    def test_not_from_another_org(self):
+        first_sign_in("new.owner@customer.example", org="another-org")
+        self.assertEqual(self.roles(), {"operator": "OWNER"})
+        self.assertIsNotNone(Project.objects.get(pid=self.pid).pending_owner_email)
+
+    def test_not_with_an_email_the_provider_has_not_verified(self):
+        first_sign_in("new.owner@customer.example", verified=False)
+        self.assertEqual(self.roles(), {"operator": "OWNER"})
+
+    def test_only_at_the_first_sign_in(self):
+        """Later requests pay nothing for it: once the account exists, nothing is looked up."""
+        first_sign_in("someone.else@customer.example", sub="sub-other")
+        from api.auth.oidc import account_for
+        claims = {"iss": ISSUER, "sub": "sub-other", "email": "someone.else@customer.example",
+                  "email_verified": True, "urn:zitadel:iam:user:resourceowner:id": CUSTOMER_ORG}
+        account_for(claims)  # records its usr_ and Org on the first one
+        with self.assertNumQueries(1):
+            account_for(claims)

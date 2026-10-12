@@ -30,6 +30,7 @@ from django.db import IntegrityError, transaction
 from rest_framework import authentication, exceptions
 from rest_framework.permissions import SAFE_METHODS
 
+from api.ownership import claim_pending_projects
 from core.metering.billing import resolve_user_id
 from core.models import UserProfile
 
@@ -61,8 +62,11 @@ def free_username(claims):
 def account_for(claims):
     """The account of the token's subject, created the first time they sign in. Whether they are
     an Operator is this token's to say, for this request only (api/operators.py)."""
-    profile = _profile_for(claims)
+    profile, created = _profile_for(claims)
     record_identity(profile, claims)
+    if created:
+        # Projects an Operator set up for them before they had an account (ADR 0018).
+        claim_pending_projects(profile.user, claims)
     profile.user.estela_operator = operator_in(claims)
     return profile.user
 
@@ -83,16 +87,19 @@ def operator_in(claims):
 
 
 def _profile_for(claims):
+    """``(profile, created)``: created only for the request that made the account."""
     sub = claims["sub"]
     profile = UserProfile.objects.select_related("user").filter(oidc_sub=sub).first()
     if profile:
-        return profile
+        return profile, False
+    created = False
     try:
         with transaction.atomic():
             user = User.objects.create_user(
                 username=free_username(claims), email=claims.get("email", "")
             )
             UserProfile.objects.filter(user=user).update(oidc_sub=sub)
+        created = True
     except IntegrityError:
         # A page fires several requests at once, so a first sign-in races itself. The
         # one that lost finds the account the winner just made.
@@ -100,7 +107,7 @@ def _profile_for(claims):
     profile = UserProfile.objects.select_related("user").filter(oidc_sub=sub).first()
     if profile is None:
         raise exceptions.AuthenticationFailed("Could not set up your account, retry.")
-    return profile
+    return profile, created
 
 
 def record_identity(profile, claims):

@@ -124,16 +124,20 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         requested_org_id = serializer.validated_data.pop("owner_org_id", None)
         owner_email = serializer.validated_data.pop("owner_email", None)
-        owner, first_owner = {}, None
+        owner, first_owner, pending_owner = {}, None, None
         if owners_required():
             # Before saving: a Project the Registry could not give an owner is not created.
             owner_org_id, billing_account_id = owner_for_new_project(
                 self.request.user, requested_org_id
             )
-            # An Operator's Project for another Org is owned by a User of that Org (ADR 0018).
+            # An Operator's Project for another Org is owned by a User of that Org (ADR 0018), or
+            # will be from their first sign-in when they have no estela account yet, or is managed
+            # by Bitmaker when the Operator names nobody (ADR 0019).
             if owner_org_id != own_org(self.request.user):
-                first_owner = first_owner_for(owner_org_id, owner_email)
+                first_owner, pending_owner = first_owner_for(owner_org_id, owner_email)
             owner = {"owner_org_id": owner_org_id, "billing_account_id": billing_account_id}
+            if pending_owner:
+                owner["pending_owner_email"] = pending_owner
         instance = serializer.save(**owner)
         if first_owner:
             instance.users.add(
@@ -158,11 +162,17 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             requests_data_size=0,
             logs_data_size=0,
         )
-        for_org = (
-            f" for Org {instance.owner_org_id}, owned by {first_owner.email}"
-            if first_owner
-            else ""
-        )
+        if first_owner:
+            for_org = f" for Org {instance.owner_org_id}, owned by {first_owner.email}"
+        elif pending_owner:
+            for_org = (
+                f" for Org {instance.owner_org_id}, owned by {pending_owner} from their first sign-in"
+            )
+        elif instance.owner_org_id and instance.owner_org_id != own_org(self.request.user):
+            # A managed Project (ADR 0019): the customer never signs in, Bitmaker runs it.
+            for_org = f" for Org {instance.owner_org_id}, managed by Bitmaker (no owner in that Org)"
+        else:
+            for_org = ""
         self.save_action(
             user=self.request.user,
             description=f"created project {instance.name} ({instance.pid}){for_org}.",
