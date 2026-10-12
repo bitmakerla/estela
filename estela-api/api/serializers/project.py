@@ -61,6 +61,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         help_text="The Org that owns the Project, fixed at creation. Defaults to your own; "
         "an Operator may name an onboarded customer Org.",
     )
+    owner_email = serializers.EmailField(
+        required=False,
+        allow_null=True,
+        write_only=True,
+        help_text="With an owner_org_id other than yours: a User of that Org, who owns the "
+        "Project; you become its admin.",
+    )
     billing_account_id = serializers.CharField(
         read_only=True, help_text="The owner Org's billing account (acct_...)."
     )
@@ -92,6 +99,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "created",
             "last_modified",
             "owner_org_id",
+            "owner_email",
             "billing_account_id",
         )
 
