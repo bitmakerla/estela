@@ -7,7 +7,7 @@ from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from api.auth.oidc import account_for, operator_in
-from api.operators import is_operator
+from api.operators import is_operator, was_operator
 from core.models import Project, UserProfile
 
 ESTELA_PROJECT = "393000000000000001"
@@ -70,6 +70,15 @@ class OperatorAtSignInTests(TestCase):
         account_for(claims())
         with self.assertNumQueries(1):
             account_for(claims())
+
+    def test_a_profile_made_by_an_image_without_the_field_reads_as_not_an_operator(self):
+        """staging's database is shared with estela images that do not know is_operator: theirs
+        leave it NULL, which must read as no, and is set on the User's next sign-in."""
+        user = account_for(claims(granted_in=()))
+        UserProfile.objects.filter(user=user).update(is_operator=None)
+        self.assertFalse(was_operator(User.objects.get(pk=user.pk)))
+        account_for(claims(granted_in=()))
+        self.assertIs(UserProfile.objects.get(user=user).is_operator, False)
 
     def test_django_staff_is_not_an_operator(self):
         user = User.objects.create_user(username="staff", is_staff=True, is_superuser=True)
