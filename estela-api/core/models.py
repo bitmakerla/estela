@@ -202,6 +202,12 @@ class UserProfile(models.Model):
         default=None,
         help_text="Bitmaker's User id (usr_...), from the Account Registry.",
     )
+    # Never what authorizes this User: that is their token's roles, on each request
+    # (api/operators.py). Only what others may grant them: a role in another Org's Project.
+    is_operator = models.BooleanField(
+        default=False,
+        help_text="Held estela.operator in Bitmaker's Org at their last sign-in.",
+    )
 
 
 class ApiKey(models.Model):

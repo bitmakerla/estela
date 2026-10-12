@@ -13,6 +13,9 @@ oidc_sub.
 The account also records, once, the User's own Org (the token's OIDC_ORG_CLAIM) and
 Bitmaker's id for them (usr_, from the Account Registry, ADR 0017). Neither ever blocks a
 sign-in: a Registry that cannot answer is retried on the next request.
+
+Whether the User is an Operator (ADR 0018) is read from the token's roles claim on every request.
+The claim names are settings, the one place to change for another provider.
 """
 
 import functools
@@ -56,10 +59,27 @@ def free_username(claims):
 
 
 def account_for(claims):
-    """The account of the token's subject, created the first time they sign in."""
+    """The account of the token's subject, created the first time they sign in. Whether they are
+    an Operator is this token's to say, for this request only (api/operators.py)."""
     profile = _profile_for(claims)
     record_identity(profile, claims)
+    profile.user.estela_operator = operator_in(claims)
     return profile.user
+
+
+def operator_in(claims):
+    """A User of Bitmaker's own Org holding the Operator role granted in that Org (ADR 0018), as the
+    Console checks its own roles. The roles claim maps each role to the Orgs it was granted in, and
+    a grant in any other Org (a customer admin granting it to themselves, say) does not count."""
+    if not (settings.ESTELA_PROJECT_ID and settings.BITMAKER_ORG_ID):
+        return False
+    if claims.get(settings.OIDC_ORG_CLAIM) != settings.BITMAKER_ORG_ID:
+        return False
+    roles = claims.get(
+        settings.OIDC_ROLES_CLAIM.format(project_id=settings.ESTELA_PROJECT_ID)
+    ) or {}
+    granted_in = roles.get(settings.OPERATOR_ROLE) or {}
+    return isinstance(granted_in, dict) and settings.BITMAKER_ORG_ID in granted_in
 
 
 def _profile_for(claims):
@@ -103,6 +123,12 @@ def record_identity(profile, claims):
             changed.append("bitmaker_user_id")
         except Exception as exc:  # the sign-in stands; the next request tries again
             logger.warning("user %s: no usr_ from the Account Registry yet: %s", profile.user_id, exc)
+    # Kept for what others may grant them, and followed both ways: a role taken away clears it.
+    if settings.ESTELA_PROJECT_ID and settings.BITMAKER_ORG_ID:
+        operator = operator_in(claims)
+        if operator != profile.is_operator:
+            profile.is_operator = operator
+            changed.append("is_operator")
     if changed:
         UserProfile.objects.filter(pk=profile.pk).update(
             **{field: getattr(profile, field) for field in changed}

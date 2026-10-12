@@ -13,8 +13,9 @@ from rest_framework.response import Response
 
 from api import errors
 from api.mixins import ActionHandlerMixin, BaseViewSet
+from api.operators import is_operator
 from api.ownership import (
-    is_operator,
+    check_role_may_be_granted,
     onboarded_orgs,
     own_org,
     owner_for_new_project,
@@ -79,7 +80,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
 
         queryset = (
             Project.objects.filter(deleted=False)
-            if self.request.user.is_superuser or self.request.user.is_staff
+            if is_operator(self.request.user)
             else self.request.user.project_set.filter(deleted=False)
         )
         search = self.request.query_params.get("search", "")
@@ -213,9 +214,9 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             update_env_vars(instance, env_vars, level="project")
 
         user = request.user
-        is_superuser = user.is_superuser or user.is_staff
-        if user_email and (is_superuser or user_email != user.email):
-            if not is_superuser and not (
+        operator = is_operator(user)
+        if user_email and (operator or user_email != user.email):
+            if not operator and not (
                 user.permission_set.get(project=instance).permission
                 in [Permission.ADMIN_PERMISSION, Permission.OWNER_PERMISSION]
             ):
@@ -228,6 +229,8 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
                 raise NotFound({"email": "User does not exist."})
 
             affected_user = affected_user.get()
+            if action in ("add", "update"):
+                check_role_may_be_granted(instance, affected_user)
             existing_permission = affected_user.permission_set.filter(
                 project=instance
             ).first()
@@ -249,7 +252,7 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
                 description = f"removed user {user_email}."
             elif action == "update":
                 if permission == Permission.OWNER_PERMISSION:
-                    if not is_superuser:
+                    if not operator:
                         raise PermissionDenied(
                             {"permission": "You do not have permission to do this."}
                         )
