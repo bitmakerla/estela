@@ -14,7 +14,9 @@ from django.contrib import admin
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    pass
+    # Set at creation and never moved (ADR 0005); a Project from before that gets them through
+    # `manage.py set_project_billing_owner`.
+    readonly_fields = ("owner_org_id", "billing_account_id")
 
 
 @admin.register(Permission)

@@ -494,7 +494,10 @@ class SetProjectBillingOwnerTests(TestCase):
             "minted": False,
         }
         self._call("393976771013247865")
-        self.assertEqual(self.project.billing_account_id, ACCT)
+        self.assertEqual(
+            (self.project.owner_org_id, self.project.billing_account_id),
+            ("393976771013247865", ACCT),
+        )
         post.assert_called_once_with(
             "http://registry.test/resolve",
             json={"zitadel_org_id": "393976771013247865"},
@@ -502,19 +505,39 @@ class SetProjectBillingOwnerTests(TestCase):
             timeout=10,
         )
 
-    def test_account_id_can_be_set_directly_and_cleared(self):
-        self._call("--account-id", ACCT)
-        self.assertEqual(self.project.billing_account_id, ACCT)
-        self._call("--clear")
-        self.assertIsNone(self.project.billing_account_id)
+    def test_a_project_set_by_hand_gets_its_owner_when_the_acct_matches(self):
+        """staging's billing-test: an acct_ set before owners existed, and no owner Org."""
+        Project.objects.filter(pk=self.project.pk).update(billing_account_id=ACCT)
+        with patch(
+            "core.management.commands.set_project_billing_owner.resolve_billing_account",
+            return_value=ACCT,
+        ):
+            self._call("393976771013247865")
+        self.assertEqual(self.project.owner_org_id, "393976771013247865")
 
-    def test_rejects_a_malformed_account_id(self):
-        with self.assertRaises(CommandError):
-            self._call("--account-id", "acct_nope")
-        self.assertIsNone(self.project.billing_account_id)
+    def test_an_acct_set_by_hand_for_another_org_is_refused(self):
+        Project.objects.filter(pk=self.project.pk).update(billing_account_id=ACCT)
+        with patch(
+            "core.management.commands.set_project_billing_owner.resolve_billing_account",
+            return_value="acct_01M4J7DSWSQ0C678WDJYS0NFR4",
+        ), self.assertRaises(CommandError):
+            self._call("another-org")
+        self.project.refresh_from_db()
+        self.assertEqual((self.project.owner_org_id, self.project.billing_account_id), (None, ACCT))
 
-    def test_needs_exactly_one_source(self):
+    def test_the_owner_never_moves(self):
+        Project.objects.filter(pk=self.project.pk).update(
+            owner_org_id="393976771013247865", billing_account_id=ACCT
+        )
+        with patch(
+            "core.management.commands.set_project_billing_owner.resolve_billing_account"
+        ) as resolve:
+            self._call("393976771013247865")  # the same Org: nothing to do
+            with self.assertRaises(CommandError):
+                self._call("another-org")
+        resolve.assert_not_called()
+        self.assertEqual(self.project.owner_org_id, "393976771013247865")
+
+    def test_needs_an_org(self):
         with self.assertRaises(CommandError):
             self._call()
-        with self.assertRaises(CommandError):
-            self._call("393976771013247865", "--account-id", ACCT)
