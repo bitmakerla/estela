@@ -3,7 +3,8 @@ bitmaker-cloud-openmeter, omx-8q5.4.16; extends ADR 0005's rule 1).
 
 Before a Job starts, ad hoc or scheduled, its Project's billing account (acct_) is read from the
 Account Registry. Only an Org whose Billing state is ``active`` or ``internal`` starts. A Project
-with no acct_, an Org never onboarded, one awaiting its card and a stopped one are refused.
+with no acct_, an Org never onboarded, one awaiting its card, one out of prepaid credit (ADR 0019)
+and a stopped one are refused.
 Running Jobs are never re-checked.
 
 Each account's state is cached in Redis, shared by every API and worker process:
@@ -32,6 +33,7 @@ STATE_KEY = "estela:billing:state:{}"
 
 NO_OWNER = "no_owner"
 NOT_SET_UP = "not_set_up"
+OUT_OF_CREDIT = "out_of_credit"
 STOPPED = "stopped"
 UNAVAILABLE = "unavailable"
 
@@ -157,6 +159,13 @@ def check_job_may_start(project, now=None):
     if state == "stopped":
         raise UsageRefused(
             STOPPED, "Billing for this Organization is stopped, so its Jobs cannot start."
+        )
+    if state == "out_of_credit":
+        # A cardless Org whose prepaid credit is used up (ADR 0019): a Prepayment clears it.
+        raise UsageRefused(
+            OUT_OF_CREDIT,
+            "This Organization's prepaid credit is used up, so new Jobs cannot start. Jobs "
+            "already running continue. They start again once more credit is recorded.",
         )
     raise UsageRefused(
         NOT_SET_UP,
