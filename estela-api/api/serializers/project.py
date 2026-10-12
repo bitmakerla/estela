@@ -66,10 +66,16 @@ class ProjectSerializer(serializers.ModelSerializer):
         allow_null=True,
         write_only=True,
         help_text="With an owner_org_id other than yours: a User of that Org, who owns the "
-        "Project; you become its admin.",
+        "Project and you become its admin. One without an estela account yet owns it from "
+        "their first sign-in; you own it until then.",
     )
     billing_account_id = serializers.CharField(
         read_only=True, help_text="The owner Org's billing account (acct_...)."
+    )
+    pending_owner_email = serializers.EmailField(
+        read_only=True,
+        help_text="Who owns the Project from their first sign-in, when they had no estela account "
+        "at creation; null otherwise.",
     )
 
     def get_created(self, obj):
@@ -101,6 +107,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "owner_org_id",
             "owner_email",
             "billing_account_id",
+            "pending_owner_email",
         )
 
 

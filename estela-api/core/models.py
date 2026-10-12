@@ -103,6 +103,13 @@ class Project(models.Model):
         default=None,
         help_text="The Org that owns the Project, at the identity provider. Set at creation, never moved.",
     )
+    pending_owner_email = models.EmailField(
+        null=True,
+        blank=True,
+        default=None,
+        help_text="A User of the owner Org who owns the Project from their first sign-in; "
+        "until then the Operator who created it does.",
+    )
 
     class Meta:
         ordering = ["name"]
