@@ -391,3 +391,15 @@ BILLING_EMIT_MAX_JOBS = env.int("BILLING_EMIT_MAX_JOBS", default=2000)
 OPENMETER_INGEST_URL = env.str("OPENMETER_INGEST_URL", default="")
 ACCOUNT_REGISTRY_URL = env.str("ACCOUNT_REGISTRY_URL", default="")
 ACCOUNT_REGISTRY_TOKEN = env.str("ACCOUNT_REGISTRY_TOKEN", default="")
+
+# The usage gate (ADR 0016, core/metering/gate.py): a Job starts only for an Org whose Billing
+# state is active or internal. Off by default: on, it refuses every Project with no acct_ yet.
+USAGE_GATE_ENABLED = env.bool("USAGE_GATE_ENABLED", default=False)
+USAGE_GATE_FRESH_SECONDS = env.int("USAGE_GATE_FRESH_SECONDS", default=120)
+USAGE_GATE_LAST_KNOWN_GOOD_SECONDS = env.int(
+    "USAGE_GATE_LAST_KNOWN_GOOD_SECONDS", default=24 * 3600
+)
+# Where a Billing manager sets billing up (the Billing Console's /account/ page), named in refusals.
+BILLING_ACCOUNT_PAGE_URL = env.str("BILLING_ACCOUNT_PAGE_URL", default="")
+if USAGE_GATE_ENABLED and not ACCOUNT_REGISTRY_URL:
+    raise ImproperlyConfigured("USAGE_GATE_ENABLED needs ACCOUNT_REGISTRY_URL.")

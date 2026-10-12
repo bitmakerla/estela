@@ -9,6 +9,14 @@ export const authNotification = (): void => {
     });
 };
 
+export const usageGateNotification = (detail: string): void => {
+    notification.error({
+        message: "The job did not start",
+        description: detail,
+        duration: 0,
+    });
+};
+
 export const resourceNotAllowedNotification = (): void => {
     notification.error({
         message: "Resource Not Allowed",
