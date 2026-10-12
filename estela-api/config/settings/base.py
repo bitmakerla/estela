@@ -360,6 +360,15 @@ OIDC_AUDIENCE = env("OIDC_AUDIENCE")
 # The token claim naming the User's own Org. The provider's name for it lives only here (ADR 0017:
 # one adapter per service); Zitadel's by default.
 OIDC_ORG_CLAIM = env.str("OIDC_ORG_CLAIM", default="urn:zitadel:iam:user:resourceowner:id")
+# Operators (ADR 0018): the estela.operator role, granted in Bitmaker's own Org, read from the
+# token's roles claim for the estela project. Until ESTELA_PROJECT_ID and BITMAKER_ORG_ID are both
+# set, Operators are Django staff, as before.
+OIDC_ROLES_CLAIM = env.str(
+    "OIDC_ROLES_CLAIM", default="urn:zitadel:iam:org:project:{project_id}:roles"
+)
+ESTELA_PROJECT_ID = env.str("ESTELA_PROJECT_ID", default="")
+BITMAKER_ORG_ID = env.str("BITMAKER_ORG_ID", default="")
+OPERATOR_ROLE = env.str("OPERATOR_ROLE", default="estela.operator")
 if AUTH_MODE == "oidc" and not (OIDC_ISSUER and OIDC_AUDIENCE):
     raise ImproperlyConfigured("AUTH_MODE=oidc needs OIDC_ISSUER and OIDC_AUDIENCE.")
 

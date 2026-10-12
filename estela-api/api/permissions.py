@@ -3,6 +3,7 @@ import uuid
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 from django.contrib.auth.models import User
 
+from api.operators import is_operator
 from core.models import ApiKey, Project, Permission, RunToken
 
 
@@ -59,7 +60,7 @@ class IsSessionAuthenticated(BasePermission):
 
 class IsProjectUser(BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_superuser or request.user.is_staff:
+        if is_operator(request.user):
             return True
         pid = view.kwargs.get("pid")
         return bool(

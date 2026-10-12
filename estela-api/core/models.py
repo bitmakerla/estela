@@ -202,6 +202,16 @@ class UserProfile(models.Model):
         default=None,
         help_text="Bitmaker's User id (usr_...), from the Account Registry.",
     )
+    # Never what authorizes this User: that is their token's roles, on each request
+    # (api/operators.py). Only what others may grant them: a role in another Org's Project.
+    # Nullable on purpose: Django drops a column's default after adding it, and staging's
+    # database is shared with estela images that do not know this field. NOT NULL would stop
+    # them creating any user; NULL reads as not an Operator.
+    is_operator = models.BooleanField(
+        null=True,
+        default=False,
+        help_text="Held estela.operator in Bitmaker's Org at their last sign-in.",
+    )
 
 
 class ApiKey(models.Model):

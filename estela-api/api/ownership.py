@@ -15,6 +15,7 @@ import logging
 from django.conf import settings
 from rest_framework import exceptions, status
 
+from api.operators import is_operator, was_operator
 from core.metering.billing import list_accounts, resolve_billing_account
 
 logger = logging.getLogger(__name__)
@@ -31,12 +32,6 @@ class BillingUnavailable(exceptions.APIException):
 
 def owners_required():
     return bool(settings.ACCOUNT_REGISTRY_URL)
-
-
-def is_operator(user):
-    """Bitmaker staff. omx-8q5.4.17 replaces this with the estela.operator role, granted in
-    Bitmaker's own Org; until then, staff as estela has always known them."""
-    return user.is_superuser or user.is_staff
 
 
 def own_org(user):
@@ -83,3 +78,16 @@ def owner_for_new_project(user, requested_org_id=None):
     except Exception as exc:
         logger.warning("Account Registry: no acct_ for Org %s: %s", mine, exc)
         raise BillingUnavailable()
+
+
+def check_role_may_be_granted(project, user):
+    """A role in a Project goes only to a User of the Project's Org, or to an Operator (ADR 0018):
+    the Org decides ownership and billing, the per-Project roles decide access inside it. A Project
+    with no owner Org (one from before owners were set) has no such boundary yet."""
+    if not project.owner_org_id:
+        return
+    if own_org(user) == project.owner_org_id or was_operator(user):
+        return
+    raise exceptions.ValidationError(
+        {"email": "Only Users of this Project's Organization, or Bitmaker Operators, can hold a role in it."}
+    )

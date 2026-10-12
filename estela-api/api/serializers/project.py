@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from api.operators import was_operator
 from api.serializers.job_specific import SpiderJobEnvVarSerializer
 from core.models import Activity, DataStatus, Permission, Project, UsageRecord
 
@@ -240,7 +241,7 @@ class ActivitySerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         user = instance.user
 
-        is_superuser = user.is_superuser or user.is_staff
+        is_superuser = was_operator(user)
         user_in_project = instance.project.users.filter(id=user.id)
         if is_superuser and not user_in_project:
             ret["user"]["username"] = user.username + " (admin)"
