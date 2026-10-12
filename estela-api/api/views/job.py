@@ -4,7 +4,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import APIException, ParseError
 from rest_framework.response import Response
 
 from api.filters import SpiderJobFilter
@@ -20,8 +20,23 @@ from api.utils import (
     update_stats_from_redis,
 )
 from config.job_manager import job_manager, spiderdata_db_client
+from core.metering.gate import UsageRefused, check_job_may_start
 from core.models import ApiKey, DataStatus, Project, ProxyProvider, Spider, SpiderJob
 from core.tiers import DEFAULT_TIER
+
+
+class JobRefused(APIException):
+    """The usage gate refused to start a Job (ADR 0016): nothing was created."""
+
+    status_code = status.HTTP_403_FORBIDDEN
+    default_code = "usage_gate"
+
+    def __init__(self, refused):
+        if refused.transient:
+            self.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        super().__init__(
+            {"detail": refused.message, "code": self.default_code, "reason": refused.reason}
+        )
 
 
 class SpiderJobViewSet(
@@ -113,6 +128,12 @@ class SpiderJobViewSet(
         sync_param = request.query_params.get("sync", "false").lower() == "true"
         serializer = SpiderJobCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # Refused here, the Job is not created and the caller is told why; a queued Job is
+        # checked again when it is dispatched (core.tasks).
+        try:
+            check_job_may_start(spider.project)
+        except UsageRefused as refused:
+            raise JobRefused(refused)
 
         # Use default tier if not specified
         if not serializer.validated_data.get("resource_tier"):

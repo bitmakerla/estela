@@ -17,7 +17,12 @@ import { getFilteredEnvVars } from "../../utils";
 import history from "../../history";
 import { ApiService } from "../../services";
 import { ProxySettings } from "../../components/ProxySettingsPage";
-import { resourceNotAllowedNotification, invalidDataNotification, incorrectDataNotification } from "../../shared";
+import {
+    resourceNotAllowedNotification,
+    invalidDataNotification,
+    incorrectDataNotification,
+    usageGateNotification,
+} from "../../shared";
 import { DEFAULT_RESOURCE_TIER, PREDEFINED_TIERS } from "../../constants";
 import { checkExternalError } from "../../defaultComponents";
 import { TourStore } from "../../tour";
@@ -500,7 +505,10 @@ export default function JobCreateModal({
                 setLoading(false);
                 const data = await error.json();
                 const [errorComponent, err] = checkExternalError(data);
-                if (err) {
+                if (data.code === "usage_gate") {
+                    // Billing is not set up, stopped, or cannot be checked: the API says which.
+                    usageGateNotification(data.detail);
+                } else if (err) {
                     invalidDataNotification(data.detail);
                     setExternalComponent(errorComponent);
                 } else {
