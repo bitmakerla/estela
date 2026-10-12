@@ -131,7 +131,8 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
                 self.request.user, requested_org_id
             )
             # An Operator's Project for another Org is owned by a User of that Org (ADR 0018), or
-            # will be from their first sign-in when they have no estela account yet.
+            # will be from their first sign-in when they have no estela account yet, or is managed
+            # by Bitmaker when the Operator names nobody (ADR 0019).
             if owner_org_id != own_org(self.request.user):
                 first_owner, pending_owner = first_owner_for(owner_org_id, owner_email)
             owner = {"owner_org_id": owner_org_id, "billing_account_id": billing_account_id}
@@ -167,6 +168,9 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             for_org = (
                 f" for Org {instance.owner_org_id}, owned by {pending_owner} from their first sign-in"
             )
+        elif instance.owner_org_id and instance.owner_org_id != own_org(self.request.user):
+            # A managed Project (ADR 0019): the customer never signs in, Bitmaker runs it.
+            for_org = f" for Org {instance.owner_org_id}, managed by Bitmaker (no owner in that Org)"
         else:
             for_org = ""
         self.save_action(

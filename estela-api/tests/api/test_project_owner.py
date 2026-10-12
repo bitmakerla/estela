@@ -99,14 +99,22 @@ class ProjectOwnerTests(BaseTestCase):
         self.assertIn("owned by owner@customer.example", Activity.objects.get(project_id=body["pid"]).description)
 
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)
-    def test_a_project_for_another_org_needs_one_of_its_users_as_owner(self, accounts):
+    def test_the_named_owner_must_be_of_that_org(self, accounts):
         outsider = with_org(User.objects.create_user(username="outsider", email="x@other.example"), "another-org")
-        for email, why in ((None, "Name a User"), (outsider.email, "not in the Organization")):
-            with self.subTest(email=email):
-                data = {"owner_org_id": CUSTOMER_ORG, **({"owner_email": email} if email else {})}
-                body = self.create(self.operator, status_code=400, **data)
-                self.assertIn(why, body["owner_email"])
+        body = self.create(self.operator, status_code=400, owner_org_id=CUSTOMER_ORG, owner_email=outsider.email)
+        self.assertIn("not in the Organization", body["owner_email"])
         self.assertFalse(Project.objects.exists())
+
+    @patch("api.ownership.list_accounts", return_value=ONBOARDED)
+    def test_naming_nobody_makes_a_managed_project(self, accounts):
+        """A managed customer never signs in (ADR 0019): Bitmaker runs the Project, billed to them."""
+        body = self.create(self.operator, owner_org_id=CUSTOMER_ORG)
+        project = Project.objects.get(pid=body["pid"])
+        self.assertEqual((project.owner_org_id, project.billing_account_id, project.pending_owner_email),
+                         (CUSTOMER_ORG, CUSTOMER_ACCT, None))
+        roles = dict(Permission.objects.filter(project=project).values_list("user__username", "permission"))
+        self.assertEqual(roles, {"operator": "OWNER"})
+        self.assertIn("managed by Bitmaker", Activity.objects.get(project=project).description)
 
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)
     @patch("api.ownership.resolve_billing_account")

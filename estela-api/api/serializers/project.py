@@ -67,7 +67,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="With an owner_org_id other than yours: a User of that Org, who owns the "
         "Project and you become its admin. One without an estela account yet owns it from "
-        "their first sign-in; you own it until then.",
+        "their first sign-in; you own it until then. Without one, the Project is managed: you "
+        "own it.",
     )
     billing_account_id = serializers.CharField(
         read_only=True, help_text="The owner Org's billing account (acct_...)."

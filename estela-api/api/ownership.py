@@ -90,11 +90,11 @@ def first_owner_for(owner_org_id, email):
 
     A Project billed to a customer is theirs: one of their Users owns it, and the Operator who set
     it up works in it as an admin. Without this, nobody of the Org would see the Project their Org
-    pays for, since an Org grants no access by itself (per-Project roles do, ADR 0018)."""
+    pays for, since an Org grants no access by itself (per-Project roles do, ADR 0018).
+
+    No email at all is a managed Project (ADR 0019): ``(None, None)``, and the Operator owns it."""
     if not email:
-        raise exceptions.ValidationError(
-            {"owner_email": "Name a User of that Organization to own the Project."}
-        )
+        return None, None
     candidates = list(User.objects.filter(email__iexact=email).select_related("profile"))
     if not candidates:
         return None, email.strip().lower()
