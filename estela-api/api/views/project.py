@@ -13,6 +13,13 @@ from rest_framework.response import Response
 
 from api import errors
 from api.mixins import ActionHandlerMixin, BaseViewSet
+from api.ownership import (
+    is_operator,
+    onboarded_orgs,
+    own_org,
+    owner_for_new_project,
+    owners_required,
+)
 from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSerializer
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
@@ -113,7 +120,15 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        instance = serializer.save()
+        requested_org_id = serializer.validated_data.pop("owner_org_id", None)
+        owner = {}
+        if owners_required():
+            # Before saving: a Project the Registry could not give an owner is not created.
+            owner_org_id, billing_account_id = owner_for_new_project(
+                self.request.user, requested_org_id
+            )
+            owner = {"owner_org_id": owner_org_id, "billing_account_id": billing_account_id}
+        instance = serializer.save(**owner)
         instance.users.add(
             self.request.user,
             through_defaults={"permission": Permission.OWNER_PERMISSION},
@@ -128,10 +143,39 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             requests_data_size=0,
             logs_data_size=0,
         )
+        for_org = (
+            f" for Org {instance.owner_org_id}"
+            if instance.owner_org_id and instance.owner_org_id != own_org(self.request.user)
+            else ""
+        )
         self.save_action(
             user=self.request.user,
-            description=f"created project {instance.name} ({instance.pid}).",
+            description=f"created project {instance.name} ({instance.pid}){for_org}.",
             project=instance,
+        )
+
+    @swagger_auto_schema(
+        responses={status.HTTP_200_OK: openapi.Response("The Orgs an Operator may create a Project for.")},
+    )
+    @action(detail=False, methods=["GET"])
+    def owner_orgs(self, request, *args, **kwargs):
+        """The onboarded Orgs an Operator may pick as a new Project's owner (ADR 0018)."""
+        if not is_operator(request.user):
+            raise PermissionDenied({"detail": "Only Operators create Projects for other Orgs."})
+        if not owners_required():
+            return Response({"results": []})
+        orgs = sorted(onboarded_orgs(), key=lambda a: (a.get("name") or "").lower())
+        return Response(
+            {
+                "results": [
+                    {
+                        "owner_org_id": a["zitadel_org_id"],
+                        "name": a.get("name") or "",
+                        "billing_state": a["billing_state"],
+                    }
+                    for a in orgs
+                ]
+            }
         )
 
     @swagger_auto_schema(
