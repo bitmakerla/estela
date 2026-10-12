@@ -13,6 +13,7 @@ billing), Projects are created as before, with no owner, and emit no usage.
 import logging
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from rest_framework import exceptions, status
 
 from api.operators import is_operator, was_operator
@@ -78,6 +79,29 @@ def owner_for_new_project(user, requested_org_id=None):
     except Exception as exc:
         logger.warning("Account Registry: no acct_ for Org %s: %s", mine, exc)
         raise BillingUnavailable()
+
+
+def first_owner_for(owner_org_id, email):
+    """The User of ``owner_org_id`` who owns a Project an Operator creates for that Org.
+
+    A Project billed to a customer is theirs: one of their Users owns it, and the Operator who set
+    it up works in it as an admin. Without this, nobody of the Org would see the Project their Org
+    pays for, since an Org grants no access by itself (per-Project roles do, ADR 0018)."""
+    if not email:
+        raise exceptions.ValidationError(
+            {"owner_email": "Name a User of that Organization to own the Project."}
+        )
+    candidates = list(User.objects.filter(email__iexact=email).select_related("profile"))
+    if not candidates:
+        raise exceptions.ValidationError(
+            {"owner_email": "No estela account has this email yet: they have to sign in to estela once."}
+        )
+    owner = next((u for u in candidates if own_org(u) == owner_org_id), None)
+    if owner is None:
+        raise exceptions.ValidationError(
+            {"owner_email": "This User is not in the Organization that owns the Project."}
+        )
+    return owner
 
 
 def check_role_may_be_granted(project, user):

@@ -7,7 +7,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.test import override_settings
 
-from core.models import Activity, Project, UserProfile
+from core.models import Activity, Permission, Project, UserProfile
 from tests.base import BaseTestCase
 
 ACCT = "acct_01M49METSE3G6RCK09PZTEN9VB"
@@ -35,6 +35,10 @@ class ProjectOwnerTests(BaseTestCase):
         with_org(self.user, CUSTOMER_ORG)
         self.operator = with_org(
             User.objects.create_user(username="operator", is_staff=True), BITMAKER_ORG
+        )
+        self.customer = with_org(
+            User.objects.create_user(username="customer", email="owner@customer.example"),
+            CUSTOMER_ORG,
         )
 
     def create(self, user, status_code=201, **data):
@@ -79,12 +83,31 @@ class ProjectOwnerTests(BaseTestCase):
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)
     @patch("api.ownership.resolve_billing_account")
     def test_an_operator_creates_a_project_for_an_onboarded_org(self, resolve, accounts):
-        body = self.create(self.operator, owner_org_id=CUSTOMER_ORG)
+        body = self.create(self.operator, owner_org_id=CUSTOMER_ORG, owner_email="owner@customer.example")
         project = Project.objects.get(pid=body["pid"])
         self.assertEqual((project.owner_org_id, project.billing_account_id), (CUSTOMER_ORG, CUSTOMER_ACCT))
         resolve.assert_not_called()   # the acct_ comes with the list: nothing is minted
         accounts.assert_called_once_with(["awaiting_card", "active", "internal"])
         self.assertIn(f"for Org {CUSTOMER_ORG}", Activity.objects.get(project=project).description)
+
+    @patch("api.ownership.list_accounts", return_value=ONBOARDED)
+    def test_the_named_user_owns_it_and_the_operator_works_in_it_as_admin(self, accounts):
+        """The customer sees the Project their Org pays for (staging's billing-test did not)."""
+        body = self.create(self.operator, owner_org_id=CUSTOMER_ORG, owner_email="OWNER@customer.example")
+        roles = dict(Permission.objects.filter(project_id=body["pid"]).values_list("user__username", "permission"))
+        self.assertEqual(roles, {"customer": "OWNER", "operator": "ADMIN"})
+        self.assertIn("owned by owner@customer.example", Activity.objects.get(project_id=body["pid"]).description)
+
+    @patch("api.ownership.list_accounts", return_value=ONBOARDED)
+    def test_a_project_for_another_org_needs_one_of_its_users_as_owner(self, accounts):
+        outsider = with_org(User.objects.create_user(username="outsider", email="x@other.example"), "another-org")
+        for email, why in ((None, "Name a User"), ("nobody@customer.example", "sign in to estela once"),
+                           (outsider.email, "not in the Organization")):
+            with self.subTest(email=email):
+                data = {"owner_org_id": CUSTOMER_ORG, **({"owner_email": email} if email else {})}
+                body = self.create(self.operator, status_code=400, **data)
+                self.assertIn(why, body["owner_email"])
+        self.assertFalse(Project.objects.exists())
 
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)
     @patch("api.ownership.resolve_billing_account")
@@ -97,8 +120,10 @@ class ProjectOwnerTests(BaseTestCase):
 
     @patch("api.ownership.resolve_billing_account", return_value=ACCT)
     def test_an_operator_who_picks_nothing_creates_in_bitmakers_org(self, resolve):
-        body = self.create(self.operator)
+        body = self.create(self.operator, owner_email="owner@customer.example")   # ignored here
         self.assertEqual(Project.objects.get(pid=body["pid"]).owner_org_id, BITMAKER_ORG)
+        roles = dict(Permission.objects.filter(project_id=body["pid"]).values_list("user__username", "permission"))
+        self.assertEqual(roles, {"operator": "OWNER"})
 
     @patch("api.ownership.resolve_billing_account", return_value=CUSTOMER_ACCT)
     def test_the_owner_never_moves(self, resolve):
