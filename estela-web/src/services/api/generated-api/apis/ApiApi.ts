@@ -93,6 +93,9 @@ import {
     NotificationUpdate,
     NotificationUpdateFromJSON,
     NotificationUpdateToJSON,
+    OwnerOrgs,
+    OwnerOrgsFromJSON,
+    OwnerOrgsToJSON,
     Project,
     ProjectFromJSON,
     ProjectToJSON,
@@ -1882,6 +1885,35 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async apiProjectsList(requestParameters: ApiProjectsListRequest): Promise<InlineResponse2002> {
         const response = await this.apiProjectsListRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * The onboarded Orgs an Operator may pick as a new Project\'s owner (ADR 0018).
+     */
+    async apiProjectsOwnerOrgsRaw(): Promise<runtime.ApiResponse<OwnerOrgs>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && (this.configuration.username !== undefined || this.configuration.password !== undefined)) {
+            headerParameters["Authorization"] = "Basic " + btoa(this.configuration.username + ":" + this.configuration.password);
+        }
+        const response = await this.request({
+            path: `/api/projects/owner_orgs`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => OwnerOrgsFromJSON(jsonValue));
+    }
+
+    /**
+     * The onboarded Orgs an Operator may pick as a new Project\'s owner (ADR 0018).
+     */
+    async apiProjectsOwnerOrgs(): Promise<OwnerOrgs> {
+        const response = await this.apiProjectsOwnerOrgsRaw();
         return await response.value();
     }
 
