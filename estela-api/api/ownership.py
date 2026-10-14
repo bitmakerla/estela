@@ -23,8 +23,9 @@ from core.models import Activity, Permission, Project
 
 logger = logging.getLogger(__name__)
 
-# The Billing states of an onboarded Org (ADR 0016). A Stopped one gets no new Projects.
-MAY_OWN_NEW_PROJECTS = ["awaiting_card", "active", "internal"]
+# The Billing states of an onboarded Org (ADR 0016, as ADR 0021 leaves them: Awaiting card is retired,
+# and every new Org starts Out of credit until a card or credit). A Stopped one gets no new Projects.
+MAY_OWN_NEW_PROJECTS = ["active", "out_of_credit", "internal"]
 
 
 class BillingUnavailable(exceptions.APIException):

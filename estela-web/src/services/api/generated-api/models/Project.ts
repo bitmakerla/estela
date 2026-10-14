@@ -96,6 +96,30 @@ export interface Project {
      * @memberof Project
      */
     readonly lastModified?: string;
+    /**
+     * The Org that owns the Project, fixed at creation. Defaults to your own; an Operator may name an onboarded customer Org.
+     * @type {string}
+     * @memberof Project
+     */
+    ownerOrgId?: string | null;
+    /**
+     * With an owner_org_id other than yours: a User of that Org, who owns the Project and you become its admin. One without an estela account yet owns it from their first sign-in; you own it until then. Without one, the Project is managed: you own it.
+     * @type {string}
+     * @memberof Project
+     */
+    ownerEmail?: string | null;
+    /**
+     * The owner Org's billing account (acct_...).
+     * @type {string}
+     * @memberof Project
+     */
+    readonly billingAccountId?: string;
+    /**
+     * Who owns the Project from their first sign-in, when they had no estela account at creation; null otherwise.
+     * @type {string}
+     * @memberof Project
+     */
+    readonly pendingOwnerEmail?: string;
 }
 
 /**
@@ -147,6 +171,10 @@ export function ProjectFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'dataExpiryDays': !exists(json, 'data_expiry_days') ? undefined : json['data_expiry_days'],
         'created': !exists(json, 'created') ? undefined : json['created'],
         'lastModified': !exists(json, 'last_modified') ? undefined : json['last_modified'],
+        'ownerOrgId': !exists(json, 'owner_org_id') ? undefined : json['owner_org_id'],
+        'ownerEmail': !exists(json, 'owner_email') ? undefined : json['owner_email'],
+        'billingAccountId': !exists(json, 'billing_account_id') ? undefined : json['billing_account_id'],
+        'pendingOwnerEmail': !exists(json, 'pending_owner_email') ? undefined : json['pending_owner_email'],
     };
 }
 
@@ -166,6 +194,8 @@ export function ProjectToJSON(value?: Project | null): any {
         'env_vars': value.envVars === undefined ? undefined : ((value.envVars as Array<any>).map(SpiderJobEnvVarToJSON)),
         'data_status': value.dataStatus,
         'data_expiry_days': value.dataExpiryDays,
+        'owner_org_id': value.ownerOrgId,
+        'owner_email': value.ownerEmail,
     };
 }
 

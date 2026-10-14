@@ -26,6 +26,7 @@ from api.serializers.cronjob import ProjectCronJobSerializer, SpiderCronJobSeria
 from api.serializers.job import ProjectJobSerializer, SpiderJobSerializer
 from api.serializers.project import (
     ActivitySerializer,
+    OwnerOrgsSerializer,
     ProjectActivitySerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
@@ -180,9 +181,10 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
         )
 
     @swagger_auto_schema(
-        responses={status.HTTP_200_OK: openapi.Response("The Orgs an Operator may create a Project for.")},
+        responses={status.HTTP_200_OK: OwnerOrgsSerializer()},
+        paginator_inspectors=[],
     )
-    @action(detail=False, methods=["GET"])
+    @action(detail=False, methods=["GET"], pagination_class=None)
     def owner_orgs(self, request, *args, **kwargs):
         """The onboarded Orgs an Operator may pick as a new Project's owner (ADR 0018)."""
         if not is_operator(request.user):

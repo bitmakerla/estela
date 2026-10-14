@@ -29,6 +29,8 @@ export * from './MeteringReport';
 export * from './MeteringReportResponse';
 export * from './Notification';
 export * from './NotificationUpdate';
+export * from './OwnerOrg';
+export * from './OwnerOrgs';
 export * from './PagesStats';
 export * from './Permission';
 export * from './Project';

@@ -272,3 +272,15 @@ class ProjectActivitySerializer(serializers.Serializer):
     count = serializers.IntegerField(
         required=True, help_text="Project activities count."
     )
+
+
+class OwnerOrgSerializer(serializers.Serializer):
+    owner_org_id = serializers.CharField(required=True, help_text="The Org's Zitadel id.")
+    name = serializers.CharField(required=True, help_text="The Org's display name.")
+    billing_state = serializers.CharField(required=True, help_text="The Org's Billing state.")
+
+
+class OwnerOrgsSerializer(serializers.Serializer):
+    results = OwnerOrgSerializer(
+        many=True, required=True, help_text="The Orgs an Operator may create a Project for."
+    )

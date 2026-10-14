@@ -518,6 +518,20 @@ paths:
       tags:
         - api
     parameters: []
+  /api/projects/owner_orgs:
+    get:
+      operationId: api_projects_owner_orgs
+      description: The onboarded Orgs an Operator may pick as a new Project's owner
+        (ADR 0018).
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/OwnerOrgs'
+      tags:
+        - api
+    parameters: []
   /api/projects/{pid}:
     get:
       operationId: api_projects_read
@@ -2295,6 +2309,71 @@ definitions:
         title: Last modified
         type: string
         readOnly: true
+      owner_org_id:
+        title: Owner org id
+        description: The Org that owns the Project, fixed at creation. Defaults to
+          your own; an Operator may name an onboarded customer Org.
+        type: string
+        maxLength: 255
+        minLength: 1
+        x-nullable: true
+      owner_email:
+        title: Owner email
+        description: 'With an owner_org_id other than yours: a User of that Org, who
+          owns the Project and you become its admin. One without an estela account
+          yet owns it from their first sign-in; you own it until then. Without one,
+          the Project is managed: you own it.'
+        type: string
+        format: email
+        minLength: 1
+        x-nullable: true
+      billing_account_id:
+        title: Billing account id
+        description: The owner Org's billing account (acct_...).
+        type: string
+        readOnly: true
+        minLength: 1
+      pending_owner_email:
+        title: Pending owner email
+        description: Who owns the Project from their first sign-in, when they had
+          no estela account at creation; null otherwise.
+        type: string
+        format: email
+        readOnly: true
+        minLength: 1
+  OwnerOrg:
+    description: The Orgs an Operator may create a Project for.
+    required:
+      - owner_org_id
+      - name
+      - billing_state
+    type: object
+    properties:
+      owner_org_id:
+        title: Owner org id
+        description: The Org's Zitadel id.
+        type: string
+        minLength: 1
+      name:
+        title: Name
+        description: The Org's display name.
+        type: string
+        minLength: 1
+      billing_state:
+        title: Billing state
+        description: The Org's Billing state.
+        type: string
+        minLength: 1
+  OwnerOrgs:
+    required:
+      - results
+    type: object
+    properties:
+      results:
+        description: The Orgs an Operator may create a Project for.
+        type: array
+        items:
+          $ref: '#/definitions/OwnerOrg'
   ProjectUpdate:
     type: object
     properties:
