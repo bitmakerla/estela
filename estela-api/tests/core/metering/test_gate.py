@@ -119,6 +119,26 @@ class BillingStateTests(GateTestCase):
         self.check(NOW + 119)
         self.assertEqual(get.call_count, 1)
 
+    def test_a_refusal_is_asked_again_on_the_next_job(self, get):
+        """No credit, then a grant: the next Job starts at once, not when the answer ages out."""
+        get.return_value = answer("out_of_credit")
+        self.assertEqual(self.refused(NOW).reason, gate.OUT_OF_CREDIT)
+        get.return_value = answer("active")
+        self.check(NOW + 1)
+        self.assertEqual(get.call_count, 2)
+        self.check(NOW + 2)                        # and that answer is reused
+        self.assertEqual(get.call_count, 2)
+
+    def test_every_refused_state_is_asked_again(self, get):
+        for state in ("out_of_credit", "stopped", "awaiting_card", None):
+            with self.subTest(state=state):
+                self.redis.strings.clear()
+                get.reset_mock()
+                get.return_value = answer(state)
+                self.refused(NOW)
+                self.refused(NOW + 1)
+                self.assertEqual(get.call_count, 2)
+
     def test_a_stopped_org_stops_within_the_fresh_period(self, get):
         get.return_value = answer("active")
         self.check(NOW)
