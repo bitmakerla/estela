@@ -14,10 +14,12 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import transaction
 from rest_framework import exceptions, status
 
 from api.operators import is_operator, was_operator
 from core.metering.billing import list_accounts, resolve_billing_account
+from core.models import Activity, Permission, Project
 
 logger = logging.getLogger(__name__)
 
@@ -82,26 +84,56 @@ def owner_for_new_project(user, requested_org_id=None):
 
 
 def first_owner_for(owner_org_id, email):
-    """The User of ``owner_org_id`` who owns a Project an Operator creates for that Org.
+    """Who owns a Project an Operator creates for ``owner_org_id``: ``(user, None)`` for a User of
+    that Org with an estela account, or ``(None, email)`` for one who has none yet, who owns it
+    from their first sign-in (claim_pending_projects) while the Operator does meanwhile.
 
     A Project billed to a customer is theirs: one of their Users owns it, and the Operator who set
     it up works in it as an admin. Without this, nobody of the Org would see the Project their Org
-    pays for, since an Org grants no access by itself (per-Project roles do, ADR 0018)."""
+    pays for, since an Org grants no access by itself (per-Project roles do, ADR 0018).
+
+    No email at all is a managed Project (ADR 0019): ``(None, None)``, and the Operator owns it."""
     if not email:
-        raise exceptions.ValidationError(
-            {"owner_email": "Name a User of that Organization to own the Project."}
-        )
+        return None, None
     candidates = list(User.objects.filter(email__iexact=email).select_related("profile"))
     if not candidates:
-        raise exceptions.ValidationError(
-            {"owner_email": "No estela account has this email yet: they have to sign in to estela once."}
-        )
+        return None, email.strip().lower()
     owner = next((u for u in candidates if own_org(u) == owner_org_id), None)
     if owner is None:
         raise exceptions.ValidationError(
             {"owner_email": "This User is not in the Organization that owns the Project."}
         )
-    return owner
+    return owner, None
+
+
+def claim_pending_projects(user, claims):
+    """At a User's first sign-in, the Projects an Operator set up for them: they become each one's
+    owner, and whoever owned it (the Operator) its admin. Only from the Project's own Org, and only
+    with an email the identity provider verified, since an email alone is something anyone types."""
+    org_id = claims.get(settings.OIDC_ORG_CLAIM)
+    email = (claims.get("email") or "").strip()
+    if not (org_id and email and claims.get("email_verified") is True):
+        return []
+    claimed = []
+    for project in Project.objects.filter(
+        pending_owner_email__iexact=email, owner_org_id=org_id, deleted=False
+    ):
+        with transaction.atomic():
+            Permission.objects.filter(
+                project=project, permission=Permission.OWNER_PERMISSION
+            ).update(permission=Permission.ADMIN_PERMISSION)
+            Permission.objects.update_or_create(
+                project=project, user=user,
+                defaults={"permission": Permission.OWNER_PERMISSION},
+            )
+            Project.objects.filter(pk=project.pk).update(pending_owner_email=None)
+            Activity.objects.create(
+                user=user,
+                project=project,
+                description=f"became the owner of project {project.name} ({project.pid}) at their first sign-in.",
+            )
+        claimed.append(project)
+    return claimed
 
 
 def check_role_may_be_granted(project, user):
