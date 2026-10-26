@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.bitmaker.la/metering/profiles/estela/v1.json",
+  "title": "la.bitmaker.usage.recorded v1, as Estela sends it",
+  "description": "Estela's profile: the core schema plus Estela's own rules. Owned by Estela (ADR 0013): it may tighten the core, never loosen it, and billing never needs to distribute it.",
+  "allOf": [
+    {"$ref": "https://schemas.bitmaker.la/metering/usage-recorded/v1.json"},
+    {
+      "properties": {
+        "source": {"const": "estela"},
+        "id": {"pattern": "^estela:"},
+        "data": {
+          "required": ["dimensions"],
+          "properties": {
+            "reporter": {"const": "estela"},
+            "resource_kind": {"enum": ["spider_job", "build", "project_storage"]},
+            "dimensions": {
+              "required": ["project_id"],
+              "properties": {
+                "machine_tier": {"enum": ["TINY", "XSMALL", "SMALL", "MEDIUM", "LARGE", "XLARGE", "HUGE", "XHUGE"]},
+                "proxy_class": false
+              }
+            },
+            "metrics": {"propertyNames": {"enum": ["runtime_seconds", "network_bytes", "request_count", "item_count", "storage_byte_seconds"]}}
+          },
+          "allOf": [
+            {
+              "description": "Compute is priced per machine tier (MACHINE_TIER_PRICING.md), so runtime always says which.",
+              "if": {"properties": {"metrics": {"required": ["runtime_seconds"]}}, "required": ["metrics"]},
+              "then": {"properties": {"dimensions": {"required": ["machine_tier"]}}}
+            },
+            {
+              "description": "Storage is a Project-level accrual in byte-seconds, never mixed with job metrics.",
+              "if": {"properties": {"resource_kind": {"const": "project_storage"}}},
+              "then": {"properties": {"metrics": {"propertyNames": {"const": "storage_byte_seconds"}}}}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

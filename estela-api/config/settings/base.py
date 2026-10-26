@@ -379,3 +379,12 @@ METERED_USAGE_STORAGE_HOURLY_ENABLED = env.bool(
 METERED_USAGE_STORAGE_HOURLY_MAX_PROJECTS = env.int(
     "METERED_USAGE_STORAGE_HOURLY_MAX_PROJECTS", default=5000
 )
+
+# Usage CloudEvents to the billing stack (OpenMeter ingest, ADR 0013). Off by default.
+# OPENMETER_INGEST_URL is the full events URL, e.g. http://host:8888/api/v3/openmeter/events.
+# Not REGISTRY_HOST/REGISTRY_ID: those are the container image registry.
+BILLING_EMIT_ENABLED = env.bool("BILLING_EMIT_ENABLED", default=False)
+BILLING_EMIT_MAX_JOBS = env.int("BILLING_EMIT_MAX_JOBS", default=2000)
+OPENMETER_INGEST_URL = env.str("OPENMETER_INGEST_URL", default="")
+ACCOUNT_REGISTRY_URL = env.str("ACCOUNT_REGISTRY_URL", default="")
+ACCOUNT_REGISTRY_TOKEN = env.str("ACCOUNT_REGISTRY_TOKEN", default="")

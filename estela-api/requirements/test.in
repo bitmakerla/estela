@@ -1,4 +1,4 @@
 -r base.txt
 pytest-django
 django-storages
-
+jsonschema
