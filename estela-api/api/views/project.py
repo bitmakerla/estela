@@ -16,6 +16,7 @@ from api.mixins import ActionHandlerMixin, BaseViewSet
 from api.operators import is_operator
 from api.ownership import (
     check_role_may_be_granted,
+    first_owner_for,
     onboarded_orgs,
     own_org,
     owner_for_new_project,
@@ -122,18 +123,31 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         requested_org_id = serializer.validated_data.pop("owner_org_id", None)
-        owner = {}
+        owner_email = serializer.validated_data.pop("owner_email", None)
+        owner, first_owner = {}, None
         if owners_required():
             # Before saving: a Project the Registry could not give an owner is not created.
             owner_org_id, billing_account_id = owner_for_new_project(
                 self.request.user, requested_org_id
             )
+            # An Operator's Project for another Org is owned by a User of that Org (ADR 0018).
+            if owner_org_id != own_org(self.request.user):
+                first_owner = first_owner_for(owner_org_id, owner_email)
             owner = {"owner_org_id": owner_org_id, "billing_account_id": billing_account_id}
         instance = serializer.save(**owner)
-        instance.users.add(
-            self.request.user,
-            through_defaults={"permission": Permission.OWNER_PERMISSION},
-        )
+        if first_owner:
+            instance.users.add(
+                first_owner, through_defaults={"permission": Permission.OWNER_PERMISSION}
+            )
+            instance.users.add(
+                self.request.user,
+                through_defaults={"permission": Permission.ADMIN_PERMISSION},
+            )
+        else:
+            instance.users.add(
+                self.request.user,
+                through_defaults={"permission": Permission.OWNER_PERMISSION},
+            )
         UsageRecord.objects.create(
             project=instance,
             processing_time=timedelta(0),
@@ -145,8 +159,8 @@ class ProjectViewSet(BaseViewSet, ActionHandlerMixin, viewsets.ModelViewSet):
             logs_data_size=0,
         )
         for_org = (
-            f" for Org {instance.owner_org_id}"
-            if instance.owner_org_id and instance.owner_org_id != own_org(self.request.user)
+            f" for Org {instance.owner_org_id}, owned by {first_owner.email}"
+            if first_owner
             else ""
         )
         self.save_action(
