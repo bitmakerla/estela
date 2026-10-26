@@ -9,8 +9,9 @@ Running Jobs are never re-checked.
 
 Each account's state is cached in Redis, shared by every API and worker process:
 
-- younger than ``USAGE_GATE_FRESH_SECONDS`` (about 2 minutes): used as it is, so a stopped Org
-  stops starting Jobs within that;
+- ``active`` or ``internal``, younger than ``USAGE_GATE_FRESH_SECONDS`` (about 2 minutes): used as
+  it is, so a stopped Org stops starting Jobs within that. Any other answer is asked again on the
+  next Job: a card, bought or granted credit, or a Prepayment counts at once, not 2 minutes later;
 - when the Registry cannot answer: an account last seen ``active`` or ``internal`` keeps starting
   Jobs for up to ``USAGE_GATE_LAST_KNOWN_GOOD_SECONDS`` (24 hours); any other is refused.
 
@@ -111,7 +112,8 @@ def billing_state(account_id, now=None):
     the Registry cannot answer and there is no last-known-good state to use."""
     now = time.time() if now is None else now
     cached = _cached(account_id)
-    if cached and now - cached["at"] < settings.USAGE_GATE_FRESH_SECONDS:
+    # Only an answer that lets Jobs start is reused: a refused Org asks again, so credit counts at once.
+    if cached and cached["state"] in MAY_START and now - cached["at"] < settings.USAGE_GATE_FRESH_SECONDS:
         return cached["state"]
     try:
         state = fetch_billing_state(account_id)
