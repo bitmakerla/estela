@@ -62,6 +62,10 @@ class IsProjectUser(BasePermission):
     def has_permission(self, request, view):
         if is_operator(request.user):
             return True
+        # IsOwnRun has held a run token to its own job or deploy, which the view finds only under
+        # its own Project. A deploy's build reports as deploy_manager, no member of the Project.
+        if isinstance(request.auth, RunToken):
+            return True
         pid = view.kwargs.get("pid")
         return bool(
             pid is None

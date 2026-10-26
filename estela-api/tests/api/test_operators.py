@@ -7,8 +7,9 @@ from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from api.auth.oidc import account_for, operator_in
+from api.authentication import issue_run_token
 from api.operators import is_operator, was_operator
-from core.models import Project, UserProfile
+from core.models import Deploy, Project, UserProfile
 
 ESTELA_PROJECT = "393000000000000001"
 BITMAKER_ORG = "392804493982434155"
@@ -161,3 +162,38 @@ class OperatorPowersTests(TestCase):
         legacy.users.add(self.customer, through_defaults={"permission": "OWNER"})
         outsider = user_in("another-org", "outsider")
         self.assertEqual(self.add(self.customer, outsider.email, project=legacy).status_code, 200)
+
+
+@override_settings(**OPERATORS, ACCOUNT_REGISTRY_URL="")
+class DeployReportTests(TestCase):
+    """A deploy's build reports its outcome as deploy_manager, holding a run token for that deploy
+    alone. deploy_manager is no Operator and no member of the customer's Project: the token is what
+    lets it in (deploy 247 on staging, refused when Operators came from the token)."""
+
+    def setUp(self):
+        self.deploy_manager = User.objects.create_user(username="deploy_manager", is_staff=True,
+                                                       is_superuser=True)
+        self.customer = user_in(CUSTOMER_ORG, "customer")
+        self.project = Project.objects.create(name="customers", owner_org_id=CUSTOMER_ORG)
+        self.project.users.add(self.customer, through_defaults={"permission": "OWNER"})
+
+    def report(self, deploy, token):
+        return APIClient().put(f"/api/projects/{self.project.pid}/deploys/{deploy.did}",
+                               {"status": Deploy.SUCCESS_STATUS, "spiders_names": ["products"]},
+                               format="json", HTTP_AUTHORIZATION=f"Token {token}")
+
+    def building(self):
+        return Deploy.objects.create(project=self.project, user=self.customer,
+                                     status=Deploy.BUILDING_STATUS)
+
+    def test_the_build_reports_its_own_deploy(self):
+        deploy = self.building()
+        response = self.report(deploy, issue_run_token(self.deploy_manager, deploy=deploy))
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(Deploy.objects.get(pk=deploy.pk).status, Deploy.SUCCESS_STATUS)
+
+    def test_but_not_another_deploy(self):
+        mine, other = self.building(), self.building()
+        response = self.report(other, issue_run_token(self.deploy_manager, deploy=mine))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Deploy.objects.get(pk=other.pk).status, Deploy.BUILDING_STATUS)
