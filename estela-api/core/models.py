@@ -157,6 +157,18 @@ class UserProfile(models.Model):
         default=settings.DEFAULT_USER_MEMORY_QUOTA,
         help_text="Maximum total memory this user can consume across all running jobs in all their projects.",
     )
+    # The identity provider's subject claim: stable, unique, never reused for another person.
+    # It is the join key across products and billing. Email would have been the obvious key
+    # and is the wrong one: people change theirs, and addresses get reused.
+    # NULL for an account that has not been linked to the provider yet.
+    oidc_sub = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Subject claim from the identity provider.",
+    )
 
 
 class ApiKey(models.Model):
