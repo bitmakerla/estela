@@ -7,16 +7,20 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from rest_framework.authtoken.models import Token
 
 
 def launch_deploy_job(pid, did, container_image):
+    # The build acts as deploy_manager, as before, but holds a token good for this deploy
+    # only instead of deploy_manager's DRF token, which could report on any deploy anywhere.
+    from api.authentication import issue_run_token
+    from core.models import Deploy
+
     deploy_user = User.objects.get(username="deploy_manager")
-    deploy_user_token, _ = Token.objects.get_or_create(user=deploy_user)
+    run_token = issue_run_token(deploy_user, deploy=Deploy.objects.get(did=did))
 
     ENV_VARS = {
         "KEY": "{}.{}".format(pid, did),
-        "TOKEN": deploy_user_token.key,
+        "TOKEN": run_token,
         "BUCKET_NAME": settings.PROJECT_BUCKET,
         "CONTAINER_IMAGE": container_image,
         "CREDENTIALS": settings.CREDENTIALS,

@@ -6,6 +6,7 @@ from rest_framework.exceptions import APIException, ParseError, PermissionDenied
 from rest_framework.response import Response
 
 from api import errors
+from api.authentication import RUN_AUTHENTICATION_CLASSES
 from api.mixins import ActionHandlerMixin, BaseViewSet
 from api.serializers.deploy import (
     DeployCreateSerializer,
@@ -23,6 +24,9 @@ class DeployViewSet(
     ActionHandlerMixin,
 ):
     api_key_write_scope = ApiKey.MANAGE_SCOPE
+    # The build's container reports the deploy's outcome here with its run token.
+    authentication_classes = RUN_AUTHENTICATION_CLASSES
+    run_token_target = ("deploy", "did")
 
     model_class = Deploy
     serializer_class = DeploySerializer

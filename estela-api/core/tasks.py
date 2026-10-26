@@ -9,10 +9,11 @@ from celery.exceptions import TaskError
 from django.conf import settings
 from django.utils import timezone
 
+from api.authentication import issue_run_token
 from api.serializers.job import SpiderJobCreateSerializer
 from api.utils import (
     delete_stats_from_redis,
-    get_project_owner_token,
+    project_owner,
     get_proxy_provider_envs,
     update_stats_from_redis,
 )
@@ -167,7 +168,8 @@ def _dispatch_single_job(job):
         collection = "scj{}".format(job.cronjob.key)
         unique = True
 
-    token = get_project_owner_token(job)
+    owner = project_owner(job)
+    token = issue_run_token(owner, job=job) if owner else None
 
     job_manager.create_job(
         job.name,

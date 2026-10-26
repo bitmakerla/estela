@@ -5,7 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from api.authentication import ApiKeyAuthentication
-from api.permissions import HasApiKeyScope, IsAdminOrReadOnly, IsProjectUser
+from api.permissions import HasApiKeyScope, IsAdminOrReadOnly, IsOwnRun, IsProjectUser
 from core.models import Notification, Activity
 
 
@@ -21,6 +21,7 @@ class BaseViewSet(viewsets.GenericViewSet):
     authentication_classes = [ApiKeyAuthentication, TokenAuthentication]
     permission_classes = [
         IsAuthenticated,
+        IsOwnRun,
         HasApiKeyScope,
         IsProjectUser,
         IsAdminOrReadOnly,
