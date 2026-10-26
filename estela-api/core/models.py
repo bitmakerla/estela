@@ -96,6 +96,13 @@ class Project(models.Model):
         blank=True,
         help_text="The paying Org's billing account (acct_...). Usage is emitted to billing only when set.",
     )
+    owner_org_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="The Org that owns the Project, at the identity provider. Set at creation, never moved.",
+    )
 
     class Meta:
         ordering = ["name"]

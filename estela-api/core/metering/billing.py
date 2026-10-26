@@ -245,7 +245,31 @@ def resolve_billing_account(zitadel_org_id: str) -> str:
     return account_id
 
 
-USER_ID_RE = re.compile(r"^usr_[0-9A-HJKMNP-TV-Z]{26}$")
+def list_accounts(billing_states: List[str]) -> List[dict]:
+    """Every account in the Account Registry whose Billing state is one of ``billing_states``, each
+    ``{"billing_account_id", "zitadel_org_id", "name", "billing_state", ...}``, all pages."""
+    if not settings.ACCOUNT_REGISTRY_URL:
+        raise RuntimeError("ACCOUNT_REGISTRY_URL is not set")
+    accounts, after = [], None
+    while True:
+        params = {"billing_state": ",".join(billing_states)}
+        if after:
+            params["after"] = after
+        response = requests.get(
+            f"{settings.ACCOUNT_REGISTRY_URL.rstrip('/')}/accounts",
+            params=params,
+            headers={"Authorization": f"Bearer {settings.ACCOUNT_REGISTRY_TOKEN}"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        page = response.json()
+        accounts.extend(page["accounts"])
+        after = page.get("next")
+        if not after:
+            return accounts
+
+
+USER_ID_RE =re.compile(r"^usr_[0-9A-HJKMNP-TV-Z]{26}$")
 
 
 def resolve_user_id(issuer: str, idp_user_id: str) -> str:

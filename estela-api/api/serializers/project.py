@@ -53,6 +53,16 @@ class ProjectSerializer(serializers.ModelSerializer):
     )
     created = serializers.SerializerMethodField()
     last_modified = serializers.SerializerMethodField()
+    owner_org_id = serializers.CharField(
+        required=False,
+        allow_null=True,
+        max_length=255,
+        help_text="The Org that owns the Project, fixed at creation. Defaults to your own; "
+        "an Operator may name an onboarded customer Org.",
+    )
+    billing_account_id = serializers.CharField(
+        read_only=True, help_text="The owner Org's billing account (acct_...)."
+    )
 
     def get_created(self, obj):
         value = obj.created
@@ -80,6 +90,8 @@ class ProjectSerializer(serializers.ModelSerializer):
             "data_expiry_days",
             "created",
             "last_modified",
+            "owner_org_id",
+            "billing_account_id",
         )
 
 
