@@ -645,7 +645,8 @@ def update_mongodb_insertion_progress():
             
             # Calculate progress
             new_progress = min(100, (count / job.item_count) * 100)
-            progress_changed = abs(new_progress - job.database_insertion_progress) > 0.1
+            # new_progress >= 100 first: a final batch under 0.1% of item_count never clears the delta
+            progress_changed = new_progress >= 100 or abs(new_progress - job.database_insertion_progress) > 0.1
             
             if progress_changed:
                 # Progress changed - update DB and reset stall counter
