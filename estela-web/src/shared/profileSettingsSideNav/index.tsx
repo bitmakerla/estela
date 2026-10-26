@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu, Layout } from "antd";
 import type { MenuProps } from "antd";
 
+import { AUTH_MODE } from "../../constants";
 import "./styles.scss";
 
 const { Sider, Content } = Layout;
@@ -38,16 +39,19 @@ export const ProfileSettingsSideNav: React.FC<ProfileSettingsSideNavPropsInterfa
                         </Content>
                     ),
                 },
-                {
-                    key: "password",
-                    label: (
-                        <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
-                            <Link to={`/settings/password`} onClick={() => updatePath("password")}>
-                                Password
-                            </Link>
-                        </Content>
-                    ),
-                },
+                // With AUTH_MODE=oidc the password is changed at the provider.
+                AUTH_MODE === "local"
+                    ? {
+                          key: "password",
+                          label: (
+                              <Content className="pl-2 flex items-center stroke-black hover:stroke-estela hover:bg-button-hover hover:text-estela rounded">
+                                  <Link to={`/settings/password`} onClick={() => updatePath("password")}>
+                                      Password
+                                  </Link>
+                              </Content>
+                          ),
+                      }
+                    : null,
             ],
             type: "group",
         },

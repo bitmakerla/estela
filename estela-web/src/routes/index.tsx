@@ -1,7 +1,7 @@
 import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
-import { REGISTER_PAGE_ENABLED } from "../constants";
+import { AUTH_MODE, REGISTER_PAGE_ENABLED } from "../constants";
 
 import { ActivatedAccountPage } from "../pages/ActivatedAccountPage";
 import { LoginPage } from "../pages/LoginPage";
@@ -34,27 +34,30 @@ export const MainRoutes: React.FC = () => {
     return (
         <Switch>
             <Route path="/" exact>
-                <Redirect to="/login" />
+                <Redirect to={AUTH_MODE === "oidc" ? "/projects" : "/login"} />
             </Route>
 
-            <Route
-                path={[
-                    "/login",
-                    REGISTER_PAGE_ENABLED ? "/register" : null,
-                    "/forgotPassword",
-                    "/resetPassword",
-                    "/activatedAccount",
-                ].filter(Boolean)}
-                exact
-            >
-                <AuthLayout>
-                    <Route path="/login" component={LoginPage} exact />
-                    {REGISTER_PAGE_ENABLED && <Route path="/register" component={RegisterPage} exact />}
-                    <Route path="/forgotPassword" component={ForgotPasswordPage} exact />
-                    <Route path="/resetPassword" component={ResetPasswordPage} exact />
-                    <Route path="/activatedAccount" component={ActivatedAccountPage} exact />
-                </AuthLayout>
-            </Route>
+            {/* With AUTH_MODE=oidc, signing in, signing up and passwords belong to the provider. */}
+            {AUTH_MODE === "local" && (
+                <Route
+                    path={[
+                        "/login",
+                        REGISTER_PAGE_ENABLED ? "/register" : null,
+                        "/forgotPassword",
+                        "/resetPassword",
+                        "/activatedAccount",
+                    ].filter(Boolean)}
+                    exact
+                >
+                    <AuthLayout>
+                        <Route path="/login" component={LoginPage} exact />
+                        {REGISTER_PAGE_ENABLED && <Route path="/register" component={RegisterPage} exact />}
+                        <Route path="/forgotPassword" component={ForgotPasswordPage} exact />
+                        <Route path="/resetPassword" component={ResetPasswordPage} exact />
+                        <Route path="/activatedAccount" component={ActivatedAccountPage} exact />
+                    </AuthLayout>
+                </Route>
+            )}
 
             <PrivateRoute path={["/projects"]} exact>
                 <MainLayout>
@@ -115,13 +118,20 @@ export const MainRoutes: React.FC = () => {
             </PrivateRoute>
 
             <PrivateRoute
-                path={["/settings/profile", "/settings/password", "/settings/apiKeys", "/settings/dataPersistence"]}
+                path={[
+                    "/settings/profile",
+                    ...(AUTH_MODE === "local" ? ["/settings/password"] : []),
+                    "/settings/apiKeys",
+                    "/settings/dataPersistence",
+                ]}
                 exact
             >
                 <MainLayout>
                     <SettingsLayout>
                         <Route path="/settings/profile" component={SettingsProfilePage} exact />
-                        <Route path="/settings/password" component={SettingsPasswordPage} exact />
+                        {AUTH_MODE === "local" && (
+                            <Route path="/settings/password" component={SettingsPasswordPage} exact />
+                        )}
                         <Route path="/settings/apiKeys" component={SettingsApiKeysPage} exact />
                         <Route path="/settings/dataPersistence" component={SettingsDataPersistencePage} exact />
                     </SettingsLayout>

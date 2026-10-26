@@ -90,6 +90,14 @@ REGISTER: "" # "True"
 EMAIL_BACKEND: "" # Set to django.core.mail.backends.console.EmailBackend to print emails in the
 RECAPTCHA_SECRET_KEY: ""
 
+# How people sign in: "local" (estela's own usernames and passwords) or "oidc" (an OpenID Connect
+# provider, through a gateway such as oauth2-proxy in front of estela that forwards the provider's
+# ID token). With "oidc": the provider's issuer URL, exactly as its tokens name it, and the
+# gateway's client id there. Build the web with REACT_APP_AUTH_MODE set to the same mode.
+AUTH_MODE: "local"
+OIDC_ISSUER: ""
+OIDC_AUDIENCE: ""
+
 # Data Downloads
 MAX_CLI_DOWNLOAD_CHUNK_MB: "2"
 MAX_WEB_DOWNLOAD_SIZE_MB: "1024"

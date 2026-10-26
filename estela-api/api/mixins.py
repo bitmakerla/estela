@@ -1,10 +1,9 @@
 from django.conf import settings
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
-from api.authentication import ApiKeyAuthentication
+from api.authentication import AUTHENTICATION_CLASSES
 from api.permissions import HasApiKeyScope, IsAdminOrReadOnly, IsOwnRun, IsProjectUser
 from core.models import Notification, Activity
 
@@ -18,7 +17,7 @@ class APIPageNumberPagination(PageNumberPagination):
 class BaseViewSet(viewsets.GenericViewSet):
     """A custom viewset that contains reusable customized settings."""
 
-    authentication_classes = [ApiKeyAuthentication, TokenAuthentication]
+    authentication_classes = AUTHENTICATION_CLASSES
     permission_classes = [
         IsAuthenticated,
         IsOwnRun,

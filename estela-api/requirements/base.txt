@@ -35,6 +35,8 @@ certifi==2020.12.5
     #   kubernetes
     #   minio
     #   requests
+cffi==1.17.1
+    # via cryptography
 chardet==4.0.0
     # via requests
 click==8.1.8
@@ -60,6 +62,8 @@ coreschema==0.0.4
     #   drf-yasg
 croniter==1.0.15
     # via -r base.in
+cryptography==44.0.1
+    # via pyjwt
 django==3.1.14
     # via
     #   -r base.in
@@ -116,6 +120,12 @@ google-resumable-media==2.5.0
 googleapis-common-protos==1.60.0
     # via google-api-core
 gunicorn==20.1.0
+pycparser==2.23
+    # via cffi
+pyjwt[crypto]==2.9.0
+    # via -r base.in
+typing-extensions==4.13.2
+    # via cryptography
 whitenoise==6.7.0
     # via -r base.in
 idna==2.10

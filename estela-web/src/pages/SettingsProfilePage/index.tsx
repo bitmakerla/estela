@@ -6,6 +6,7 @@ import "./styles.scss";
 import { ApiService, AuthService } from "../../services";
 import { ApiAuthProfileUpdateRequest, UserProfile } from "../../services/api";
 import { invalidDataNotification, Spin } from "../../shared";
+import { AUTH_MODE } from "../../constants";
 
 const { Content } = Layout;
 const { Text } = Typography;
@@ -62,6 +63,11 @@ export class SettingsProfilePage extends Component<unknown, ProfileSettingsPageS
     };
 
     onFinishProfileFormHandler = (): void => {
+        // With AUTH_MODE=oidc estela holds no password to confirm the change with.
+        if (AUTH_MODE === "oidc") {
+            this.onFinishPasswordFormHandler({ password: "" });
+            return;
+        }
         this.setState({ showPasswordModal: true });
     };
 

@@ -21,3 +21,5 @@ redis
 gunicorn
 whitenoise
 git+https://github.com/bitmakerla/estela-queue-adapter.git
+# ID token signature verification for the OIDC sign-in.
+pyjwt[crypto]

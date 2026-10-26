@@ -1,4 +1,7 @@
+from django.conf import settings
 from rest_framework import routers
+
+from api.auth import local as local_auth
 
 from api.views import (
     project as project_views,
@@ -74,17 +77,21 @@ router.register(prefix=r"auth", viewset=auth_views.AuthAPIViewSet, basename="aut
 router.register(
     prefix=r"auth/profile", viewset=auth_views.UserProfileViewSet, basename="profile"
 )
-router.register(
-    prefix=r"account/resetPassword",
-    viewset=auth_views.ResetPasswordViewSet,
-    basename="reset-password",
-)
-
-router.register(
-    prefix=r"account/changePassword",
-    viewset=auth_views.ChangePasswordViewSet,
-    basename="change-password",
-)
+# Logging in, registering and passwords exist only when estela owns the passwords.
+if settings.AUTH_MODE == "local":
+    router.register(
+        prefix=r"auth", viewset=local_auth.LocalAuthViewSet, basename="local-auth"
+    )
+    router.register(
+        prefix=r"account/resetPassword",
+        viewset=local_auth.ResetPasswordViewSet,
+        basename="reset-password",
+    )
+    router.register(
+        prefix=r"account/changePassword",
+        viewset=local_auth.ChangePasswordViewSet,
+        basename="change-password",
+    )
 
 router.register(
     prefix=r"v1/metering",

@@ -1,11 +1,10 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.authentication import ApiKeyAuthentication
+from api.authentication import AUTHENTICATION_CLASSES
 from api.permissions import CanReportMeteringForProject, HasApiKeyScope
 from api.serializers.metering import (
     MeteringReportResponseSerializer,
@@ -17,7 +16,7 @@ from core.metering.report import ingest_metered_usage_report
 class MeteringReportViewSet(viewsets.GenericViewSet):
     """Control-plane ingest for append-only metered usage facts."""
 
-    authentication_classes = [ApiKeyAuthentication, TokenAuthentication]
+    authentication_classes = AUTHENTICATION_CLASSES
     permission_classes = [
         IsAuthenticated,
         HasApiKeyScope,
