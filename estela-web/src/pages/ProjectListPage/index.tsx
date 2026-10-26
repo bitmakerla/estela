@@ -38,10 +38,12 @@ import {
     ApiProjectsListRequest,
     ApiProjectsCreateRequest,
     ApiProjectsDeleteRequest,
+    OwnerOrg,
+    OwnerOrgs,
     Project,
     ProjectCategoryEnum,
 } from "../../services/api";
-import { incorrectDataNotification, Spin, PaginationItem } from "../../shared";
+import { incorrectDataNotification, invalidDataNotification, Spin, PaginationItem } from "../../shared";
 import { UserContext, UserContextProps } from "../../context/UserContext";
 
 const { Content } = Layout;
@@ -74,6 +76,11 @@ interface ProjectsPageState {
     modalWelcome: boolean;
     newProjectName: string;
     newProjectCategory: ProjectCategoryEnum;
+    // An Operator may create a Project for another Org (ADR 0018): the Orgs they may pick, null until
+    // asked, and empty for everyone else.
+    ownerOrgs: OwnerOrg[] | null;
+    newProjectOwnerOrgId: string;
+    newProjectOwnerEmail: string;
     searchText: string;
     sortField: SortField;
     sortOrder: SortOrder;
@@ -105,6 +112,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         modalWelcome: false,
         newProjectName: "",
         newProjectCategory: ProjectCategoryEnum.NotSpecified,
+        ownerOrgs: null,
+        newProjectOwnerOrgId: "",
+        newProjectOwnerEmail: "",
         searchText: "",
         sortField: null,
         sortOrder: null,
@@ -402,14 +412,34 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
         } = event;
         if (name === "newProjectName") {
             this.setState({ newProjectName: value });
+        } else if (name === "newProjectOwnerEmail") {
+            this.setState({ newProjectOwnerEmail: value });
         }
+    };
+
+    openNewProject = (): void => {
+        this.setState({ modalNewProject: true, newProjectOwnerOrgId: "", newProjectOwnerEmail: "" });
+        if (this.state.ownerOrgs !== null) {
+            return;
+        }
+        // Only an Operator may pick another Org (ADR 0018). The API answers 403 to everyone else, and
+        // no Orgs without billing; either way the form shows no picker.
+        this.apiService.apiProjectsOwnerOrgs().then(
+            (response: OwnerOrgs) => this.setState({ ownerOrgs: response.results }),
+            () => this.setState({ ownerOrgs: [] }),
+        );
     };
 
     handleSelectChange = (value: ProjectCategoryEnum): void => {
         this.setState({ newProjectCategory: value });
     };
 
-    projectManagement = (data: { name: string; category: ProjectCategoryEnum }): void => {
+    projectManagement = (data: {
+        name: string;
+        category: ProjectCategoryEnum;
+        ownerOrgId?: string;
+        ownerEmail?: string;
+    }): void => {
         const request: ApiProjectsCreateRequest = { data };
         this.apiService.apiProjectsCreate(request).then(
             (response: Project) => {
@@ -420,9 +450,18 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                 history.push(`/projects/${response.pid}/deploys`);
                 AuthService.setFramework(String(response.framework));
             },
-            (error: unknown) => {
-                error;
-                incorrectDataNotification();
+            async (error: { json?: () => Promise<Record<string, unknown>> }) => {
+                // The API says what it refused, such as an Org that isn't onboarded or an owner
+                // email from another Org (ADR 0018).
+                const data = error.json ? await error.json().catch(() => null) : null;
+                const message = data
+                    ? ["owner_org_id", "owner_email", "detail"].flatMap((key) => data[key] ?? []).find(Boolean)
+                    : undefined;
+                if (message) {
+                    invalidDataNotification(String(message));
+                } else {
+                    incorrectDataNotification();
+                }
             },
         );
     };
@@ -522,6 +561,9 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
             modalWelcome,
             newProjectName,
             newProjectCategory,
+            ownerOrgs,
+            newProjectOwnerOrgId,
+            newProjectOwnerEmail,
             searchText,
             deleteModal,
             deleteTargetName,
@@ -564,7 +606,8 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                         <Button
                                             className="mt-6 w-96 h-14 rounded-md bg-estela text-white hover:border-estela hover:text-estela"
                                             onClick={() => {
-                                                this.setState({ modalWelcome: false, modalNewProject: true });
+                                                this.setState({ modalWelcome: false });
+                                                this.openNewProject();
                                             }}
                                         >
                                             Start new project
@@ -665,7 +708,7 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                             <Button
                                                 icon={<Add className="mr-2" width={15} />}
                                                 className="flex items-center text-sm font-medium stroke-estela border-white text-estela hover:bg-button-hover hover:text-estela hover:border-estela rounded-md"
-                                                onClick={() => this.setState({ modalNewProject: true })}
+                                                onClick={this.openNewProject}
                                             >
                                                 Start new project
                                             </Button>
@@ -748,6 +791,60 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                             Other category
                                                         </Option>
                                                     </Select>
+                                                    {ownerOrgs && ownerOrgs.length > 0 && (
+                                                        <>
+                                                            <p className="mt-4 mb-3 text-base">Owner Org</p>
+                                                            <Select
+                                                                className="w-full"
+                                                                size="large"
+                                                                showSearch
+                                                                optionFilterProp="label"
+                                                                value={newProjectOwnerOrgId}
+                                                                onChange={(value: string) =>
+                                                                    this.setState({
+                                                                        newProjectOwnerOrgId: value,
+                                                                        newProjectOwnerEmail: "",
+                                                                    })
+                                                                }
+                                                                options={[
+                                                                    { value: "", label: "Bitmaker (your own Org)" },
+                                                                    ...ownerOrgs.map((org) => ({
+                                                                        value: org.ownerOrgId,
+                                                                        label: `${
+                                                                            org.name || org.ownerOrgId
+                                                                        } · ${org.billingState.replace(/_/g, " ")}`,
+                                                                    })),
+                                                                ]}
+                                                            />
+                                                            <p className="mt-2 text-sm text-estela-black-medium">
+                                                                The Org that owns the Project and pays for its usage. It
+                                                                never changes.
+                                                            </p>
+                                                            {newProjectOwnerOrgId && (
+                                                                <>
+                                                                    <p className="mt-4 mb-3 text-base">
+                                                                        Owner&apos;s email (optional)
+                                                                    </p>
+                                                                    <Input
+                                                                        style={{ borderRadius: "8px" }}
+                                                                        className="border-estela rounded"
+                                                                        size="large"
+                                                                        name="newProjectOwnerEmail"
+                                                                        placeholder="someone@their-company.com"
+                                                                        value={newProjectOwnerEmail}
+                                                                        onChange={this.handleInputChange}
+                                                                    />
+                                                                    <p className="mt-2 text-sm text-estela-black-medium">
+                                                                        A User of that Org, who owns the Project; you
+                                                                        become its admin. Someone who hasn&apos;t signed
+                                                                        in yet becomes its owner at their first sign-in.
+                                                                        Leave it empty for a Project Bitmaker manages
+                                                                        for them.
+                                                                    </p>
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
                                                     <p className="my-4 text-estela-black-medium">
                                                         Your project will be created with a data persistence of
                                                         <span className="text-estela-black-full font-bold">
@@ -765,6 +862,11 @@ export class ProjectListPage extends Component<unknown, ProjectsPageState> {
                                                                 this.projectManagement({
                                                                     name: newProjectName,
                                                                     category: newProjectCategory,
+                                                                    ...(newProjectOwnerOrgId && {
+                                                                        ownerOrgId: newProjectOwnerOrgId,
+                                                                        ownerEmail:
+                                                                            newProjectOwnerEmail.trim() || undefined,
+                                                                    }),
                                                                 });
                                                             }}
                                                         >

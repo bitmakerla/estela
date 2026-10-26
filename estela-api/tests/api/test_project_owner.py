@@ -87,7 +87,7 @@ class ProjectOwnerTests(BaseTestCase):
         project = Project.objects.get(pid=body["pid"])
         self.assertEqual((project.owner_org_id, project.billing_account_id), (CUSTOMER_ORG, CUSTOMER_ACCT))
         resolve.assert_not_called()   # the acct_ comes with the list: nothing is minted
-        accounts.assert_called_once_with(["awaiting_card", "active", "internal"])
+        accounts.assert_called_once_with(["active", "out_of_credit", "internal"])
         self.assertIn(f"for Org {CUSTOMER_ORG}", Activity.objects.get(project=project).description)
 
     @patch("api.ownership.list_accounts", return_value=ONBOARDED)

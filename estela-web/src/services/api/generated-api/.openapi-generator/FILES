@@ -33,6 +33,8 @@ models/MeteringReport.ts
 models/MeteringReportResponse.ts
 models/Notification.ts
 models/NotificationUpdate.ts
+models/OwnerOrg.ts
+models/OwnerOrgs.ts
 models/PagesStats.ts
 models/Permission.ts
 models/Project.ts
