@@ -38,6 +38,7 @@ from core.error_logs import (
     write_deploy_logs_to_mongo,
 )
 from core.metering.billing import emit_billing_usage_batch, emit_job_close_adjustment
+from core.metering.gate import UsageRefused, check_job_may_start
 from core.metering.hourly import record_hourly_metered_usage_batch
 from core.metering.storage import record_hourly_storage_metered_usage_batch
 from core.metering.ledger import (
@@ -103,7 +104,17 @@ def run_spider_jobs():
 
         dispatched = 0
         skipped = 0
+        refused = 0
         for job in jobs:
+            # The usage gate (ADR 0016), for every queued Job, ad hoc or scheduled: one refused
+            # ends here, so it neither waits in the queue nor holds a place in the next lot.
+            try:
+                check_job_may_start(job.spider.project)
+            except UsageRefused as refusal:
+                _refuse_job(job, refusal)
+                refused += 1
+                continue
+
             tier = get_tier_resources(job.resource_tier)
             job_cpu = parse_k8s_resource(tier["cpu_request"])
             job_mem = parse_k8s_resource(tier["mem_request"])
@@ -139,16 +150,30 @@ def run_spider_jobs():
             except Exception as e:
                 logging.error("run_spider_jobs: failed to dispatch job %s: %s", job.jid, e)
 
-        if dispatched or skipped:
+        if dispatched or skipped or refused:
             logging.info(
-                "run_spider_jobs: dispatched %d, skipped %d (capacity %.0f%% CPU, %.0f%% MEM)",
-                dispatched, skipped,
+                "run_spider_jobs: dispatched %d, skipped %d, refused by billing %d "
+                "(capacity %.0f%% CPU, %.0f%% MEM)",
+                dispatched, skipped, refused,
                 (used_cpu / alloc_cpu) * 100 if alloc_cpu > 0 else 0,
                 (used_mem / alloc_mem) * 100 if alloc_mem > 0 else 0,
             )
 
     finally:
         redis_client.delete(RUN_SPIDER_JOBS_LOCK_KEY)
+
+
+def _refuse_job(job, refusal):
+    """A queued Job the usage gate refused: it never starts, and its log says why."""
+    logging.info(
+        "run_spider_jobs: job %s refused by the usage gate (%s)", job.jid, refusal.reason
+    )
+    job.status = SpiderJob.ERROR_STATUS
+    job.save()
+    try:
+        write_job_logs_to_mongo(job, refusal.message)
+    except Exception as e:
+        logging.warning("run_spider_jobs: could not log the refusal of job %s: %s", job.jid, e)
 
 
 def _dispatch_single_job(job):
