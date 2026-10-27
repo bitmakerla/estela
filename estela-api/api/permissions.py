@@ -120,6 +120,13 @@ class IsAdminOrReadOnly(BasePermission):
             return True
         if request.user.is_superuser:
             return True
+        # An Operator works inside a customer's Project, not only reads it (ADR 0018): ADR 0018
+        # gave IsProjectUser the same rule, and leaving it out here let an Operator see every
+        # Project and change none, so launching a Job or deploying for a customer came back 403.
+        # It opens no billing hole: the usage gate runs on the Project, not on who asked, both
+        # when a Job is created and again when it is dispatched.
+        if is_operator(request.user):
+            return True
         # Write permissions are only allowed to the admin of the snippet.
         project = Project.objects.filter(pid=pid).get()
         try:

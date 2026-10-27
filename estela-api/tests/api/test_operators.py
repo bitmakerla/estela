@@ -127,6 +127,23 @@ class OperatorPowersTests(TestCase):
         staff = user_in(BITMAKER_ORG, "staff", is_staff=True, is_superuser=True)
         self.assertEqual(self.names(self.client_for(staff)), [])
 
+    def rename(self, who, project, *, operator=False):
+        """Any write on a Project the caller is no member of; PATCH /projects is the simplest."""
+        return self.client_for(who, operator=operator).patch(
+            f"/api/projects/{project.pid}", {"name": "renamed"}, format="json"
+        )
+
+    def test_an_operator_may_write_in_a_project_they_are_no_member_of(self):
+        """Seeing every Project and being able to change none left Operators at 403 on a
+        customer's Project: launching a Job, deploying, helping. The usage gate is unaffected,
+        it runs on the Project and not on who asked."""
+        operator = user_in(BITMAKER_ORG, "op-writes")
+        self.assertEqual(self.rename(operator, self.owned, operator=True).status_code, 200)
+
+    def test_someone_without_the_role_still_may_not(self):
+        outsider = user_in(CUSTOMER_ORG, "outsider")
+        self.assertEqual(self.rename(outsider, self.owned).status_code, 403)
+
     def add(self, who, email, project=None):
         project = project or self.owned
         return self.client_for(who).patch(
