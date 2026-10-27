@@ -51,7 +51,12 @@ SLICE = timedelta(minutes=5)
 BILLING_ACCOUNT_ID_RE = re.compile(r"^acct_[0-9A-HJKMNP-TV-Z]{26}$")
 
 LAST_SAMPLE_KEY = "estela:billing:last_sample:{}"
-LAST_SAMPLE_TTL_SECONDS = 24 * 3600
+# The baseline has to outlive the job it belongs to, and any spell where nothing samples it: the
+# emitter switched off, the worker or beat down. If it expires under a running Job, the next tick
+# finds no baseline, reads the job's counters as increments and bills again everything that Job has
+# used so far, which an invoice cannot take back. A day covered neither. The close replaces this
+# with CLOSED_SAMPLE_TTL_SECONDS, so a finished Job keeps nothing for a month.
+LAST_SAMPLE_TTL_SECONDS = 30 * 24 * 3600
 # Kept after the close, so a repeated close (the job's post_save fires on every save in a final
 # status) finds it closed and sends nothing twice.
 CLOSED_SAMPLE_TTL_SECONDS = 7 * 24 * 3600
