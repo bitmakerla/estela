@@ -42,7 +42,7 @@ class FakeRedis:
     """Just enough of redis-py for the sampler: strings, one hash, and pipelines."""
 
     def __init__(self):
-        self.strings, self.hashes = {}, {}
+        self.strings, self.hashes, self.ttls = {}, {}, {}
         self.on_watch = None
 
     def get(self, key):
@@ -50,6 +50,7 @@ class FakeRedis:
 
     def set(self, key, value, ex=None):
         self.strings[key] = value.encode()
+        self.ttls[key] = ex
 
     def hset(self, key, field, value):
         self.hashes.setdefault(key, {})[field.encode()] = value.encode()
@@ -382,6 +383,19 @@ class JobCloseAdjustmentTests(TestCase):
         )
         self.assertEqual(event["data"]["interval_start"], billing.iso(self.job.created))
         self.assertEqual(list(_validator().iter_errors(event)), [])
+
+    def test_the_baseline_outlives_a_running_job_and_any_gap_in_the_ticks(self):
+        """A baseline that expires under a running Job bills everything it used all over again."""
+        self._tick(2026, 10, 7, 14, 45, 0, elapsed_time_seconds=300, item_count=40)
+        key = billing.LAST_SAMPLE_KEY.format(self.job.key)
+        self.assertGreater(self.redis.ttls[key], 7 * 24 * 3600)
+
+    def test_the_close_shortens_it_again(self):
+        self._tick(2026, 10, 7, 14, 45, 0, elapsed_time_seconds=300, item_count=40)
+        self._finish(runtime=400, items=50)
+        self._close(2026, 10, 7, 14, 52, 0)
+        key = billing.LAST_SAMPLE_KEY.format(self.job.key)
+        self.assertEqual(self.redis.ttls[key], billing.CLOSED_SAMPLE_TTL_SECONDS)
 
     def test_a_repeated_close_sends_nothing_more(self):
         self._finish(runtime=170, network=5000)
