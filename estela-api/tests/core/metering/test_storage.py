@@ -4,8 +4,10 @@ import json
 from datetime import datetime, timedelta, timezone as dt_timezone
 from unittest.mock import MagicMock, patch
 
+from django.db.models.signals import post_save
 from django.test import TestCase, override_settings
 
+from core import signals as core_signals
 from core.metering.metrics import (
     METRIC_STORAGE_BYTE_HOURS,
     METRIC_STORAGE_BYTES_END,
@@ -25,7 +27,31 @@ from core.models import DataStatus, MeteredUsageRecord, Project, Spider, SpiderJ
 
 @override_settings(METERED_USAGE_STORAGE_HOURLY_ENABLED=True)
 class HourlyStorageMeteringTests(TestCase):
+    # setUp saves a COMPLETED job, whose post_save runs the usage chain eagerly, and that reads
+    # MongoDB: without one, every test waits 30s and fails.
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        post_save.disconnect(sender=SpiderJob, dispatch_uid="update_usage")
+
+    @classmethod
+    def tearDownClass(cls):
+        post_save.connect(
+            core_signals.update_usage,
+            sender=SpiderJob,
+            dispatch_uid="update_usage",
+        )
+        super().tearDownClass()
+
     def setUp(self):
+        # No Redis in unit tests: an empty one, unless a test patches its own.
+        empty_redis = MagicMock()
+        empty_redis.get.return_value = None
+        empty_redis.smembers.return_value = set()
+        redis_patch = patch("core.metering.storage._redis", return_value=empty_redis)
+        redis_patch.start()
+        self.addCleanup(redis_patch.stop)
+
         self.project = Project.objects.create(name="storage-meter-test")
         self.spider = Spider.objects.create(project=self.project, name="s")
         self.job = SpiderJob.objects.create(
