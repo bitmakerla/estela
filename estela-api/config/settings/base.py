@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -400,6 +401,17 @@ BILLING_EMIT_MAX_JOBS = env.int("BILLING_EMIT_MAX_JOBS", default=2000)
 OPENMETER_INGEST_URL = env.str("OPENMETER_INGEST_URL", default="")
 ACCOUNT_REGISTRY_URL = env.str("ACCOUNT_REGISTRY_URL", default="")
 ACCOUNT_REGISTRY_TOKEN = env.str("ACCOUNT_REGISTRY_TOKEN", default="")
+# Project storage, one event per Project per UTC day (billing.py), switched apart from jobs.
+BILLING_STORAGE_EMIT_ENABLED = env.bool("BILLING_STORAGE_EMIT_ENABLED", default=False)
+# Optional, e.g. 2026-11-01T00:00:00Z: no day before it is ever sent (one billed by hand).
+BILLING_STORAGE_NOT_BEFORE = env.str("BILLING_STORAGE_NOT_BEFORE", default="")
+if BILLING_STORAGE_NOT_BEFORE:
+    try:
+        datetime.strptime(BILLING_STORAGE_NOT_BEFORE, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        raise ImproperlyConfigured(
+            "BILLING_STORAGE_NOT_BEFORE must look like 2026-11-01T00:00:00Z."
+        )
 
 # The usage gate (ADR 0016, core/metering/gate.py): a Job starts only for an Org whose Billing
 # state is active or internal. Off by default: on, it refuses every Project with no acct_ yet.

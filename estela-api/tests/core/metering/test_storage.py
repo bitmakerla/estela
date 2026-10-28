@@ -4,8 +4,10 @@ import json
 from datetime import datetime, timedelta, timezone as dt_timezone
 from unittest.mock import MagicMock, patch
 
+from django.db.models.signals import post_save
 from django.test import TestCase, override_settings
 
+from core import signals as core_signals
 from core.metering.metrics import (
     METRIC_STORAGE_BYTE_HOURS,
     METRIC_STORAGE_BYTES_END,
@@ -13,6 +15,7 @@ from core.metering.metrics import (
     RESOURCE_KIND_PROJECT_STORAGE,
 )
 from core.metering.storage import (
+    METER_STORAGE_HOUR_DONE_KEY,
     bootstrap_storage_meter_watermarks,
     previous_utc_hour_interval,
     process_hourly_storage_metered_usage_for_project,
@@ -25,7 +28,31 @@ from core.models import DataStatus, MeteredUsageRecord, Project, Spider, SpiderJ
 
 @override_settings(METERED_USAGE_STORAGE_HOURLY_ENABLED=True)
 class HourlyStorageMeteringTests(TestCase):
+    # setUp saves a COMPLETED job, whose post_save runs the usage chain eagerly, and that reads
+    # MongoDB: without one, every test waits 30s and fails.
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        post_save.disconnect(sender=SpiderJob, dispatch_uid="update_usage")
+
+    @classmethod
+    def tearDownClass(cls):
+        post_save.connect(
+            core_signals.update_usage,
+            sender=SpiderJob,
+            dispatch_uid="update_usage",
+        )
+        super().tearDownClass()
+
     def setUp(self):
+        # No Redis in unit tests: an empty one, unless a test patches its own.
+        self.redis = MagicMock()
+        self.redis.get.return_value = None
+        self.redis.smembers.return_value = set()
+        redis_patch = patch("core.metering.storage._redis", return_value=self.redis)
+        redis_patch.start()
+        self.addCleanup(redis_patch.stop)
+
         self.project = Project.objects.create(name="storage-meter-test")
         self.spider = Spider.objects.create(project=self.project, name="s")
         self.job = SpiderJob.objects.create(
@@ -144,6 +171,22 @@ class HourlyStorageMeteringTests(TestCase):
         project, = mock_process.call_args.args
         self.assertEqual(project.pk, self.project.pk)
         self.assertEqual(mock_process.call_args.kwargs["hour_start"], self.hour_start)
+
+    @patch("core.metering.storage.process_hourly_storage_metered_usage_for_project")
+    @patch("core.metering.storage.spiderdata_db_client")
+    def test_batch_says_which_hour_it_finished(self, mock_client, mock_process):
+        # Billing sends a day only once this reaches the day's end, Projects or none.
+        mock_client.get_connection.return_value = True
+        SpiderJob.objects.all().delete()
+
+        record_hourly_storage_metered_usage_batch(
+            reference=datetime(2026, 11, 4, 0, 5, 0, tzinfo=dt_timezone.utc)
+        )
+
+        mock_process.assert_not_called()
+        self.redis.set.assert_called_once_with(
+            METER_STORAGE_HOUR_DONE_KEY, "2026-11-04T00:00:00Z"
+        )
 
     @patch("core.metering.storage._redis")
     @patch("core.metering.storage.get_project_spiderdata_storage_bytes")
