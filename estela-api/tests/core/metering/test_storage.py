@@ -15,6 +15,7 @@ from core.metering.metrics import (
     RESOURCE_KIND_PROJECT_STORAGE,
 )
 from core.metering.storage import (
+    METER_STORAGE_HOUR_DONE_KEY,
     bootstrap_storage_meter_watermarks,
     previous_utc_hour_interval,
     process_hourly_storage_metered_usage_for_project,
@@ -45,10 +46,10 @@ class HourlyStorageMeteringTests(TestCase):
 
     def setUp(self):
         # No Redis in unit tests: an empty one, unless a test patches its own.
-        empty_redis = MagicMock()
-        empty_redis.get.return_value = None
-        empty_redis.smembers.return_value = set()
-        redis_patch = patch("core.metering.storage._redis", return_value=empty_redis)
+        self.redis = MagicMock()
+        self.redis.get.return_value = None
+        self.redis.smembers.return_value = set()
+        redis_patch = patch("core.metering.storage._redis", return_value=self.redis)
         redis_patch.start()
         self.addCleanup(redis_patch.stop)
 
@@ -170,6 +171,22 @@ class HourlyStorageMeteringTests(TestCase):
         project, = mock_process.call_args.args
         self.assertEqual(project.pk, self.project.pk)
         self.assertEqual(mock_process.call_args.kwargs["hour_start"], self.hour_start)
+
+    @patch("core.metering.storage.process_hourly_storage_metered_usage_for_project")
+    @patch("core.metering.storage.spiderdata_db_client")
+    def test_batch_says_which_hour_it_finished(self, mock_client, mock_process):
+        # Billing sends a day only once this reaches the day's end, Projects or none.
+        mock_client.get_connection.return_value = True
+        SpiderJob.objects.all().delete()
+
+        record_hourly_storage_metered_usage_batch(
+            reference=datetime(2026, 11, 4, 0, 5, 0, tzinfo=dt_timezone.utc)
+        )
+
+        mock_process.assert_not_called()
+        self.redis.set.assert_called_once_with(
+            METER_STORAGE_HOUR_DONE_KEY, "2026-11-04T00:00:00Z"
+        )
 
     @patch("core.metering.storage._redis")
     @patch("core.metering.storage.get_project_spiderdata_storage_bytes")

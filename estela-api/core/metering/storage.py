@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 
 METER_STORAGE_ACTIVE_PROJECTS_KEY = "estela:meter:storage:active_projects:v1"
 METER_STORAGE_LAST_SAMPLE_KEY = "estela:meter:storage:last_sample:{}:v2"
+# The end of the last hour every Project was metered for (ISO, Z). Billing sends a day only once
+# this reaches the day's end, so it never sends a day missing its last hours.
+METER_STORAGE_HOUR_DONE_KEY = "estela:meter:storage:hour_done:v1"
 
 _CLIENT = None
 
@@ -282,8 +285,6 @@ def record_hourly_storage_metered_usage_batch(
     ref = reference or timezone.now()
     hour_start, hour_end = previous_utc_hour_interval(ref)
     project_ids = project_ids_to_meter_storage()
-    if not project_ids:
-        return
 
     max_projects = getattr(settings, "METERED_USAGE_STORAGE_HOURLY_MAX_PROJECTS", 5000)
     qs = Project.objects.filter(pk__in=project_ids, deleted=False).order_by("pid")[
@@ -299,3 +300,7 @@ def record_hourly_storage_metered_usage_batch(
             )
         except Exception:
             logger.exception("hourly storage meter failed for project %s", project.pid)
+    _redis().set(
+        METER_STORAGE_HOUR_DONE_KEY,
+        hour_end.astimezone(dt_timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    )
