@@ -1,10 +1,34 @@
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from config.job_manager import job_manager
 from core.cronjob import create_cronjob, delete_cronjob
 from core.models import Project, Spider, SpiderJob
-from core.tasks import run_spider_jobs
+from core.tasks import check_and_update_job_status_errors, run_spider_jobs
 from tests.base import BaseTestCase
+
+
+class CheckJobStatusErrors(BaseTestCase):
+    def check_active_waiting_job(self, stats_in_redis):
+        project = Project.objects.create(name="project test")
+        spider = Spider.objects.create(project=project, name="spider test")
+        job = SpiderJob.objects.create(spider=spider, status=SpiderJob.WAITING_STATUS)
+        active = SimpleNamespace(active=1, succeeded=None, failed=None)
+        with patch("core.tasks.job_manager.read_job_status", return_value=active), patch(
+            "core.tasks.redis.from_url"
+        ) as from_url:
+            from_url.return_value.exists.return_value = stats_in_redis
+            check_and_update_job_status_errors()
+        job.refresh_from_db()
+        return job.status
+
+    def test_promotes_waiting_job_once_spider_writes_stats(self):
+        status = self.check_active_waiting_job(stats_in_redis=1)
+        self.assertEqual(status, SpiderJob.RUNNING_STATUS)
+
+    def test_keeps_waiting_job_while_pod_starts(self):
+        status = self.check_active_waiting_job(stats_in_redis=0)
+        self.assertEqual(status, SpiderJob.WAITING_STATUS)
 
 
 class RunSpiderJobs(BaseTestCase):
