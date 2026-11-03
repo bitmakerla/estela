@@ -332,6 +332,7 @@ def check_and_update_job_status_errors():
     jobs = SpiderJob.objects.filter(status__in=candidate_statuses)[
         : settings.CHECK_JOB_ERRORS_BATCH_SIZE
     ]
+    redis_conn = redis.from_url(settings.REDIS_URL)
 
     for job in jobs:
         job_status = job_manager.read_job_status(job.name)
@@ -351,6 +352,16 @@ def check_and_update_job_status_errors():
             job.status = SpiderJob.ERROR_STATUS
             job.save()
             write_job_logs_to_mongo(job, error_logs)
+        elif (
+            is_waiting
+            and job_status.active
+            and redis_conn.exists(f"scrapy_stats_{job.key}")
+        ):
+            # The spider is writing stats, so its RUNNING report to the API was lost.
+            # Filter on WAITING so a report that lands meanwhile is not overwritten.
+            SpiderJob.objects.filter(
+                jid=job.jid, status=SpiderJob.WAITING_STATUS
+            ).update(status=SpiderJob.RUNNING_STATUS)
 
 
 
