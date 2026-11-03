@@ -15,7 +15,6 @@ from core.metering.metrics import (
     RESOURCE_KIND_PROJECT_STORAGE,
 )
 from core.metering.storage import (
-    METER_STORAGE_HOUR_DONE_KEY,
     bootstrap_storage_meter_watermarks,
     previous_utc_hour_interval,
     process_hourly_storage_metered_usage_for_project,
@@ -82,12 +81,7 @@ class HourlyStorageMeteringTests(TestCase):
 
     def test_cold_start_uses_bytes_end_as_start(self):
         self.assertEqual(
-            resolve_storage_bytes_start(
-                self.project,
-                bytes_end=500,
-                hour_start=self.hour_start,
-                prev_sample=None,
-            ),
+            resolve_storage_bytes_start(bytes_end=500, prev_sample=None),
             500,
         )
 
@@ -122,7 +116,10 @@ class HourlyStorageMeteringTests(TestCase):
             row.idempotency_key,
             f"estela:ProjectStorage:{self.project.pid}:storage:hour:2026-06-12T10:00:00Z:v3",
         )
-        mock_conn.set.assert_called()
+        (key, payload), _ = mock_conn.set.call_args
+        self.assertEqual(
+            json.loads(payload)["covered_until"], "2026-06-12T11:00:00+00:00"
+        )
 
     @patch("core.metering.storage._mark_project_storage_inactive")
     @patch("core.metering.storage.get_project_spiderdata_storage_bytes")
@@ -171,22 +168,6 @@ class HourlyStorageMeteringTests(TestCase):
         project, = mock_process.call_args.args
         self.assertEqual(project.pk, self.project.pk)
         self.assertEqual(mock_process.call_args.kwargs["hour_start"], self.hour_start)
-
-    @patch("core.metering.storage.process_hourly_storage_metered_usage_for_project")
-    @patch("core.metering.storage.spiderdata_db_client")
-    def test_batch_says_which_hour_it_finished(self, mock_client, mock_process):
-        # Billing sends a day only once this reaches the day's end, Projects or none.
-        mock_client.get_connection.return_value = True
-        SpiderJob.objects.all().delete()
-
-        record_hourly_storage_metered_usage_batch(
-            reference=datetime(2026, 11, 4, 0, 5, 0, tzinfo=dt_timezone.utc)
-        )
-
-        mock_process.assert_not_called()
-        self.redis.set.assert_called_once_with(
-            METER_STORAGE_HOUR_DONE_KEY, "2026-11-04T00:00:00Z"
-        )
 
     @patch("core.metering.storage._redis")
     @patch("core.metering.storage.get_project_spiderdata_storage_bytes")

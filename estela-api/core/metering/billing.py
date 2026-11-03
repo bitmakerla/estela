@@ -13,14 +13,10 @@ the job does nothing. A job that never got a tick sends its whole usage this way
 This is independent of ``MeteredUsageRecord``: it keeps its own baseline in Redis, so the
 hourly ledger (read by the legacy billing app) is untouched.
 
-Storage goes once per UTC day per Project, as one ``DELTA_SLICE`` of ``storage_byte_seconds``:
-the day's hourly ``storage_byte_hours`` rows from that ledger (``storage.py``, which it only
-reads) × 3600. A day goes once the hourly task has metered its last hour; one sent more than
-STORAGE_ON_TIME after it ended goes as an ``ADJUSTMENT`` stamped now, and an hour metered after
-its day was sent goes alone as one. A Project the sender has no record of starts from the current
-day, never an earlier one: losing that record leaves days unbilled, never billed twice. Switched
-by BILLING_STORAGE_EMIT_ENABLED, apart from jobs; BILLING_STORAGE_NOT_BEFORE holds back older
-days.
+Storage is queued by the hourly storage task (``storage.py``), not here: one event per Project
+per hour, or one over the gap after missed runs (``build_storage_event``). This module builds it,
+and its 5-minute tick flushes it with everything else. Switched by BILLING_STORAGE_EMIT_ENABLED,
+apart from jobs.
 
 Delivery is at least once. An event is put in a Redis outbox in the same transaction that moves
 its job's baseline, and leaves the outbox only once OpenMeter accepts it (202). Its ``id`` is
@@ -46,10 +42,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from api.utils import read_scrapy_counters_from_redis
-from core.metering.metrics import METRIC_STORAGE_BYTE_HOURS, REPORTER_ESTELA
-from core.metering.metrics import RESOURCE_KIND_PROJECT_STORAGE as LEDGER_PROJECT_STORAGE
-from core.metering.storage import METER_STORAGE_HOUR_DONE_KEY
-from core.models import MeteredUsageRecord, Project, SpiderJob
+from core.metering.metrics import REPORTER_ESTELA
+from core.models import SpiderJob
 from core.tiers import RESOURCE_TIERS
 
 logger = logging.getLogger(__name__)
@@ -75,21 +69,9 @@ OUTBOX_KEY = "estela:billing:outbox"
 WATCH_RETRIES = 5
 
 RESOURCE_KIND_PROJECT_STORAGE = "project_storage"
-DAY = timedelta(days=1)
-# A day sent later than this after its end goes as an ADJUSTMENT stamped now, not as its slice.
-# The hourly task meters a day's last hour at about 00:05, and a tick sends it by about 00:10.
+# ADR 0013, rule 2: storage sent later than this after its billing period's end is an ADJUSTMENT.
+# The hourly task measures a month's last hour at about 00:05 on the 1st.
 STORAGE_ON_TIME = timedelta(minutes=30)
-# Per Project: {"from", "next", "sent"}. Days before "from" are never sent; "next" is the next day
-# to send; "sent" maps each day sent to a 24-bit mask of the hours its event counted.
-STORAGE_STATE_KEY = "estela:billing:storage:{}"
-# Past OpenMeter's 32-day dedupe window. Written daily, so it only expires if the sender stops
-# that long, and then the Project starts again from that day (see emit_storage_usage).
-STORAGE_KEEP = timedelta(days=35)
-STORAGE_STATE_TTL_SECONDS = int(STORAGE_KEEP.total_seconds())
-# When the last tick ran; the next looks for late rows recorded since, less a margin for rows
-# whose transaction committed after that tick read.
-STORAGE_LATE_CURSOR_KEY = "estela:billing:storage:late_cursor"
-STORAGE_LATE_MARGIN = timedelta(hours=1)
 
 # Redis counter -> event metric (integers in base units).
 COUNTER_METRICS = (
@@ -509,264 +491,67 @@ def flush_outbox(post: Optional[Callable[[List[dict]], int]] = None) -> None:
         r.hdel(OUTBOX_KEY, *done)
 
 
-def day_start(at: datetime) -> datetime:
-    """The UTC midnight at or before ``at``."""
-    return at.astimezone(py_timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+def month_end(at: datetime) -> datetime:
+    """The start of the UTC calendar month after ``at``'s: where its billing period ends (ADR 0011)."""
+    at = at.astimezone(py_timezone.utc)
+    if at.month == 12:
+        return datetime(at.year + 1, 1, 1, tzinfo=py_timezone.utc)
+    return datetime(at.year, at.month + 1, 1, tzinfo=py_timezone.utc)
 
 
-def _day_key(day: datetime) -> str:
-    return day.strftime("%Y-%m-%d")
+def storage_slice_id(project_id, last_hour: datetime) -> str:
+    """Named by the last hour the event covers. Two events can only share it when a lost watermark
+    measured an hour again, and then the dedupe on it keeps that hour from being billed twice."""
+    return f"{EVENT_SOURCE}:project:{project_id}:storage:hour:{iso(last_hour)}:v1"
 
 
-def _day(key: str) -> datetime:
-    return datetime.strptime(key, "%Y-%m-%d").replace(tzinfo=py_timezone.utc)
+def storage_adjustment_id(project_id, last_hour: datetime) -> str:
+    return f"{EVENT_SOURCE}:project:{project_id}:storage:hour:{iso(last_hour)}:adjust:v1"
 
 
-def storage_day_id(project_id, day: datetime) -> str:
-    """The day's slice: what a late day, and a late hour of it, correct."""
-    return f"{EVENT_SOURCE}:project:{project_id}:storage:day:{_day_key(day)}:v1"
-
-
-def storage_day_adjustment_id(project_id, day: datetime) -> str:
-    return f"{EVENT_SOURCE}:project:{project_id}:storage:day:{_day_key(day)}:adjust:v1"
-
-
-def storage_hour_adjustment_id(project_id, hour: datetime) -> str:
-    return f"{EVENT_SOURCE}:project:{project_id}:storage:hour:{iso(hour)}:adjust:v1"
-
-
-def _storage_fields(
-    project_id, billing_account_id: str, start: datetime, end: datetime, byte_seconds: int
+def build_storage_event(
+    *,
+    project_id,
+    billing_account_id: str,
+    interval_start: datetime,
+    interval_end: datetime,
+    byte_seconds: int,
+    now: datetime,
 ) -> dict:
-    return dict(
+    """A Project's storage over ``[interval_start, interval_end)``: one hour, or every hour since
+    missed runs began.
+
+    A ``DELTA_SLICE`` stamped at its ``interval_start`` when the window lies inside one billing
+    period and is sent within STORAGE_ON_TIME of that period's end. Otherwise (it crosses a period
+    end, or its period has ended) an ``ADJUSTMENT`` stamped now, carrying its window, so it lands in
+    the open period instead of being stranded in a closed one (ADR 0013, rule 2).
+    """
+    last_hour = interval_end - timedelta(hours=1)
+    fields = dict(
         resource_kind=RESOURCE_KIND_PROJECT_STORAGE,
         resource_id=project_id,
         billing_account_id=billing_account_id,
         dimensions={"project_id": str(project_id)},
-        interval_start=start,
-        interval_end=end,
+        interval_start=interval_start,
+        interval_end=interval_end,
         metrics={"storage_byte_seconds": byte_seconds},
     )
-
-
-def build_storage_day_event(
-    *, project_id, billing_account_id: str, day: datetime, byte_seconds: int, now: datetime
-) -> dict:
-    """A Project's storage over one UTC day: its ``DELTA_SLICE``, or, sent more than
-    STORAGE_ON_TIME after the day's end, an ``ADJUSTMENT`` stamped now (its day's period may be
-    invoiced already, ADR 0013)."""
-    fields = _storage_fields(project_id, billing_account_id, day, day + DAY, byte_seconds)
-    if now <= day + DAY + STORAGE_ON_TIME:
+    period_end = month_end(interval_start)
+    if interval_end <= period_end and now <= period_end + STORAGE_ON_TIME:
         return _event(
-            event_id=storage_day_id(project_id, day), time=day, kind="DELTA_SLICE", **fields
+            event_id=storage_slice_id(project_id, last_hour),
+            time=interval_start,
+            kind="DELTA_SLICE",
+            **fields,
         )
     return _event(
-        event_id=storage_day_adjustment_id(project_id, day),
+        event_id=storage_adjustment_id(project_id, last_hour),
         time=now,
         kind="ADJUSTMENT",
-        references_id=storage_day_id(project_id, day),
-        adjustment_reason="the day's storage, sent late",
+        references_id=storage_slice_id(project_id, last_hour),
+        adjustment_reason="storage measured after its billing period ended",
         **fields,
     )
-
-
-def build_storage_hour_adjustment_event(
-    *, project_id, billing_account_id: str, hour: datetime, byte_seconds: int, now: datetime
-) -> dict:
-    """An hour metered after its day was sent: an ``ADJUSTMENT`` of that hour alone, stamped now.
-    Resending the day would count the rest of it twice."""
-    return _event(
-        event_id=storage_hour_adjustment_id(project_id, hour),
-        time=now,
-        kind="ADJUSTMENT",
-        references_id=storage_day_id(project_id, day_start(hour)),
-        adjustment_reason="an hour of storage metered after its day was sent",
-        **_storage_fields(
-            project_id, billing_account_id, hour, hour + timedelta(hours=1), byte_seconds
-        ),
-    )
-
-
-def _first_storage_day() -> Optional[datetime]:
-    """The first day BILLING_STORAGE_NOT_BEFORE lets go out (None when unset)."""
-    if not settings.BILLING_STORAGE_NOT_BEFORE:
-        return None
-    not_before = parse_iso(settings.BILLING_STORAGE_NOT_BEFORE)
-    first = day_start(not_before)
-    return first if first == not_before else first + DAY
-
-
-def _storage_hours(**filters) -> Dict:
-    """The hourly storage task's own rows, as {project pk: {hour start: byte-hours}}. Rows posted
-    through the metering API are left out, whatever kind they claim."""
-    hours: Dict = {}
-    rows = (
-        MeteredUsageRecord.objects.filter(
-            resource_kind=LEDGER_PROJECT_STORAGE,
-            kind=MeteredUsageRecord.Kind.DELTA_SLICE,
-            idempotency_key__startswith="estela:ProjectStorage:",
-            idempotency_key__contains=":storage:hour:",
-            project__billing_account_id__startswith="acct_",
-            **filters,
-        )
-        .order_by()
-        .values_list("project_id", "interval_start", "metrics")
-    )
-    for project_id, start, metrics in rows:
-        hours.setdefault(project_id, {})[start.astimezone(py_timezone.utc)] = int(
-            (metrics or {}).get(METRIC_STORAGE_BYTE_HOURS) or 0
-        )
-    return hours
-
-
-def emit_project_storage(
-    project_id,
-    billing_account_id: str,
-    hours: Dict[datetime, int],
-    complete_until: Optional[datetime],
-    now: datetime,
-) -> None:
-    """Queue a Project's days that are complete and not yet sent, and the hours metered after their
-    day was sent; move its record in the same transaction."""
-    key = STORAGE_STATE_KEY.format(project_id)
-    first_allowed = _first_storage_day()
-    keep_from = day_start(now) - STORAGE_KEEP
-    with _redis().pipeline() as pipe:
-        try:
-            pipe.watch(key)
-            raw = pipe.get(key)
-            if not raw:
-                return  # no record: the next tick starts it from that day on
-            state = json.loads(raw)
-            start = max(_day(state["from"]), keep_from)
-            next_day = _day(state["next"])
-            sent = {d: mask for d, mask in state["sent"].items() if _day(d) >= start}
-            events = []
-
-            # Late hours: a row for a day already sent, whose hour that day's mask lacks.
-            for hour, byte_hours in sorted(hours.items()):
-                day = day_start(hour)
-                if not start <= day < next_day or (first_allowed and day < first_allowed):
-                    continue
-                mask = sent.get(_day_key(day), 0)
-                if mask & 1 << hour.hour:
-                    continue
-                sent[_day_key(day)] = mask | 1 << hour.hour
-                if byte_hours > 0:
-                    events.append(
-                        build_storage_hour_adjustment_event(
-                            project_id=project_id,
-                            billing_account_id=billing_account_id,
-                            hour=hour,
-                            byte_seconds=byte_hours * 3600,
-                            now=now,
-                        )
-                    )
-
-            # Complete days. A day with no rows sends nothing, never a zero.
-            day = next_day
-            while complete_until and day < complete_until:
-                if not first_allowed or day >= first_allowed:
-                    day_hours = {h: v for h, v in hours.items() if day <= h < day + DAY}
-                    mask = 0
-                    for hour in day_hours:
-                        mask |= 1 << hour.hour
-                    if mask:
-                        sent[_day_key(day)] = mask
-                    byte_hours = sum(day_hours.values())
-                    if byte_hours > 0:
-                        events.append(
-                            build_storage_day_event(
-                                project_id=project_id,
-                                billing_account_id=billing_account_id,
-                                day=day,
-                                byte_seconds=byte_hours * 3600,
-                                now=now,
-                            )
-                        )
-                day += DAY
-
-            moved = {"from": _day_key(start), "next": _day_key(day), "sent": sent}
-            if moved == state and not events:
-                return
-            pipe.multi()
-            for event in events:
-                pipe.hset(OUTBOX_KEY, event["id"], json.dumps(event))
-            pipe.set(key, json.dumps(moved), ex=STORAGE_STATE_TTL_SECONDS)
-            pipe.execute()
-        except redis.WatchError:
-            return  # another tick moved it: what is left goes on the next one
-
-
-def emit_storage_usage(now: datetime) -> None:
-    """Every Project with an ``acct_``: start a record for the ones new to the sender, then send
-    what each one is due (``emit_project_storage``)."""
-    r = _redis()
-    accounts = dict(
-        Project.objects.filter(billing_account_id__startswith="acct_").values_list(
-            "pid", "billing_account_id"
-        )
-    )
-    if not accounts:
-        return
-
-    # No record (a first deploy, a new acct_, Redis lost it): start at the current day, never an
-    # earlier one. The worst a lost record does is leave a few days unbilled; a backfill could
-    # bill them twice, under ids OpenMeter cannot dedupe.
-    first_allowed = _first_storage_day()
-    first = day_start(now) if not first_allowed else max(day_start(now), first_allowed)
-    record = json.dumps({"from": _day_key(first), "next": _day_key(first), "sent": {}})
-    keys = [STORAGE_STATE_KEY.format(pid) for pid in accounts]
-    states = {}
-    with r.pipeline(transaction=False) as pipe:
-        for pid, key, raw in zip(accounts, keys, r.mget(keys)):
-            if raw:
-                states[pid] = json.loads(raw)
-            else:
-                pipe.set(key, record, nx=True, ex=STORAGE_STATE_TTL_SECONDS)
-        pipe.execute()
-
-    # Days end once the hourly task has metered their last hour, not when the clock says so.
-    done = r.get(METER_STORAGE_HOUR_DONE_KEY)
-    complete_until = day_start(parse_iso(done.decode())) if done else None
-    due = {
-        pid
-        for pid, state in states.items()
-        if complete_until and _day(state["next"]) < complete_until
-    }
-
-    hours = {}
-    if due:
-        hours = _storage_hours(
-            project_id__in=due,
-            interval_start__gte=min(_day(states[pid]["next"]) for pid in due),
-            interval_start__lt=complete_until,
-        )
-    # Rows recorded since the last tick for a day already gone: late hours, if their bit is unset.
-    cursor = r.get(STORAGE_LATE_CURSOR_KEY)
-    since = (parse_iso(cursor.decode()) if cursor else now) - STORAGE_LATE_MARGIN
-    # By Project, so the (project, recorded_at) index serves it: the ledger has none on its own.
-    for pid, recorded in _storage_hours(
-        project_id__in=list(states), recorded_at__gte=since, interval_start__lt=day_start(now)
-    ).items():
-        state = states.get(pid)
-        if not state:
-            continue
-        late = {
-            hour: byte_hours
-            for hour, byte_hours in recorded.items()
-            if day_start(hour) < _day(state["next"])
-            and not state["sent"].get(_day_key(day_start(hour)), 0) & 1 << hour.hour
-        }
-        if late:
-            hours.setdefault(pid, {}).update(late)
-
-    for pid in sorted(due | set(hours)):
-        try:
-            emit_project_storage(pid, accounts[pid], hours.get(pid, {}), complete_until, now)
-        except Exception:
-            logger.exception("billing storage failed for project %s", pid)
-    r.set(STORAGE_LATE_CURSOR_KEY, iso(now))
 
 
 def emit_billing_usage_batch(now: Optional[datetime] = None) -> None:
@@ -791,9 +576,5 @@ def emit_billing_usage_batch(now: Optional[datetime] = None) -> None:
                 sample_job(job, interval_start, interval_end)
             except Exception:
                 logger.exception("billing usage sample failed for job %s", job.jid)
-    if settings.BILLING_STORAGE_EMIT_ENABLED:
-        try:
-            emit_storage_usage(now)
-        except Exception:
-            logger.exception("billing storage usage failed")
+    # Storage is queued by the hourly storage task (storage.py); this flushes what it left.
     flush_outbox()

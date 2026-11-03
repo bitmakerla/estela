@@ -1,12 +1,23 @@
-"""Hourly trapezoidal DELTA_SLICE retention metering for project spiderdata.
+"""Hourly trapezoidal metering of each Project's spiderdata storage.
 
-Each UTC hour with non-zero stock (start or end) yields one append-only row::
+Each run measures the hour that just ended, or, after missed runs, everything since the last
+measurement (the gap)::
 
-    storage_byte_hours = (bytes_start + bytes_end) // 2 × 1
+    storage_byte_hours = (bytes_start + bytes_end) // 2 × hours
 
-``bytes_start`` comes from the Redis watermark (previous tick's ``bytes_end``),
-with fallbacks for cold start / ledger recovery. Stock is read via MongoDB
-``dbStats.dataSize`` (one call per project database).
+``bytes_end`` is the Project's spiderdata size now (MongoDB ``dbStats.dataSize``, one call per
+Project database). ``bytes_start`` is the size the previous run saw, kept in a Redis watermark
+with the end of the last hour it covered. With no watermark (first sight, or Redis lost it) a
+Project starts cold on the current hour only, with ``bytes_start == bytes_end``: a few hours go
+unmeasured, never twice.
+
+Where the measurement goes depends on the Project and on BILLING_STORAGE_EMIT_ENABLED:
+
+- **On, and the Project has an** ``acct_``: one usage CloudEvent straight to the billing stack
+  (``billing.build_storage_event``), put in billing's outbox in the same Redis transaction that
+  moves the watermark, so a rerun of the hour finds nothing to send. No ledger row.
+- **Otherwise**: one ``MeteredUsageRecord`` row per hour, as before (the hourly ledger the legacy
+  billing app reads). This path never catches up a gap.
 """
 
 from __future__ import annotations
@@ -22,15 +33,12 @@ from django.conf import settings
 from django.utils import timezone
 
 from config.job_manager import spiderdata_db_client
+from core.metering.billing import OUTBOX_KEY, build_storage_event, flush_outbox
 from core.metering.metrics import (
     REPORTER_ESTELA,
-    RESOURCE_KIND_PROJECT,
     RESOURCE_KIND_PROJECT_STORAGE,
     build_storage_retention_metrics,
-    retention_metrics_bytes_end,
 )
-
-STORAGE_RESOURCE_KINDS = (RESOURCE_KIND_PROJECT_STORAGE, RESOURCE_KIND_PROJECT)
 from core.metering.report import append_metered_usage
 from core.models import DataStatus, MeteredUsageRecord, Project, SpiderJob
 
@@ -38,9 +46,9 @@ logger = logging.getLogger(__name__)
 
 METER_STORAGE_ACTIVE_PROJECTS_KEY = "estela:meter:storage:active_projects:v1"
 METER_STORAGE_LAST_SAMPLE_KEY = "estela:meter:storage:last_sample:{}:v2"
-# The end of the last hour every Project was metered for (ISO, Z). Billing sends a day only once
-# this reaches the day's end, so it never sends a day missing its last hours.
-METER_STORAGE_HOUR_DONE_KEY = "estela:meter:storage:hour_done:v1"
+HOUR = timedelta(hours=1)
+# A gap longer than this (missed runs) is still billed whole, and logged.
+GAP_WARNING = timedelta(hours=2)
 
 _CLIENT = None
 
@@ -56,18 +64,22 @@ def _last_sample_key(project_pk: UUID) -> str:
     return METER_STORAGE_LAST_SAMPLE_KEY.format(project_pk)
 
 
+def _utc(at: datetime) -> datetime:
+    if timezone.is_naive(at):
+        return timezone.make_aware(at, dt_timezone.utc)
+    return at.astimezone(dt_timezone.utc)
+
+
+def _hour_floor(at: datetime) -> datetime:
+    return _utc(at).replace(minute=0, second=0, microsecond=0)
+
+
 def previous_utc_hour_interval(
     reference: Optional[datetime] = None,
 ) -> Tuple[datetime, datetime]:
     """Half-open ``[hour_start, hour_end)`` for the last complete UTC hour."""
-    ref = reference or timezone.now()
-    if timezone.is_naive(ref):
-        ref = timezone.make_aware(ref, dt_timezone.utc)
-    else:
-        ref = ref.astimezone(dt_timezone.utc)
-    hour_end = ref.replace(minute=0, second=0, microsecond=0)
-    hour_start = hour_end - timedelta(hours=1)
-    return hour_start, hour_end
+    hour_end = _hour_floor(reference or timezone.now())
+    return hour_end - HOUR, hour_end
 
 
 def get_project_spiderdata_storage_bytes(project_id: str) -> Optional[int]:
@@ -92,59 +104,56 @@ def _load_last_sample(project_pk: UUID) -> Optional[dict]:
     return json.loads(raw)
 
 
-def _save_last_sample(project_pk: UUID, *, storage_bytes_end: int, observed_at: datetime) -> None:
-    if timezone.is_naive(observed_at):
-        observed_at = timezone.make_aware(observed_at, dt_timezone.utc)
-    else:
-        observed_at = observed_at.astimezone(dt_timezone.utc)
+def _sample_payload(
+    *, storage_bytes_end: int, observed_at: datetime, covered_until: Optional[datetime]
+) -> str:
     payload = {
-        "observed_at": observed_at.isoformat(),
+        "observed_at": _utc(observed_at).isoformat(),
         "storage_bytes_end": int(storage_bytes_end),
     }
-    _redis().set(_last_sample_key(project_pk), json.dumps(payload))
+    if covered_until is not None:
+        payload["covered_until"] = _utc(covered_until).isoformat()
+    return json.dumps(payload)
+
+
+def _save_last_sample(
+    project_pk: UUID,
+    *,
+    storage_bytes_end: int,
+    observed_at: datetime,
+    covered_until: Optional[datetime] = None,
+) -> None:
+    _redis().set(
+        _last_sample_key(project_pk),
+        _sample_payload(
+            storage_bytes_end=storage_bytes_end,
+            observed_at=observed_at,
+            covered_until=covered_until,
+        ),
+    )
 
 
 def _delete_last_sample(project_pk: UUID) -> None:
     _redis().delete(_last_sample_key(project_pk))
 
 
-def _last_storage_meter_row(project: Project) -> Optional[MeteredUsageRecord]:
-    return (
-        MeteredUsageRecord.objects.filter(
-            project=project,
-            resource_kind__in=STORAGE_RESOURCE_KINDS,
-            resource_id=str(project.pid),
-            kind=MeteredUsageRecord.Kind.DELTA_SLICE,
-        )
-        .order_by("-interval_end")
-        .first()
-    )
+def covered_until(sample: Optional[dict]) -> Optional[datetime]:
+    """The end of the last hour a watermark covered. Watermarks written before it was stored carry
+    only ``observed_at``, the time of the run, which covered the hour ending at that hour's start."""
+    if not sample:
+        return None
+    if sample.get("covered_until"):
+        return _utc(datetime.fromisoformat(sample["covered_until"]))
+    if sample.get("observed_at"):
+        return _hour_floor(datetime.fromisoformat(sample["observed_at"]))
+    return None
 
 
-def resolve_storage_bytes_start(
-    project: Project,
-    *,
-    bytes_end: int,
-    hour_start: datetime,
-    prev_sample: Optional[dict],
-) -> int:
-    """Trapezoid left endpoint: Redis watermark, then ledger, then cold-start seed."""
+def resolve_storage_bytes_start(*, bytes_end: int, prev_sample: Optional[dict]) -> int:
+    """Trapezoid left endpoint: the watermark's size, or, with none, ``bytes_end`` (cold start)."""
     if prev_sample is not None:
         raw = prev_sample.get("storage_bytes_end", prev_sample.get("storage_bytes", 0))
         return int(raw)
-
-    last_row = _last_storage_meter_row(project)
-    if last_row is not None:
-        row_bytes_end = retention_metrics_bytes_end(last_row.metrics)
-        if row_bytes_end is not None:
-            row_end = last_row.interval_end
-            if row_end is not None:
-                if timezone.is_naive(row_end):
-                    row_end = timezone.make_aware(row_end, dt_timezone.utc)
-                if row_end <= hour_start:
-                    return row_bytes_end
-
-    # Cold start on existing retention: endpoint for this hour only (start == end).
     return int(bytes_end)
 
 
@@ -195,6 +204,92 @@ def project_ids_to_meter_storage() -> Set[UUID]:
     return job_project_ids | redis_project_ids
 
 
+def storage_emit_enabled() -> bool:
+    return bool(settings.BILLING_STORAGE_EMIT_ENABLED and settings.OPENMETER_INGEST_URL)
+
+
+def _emits_storage(project: Project) -> bool:
+    return storage_emit_enabled() and (project.billing_account_id or "").startswith("acct_")
+
+
+def emit_project_storage(
+    project: Project,
+    *,
+    bytes_end: int,
+    hour_start: datetime,
+    hour_end: datetime,
+    now: datetime,
+) -> None:
+    """Queue the Project's storage since its watermark, up to ``hour_end``, as one event, and move
+    the watermark in the same transaction. A rerun of an hour already covered does nothing."""
+    key = _last_sample_key(project.pk)
+    with _redis().pipeline() as pipe:
+        try:
+            pipe.watch(key)
+            raw = pipe.get(key)
+            if isinstance(raw, bytes):
+                raw = raw.decode()
+            sample = json.loads(raw) if raw else None
+            covered = covered_until(sample)
+            if covered is not None and covered >= hour_end:
+                return  # this hour (or a later one) is already counted
+
+            start = hour_start if covered is None else min(covered, hour_start)
+            bytes_start = resolve_storage_bytes_start(bytes_end=bytes_end, prev_sample=sample)
+            hours = int((hour_end - start) / HOUR)
+            if hour_end - start > GAP_WARNING:
+                logger.warning(
+                    "storage for project %s not measured for %d hours (%s to %s): billed as one "
+                    "event, from %d to %d bytes",
+                    project.pid,
+                    hours,
+                    start.isoformat(),
+                    hour_end.isoformat(),
+                    bytes_start,
+                    bytes_end,
+                )
+
+            pipe.multi()
+            if bytes_end <= 0 and bytes_start <= 0:
+                pipe.srem(METER_STORAGE_ACTIVE_PROJECTS_KEY, str(project.pk))
+                pipe.delete(key)
+                pipe.execute()
+                return
+            if bytes_end > 0:
+                pipe.sadd(METER_STORAGE_ACTIVE_PROJECTS_KEY, str(project.pk))
+            byte_hours = trapezoidal_storage_byte_hours(bytes_start, bytes_end, hours)
+            if byte_hours > 0:
+                event = build_storage_event(
+                    project_id=project.pid,
+                    billing_account_id=project.billing_account_id,
+                    interval_start=start,
+                    interval_end=hour_end,
+                    byte_seconds=byte_hours * 3600,
+                    now=now,
+                )
+                pipe.hset(OUTBOX_KEY, event["id"], json.dumps(event))
+                # What the staging check compares with OpenMeter, now that no ledger row is kept.
+                logger.info(
+                    "storage for project %s, %s to %s: %d to %d bytes, %d byte-hours, event %s",
+                    project.pid,
+                    start.isoformat(),
+                    hour_end.isoformat(),
+                    bytes_start,
+                    bytes_end,
+                    byte_hours,
+                    event["id"],
+                )
+            pipe.set(
+                key,
+                _sample_payload(
+                    storage_bytes_end=bytes_end, observed_at=now, covered_until=hour_end
+                ),
+            )
+            pipe.execute()
+        except redis.WatchError:
+            return  # another run moved the watermark meanwhile: it counted this hour
+
+
 def process_hourly_storage_metered_usage_for_project(
     project: Project,
     *,
@@ -202,18 +297,24 @@ def process_hourly_storage_metered_usage_for_project(
     hour_end: datetime,
     observed_at: Optional[datetime] = None,
 ) -> None:
-    """Sample spiderdata stock and append one hourly trapezoid row when warranted."""
+    """Measure the Project's storage now: an event to billing, or a ledger row (module docstring)."""
     bytes_end = get_project_spiderdata_storage_bytes(str(project.pid))
     if bytes_end is None:
         return
+    sample_at = observed_at or timezone.now()
+
+    if _emits_storage(project):
+        emit_project_storage(
+            project,
+            bytes_end=bytes_end,
+            hour_start=_utc(hour_start),
+            hour_end=_utc(hour_end),
+            now=_utc(sample_at),
+        )
+        return
 
     prev_sample = _load_last_sample(project.pk)
-    bytes_start = resolve_storage_bytes_start(
-        project,
-        bytes_end=bytes_end,
-        hour_start=hour_start,
-        prev_sample=prev_sample,
-    )
+    bytes_start = resolve_storage_bytes_start(bytes_end=bytes_end, prev_sample=prev_sample)
 
     if bytes_end <= 0 and bytes_start <= 0:
         _mark_project_storage_inactive(project.pk)
@@ -245,8 +346,9 @@ def process_hourly_storage_metered_usage_for_project(
         kind=MeteredUsageRecord.Kind.DELTA_SLICE,
     )
 
-    sample_at = observed_at or timezone.now()
-    _save_last_sample(project.pk, storage_bytes_end=bytes_end, observed_at=sample_at)
+    _save_last_sample(
+        project.pk, storage_bytes_end=bytes_end, observed_at=sample_at, covered_until=hour_end
+    )
 
 
 def bootstrap_storage_meter_watermarks() -> int:
@@ -285,6 +387,8 @@ def record_hourly_storage_metered_usage_batch(
     ref = reference or timezone.now()
     hour_start, hour_end = previous_utc_hour_interval(ref)
     project_ids = project_ids_to_meter_storage()
+    if not project_ids:
+        return
 
     max_projects = getattr(settings, "METERED_USAGE_STORAGE_HOURLY_MAX_PROJECTS", 5000)
     qs = Project.objects.filter(pk__in=project_ids, deleted=False).order_by("pid")[
@@ -300,7 +404,9 @@ def record_hourly_storage_metered_usage_batch(
             )
         except Exception:
             logger.exception("hourly storage meter failed for project %s", project.pid)
-    _redis().set(
-        METER_STORAGE_HOUR_DONE_KEY,
-        hour_end.astimezone(dt_timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    )
+    if storage_emit_enabled():
+        # Send now rather than at the next 5-minute tick; what is refused stays for that tick.
+        try:
+            flush_outbox()
+        except Exception:
+            logger.exception("billing storage flush failed")

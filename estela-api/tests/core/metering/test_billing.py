@@ -12,7 +12,7 @@ from django.core.management import CommandError, call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 
 from core.metering import billing
-from core.metering.storage import METER_STORAGE_HOUR_DONE_KEY
+from core.metering import storage
 from core.models import MeteredUsageRecord, Project, Spider, SpiderJob
 
 FIXTURES = Path(__file__).parent / "fixtures" / "billing"
@@ -43,7 +43,7 @@ class FakeRedis:
     """Just enough of redis-py for the sampler: strings, one hash, and pipelines."""
 
     def __init__(self):
-        self.strings, self.hashes, self.ttls = {}, {}, {}
+        self.strings, self.hashes, self.ttls, self.sets = {}, {}, {}, {}
         self.on_watch = None
 
     def get(self, key):
@@ -71,6 +71,15 @@ class FakeRedis:
     def hdel(self, key, *fields):
         for field in fields:
             self.hashes.get(key, {}).pop(field.encode(), None)
+
+    def sadd(self, key, member):
+        self.sets.setdefault(key, set()).add(member.encode())
+
+    def srem(self, key, member):
+        self.sets.get(key, set()).discard(member.encode())
+
+    def smembers(self, key):
+        return set(self.sets.get(key, set()))
 
     def pipeline(self, transaction=True):
         return FakePipeline(self)
@@ -573,11 +582,12 @@ OTHER_ACCT = "acct_01M4J7DSWSQ0C678WDJYS0NFR4"
 @override_settings(
     BILLING_EMIT_ENABLED=False,
     BILLING_STORAGE_EMIT_ENABLED=True,
-    BILLING_STORAGE_NOT_BEFORE="",
+    METERED_USAGE_STORAGE_HOURLY_ENABLED=True,
     OPENMETER_INGEST_URL="http://openmeter.test/api/v3/openmeter/events",
 )
 class StorageEmitTests(TestCase):
-    """A Project's storage, one event per UTC day, from the hourly ledger."""
+    """A Project's storage, sent by the hourly storage task: one event per hour, or one over the
+    gap after missed runs, and no ledger row."""
 
     def setUp(self):
         self.project = Project.objects.create(name="stores", billing_account_id=ACCT)
@@ -585,9 +595,19 @@ class StorageEmitTests(TestCase):
         self.redis = FakeRedis()
         self.posted = []
         self.status = 202
+        self.sizes = {}
+        db_client = MagicMock()
+        db_client.get_connection.return_value = True
         for p in (
             patch.object(billing, "_redis", return_value=self.redis),
+            patch.object(storage, "_redis", return_value=self.redis),
             patch.object(billing, "post_events", side_effect=self._post),
+            patch.object(storage, "spiderdata_db_client", db_client),
+            patch.object(
+                storage,
+                "get_project_spiderdata_storage_bytes",
+                side_effect=lambda pid: self.sizes.get(pid),
+            ),
         ):
             p.start()
             self.addCleanup(p.stop)
@@ -599,218 +619,229 @@ class StorageEmitTests(TestCase):
     def _sent(self):
         return [event for batch in self.posted for event in batch]
 
-    def _hour(self, project, start, byte_hours, recorded_at=None, key=None):
-        """A row as the hourly task writes it, recorded when it would (or at ``recorded_at``)."""
-        label = start.strftime("%Y-%m-%dT%H:00:00Z")
-        row = MeteredUsageRecord.objects.create(
-            project=project,
-            kind=MeteredUsageRecord.Kind.DELTA_SLICE,
-            resource_kind="ProjectStorage",
-            resource_id=str(project.pid),
-            reporter="estela",
-            interval_start=start,
-            interval_end=start + timedelta(hours=1),
-            idempotency_key=key
-            or f"estela:ProjectStorage:{project.pid}:storage:hour:{label}:v3",
-            metrics={"storage_byte_hours": byte_hours, "storage_bytes_end": byte_hours},
-        )
-        MeteredUsageRecord.objects.filter(pk=row.pk).update(
-            recorded_at=recorded_at or start + timedelta(hours=1, minutes=5)
+    def _measured(self, project, bytes_end, *covered):
+        """The watermark a previous run left: the size it saw and the end of the hour it covered."""
+        self.redis.set(
+            storage._last_sample_key(project.pk),
+            json.dumps(
+                {
+                    "observed_at": billing.iso(utc(*covered) + timedelta(minutes=5)),
+                    "storage_bytes_end": bytes_end,
+                    "covered_until": utc(*covered).isoformat(),
+                }
+            ),
         )
 
-    def _day(self, project, day, byte_hours, hours=range(24)):
-        for hour in hours:
-            self._hour(project, day + timedelta(hours=hour), byte_hours + hour)
-        return sum(byte_hours + hour for hour in hours)
-
-    def _metered_until(self, *at):
-        """The hourly task has metered every hour before ``at``."""
-        self.redis.set(METER_STORAGE_HOUR_DONE_KEY, billing.iso(utc(*at)))
-
-    def _tick(self, *at):
+    def _run(self, *at, **sizes):
+        """The hourly task runs at ``at``, each Project holding ``sizes[name]`` bytes."""
+        projects = {p.name: p for p in (self.project, self.unbilled)}
+        projects.update({p.name: p for p in Project.objects.filter(name__in=sizes)})
+        for name, size in sizes.items():
+            self.sizes[str(projects[name].pid)] = size
+            self.redis.sadd(storage.METER_STORAGE_ACTIVE_PROJECTS_KEY, str(projects[name].pk))
         before = len(self._sent())
-        billing.emit_billing_usage_batch(now=utc(*at))
+        storage.record_hourly_storage_metered_usage_batch(reference=utc(*at))
         return self._sent()[before:]
 
-    def _start(self):
-        """The sender first sees the Projects on Nov 3, so they start that day."""
-        self._metered_until(2026, 11, 3)
-        self.assertEqual(self._tick(2026, 11, 3, 0, 30), [])
+    def _watermark(self, project):
+        raw = self.redis.get(storage._last_sample_key(project.pk))
+        return json.loads(raw) if raw else None
 
-    def test_a_complete_day_is_one_slice_of_its_byte_hours_times_3600(self):
-        self._start()
-        byte_hours = self._day(self.project, utc(2026, 11, 3), 1_855_425_871_872)
-        self._day(self.unbilled, utc(2026, 11, 3), 1_000)
-        self._metered_until(2026, 11, 4)
+    def test_an_hour_is_one_slice_of_its_byte_hours_times_3600(self):
+        self._measured(self.project, 400_000, 2026, 11, 3, 10)
 
-        (event,) = self._tick(2026, 11, 4, 0, 10)
+        (event,) = self._run(2026, 11, 3, 11, 5, stores=1_000_000)
 
         pid = self.project.pid
-        self.assertEqual(event["id"], f"estela:project:{pid}:storage:day:2026-11-03:v1")
+        self.assertEqual(
+            event["id"], f"estela:project:{pid}:storage:hour:2026-11-03T10:00:00Z:v1"
+        )
         self.assertEqual(event["subject"], ACCT)
-        self.assertEqual(event["time"], "2026-11-03T00:00:00Z")
+        self.assertEqual(event["time"], "2026-11-03T10:00:00Z")
         self.assertEqual(event["data"]["kind"], "DELTA_SLICE")
         self.assertEqual(event["data"]["resource_kind"], "project_storage")
         self.assertEqual(event["data"]["resource_id"], str(pid))
-        self.assertEqual(event["data"]["interval_start"], "2026-11-03T00:00:00Z")
-        self.assertEqual(event["data"]["interval_end"], "2026-11-04T00:00:00Z")
+        self.assertEqual(event["data"]["interval_start"], "2026-11-03T10:00:00Z")
+        self.assertEqual(event["data"]["interval_end"], "2026-11-03T11:00:00Z")
         self.assertEqual(event["data"]["dimensions"], {"project_id": str(pid)})
-        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": byte_hours * 3600})
+        # (400,000 + 1,000,000) // 2 byte-hours, in byte-seconds.
+        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": 700_000 * 3600})
         self.assertIsInstance(event["data"]["metrics"]["storage_byte_seconds"], int)
         _validator().validate(event)
 
-    def test_a_day_is_not_sent_until_its_last_hour_is_metered(self):
-        self._start()
-        self._day(self.project, utc(2026, 11, 3), 500, hours=range(23))
-        self._metered_until(2026, 11, 3, 23)  # the 23:00 hour is not metered yet
+        self.assertEqual(MeteredUsageRecord.objects.count(), 0)
+        self.assertEqual(self.redis.hgetall(billing.OUTBOX_KEY), {})
+        watermark = self._watermark(self.project)
+        self.assertEqual(watermark["storage_bytes_end"], 1_000_000)
+        self.assertEqual(watermark["covered_until"], "2026-11-03T11:00:00+00:00")
 
-        self.assertEqual(self._tick(2026, 11, 4, 0, 10), [])
+    def test_hours_in_a_row_are_one_event_each(self):
+        self._measured(self.project, 1_000, 2026, 11, 3, 10)
+        self._run(2026, 11, 3, 11, 5, stores=3_000)
+        (event,) = self._run(2026, 11, 3, 12, 5, stores=5_000)
+        self.assertEqual(event["data"]["interval_start"], "2026-11-03T11:00:00Z")
+        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": 4_000 * 3600})
+        self.assertEqual(len(self._sent()), 2)
 
-        self._hour(self.project, utc(2026, 11, 3, 23), 900)
-        self._metered_until(2026, 11, 4)
-        (event,) = self._tick(2026, 11, 4, 0, 15)
-        byte_hours = sum(500 + hour for hour in range(23)) + 900
-        self.assertEqual(event["data"]["metrics"]["storage_byte_seconds"], byte_hours * 3600)
+    @override_settings(BILLING_STORAGE_EMIT_ENABLED=False)
+    def test_switched_off_it_writes_the_ledger_row_and_sends_nothing(self):
+        self._measured(self.project, 400_000, 2026, 11, 3, 10)
 
-    def test_a_day_with_no_rows_sends_nothing(self):
-        self._start()
-        self._metered_until(2026, 11, 4)
-        self.assertEqual(self._tick(2026, 11, 4, 0, 10), [])
+        self.assertEqual(self._run(2026, 11, 3, 11, 5, stores=1_000_000), [])
 
-    def test_a_repeated_tick_sends_nothing_new(self):
-        self._start()
-        self._day(self.project, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
-        self.assertEqual(len(self._tick(2026, 11, 4, 0, 10)), 1)
+        row = MeteredUsageRecord.objects.get(project=self.project)
+        self.assertEqual(row.metrics["storage_byte_hours"], 700_000)
+        self.assertEqual(self.redis.hgetall(billing.OUTBOX_KEY), {})
 
-        self.assertEqual(self._tick(2026, 11, 4, 0, 15), [])
-        self.assertEqual(self._tick(2026, 11, 4, 1, 0), [])  # past the late-day threshold too
+    def test_a_project_without_an_acct_keeps_its_ledger_row_and_sends_nothing(self):
+        self._measured(self.unbilled, 400_000, 2026, 11, 3, 10)
 
-    def test_a_day_ingest_refused_is_resent_with_its_id(self):
-        self._start()
-        self._day(self.project, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
-        self.status = 503
-        (first,) = self._tick(2026, 11, 4, 0, 10)
+        self.assertEqual(self._run(2026, 11, 3, 11, 5, **{"no-acct": 1_000_000}), [])
 
-        # An hour later it would be late if built again; it is resent as it was, not rebuilt.
-        self.status = 202
-        (again,) = self._tick(2026, 11, 4, 1, 15)
-        self.assertEqual(again, first)
-        self.assertEqual(self._tick(2026, 11, 4, 1, 20), [])
+        row = MeteredUsageRecord.objects.get(project=self.unbilled)
+        self.assertEqual(row.metrics["storage_byte_hours"], 700_000)
+        # Its watermark keeps moving, so the hour it gets an acct_ is its first billed one.
+        self.assertEqual(
+            self._watermark(self.unbilled)["covered_until"], "2026-11-03T11:00:00+00:00"
+        )
+        self.unbilled.billing_account_id = OTHER_ACCT
+        self.unbilled.save()
+        (event,) = self._run(2026, 11, 3, 12, 5, **{"no-acct": 1_000_000})
+        self.assertEqual(event["data"]["interval_start"], "2026-11-03T11:00:00Z")
 
-    def test_a_late_day_is_an_adjustment_stamped_now(self):
-        self._start()
-        byte_hours = self._day(self.project, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
+    def test_missed_hours_go_as_one_event_over_the_gap(self):
+        self._measured(self.project, 1_000_000, 2026, 11, 3, 10)
 
-        (event,) = self._tick(2026, 11, 4, 0, 31)
+        with self.assertLogs(storage.logger, level="WARNING") as logs:
+            (event,) = self._run(2026, 11, 3, 13, 5, stores=3_000_000)
 
         pid = self.project.pid
-        self.assertEqual(event["id"], f"estela:project:{pid}:storage:day:2026-11-03:adjust:v1")
-        self.assertEqual(event["time"], "2026-11-04T00:31:00Z")
-        self.assertEqual(event["data"]["kind"], "ADJUSTMENT")
-        self.assertEqual(event["data"]["interval_start"], "2026-11-03T00:00:00Z")
-        self.assertEqual(event["data"]["interval_end"], "2026-11-04T00:00:00Z")
+        # Named by the last hour it covers; stamped at its start, inside the open period.
         self.assertEqual(
-            event["data"]["references_id"], f"estela:project:{pid}:storage:day:2026-11-03:v1"
+            event["id"], f"estela:project:{pid}:storage:hour:2026-11-03T12:00:00Z:v1"
         )
-        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": byte_hours * 3600})
+        self.assertEqual(event["data"]["kind"], "DELTA_SLICE")
+        self.assertEqual(event["time"], "2026-11-03T10:00:00Z")
+        self.assertEqual(event["data"]["interval_start"], "2026-11-03T10:00:00Z")
+        self.assertEqual(event["data"]["interval_end"], "2026-11-03T13:00:00Z")
+        # (1,000,000 + 3,000,000) // 2 × 3 hours.
+        self.assertEqual(
+            event["data"]["metrics"], {"storage_byte_seconds": 6_000_000 * 3600}
+        )
+        _validator().validate(event)
+        self.assertIn("not measured for 3 hours", logs.output[0])
+
+    def test_one_missed_run_is_not_warned_about(self):
+        self._measured(self.project, 1_000, 2026, 11, 3, 10)
+        with patch.object(storage.logger, "warning") as warning:
+            (event,) = self._run(2026, 11, 3, 12, 5, stores=1_000)
+        self.assertEqual(event["data"]["interval_start"], "2026-11-03T10:00:00Z")
+        warning.assert_not_called()
+
+    def test_a_gap_across_a_month_end_is_an_adjustment_stamped_now(self):
+        self._measured(self.project, 1_000, 2026, 10, 31, 22)
+
+        (event,) = self._run(2026, 11, 1, 2, 5, stores=3_000)
+
+        pid = self.project.pid
+        self.assertEqual(
+            event["id"], f"estela:project:{pid}:storage:hour:2026-11-01T01:00:00Z:adjust:v1"
+        )
+        self.assertEqual(event["data"]["kind"], "ADJUSTMENT")
+        self.assertEqual(event["time"], "2026-11-01T02:05:00Z")
+        self.assertEqual(event["data"]["interval_start"], "2026-10-31T22:00:00Z")
+        self.assertEqual(event["data"]["interval_end"], "2026-11-01T02:00:00Z")
+        self.assertEqual(
+            event["data"]["references_id"],
+            f"estela:project:{pid}:storage:hour:2026-11-01T01:00:00Z:v1",
+        )
+        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": 2_000 * 4 * 3600})
         _validator().validate(event)
 
-    def test_a_late_hour_is_its_own_adjustment_without_resending_the_day(self):
-        self._start()
-        self._day(self.project, utc(2026, 11, 3), 500, hours=range(23))
-        self._metered_until(2026, 11, 4)
-        (day,) = self._tick(2026, 11, 4, 0, 10)
+    def test_a_months_last_hour_is_a_slice_on_time_and_an_adjustment_late(self):
+        self._measured(self.project, 1_000, 2026, 10, 31, 23)
+        (on_time,) = self._run(2026, 11, 1, 0, 5, stores=1_000)
+        self.assertEqual(on_time["data"]["kind"], "DELTA_SLICE")
+        self.assertEqual(on_time["time"], "2026-10-31T23:00:00Z")
 
-        # 23:00 is written after its day went out.
-        self._hour(self.project, utc(2026, 11, 3, 23), 900, recorded_at=utc(2026, 11, 4, 0, 12))
-        (hour,) = self._tick(2026, 11, 4, 0, 15)
+        other = Project.objects.create(name="late", billing_account_id=OTHER_ACCT)
+        self._measured(other, 1_000, 2026, 10, 31, 23)
+        (late,) = self._run(2026, 11, 1, 0, 45, late=1_000)
+        self.assertEqual(late["data"]["kind"], "ADJUSTMENT")
+        self.assertEqual(late["time"], "2026-11-01T00:45:00Z")
+        self.assertEqual(late["data"]["interval_start"], "2026-10-31T23:00:00Z")
+        _validator().validate(late)
 
-        pid = self.project.pid
-        self.assertEqual(
-            hour["id"], f"estela:project:{pid}:storage:hour:2026-11-03T23:00:00Z:adjust:v1"
-        )
-        self.assertEqual(hour["time"], "2026-11-04T00:15:00Z")
-        self.assertEqual(hour["data"]["kind"], "ADJUSTMENT")
-        self.assertEqual(hour["data"]["interval_start"], "2026-11-03T23:00:00Z")
-        self.assertEqual(hour["data"]["interval_end"], "2026-11-04T00:00:00Z")
-        self.assertEqual(hour["data"]["references_id"], day["id"])
-        self.assertEqual(hour["data"]["metrics"], {"storage_byte_seconds": 900 * 3600})
-        _validator().validate(hour)
+    def test_a_rerun_of_the_same_hour_sends_nothing(self):
+        self._measured(self.project, 1_000, 2026, 11, 3, 10)
+        self.assertEqual(len(self._run(2026, 11, 3, 11, 5, stores=1_000)), 1)
+        self.assertEqual(self._run(2026, 11, 3, 11, 40, stores=2_000), [])
+        self.assertEqual(self._watermark(self.project)["storage_bytes_end"], 1_000)
 
-        self.assertEqual(self._tick(2026, 11, 4, 0, 20), [])
-        self.assertEqual(self._tick(2026, 11, 4, 0, 50), [])
+    def test_a_run_racing_another_one_queues_nothing(self):
+        self._measured(self.project, 1_000, 2026, 11, 3, 10)
 
-    def test_a_project_new_to_the_sender_starts_on_the_current_day(self):
-        self._day(self.project, utc(2026, 11, 2), 500)
-        self._metered_until(2026, 11, 3)
-        # Nov 2 is complete, but the sender first sees the Project on Nov 3: never sent.
-        self.assertEqual(self._tick(2026, 11, 3, 0, 10), [])
-        self.assertEqual(self._tick(2026, 11, 3, 0, 15), [])
+        # Another run rewrites the watermark between this one's WATCH and its EXEC.
+        def other_run(r):
+            r.on_watch = None
+            self._measured(self.project, 5_000, 2026, 11, 3, 10)
 
-        self._day(self.project, utc(2026, 11, 3), 700)
-        self._metered_until(2026, 11, 4)
-        (event,) = self._tick(2026, 11, 4, 0, 10)
-        self.assertEqual(event["data"]["interval_start"], "2026-11-03T00:00:00Z")
+        self.redis.on_watch = other_run
+        self.assertEqual(self._run(2026, 11, 3, 11, 5, stores=1_000), [])
+        self.assertEqual(self.redis.hgetall(billing.OUTBOX_KEY), {})
+        self.assertEqual(self._watermark(self.project)["storage_bytes_end"], 5_000)
 
-    def test_a_lost_record_is_never_sent_twice(self):
-        self._start()
-        self._day(self.project, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
-        self.assertEqual(len(self._tick(2026, 11, 4, 0, 10)), 1)
+    def test_a_project_seen_for_the_first_time_starts_on_the_current_hour(self):
+        (event,) = self._run(2026, 11, 3, 11, 5, stores=1_000)
+        self.assertEqual(event["data"]["interval_start"], "2026-11-03T10:00:00Z")
+        self.assertEqual(event["data"]["interval_end"], "2026-11-03T11:00:00Z")
+        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": 1_000 * 3600})
 
-        self.redis.delete(billing.STORAGE_STATE_KEY.format(self.project.pid))
-        # It starts again from Nov 4: Nov 3 is not resent, not even as a late day.
-        self.assertEqual(self._tick(2026, 11, 4, 2, 0), [])
-        self.assertEqual(self._tick(2026, 11, 4, 2, 5), [])
+    def test_a_lost_watermark_never_bills_an_hour_twice(self):
+        (first,) = self._run(2026, 11, 3, 11, 5, stores=1_000)
+        self.redis.delete(storage._last_sample_key(self.project.pk))
+        # Measured again from cold, the hour gets the same id, which OpenMeter dedupes.
+        (again,) = self._run(2026, 11, 3, 11, 30, stores=1_000)
+        self.assertEqual(again["id"], first["id"])
 
-    @override_settings(BILLING_STORAGE_NOT_BEFORE="2026-11-05T00:00:00Z")
-    def test_nothing_before_not_before_is_sent(self):
-        self._start()
-        for day in (3, 4, 5):
-            self._day(self.project, utc(2026, 11, day), 500, hours=range(23))
-        self._metered_until(2026, 11, 6)
+    def test_no_storage_sends_nothing_and_forgets_the_project(self):
+        self._measured(self.project, 0, 2026, 11, 3, 10)
+        self.assertEqual(self._run(2026, 11, 3, 11, 5, stores=0), [])
+        self.assertIsNone(self._watermark(self.project))
+        self.assertEqual(self.redis.smembers(storage.METER_STORAGE_ACTIVE_PROJECTS_KEY), set())
 
-        (event,) = self._tick(2026, 11, 6, 0, 10)
-        self.assertEqual(event["data"]["interval_start"], "2026-11-05T00:00:00Z")
-        # Nor a late hour of a day before it.
-        self._hour(self.project, utc(2026, 11, 4, 23), 900, recorded_at=utc(2026, 11, 6, 0, 12))
-        self.assertEqual(self._tick(2026, 11, 6, 0, 15), [])
+    def test_storage_emptied_in_the_hour_is_billed_down_to_zero(self):
+        self._measured(self.project, 2_000_000, 2026, 11, 3, 10)
+        (event,) = self._run(2026, 11, 3, 11, 5, stores=0)
+        self.assertEqual(event["data"]["metrics"], {"storage_byte_seconds": 1_000_000 * 3600})
 
-    def test_a_project_without_an_acct_is_skipped(self):
-        self._start()
-        self._day(self.unbilled, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
-        self.assertEqual(self._tick(2026, 11, 4, 0, 10), [])
-        self.assertIsNone(self.redis.get(billing.STORAGE_STATE_KEY.format(self.unbilled.pid)))
+    def test_a_refused_send_is_resent_unchanged_by_the_next_tick(self):
+        self._measured(self.project, 1_000, 2026, 11, 3, 10)
+        self.status = 503
+        (first,) = self._run(2026, 11, 3, 11, 5, stores=1_000)
+        self.assertEqual(len(self.redis.hgetall(billing.OUTBOX_KEY)), 1)
 
-    def test_rows_not_written_by_the_hourly_task_are_not_billed(self):
-        self._start()
-        self._hour(self.project, utc(2026, 11, 3, 5), 500, key="posted-through-the-api")
-        self._metered_until(2026, 11, 4)
-        self.assertEqual(self._tick(2026, 11, 4, 0, 10), [])
+        # The 5-minute tick flushes it, storage switched on and jobs off.
+        self.status = 202
+        billing.emit_billing_usage_batch(now=utc(2026, 11, 3, 11, 10))
+        self.assertEqual(self.posted[-1], [first])
+        self.assertEqual(self.redis.hgetall(billing.OUTBOX_KEY), {})
 
     def test_a_batch_refused_with_400_is_resent_event_by_event(self):
         other = Project.objects.create(name="also-stores", billing_account_id=OTHER_ACCT)
-        self._start()
-        self._day(self.project, utc(2026, 11, 3), 500)
-        self._day(other, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
-        # The batch is refused; alone, the first Project's day is accepted and the other's refused.
+        self._measured(self.project, 1_000, 2026, 11, 3, 10)
+        self._measured(other, 1_000, 2026, 11, 3, 10)
+        # The batch is refused; alone, the first Project's hour is accepted and the other's refused.
         self.status = lambda events: (
             202 if len(events) == 1 and events[0]["subject"] == ACCT else 400
         )
 
-        self._tick(2026, 11, 4, 0, 10)
+        self._run(2026, 11, 3, 11, 5, stores=1_000, **{"also-stores": 1_000})
 
-        self.assertEqual([len(batch) for batch in self.posted[-3:]], [2, 1, 1])
+        self.assertEqual([len(batch) for batch in self.posted], [2, 1, 1])
         self.assertEqual(self.redis.hgetall(billing.OUTBOX_KEY), {})
 
-    @override_settings(BILLING_EMIT_ENABLED=True, BILLING_STORAGE_EMIT_ENABLED=False)
-    def test_storage_has_its_own_switch(self):
-        self._day(self.project, utc(2026, 11, 3), 500)
-        self._metered_until(2026, 11, 4)
-        self.assertEqual(self._tick(2026, 11, 4, 0, 10), [])
-        self.assertIsNone(self.redis.get(billing.STORAGE_STATE_KEY.format(self.project.pid)))
+    @override_settings(OPENMETER_INGEST_URL="")
+    def test_without_an_ingest_url_it_writes_the_ledger_row(self):
+        self.assertEqual(self._run(2026, 11, 3, 11, 5, stores=1_000), [])
+        self.assertEqual(MeteredUsageRecord.objects.filter(project=self.project).count(), 1)
