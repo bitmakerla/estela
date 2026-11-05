@@ -13,14 +13,19 @@ the job does nothing. A job that never got a tick sends its whole usage this way
 This is independent of ``MeteredUsageRecord``: it keeps its own baseline in Redis, so the
 hourly ledger (read by the legacy billing app) is untouched.
 
+Storage is queued by the hourly storage task (``storage.py``), not here: one event per Project
+per hour, or one over the gap after missed runs (``build_storage_event``). This module builds it,
+and its 5-minute tick flushes it with everything else. Switched by BILLING_STORAGE_EMIT_ENABLED,
+apart from jobs.
+
 Delivery is at least once. An event is put in a Redis outbox in the same transaction that moves
 its job's baseline, and leaves the outbox only once OpenMeter accepts it (202). Its ``id`` is
 deterministic, so a resend dedupes on (source, id). A batch refused with 400 is resent event
 by event; an event refused on its own is logged and dropped. The baseline is read under WATCH,
 so a tick and the close never both count the same usage.
 
-Not yet (follow-ups): late slices re-sent as ``ADJUSTMENT``, storage byte-seconds, build usage,
-and a durable outbox table.
+Not yet (follow-ups): late job slices re-sent as ``ADJUSTMENT``, build usage, and a durable
+outbox table.
 """
 
 from __future__ import annotations
@@ -62,6 +67,11 @@ LAST_SAMPLE_TTL_SECONDS = 30 * 24 * 3600
 CLOSED_SAMPLE_TTL_SECONDS = 7 * 24 * 3600
 OUTBOX_KEY = "estela:billing:outbox"
 WATCH_RETRIES = 5
+
+RESOURCE_KIND_PROJECT_STORAGE = "project_storage"
+# ADR 0013, rule 2: storage sent later than this after its billing period's end is an ADJUSTMENT.
+# The hourly task measures a month's last hour at about 00:05 on the 1st.
+STORAGE_ON_TIME = timedelta(minutes=30)
 
 # Redis counter -> event metric (integers in base units).
 COUNTER_METRICS = (
@@ -111,25 +121,20 @@ def close_adjustment_id(job_id) -> str:
     return f"{EVENT_SOURCE}:job:{job_id}:adjust:close:v1"
 
 
-def _usage_event(
+def _event(
     *,
     event_id: str,
     time: datetime,
     kind: str,
-    job_id,
-    project_id,
+    resource_kind: str,
+    resource_id,
     billing_account_id: str,
-    machine_tier: Optional[str],
+    dimensions: Dict[str, str],
     interval_start: datetime,
     interval_end: datetime,
     metrics: Dict[str, int],
     **data,
 ) -> dict:
-    dimensions = {"project_id": str(project_id)}
-    # Unknown or missing tiers are billed at MEDIUM by billing's catch-all; the profile
-    # only accepts the priced names, so leave anything else out.
-    if machine_tier in RESOURCE_TIERS:
-        dimensions["machine_tier"] = machine_tier
     return {
         "specversion": "1.0",
         "type": EVENT_TYPE,
@@ -142,8 +147,8 @@ def _usage_event(
         "data": {
             "reporter": REPORTER_ESTELA,
             "kind": kind,
-            "resource_kind": RESOURCE_KIND_SPIDER_JOB,
-            "resource_id": str(job_id),
+            "resource_kind": resource_kind,
+            "resource_id": str(resource_id),
             "interval_start": iso(interval_start),
             "interval_end": iso(interval_end),
             "dimensions": dimensions,
@@ -151,6 +156,26 @@ def _usage_event(
             "metrics": {key: int(value) for key, value in metrics.items()},
         },
     }
+
+
+def _usage_event(
+    *,
+    job_id,
+    project_id,
+    machine_tier: Optional[str],
+    **fields,
+) -> dict:
+    dimensions = {"project_id": str(project_id)}
+    # Unknown or missing tiers are billed at MEDIUM by billing's catch-all; the profile
+    # only accepts the priced names, so leave anything else out.
+    if machine_tier in RESOURCE_TIERS:
+        dimensions["machine_tier"] = machine_tier
+    return _event(
+        resource_kind=RESOURCE_KIND_SPIDER_JOB,
+        resource_id=job_id,
+        dimensions=dimensions,
+        **fields,
+    )
 
 
 def build_slice_event(
@@ -466,23 +491,90 @@ def flush_outbox(post: Optional[Callable[[List[dict]], int]] = None) -> None:
         r.hdel(OUTBOX_KEY, *done)
 
 
+def month_end(at: datetime) -> datetime:
+    """The start of the UTC calendar month after ``at``'s: where its billing period ends (ADR 0011)."""
+    at = at.astimezone(py_timezone.utc)
+    if at.month == 12:
+        return datetime(at.year + 1, 1, 1, tzinfo=py_timezone.utc)
+    return datetime(at.year, at.month + 1, 1, tzinfo=py_timezone.utc)
+
+
+def storage_slice_id(project_id, last_hour: datetime) -> str:
+    """Named by the last hour the event covers. Two events can only share it when a lost watermark
+    measured an hour again, and then the dedupe on it keeps that hour from being billed twice."""
+    return f"{EVENT_SOURCE}:project:{project_id}:storage:hour:{iso(last_hour)}:v1"
+
+
+def storage_adjustment_id(project_id, last_hour: datetime) -> str:
+    return f"{EVENT_SOURCE}:project:{project_id}:storage:hour:{iso(last_hour)}:adjust:v1"
+
+
+def build_storage_event(
+    *,
+    project_id,
+    billing_account_id: str,
+    interval_start: datetime,
+    interval_end: datetime,
+    byte_seconds: int,
+    now: datetime,
+) -> dict:
+    """A Project's storage over ``[interval_start, interval_end)``: one hour, or every hour since
+    missed runs began.
+
+    A ``DELTA_SLICE`` stamped at its ``interval_start`` when the window lies inside one billing
+    period and is sent within STORAGE_ON_TIME of that period's end. Otherwise (it crosses a period
+    end, or its period has ended) an ``ADJUSTMENT`` stamped now, carrying its window, so it lands in
+    the open period instead of being stranded in a closed one (ADR 0013, rule 2).
+    """
+    last_hour = interval_end - timedelta(hours=1)
+    fields = dict(
+        resource_kind=RESOURCE_KIND_PROJECT_STORAGE,
+        resource_id=project_id,
+        billing_account_id=billing_account_id,
+        dimensions={"project_id": str(project_id)},
+        interval_start=interval_start,
+        interval_end=interval_end,
+        metrics={"storage_byte_seconds": byte_seconds},
+    )
+    period_end = month_end(interval_start)
+    if interval_end <= period_end and now <= period_end + STORAGE_ON_TIME:
+        return _event(
+            event_id=storage_slice_id(project_id, last_hour),
+            time=interval_start,
+            kind="DELTA_SLICE",
+            **fields,
+        )
+    return _event(
+        event_id=storage_adjustment_id(project_id, last_hour),
+        time=now,
+        kind="ADJUSTMENT",
+        references_id=storage_slice_id(project_id, last_hour),
+        adjustment_reason="storage measured after its billing period ended",
+        **fields,
+    )
+
+
 def emit_billing_usage_batch(now: Optional[datetime] = None) -> None:
-    if not settings.BILLING_EMIT_ENABLED or not settings.OPENMETER_INGEST_URL:
+    if not settings.OPENMETER_INGEST_URL:
+        return
+    if not (settings.BILLING_EMIT_ENABLED or settings.BILLING_STORAGE_EMIT_ENABLED):
         return
     now = now or timezone.now()
-    interval_end = slice_start(now)
-    interval_start = interval_end - SLICE
-    jobs = (
-        SpiderJob.objects.filter(
-            status=SpiderJob.RUNNING_STATUS,
-            spider__project__billing_account_id__startswith="acct_",
+    if settings.BILLING_EMIT_ENABLED:
+        interval_end = slice_start(now)
+        interval_start = interval_end - SLICE
+        jobs = (
+            SpiderJob.objects.filter(
+                status=SpiderJob.RUNNING_STATUS,
+                spider__project__billing_account_id__startswith="acct_",
+            )
+            .select_related("spider__project")
+            .order_by("jid")[: settings.BILLING_EMIT_MAX_JOBS]
         )
-        .select_related("spider__project")
-        .order_by("jid")[: settings.BILLING_EMIT_MAX_JOBS]
-    )
-    for job in jobs:
-        try:
-            sample_job(job, interval_start, interval_end)
-        except Exception:
-            logger.exception("billing usage sample failed for job %s", job.jid)
+        for job in jobs:
+            try:
+                sample_job(job, interval_start, interval_end)
+            except Exception:
+                logger.exception("billing usage sample failed for job %s", job.jid)
+    # Storage is queued by the hourly storage task (storage.py); this flushes what it left.
     flush_outbox()

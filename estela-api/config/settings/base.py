@@ -400,6 +400,9 @@ BILLING_EMIT_MAX_JOBS = env.int("BILLING_EMIT_MAX_JOBS", default=2000)
 OPENMETER_INGEST_URL = env.str("OPENMETER_INGEST_URL", default="")
 ACCOUNT_REGISTRY_URL = env.str("ACCOUNT_REGISTRY_URL", default="")
 ACCOUNT_REGISTRY_TOKEN = env.str("ACCOUNT_REGISTRY_TOKEN", default="")
+# Project storage, sent by the hourly storage task (core/metering/storage.py), switched apart
+# from jobs. On, a Project with an acct_ sends its storage to OpenMeter and writes no ledger row.
+BILLING_STORAGE_EMIT_ENABLED = env.bool("BILLING_STORAGE_EMIT_ENABLED", default=False)
 
 # The usage gate (ADR 0016, core/metering/gate.py): a Job starts only for an Org whose Billing
 # state is active or internal. Off by default: on, it refuses every Project with no acct_ yet.

@@ -4,8 +4,10 @@ import json
 from datetime import datetime, timedelta, timezone as dt_timezone
 from unittest.mock import MagicMock, patch
 
+from django.db.models.signals import post_save
 from django.test import TestCase, override_settings
 
+from core import signals as core_signals
 from core.metering.metrics import (
     METRIC_STORAGE_BYTE_HOURS,
     METRIC_STORAGE_BYTES_END,
@@ -25,7 +27,31 @@ from core.models import DataStatus, MeteredUsageRecord, Project, Spider, SpiderJ
 
 @override_settings(METERED_USAGE_STORAGE_HOURLY_ENABLED=True)
 class HourlyStorageMeteringTests(TestCase):
+    # setUp saves a COMPLETED job, whose post_save runs the usage chain eagerly, and that reads
+    # MongoDB: without one, every test waits 30s and fails.
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        post_save.disconnect(sender=SpiderJob, dispatch_uid="update_usage")
+
+    @classmethod
+    def tearDownClass(cls):
+        post_save.connect(
+            core_signals.update_usage,
+            sender=SpiderJob,
+            dispatch_uid="update_usage",
+        )
+        super().tearDownClass()
+
     def setUp(self):
+        # No Redis in unit tests: an empty one, unless a test patches its own.
+        self.redis = MagicMock()
+        self.redis.get.return_value = None
+        self.redis.smembers.return_value = set()
+        redis_patch = patch("core.metering.storage._redis", return_value=self.redis)
+        redis_patch.start()
+        self.addCleanup(redis_patch.stop)
+
         self.project = Project.objects.create(name="storage-meter-test")
         self.spider = Spider.objects.create(project=self.project, name="s")
         self.job = SpiderJob.objects.create(
@@ -55,12 +81,7 @@ class HourlyStorageMeteringTests(TestCase):
 
     def test_cold_start_uses_bytes_end_as_start(self):
         self.assertEqual(
-            resolve_storage_bytes_start(
-                self.project,
-                bytes_end=500,
-                hour_start=self.hour_start,
-                prev_sample=None,
-            ),
+            resolve_storage_bytes_start(bytes_end=500, prev_sample=None),
             500,
         )
 
@@ -95,7 +116,10 @@ class HourlyStorageMeteringTests(TestCase):
             row.idempotency_key,
             f"estela:ProjectStorage:{self.project.pid}:storage:hour:2026-06-12T10:00:00Z:v3",
         )
-        mock_conn.set.assert_called()
+        (key, payload), _ = mock_conn.set.call_args
+        self.assertEqual(
+            json.loads(payload)["covered_until"], "2026-06-12T11:00:00+00:00"
+        )
 
     @patch("core.metering.storage._mark_project_storage_inactive")
     @patch("core.metering.storage.get_project_spiderdata_storage_bytes")
