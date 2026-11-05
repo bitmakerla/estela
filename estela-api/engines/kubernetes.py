@@ -118,6 +118,18 @@ class KubernetesEngine:
             node_selector={"role": settings.SPIDER_NODE_ROLE}
             if settings.DEDICATED_SPIDER_NODES == "True"
             else None,
+            # Spider nodes can be tainted dedicated=<role>:NoSchedule to keep
+            # everything else off them; this lets jobs and builds in.
+            tolerations=[
+                client.V1Toleration(
+                    key="dedicated",
+                    operator="Equal",
+                    value=settings.SPIDER_NODE_ROLE,
+                    effect="NoSchedule",
+                )
+            ]
+            if settings.DEDICATED_SPIDER_NODES == "True"
+            else None,
         )
         if not isbuild:
             pod_spec.security_context = client.V1PodSecurityContext(
