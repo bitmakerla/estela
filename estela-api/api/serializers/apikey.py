@@ -38,9 +38,16 @@ class ApiKeyCreateSerializer(serializers.ModelSerializer):
         help_text="How long the key lasts. Omit it to get the deployment's default.",
     )
 
+    code = serializers.CharField(
+        required=False,
+        write_only=True,
+        help_text="The code `estela login` shows. The key is then the one it is waiting for, "
+        "and is not returned here.",
+    )
+
     class Meta:
         model = ApiKey
-        fields = ["name", "scopes", "expires_in_days"]
+        fields = ["name", "scopes", "expires_in_days", "code"]
 
     def validate_scopes(self, value):
         return sorted(set(value))

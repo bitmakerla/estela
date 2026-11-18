@@ -69,6 +69,7 @@ interface ApiKeysPageState {
     forCli: boolean;
     isOperator: boolean;
     newOperator: boolean;
+    cliCode: string | null;
     createdKey: string | null;
     revoking: number | null;
 }
@@ -85,6 +86,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         forCli: false,
         isOperator: false,
         newOperator: false,
+        cliCode: null,
         createdKey: null,
         revoking: null,
     };
@@ -99,15 +101,21 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
             () => this.setState({ isOperator: true }),
             () => this.setState({ isOperator: false }),
         );
-        if (new URLSearchParams(window.location.search).get("cli") === "1") {
+        // `estela login` sends people here with ?code=, older estela-cli with ?cli=1.
+        const params = new URLSearchParams(window.location.search);
+        // Only a code's shape, so a link cannot put its own words in the box that warns about it.
+        const cliCode = params.get("code")?.match(/^[A-Z]{4}-[A-Z]{4}$/i)?.[0] ?? null;
+        if (params.get("cli") === "1" || cliCode) {
             // Prefilled, never created on arrival: a link someone sends you must not
             // mint a key by itself. The duration is left out so the key inherits
             // whatever default this deployment sets.
             this.setState({
                 createModal: true,
                 forCli: true,
+                cliCode,
                 newName: `estela-cli@${AuthService.getUserUsername() ?? ""}`,
-                newScopes: CLI_SCOPES,
+                // Nothing checked for a code: whoever sent the link does not choose what it may do.
+                newScopes: cliCode ? [] : CLI_SCOPES,
             });
         }
     }
@@ -128,7 +136,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     };
 
     createKey = async (): Promise<void> => {
-        const { newName, newScopes, newOperator, newDuration } = this.state;
+        const { newName, newScopes, newOperator, newDuration, cliCode } = this.state;
         if (!newName.trim()) {
             message.error("Give the key a name so you can recognise it later.");
             return;
@@ -140,12 +148,20 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                     name: newName.trim(),
                     scopes: (newOperator ? [...newScopes, "operator"] : newScopes) as ApiKeyCreateScopesEnum[],
                     expiresInDays: newDuration,
+                    code: cliCode ?? undefined,
                 },
             });
-            this.setState({ createModal: false, creating: false, createdKey: created.key ?? null });
+            this.setState({ createModal: false, creating: false, createdKey: created.key ?? null, cliCode: null });
+            if (cliCode) {
+                // The key is the one `estela login` holds and is waiting for: nothing to show here.
+                window.history.replaceState(null, "", window.location.pathname);
+                message.success("Approved. Go back to your terminal.", 8);
+            }
             await this.loadKeys();
-        } catch {
-            message.error("Could not create the API key.");
+        } catch (error) {
+            // An expired or used code says so; anything else stays generic.
+            const body = error instanceof Response ? await error.json().catch(() => ({})) : {};
+            message.error(body.code ? String(body.code) : "Could not create the API key.");
             this.setState({ creating: false });
         }
     };
@@ -185,6 +201,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         this.setState({
             createModal: true,
             forCli: false,
+            cliCode: null,
             newName: "",
             newScopes: [],
             newOperator: false,
@@ -285,6 +302,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
             forCli,
             isOperator,
             newOperator,
+            cliCode,
             createdKey,
         } = this.state;
 
@@ -333,6 +351,16 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                     footer={null}
                     onCancel={() => this.setState({ createModal: false })}
                 >
+                    {cliCode && (
+                        <Row className="bg-estela-red-low rounded-lg p-3 mb-4">
+                            <p className="w-full font-courier text-2xl text-center text-estela-black-full">{cliCode}</p>
+                            <p className="text-sm text-estela-red-full mt-2">
+                                <WarningOutlined /> Approve only if this is the code your terminal shows after you ran{" "}
+                                <span className="font-courier">estela login</span> yourself. Approving creates an API
+                                key in your name and gives that computer access to your account.
+                            </p>
+                        </Row>
+                    )}
                     <Row>
                         <FieldLabel label="Name" help={FIELD_HELP.name} className="my-2 text-base" />
                         <Input
@@ -408,7 +436,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                                 size="large"
                                 className="w-48 h-12 bg-estela-blue-full text-white hover:text-estela-blue-full hover:border-estela-blue-full rounded-lg"
                             >
-                                Create
+                                {cliCode ? "Approve" : "Create"}
                             </Button>
                             <Button
                                 size="large"
