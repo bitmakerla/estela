@@ -1888,6 +1888,12 @@ definitions:
           - 30
           - 90
           - 365
+      code:
+        title: Code
+        description: The code `estela login` shows. The key is then the one it is waiting
+          for, and is not returned here.
+        type: string
+        minLength: 1
   ApiKeyCreateResponse:
     required:
       - name
