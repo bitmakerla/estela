@@ -37,6 +37,12 @@ export interface ApiKeyCreate {
      * @memberof ApiKeyCreate
      */
     expiresInDays?: ApiKeyCreateExpiresInDaysEnum;
+    /**
+     * The code `estela login` shows. The key is then the one it is waiting for, and is not returned here.
+     * @type {string}
+     * @memberof ApiKeyCreate
+     */
+    code?: string;
 }
 
 /**
@@ -72,6 +78,7 @@ export function ApiKeyCreateFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'name': json['name'],
         'scopes': !exists(json, 'scopes') ? undefined : json['scopes'],
         'expiresInDays': !exists(json, 'expires_in_days') ? undefined : json['expires_in_days'],
+        'code': !exists(json, 'code') ? undefined : json['code'],
     };
 }
 
@@ -87,6 +94,7 @@ export function ApiKeyCreateToJSON(value?: ApiKeyCreate | null): any {
         'name': value.name,
         'scopes': value.scopes,
         'expires_in_days': value.expiresInDays,
+        'code': value.code,
     };
 }
 
