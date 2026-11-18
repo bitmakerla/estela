@@ -10,6 +10,9 @@ import WelcomeDeploy from "../../assets/images/welcomeDeploy.svg";
 
 import "./styles.scss";
 import { API_BASE_URL } from "../../constants";
+
+// Where estela-cli logs in unless `estela set-host` names another estela.
+const CLI_DEFAULT_HOST = "https://cloud.bitmaker.dev";
 import { ApiService, AuthService } from "../../services";
 import {
     ApiProjectsDeploysListRequest,
@@ -251,6 +254,21 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
     };
 
     render(): JSX.Element {
+        const cliLogin = (
+            <>
+                {API_BASE_URL !== CLI_DEFAULT_HOST && (
+                    <p className="break-words text-white">$ estela set-host {API_BASE_URL}</p>
+                )}
+                <p className="text-white">$ estela login</p>
+                <p className="text-estela-black-low"># Opens your browser to approve this computer. There you</p>
+                <p className="text-estela-black-low"># choose what estela-cli may do: it gets an API key in your</p>
+                <p className="text-estela-black-low">
+                    # name, which you can revoke any time in Settings &rsaquo; API keys.
+                </p>
+                <p className="text-white">Logged in as {AuthService.getUserUsername()}</p>
+                <p className="text-estela-black-low">&nbsp;</p>
+            </>
+        );
         const { loaded, deploys, count, current, modalIsOpen, logsModal } = this.state;
         return (
             <Content className="bg-white">
@@ -386,19 +404,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                                 $ git clone https://github.com/bitmakerla/scraping-demo-project
                                             </p>
                                             <p className="text-white">$ cd scraping-demo-project</p>
-                                            <p className="break-words text-white">$ estela set-host {API_BASE_URL}</p>
-                                            <p className="text-estela-black-low">&nbsp;</p>
-                                            <p className="text-estela-black-low">
-                                                # optional &mdash; skip if you already have a key
-                                            </p>
-                                            <p className="text-white">$ estela create-api-token</p>
-                                            <p className="text-estela-black-low">Opening your browser&hellip;</p>
-                                            <p className="text-estela-black-low">&nbsp;</p>
-                                            <p className="text-white">$ estela set-token</p>
-                                            <p className="text-estela-black-low">
-                                                Paste your API key: &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
-                                            </p>
-                                            <p className="text-white">Logged in as {AuthService.getUserUsername()}</p>
+                                            {cliLogin}
                                             <p className="text-estela-black-low">&nbsp;</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
                                             <p className="text-white">$ estela deploy</p>
@@ -413,19 +419,7 @@ export class DeployListPage extends Component<RouteComponentProps<RouteParams>, 
                                         </p>
                                         <div className="mt-4 rounded-md p-6 bg-back-code font-courier text-sm">
                                             <p className="text-white">$ cd &lt;project_name&gt;</p>
-                                            <p className="break-words text-white">$ estela set-host {API_BASE_URL}</p>
-                                            <p className="text-estela-black-low">&nbsp;</p>
-                                            <p className="text-estela-black-low">
-                                                # optional &mdash; skip if you already have a key
-                                            </p>
-                                            <p className="text-white">$ estela create-api-token</p>
-                                            <p className="text-estela-black-low">Opening your browser&hellip;</p>
-                                            <p className="text-estela-black-low">&nbsp;</p>
-                                            <p className="text-white">$ estela set-token</p>
-                                            <p className="text-estela-black-low">
-                                                Paste your API key: &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
-                                            </p>
-                                            <p className="text-white">Logged in as {AuthService.getUserUsername()}</p>
+                                            {cliLogin}
                                             <p className="text-estela-black-low">&nbsp;</p>
                                             <p className="break-words text-white">$ estela init {this.projectId}</p>
                                             <p className="text-white">$ estela deploy</p>
