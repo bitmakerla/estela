@@ -40,6 +40,10 @@ app.conf.beat_schedule = {
         "task": "core.tasks.record_hourly_storage_metered_usage",
         "schedule": crontab(minute=5),
     },
+    "sync-operators": {
+        "task": "core.tasks.sync_operators",
+        "schedule": 900,
+    },
     "emit-billing-usage": {
         "task": "core.tasks.emit_billing_usage",
         "schedule": crontab(minute="*/5"),

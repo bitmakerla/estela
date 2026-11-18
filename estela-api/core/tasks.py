@@ -10,6 +10,7 @@ from celery.exceptions import TaskError
 from django.conf import settings
 from django.utils import timezone
 
+from api import operators
 from api.authentication import issue_run_token
 from api.serializers.job import SpiderJobCreateSerializer
 from api.utils import (
@@ -615,6 +616,11 @@ def record_hourly_metered_usage():
 @celery_app.task(name="core.tasks.record_hourly_storage_metered_usage")
 def record_hourly_storage_metered_usage():
     record_hourly_storage_metered_usage_batch()
+
+
+@celery_app.task(name="core.tasks.sync_operators")
+def sync_operators():
+    operators.sync_operators()
 
 
 @celery_app.task(name="core.tasks.emit_billing_usage")

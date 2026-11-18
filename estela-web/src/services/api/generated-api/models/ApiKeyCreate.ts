@@ -46,7 +46,8 @@ export interface ApiKeyCreate {
 export enum ApiKeyCreateScopesEnum {
     Data = 'data',
     Run = 'run',
-    Manage = 'manage'
+    Manage = 'manage',
+    Operator = 'operator'
 }/**
 * @export
 * @enum {string}

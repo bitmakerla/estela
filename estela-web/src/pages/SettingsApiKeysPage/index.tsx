@@ -67,6 +67,8 @@ interface ApiKeysPageState {
     newScopes: string[];
     newDuration: ApiKeyCreateExpiresInDaysEnum;
     forCli: boolean;
+    isOperator: boolean;
+    newOperator: boolean;
     createdKey: string | null;
     revoking: number | null;
 }
@@ -81,6 +83,8 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         newScopes: [],
         newDuration: ApiKeyCreateExpiresInDaysEnum._90,
         forCli: false,
+        isOperator: false,
+        newOperator: false,
         createdKey: null,
         revoking: null,
     };
@@ -89,6 +93,12 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
 
     async componentDidMount(): Promise<void> {
         await this.loadKeys();
+        // Only an Operator may give a key the operator scope. As on the projects page, the API answers
+        // the Orgs an Operator may create Projects for, and 403 to everyone else.
+        this.apiService.apiProjectsOwnerOrgs().then(
+            () => this.setState({ isOperator: true }),
+            () => this.setState({ isOperator: false }),
+        );
         if (new URLSearchParams(window.location.search).get("cli") === "1") {
             // Prefilled, never created on arrival: a link someone sends you must not
             // mint a key by itself. The duration is left out so the key inherits
@@ -118,7 +128,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     };
 
     createKey = async (): Promise<void> => {
-        const { newName, newScopes, newDuration } = this.state;
+        const { newName, newScopes, newOperator, newDuration } = this.state;
         if (!newName.trim()) {
             message.error("Give the key a name so you can recognise it later.");
             return;
@@ -128,7 +138,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
             const created = await this.apiService.apiAccountApiKeysCreate({
                 data: {
                     name: newName.trim(),
-                    scopes: newScopes as ApiKeyCreateScopesEnum[],
+                    scopes: (newOperator ? [...newScopes, "operator"] : newScopes) as ApiKeyCreateScopesEnum[],
                     expiresInDays: newDuration,
                 },
             });
@@ -177,6 +187,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
             forCli: false,
             newName: "",
             newScopes: [],
+            newOperator: false,
             newDuration: ApiKeyCreateExpiresInDaysEnum._90,
         });
     };
@@ -263,7 +274,19 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
     ];
 
     render(): JSX.Element {
-        const { keys, loaded, createModal, creating, newName, newScopes, newDuration, forCli, createdKey } = this.state;
+        const {
+            keys,
+            loaded,
+            createModal,
+            creating,
+            newName,
+            newScopes,
+            newDuration,
+            forCli,
+            isOperator,
+            newOperator,
+            createdKey,
+        } = this.state;
 
         if (!loaded) return <Spin />;
 
@@ -344,6 +367,22 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                                     ))}
                                 </Space>
                             </Checkbox.Group>
+                            {isOperator && (
+                                <Checkbox
+                                    className="mt-4"
+                                    checked={newOperator}
+                                    onChange={(e) => this.setState({ newOperator: e.target.checked })}
+                                >
+                                    <span className="text-estela-black-full">
+                                        Operator: every customer&apos;s projects
+                                    </span>
+                                    <span className="block text-xs text-estela-red-full">
+                                        <WarningOutlined /> This key reaches the projects of every customer, with the
+                                        permissions checked above. Keep it on your own machine, never in a script or on
+                                        a shared server.
+                                    </span>
+                                </Checkbox>
+                            )}
                         </Space>
                     </Row>
                     <Row className="mt-6">
