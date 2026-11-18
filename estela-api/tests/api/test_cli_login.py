@@ -65,7 +65,7 @@ class CliLoginTests(TestCase):
         self.assertEqual(login["url"], f"https://cloud.test/settings/apiKeys?code={login['code']}")
         self.assertEqual(self.whoami(login["key"]).status_code, 401)
 
-        approved = self.approve(login["code"].lower().replace("-", " "))  # typed by hand
+        approved = self.approve(login["code"])
         self.assertEqual(approved.status_code, 201)
         self.assertNotIn("key", approved.json())  # only the CLI ever holds it
 

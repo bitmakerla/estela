@@ -35,17 +35,12 @@ def _redis():
     return redis.from_url(settings.REDIS_URL)
 
 
-def _pending(code):
-    # Letters only, so "kdtw qxrb" and "KDTW-QXRB" are the same code.
-    return "cli-login:" + "".join(c for c in code.upper() if c in CODE_LETTERS)
-
-
 def _take(code):
     """(hash, prefix) of the key waiting for this code, or None. Only once: of two approvals at the
     same time, only one deletes it."""
     conn = _redis()
-    value = conn.get(_pending(code))
-    if value is None or not conn.delete(_pending(code)):
+    value = conn.get(f"cli-login:{code}")
+    if value is None or not conn.delete(f"cli-login:{code}"):
         return None
     return value.decode().split()
 
@@ -126,11 +121,11 @@ class ApiKeyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         conn.expire(minute, 60)
 
         plaintext, prefix, key_hash = generate_key()
-        code = None
-        while code is None:  # two logins drawing the same of 20^8 codes: draw again
+        while True:  # two logins drawing the same of 20^8 codes: draw again
             letters = "".join(secrets.choice(CODE_LETTERS) for _ in range(8))
-            if conn.set(_pending(letters), f"{key_hash} {prefix}", ex=CLI_LOGIN_SECONDS, nx=True):
-                code = f"{letters[:4]}-{letters[4:]}"
+            code = f"{letters[:4]}-{letters[4:]}"
+            if conn.set(f"cli-login:{code}", f"{key_hash} {prefix}", ex=CLI_LOGIN_SECONDS, nx=True):
+                break
         return Response(
             {
                 "key": plaintext,

@@ -104,7 +104,7 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
         // `estela login` sends people here with ?code=, older estela-cli with ?cli=1.
         const params = new URLSearchParams(window.location.search);
         // Only a code's shape, so a link cannot put its own words in the box that warns about it.
-        const cliCode = params.get("code")?.match(/^[A-Z]{4}-[A-Z]{4}$/i)?.[0] ?? null;
+        const cliCode = params.get("code")?.match(/^[A-Z]{4}-[A-Z]{4}$/)?.[0] ?? null;
         if (params.get("cli") === "1" || cliCode) {
             // Prefilled, never created on arrival: a link someone sends you must not
             // mint a key by itself. The duration is left out so the key inherits
