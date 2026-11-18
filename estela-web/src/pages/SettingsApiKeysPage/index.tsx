@@ -353,6 +353,10 @@ export class SettingsApiKeysPage extends Component<unknown, ApiKeysPageState> {
                 >
                     {cliCode && (
                         <Row className="bg-estela-red-low rounded-lg p-3 mb-4">
+                            <p className="w-full text-sm text-estela-black-full mb-2">
+                                estela-cli is asking for an API key in your name. Choose below what it may do: read
+                                data, run jobs, deploy. You can revoke the key any time on this page.
+                            </p>
                             <p className="w-full font-courier text-2xl text-center text-estela-black-full">{cliCode}</p>
                             <p className="text-sm text-estela-red-full mt-2">
                                 <WarningOutlined /> Approve only if this is the code your terminal shows after you ran{" "}

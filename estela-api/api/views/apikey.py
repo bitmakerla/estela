@@ -25,9 +25,9 @@ from core.models import ApiKey
 # approves the code by creating a key with it (ApiKeyViewSet.create). Until then only the key's
 # hash waits in Redis, for CLI_LOGIN_SECONDS, and a code approves one key.
 CLI_LOGIN_SECONDS = 600
-# ponytail: one cap shared by everyone, so a flood fills Redis this much at most (and holds up
-# logins for a minute); limit per client if that ever bites.
-CLI_LOGINS_PER_MINUTE = 60
+# Traefik limits each client (terraform-deployment, the estela ingress); this cap, shared by
+# everyone, only bounds what waits in Redis: 6000 codes of ~100 bytes at most.
+CLI_LOGINS_PER_MINUTE = 600
 CODE_LETTERS = "BCDFGHJKLMNPQRSTVWXZ"  # no vowels, so no words; no digits to mistake
 
 
