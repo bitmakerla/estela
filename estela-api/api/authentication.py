@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework import authentication, exceptions
 
+from api.operators import was_operator
 from core.models import ApiKey, RunToken
 
 KEYWORD = "Token"
@@ -67,9 +68,8 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         # An Operator's key acts as one only with the operator scope, and only while its owner
         # still is one, as the last sync from the provider says (api.operators.sync_operators).
-        profile = getattr(api_key.user, "profile", None)
-        api_key.user.estela_operator = api_key.has_scope(ApiKey.OPERATOR_SCOPE) and bool(
-            getattr(profile, "is_operator", False)
+        api_key.user.estela_operator = api_key.has_scope(ApiKey.OPERATOR_SCOPE) and was_operator(
+            api_key.user
         )
 
         self.touch(api_key)
