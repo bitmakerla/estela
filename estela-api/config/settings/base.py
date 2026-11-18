@@ -369,6 +369,10 @@ OIDC_ROLES_CLAIM = env.str(
 ESTELA_PROJECT_ID = env.str("ESTELA_PROJECT_ID", default="")
 BITMAKER_ORG_ID = env.str("BITMAKER_ORG_ID", default="")
 OPERATOR_ROLE = env.str("OPERATOR_ROLE", default="estela.operator")
+# A read-only token for Bitmaker's Org in the provider (estela-roles-setup.sh in
+# terraform-deployment). With it, the Celery worker copies who is an Operator into each
+# UserProfile every 15 minutes (api.operators.sync_operators). Empty: no sync.
+ZITADEL_READER_TOKEN = env.str("ZITADEL_READER_TOKEN", default="")
 if AUTH_MODE == "oidc" and not (OIDC_ISSUER and OIDC_AUDIENCE):
     raise ImproperlyConfigured("AUTH_MODE=oidc needs OIDC_ISSUER and OIDC_AUDIENCE.")
 

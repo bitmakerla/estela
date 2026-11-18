@@ -4,9 +4,11 @@ from django.conf import settings
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, permissions, status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from api.authentication import AUTHENTICATION_CLASSES, generate_key
+from api.operators import is_operator
 from api.permissions import IsSessionAuthenticated
 from api.serializers.apikey import (
     ApiKeyCreateResponseSerializer,
@@ -40,6 +42,9 @@ class ApiKeyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     def create(self, request, *args, **kwargs):
         serializer = ApiKeyCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        scopes = serializer.validated_data["scopes"]
+        if ApiKey.OPERATOR_SCOPE in scopes and not is_operator(request.user):
+            raise PermissionDenied({"scopes": "Only Operators can give a key the operator scope."})
 
         days = serializer.validated_data.get(
             "expires_in_days", settings.API_KEY_DEFAULT_DAYS
@@ -48,7 +53,7 @@ class ApiKeyViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         api_key = ApiKey.objects.create(
             user=request.user,
             name=serializer.validated_data["name"],
-            scopes=serializer.validated_data["scopes"],
+            scopes=scopes,
             prefix=prefix,
             key_hash=key_hash,
             expires_at=timezone.now() + timedelta(days=int(days)),

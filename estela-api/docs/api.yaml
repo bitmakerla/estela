@@ -1877,6 +1877,7 @@ definitions:
             - data
             - run
             - manage
+            - operator
         default: []
       expires_in_days:
         title: Expires in days

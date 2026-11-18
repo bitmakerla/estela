@@ -209,8 +209,10 @@ class UserProfile(models.Model):
         default=None,
         help_text="Bitmaker's User id (usr_...), from the Account Registry.",
     )
-    # Never what authorizes this User: that is their token's roles, on each request
-    # (api/operators.py). Only what others may grant them: a role in another Org's Project.
+    # What is known of this User with no token of theirs at hand: what others may grant them (a
+    # role in another Org's Project), and whether their API key with the operator scope acts as
+    # one. Set at sign-in and by api.operators.sync_operators; a signed-in request still goes by
+    # its own token's roles (api/operators.py).
     # Nullable on purpose: Django drops a column's default after adding it, and staging's
     # database is shared with estela images that do not know this field. NOT NULL would stop
     # them creating any user; NULL reads as not an Operator.
@@ -230,7 +232,10 @@ class ApiKey(models.Model):
     DATA_SCOPE = "data"
     RUN_SCOPE = "run"
     MANAGE_SCOPE = "manage"
-    SCOPES = [DATA_SCOPE, RUN_SCOPE, MANAGE_SCOPE]
+    # Lets an Operator's key see and work in every Project, as far as its other scopes allow, and
+    # only while its owner still is one (api.operators.sync_operators).
+    OPERATOR_SCOPE = "operator"
+    SCOPES = [DATA_SCOPE, RUN_SCOPE, MANAGE_SCOPE, OPERATOR_SCOPE]
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="api_keys", help_text="Owner."

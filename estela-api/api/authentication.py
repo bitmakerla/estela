@@ -46,7 +46,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             return None
 
         try:
-            api_key = ApiKey.objects.select_related("user").get(
+            api_key = ApiKey.objects.select_related("user__profile").get(
                 key_hash=hash_key(plaintext)
             )
         except ApiKey.DoesNotExist:
@@ -64,6 +64,13 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         if not api_key.user.is_active:
             raise exceptions.AuthenticationFailed("User inactive or deleted.")
+
+        # An Operator's key acts as one only with the operator scope, and only while its owner
+        # still is one, as the last sync from the provider says (api.operators.sync_operators).
+        profile = getattr(api_key.user, "profile", None)
+        api_key.user.estela_operator = api_key.has_scope(ApiKey.OPERATOR_SCOPE) and bool(
+            getattr(profile, "is_operator", False)
+        )
 
         self.touch(api_key)
         return (api_key.user, api_key)
