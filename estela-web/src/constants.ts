@@ -6,6 +6,12 @@ export const RECAPTCHA_ENABLED = RECAPTCHA_SITE_KEY !== "";
 // How people sign in: "local" (estela's own login pages) or "oidc" (a gateway in front of estela,
 // such as oauth2-proxy). Must match the API's AUTH_MODE.
 export const AUTH_MODE = process.env.REACT_APP_AUTH_MODE === "oidc" ? "oidc" : "local";
+// The Bitmaker launcher (e.g. https://launcher.cloud.bitmaker.dev/). Set = the Bitmaker service
+// rail shows on the left of every signed-in page, loaded from <launcher>/rail.js, to jump to the
+// other Bitmaker services. Unset = no rail. Anything but an http(s) URL counts as unset, which
+// covers a build whose .env does not mention it.
+const launcherUrl = process.env.REACT_APP_LAUNCHER_URL ?? "";
+export const LAUNCHER_URL = /^https?:\/\//.test(launcherUrl) ? launcherUrl.replace(/\/?$/, "/") : "";
 export const DEFAULT_RESOURCE_TIER = "LARGE";
 
 export const PREDEFINED_TIERS = [
