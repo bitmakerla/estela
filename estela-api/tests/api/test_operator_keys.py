@@ -80,13 +80,18 @@ class OperatorKeyTests(TestCase):
         self.assertEqual(self.create(self.kate, operator=True).status_code, 201)
 
 
-def zitadel(grants, active, *, fail=False):
-    """requests.post as Zitadel's two searches answer it."""
+def zitadel(grants, active, inactive=(), *, fail=False):
+    """requests.post as Zitadel's searches answer it: grants, active Users, deactivated Users."""
 
     def post(url, **kwargs):
         if fail:
             raise requests.ConnectionError("down")
-        results = grants if url.endswith("users/grants/_search") else active
+        if url.endswith("users/grants/_search"):
+            results = grants
+        elif "USER_STATE_INACTIVE" in str(kwargs["json"]):
+            results = list(inactive)
+        else:
+            results = active
         response = MagicMock()
         response.json.return_value = {"details": {"totalResult": str(len(results))}, "result": results}
         return response
@@ -130,3 +135,29 @@ class SyncOperatorsTests(TestCase):
         with zitadel([grant("sub-kate")], [{"id": "sub-kate"}]) as post:
             sync_operators()
         post.assert_not_called()
+
+    def active_ones(self):
+        return sorted(User.objects.filter(is_active=True).values_list("username", flat=True))
+
+    def test_someone_deactivated_in_the_provider_loses_their_api_keys(self):
+        """Even when no Operator is named, so the Operator part changes nothing."""
+        client = key_client(self.kate, ["data", "run"])
+        with zitadel([], [{"id": "sub-left"}], [{"id": "sub-kate"}, {"id": "sub-outsider"}]):
+            sync_operators()
+        # The outsider is not of Bitmaker's Org: never touched.
+        self.assertEqual(self.active_ones(), ["gone", "left", "outsider"])
+        self.assertEqual(client.get("/api/projects").status_code, 401)
+
+    def test_someone_active_again_gets_their_api_keys_back(self):
+        User.objects.filter(pk=self.kate.pk).update(is_active=False)
+        client = key_client(self.kate, ["data", "run"])
+        with zitadel([grant("sub-kate")], [{"id": "sub-kate"}]):
+            sync_operators()
+        self.assertEqual(self.active_ones(), ["gone", "kate", "left", "outsider"])
+        self.assertEqual(client.get("/api/projects").status_code, 200)
+
+    def test_a_failed_search_changes_no_ones_state(self):
+        User.objects.filter(pk=self.kate.pk).update(is_active=False)
+        with zitadel([], [{"id": "sub-kate"}], [{"id": "sub-left"}], fail=True):
+            sync_operators()
+        self.assertEqual(self.active_ones(), ["gone", "left", "outsider"])

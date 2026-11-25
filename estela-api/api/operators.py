@@ -11,6 +11,11 @@ the provider said at the last sync (sync_operators, every 15 minutes).
 Otherwise (AUTH_MODE=local, or the provider's ids not set yet), an Operator is Django staff, as
 before.
 
+The same sync follows who of Bitmaker's Org is deactivated in the provider: their account here goes
+inactive, so their API keys stop working, and comes back once the provider lists them as active
+again. Job containers report with RunTokens, which do not look at is_active, so their running and
+scheduled jobs go on.
+
 Django superusers keep the few powers that were theirs alone (the platform's own admin, not an
 Operator's): the checks on is_superuser alone are not Operator checks.
 """
@@ -19,6 +24,7 @@ import logging
 
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
 
 from core.models import UserProfile
 
@@ -55,9 +61,28 @@ def sync_operators():
     with no token of theirs at hand: their API keys with the operator scope, a role others grant them,
     the "(admin)" next to their name. The same rule as operator_in: estela.operator granted in
     Bitmaker's Org, to an active User of that Org. Writes nothing when the provider's answer cannot be
-    trusted whole, so a failure never takes Operators away."""
+    trusted whole, so a failure never takes Operators away.
+
+    Before that, and whatever comes of it, copies User.is_active for the Users of Bitmaker's Org: one
+    the provider lists as deactivated goes inactive, which refuses their API keys and sign-ins; one
+    it lists as active again is let back in. Only Users the provider names change, so a failed or
+    cut-short search changes nobody."""
     if not (operators_from_idp() and settings.ZITADEL_READER_TOKEN):
         return
+    active = _search_bitmakers_org("users/_search", [{"stateQuery": {"state": "USER_STATE_ACTIVE"}}])
+    inactive = _search_bitmakers_org(
+        "users/_search", [{"stateQuery": {"state": "USER_STATE_INACTIVE"}}]
+    )
+    bitmakers = User.objects.filter(profile__idp_org_id=settings.BITMAKER_ORG_ID)
+    if inactive is not None:
+        bitmakers.filter(is_active=True, profile__oidc_sub__in=[u["id"] for u in inactive]).update(
+            is_active=False
+        )
+    if active is not None:
+        bitmakers.filter(is_active=False, profile__oidc_sub__in=[u["id"] for u in active]).update(
+            is_active=True
+        )
+
     grants = _search_bitmakers_org(
         "users/grants/_search",
         [
@@ -66,7 +91,6 @@ def sync_operators():
         ],
     )
     # Deactivating someone leaves their grants in place: only an active User counts.
-    active = _search_bitmakers_org("users/_search", [{"stateQuery": {"state": "USER_STATE_ACTIVE"}}])
     if grants is None or active is None:
         return
     active_ids = {u["id"] for u in active}
