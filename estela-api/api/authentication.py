@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework import authentication, exceptions
 
+from api.operators import was_operator
 from core.models import ApiKey, RunToken
 
 KEYWORD = "Token"
@@ -46,7 +47,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             return None
 
         try:
-            api_key = ApiKey.objects.select_related("user").get(
+            api_key = ApiKey.objects.select_related("user__profile").get(
                 key_hash=hash_key(plaintext)
             )
         except ApiKey.DoesNotExist:
@@ -64,6 +65,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         if not api_key.user.is_active:
             raise exceptions.AuthenticationFailed("User inactive or deleted.")
+
+        # An Operator's key acts as one only with the operator scope, and only while its owner
+        # still is one, as the last sync from the provider says (api.operators.sync_operators).
+        api_key.user.estela_operator = api_key.has_scope(ApiKey.OPERATOR_SCOPE) and was_operator(
+            api_key.user
+        )
 
         self.touch(api_key)
         return (api_key.user, api_key)
