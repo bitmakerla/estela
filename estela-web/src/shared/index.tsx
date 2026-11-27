@@ -6,5 +6,6 @@ export { CustomSpin as Spin } from "./spin";
 export { PaginationItem } from "./paginationItem";
 export * from "./notifications";
 export { PrivateRoute } from "./privateRoute";
+export { BitmakerRailFrame } from "./bitmakerRail";
 export * from "./layouts";
 export * from "./types";

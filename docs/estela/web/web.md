@@ -18,6 +18,10 @@ Set `.env.local` using the `.env.local.example` file where:
 - `RECAPTCHA_SITE_KEY` (optional): Site key of a reCAPTCHA v2 "I'm not a robot" checkbox
   site, which shows a captcha on the login and register forms. Leave it empty to show no
   captcha.
+- `REACT_APP_LAUNCHER_URL` (optional): The Bitmaker launcher's URL. When set, every signed-in
+  page shows the Bitmaker service rail on its left (the launcher's `<bitmaker-rail>` element,
+  loaded from `<launcher>/rail.js`) to jump to the other Bitmaker services. Leave it empty for
+  no rail.
 
 {: .note }
 > These variables are read at build time and compiled into the bundle, so a build serves
